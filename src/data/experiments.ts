@@ -15,8 +15,8 @@ export const experiments: Experiment[] = [
     title: 'Aping the modernists',
     blurb:
       'A set of agent skills that generate documents in the voice of the Swiss ' +
-      'typographers — Müller-Brockmann, Experimental Jetset, iA-minimal. This ' +
-      'very site is one of their outputs.',
+      'typographers — Müller-Brockmann and Experimental Jetset. This very site ' +
+      'is one of their outputs.',
     meta: 'Agent skills · 2026',
     href: '/work/aping/',
   },
