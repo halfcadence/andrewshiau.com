@@ -1,0 +1,110 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// The three house styles the skills produce. Filled from the real skill files
+// during the repo-clone step; these are the canonical three.
+const styles = [
+  {
+    n: '01',
+    name: 'Müller',
+    of: 'Josef Müller-Brockmann',
+    note: 'A visible modular grid carrying large, disciplined type. Structure from rules, not boxes. One signal-red accent.',
+    accent: true,
+  },
+  {
+    n: '02',
+    name: 'Jetset',
+    of: 'Experimental Jetset',
+    note: 'Type-as-image. Oversized expressive headlines, poster energy, one flat spot color used as big filled blocks.',
+    accent: false,
+  },
+  {
+    n: '03',
+    name: 'Minimal',
+    of: 'iA Writer / Japanese-minimal',
+    note: 'Monospace everything, warm paper, hairline rules, one narrow column. Calm, cozy, editorial.',
+    accent: false,
+  },
+];
+---
+
+<Layout
+  title="Aping the modernists — Andrew Shiau"
+  description="Agent skills that generate documents in the voice of the Swiss typographers."
+>
+  <div class="grid">
+    <div class="back"><a href="/">← Index</a></div>
+  </div>
+
+  <div class="grid">
+    <div class="c1-2"><span class="sn">01</span></div>
+    <div class="c3-12"><h1>Aping the modernists</h1></div>
+  </div>
+  <div class="grid">
+    <p class="dek c1-8" style="margin-top:var(--unit)">
+      A set of agent skills that generate self-contained HTML documents in the
+      voice of specific design lineages — the Swiss grid, the Amsterdam poster
+      studio, the Japanese minimalists. You invoke one; the agent renders your
+      content through that studio's rules.
+    </p>
+  </div>
+
+  <div class="grid">
+    <div class="idea">
+      <p class="k">The trick</p>
+      <p>The style is encoded as constraints, so the machine can't drift out of it.</p>
+    </div>
+  </div>
+
+  <!-- meta callout: this site IS an output -->
+  <div class="grid">
+    <div class="block c1-6">
+      <span class="sl">You are looking at one</span>
+      <span class="st">This entire site is rendered in the /muller style.</span>
+      <span class="sd">Press g to reveal the grid it's built on.</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="rule"></div>
+  </div>
+  <div class="grid">
+    <div class="c1-2"><span class="sn">§</span></div>
+    <div class="c3-12"><h2>The three houses</h2></div>
+  </div>
+
+  <!-- The styles as rule-topped columns, not cards -->
+  <div class="grid" style="margin-top:var(--unit)">
+    {styles.map((s) => (
+      <div class={`c1-4 ${s.accent ? 'step accent' : 'step'}`} style="grid-column:span 4">
+        <span class="snum">{s.n}</span>
+        <span class="sl">after {s.of}</span>
+        <span class="st">/{s.name.toLowerCase()}</span>
+        <span class="sd">{s.note}</span>
+      </div>
+    ))}
+  </div>
+
+  <div class="grid">
+    <div class="rule"></div>
+  </div>
+  <div class="grid">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Form</div>
+        <div class="ftx">
+          Each style is a skill file — a spec of tokens, grid, and anti-slop
+          rules the agent must obey. No build step; each output is one
+          self-contained HTML file.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">Repo</div>
+        <div class="ftx">
+          Lives in a private repository. <b>Sample outputs</b> shown here;
+          source available on request.
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

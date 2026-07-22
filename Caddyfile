@@ -1,0 +1,26 @@
+# Caddyfile for andrewshiau.com — automatic HTTPS via Let's Encrypt.
+# Caddy fetches + auto-renews certs on first request. Drop this at
+# /etc/caddy/Caddyfile on the droplet, then `sudo systemctl reload caddy`.
+#
+# Set your email so Let's Encrypt can send expiry warnings.
+{
+	email andrew@andrewshiau.com
+}
+
+# New AI-forward portfolio at the apex + www.
+andrewshiau.com, www.andrewshiau.com {
+	root * /var/www/andrewshiau
+	encode gzip zstd
+	file_server
+	# Astro emits /work/foo/index.html — try clean paths first.
+	try_files {path} {path}/ {path}/index.html
+}
+
+# Archived 2018 React SPA. Served from a copy of the OLD nginx webroot.
+2018.andrewshiau.com {
+	root * /var/www/andrewshiau-2018
+	encode gzip zstd
+	file_server
+	# SPA fallback: unknown routes render the app shell.
+	try_files {path} /index.html
+}
