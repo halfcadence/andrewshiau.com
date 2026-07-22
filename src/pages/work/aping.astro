@@ -1,28 +1,22 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 
-// The three house styles the skills produce. Filled from the real skill files
-// during the repo-clone step; these are the canonical three.
+// The two design-aping skills that live in the repo, with provenance taken
+// verbatim from their SKILL.md files. `/minimal` is referenced by both as a
+// quieter sibling but lives elsewhere.
 const styles = [
   {
     n: '01',
-    name: 'Müller',
+    name: 'muller',
     of: 'Josef Müller-Brockmann',
-    note: 'A visible modular grid carrying large, disciplined type. Structure from rules, not boxes. One signal-red accent.',
+    note: 'A visible, mathematical modular grid carrying large, precisely-set type. Structure comes from column alignment and thin rules — not boxes. One rationed signal-red accent. The grid as an ethic.',
     accent: true,
   },
   {
     n: '02',
-    name: 'Jetset',
-    of: 'Experimental Jetset',
-    note: 'Type-as-image. Oversized expressive headlines, poster energy, one flat spot color used as big filled blocks.',
-    accent: false,
-  },
-  {
-    n: '03',
-    name: 'Minimal',
-    of: 'iA Writer / Japanese-minimal',
-    note: 'Monospace everything, warm paper, hairline rules, one narrow column. Calm, cozy, editorial.',
+    name: 'jetset',
+    of: 'Experimental Jetset (Amsterdam)',
+    note: 'Pure black Helvetica on pure white. Type IS the image — words filling the surface, set tight and huge. Exactly one flat spot color per piece, used as a field. Flat, hard, zero effects.',
     accent: false,
   },
 ];
@@ -44,8 +38,8 @@ const styles = [
     <p class="dek c1-8" style="margin-top:var(--unit)">
       A set of agent skills that generate self-contained HTML documents in the
       voice of specific design lineages — the Swiss grid, the Amsterdam poster
-      studio, the Japanese minimalists. You invoke one; the agent renders your
-      content through that studio's rules.
+      studio. You invoke one; the agent renders your content through that
+      studio's rules instead of the default machine-made look.
     </p>
   </div>
 
@@ -70,16 +64,16 @@ const styles = [
   </div>
   <div class="grid">
     <div class="c1-2"><span class="sn">§</span></div>
-    <div class="c3-12"><h2>The three houses</h2></div>
+    <div class="c3-12"><h2>The houses</h2></div>
   </div>
 
   <!-- The styles as rule-topped columns, not cards -->
   <div class="grid" style="margin-top:var(--unit)">
     {styles.map((s) => (
-      <div class={`c1-4 ${s.accent ? 'step accent' : 'step'}`} style="grid-column:span 4">
+      <div class={s.accent ? 'step accent' : 'step'} style="grid-column:span 6">
         <span class="snum">{s.n}</span>
         <span class="sl">after {s.of}</span>
-        <span class="st">/{s.name.toLowerCase()}</span>
+        <span class="st">/{s.name}</span>
         <span class="sd">{s.note}</span>
       </div>
     ))}
@@ -93,16 +87,25 @@ const styles = [
       <div class="frow">
         <div class="fm">Form</div>
         <div class="ftx">
-          Each style is a skill file — a spec of tokens, grid, and anti-slop
-          rules the agent must obey. No build step; each output is one
-          self-contained HTML file.
+          Each style is a single <b>SKILL.md</b> — a spec of design tokens, a
+          grid, and an "anti-slop checklist" the agent must obey. No build step;
+          every output is one self-contained HTML file with system Helvetica.
         </div>
       </div>
       <div class="frow">
-        <div class="fm">Repo</div>
+        <div class="fm">Why constraints</div>
         <div class="ftx">
-          Lives in a private repository. <b>Sample outputs</b> shown here;
-          source available on request.
+          The rules are written as hard <b>MUST / MUST NOT</b> (RFC&nbsp;2119)
+          lines, so the model can't quietly drift a piece back toward generic
+          "AI look." The reference is the actual work — the book, the posters —
+          re-derived, not a vague memory.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">Source</div>
+        <div class="ftx">
+          Lives in a private repository. <b>Sample output shown here</b> — this
+          page is one; source available on request.
         </div>
       </div>
     </div>
