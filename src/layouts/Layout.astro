@@ -1,0 +1,63 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Andrew Shiau — AI experiments.' } = Astro.props;
+const year = 2026;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="guide" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="content">
+        <nav class="topbar">
+          <a class="brand" href="/">Andrew&nbsp;Shiau</a>
+          <div class="navlinks">
+            <a href="/">Index</a>
+            <a href="/work/aping/">Aping</a>
+            <a href="/work/recipes/">Recipes</a>
+          </div>
+        </nav>
+
+        <slot />
+
+        <footer class="foot">
+          <div class="fl">
+            Built with an AI agent, in the Müller-Brockmann grid system.
+            Press <code>g</code> to see the grid.
+          </div>
+          <div class="fr">© {year} Andrew Shiau</div>
+        </footer>
+      </div>
+    </div>
+    <script is:inline>
+      // hidden hotkey: press `g` to flash the column grid on/off
+      document.addEventListener('keydown', (e) => {
+        if (
+          e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey &&
+          !/^(input|textarea|select)$/i.test(e.target.tagName)
+        ) {
+          document.body.classList.toggle('showgrid');
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { experiments } from '../data/experiments';
+---
+
+<Layout title="Andrew Shiau — AI experiments">
+  <!-- Masthead -->
+  <div class="grid">
+    <p class="kicker c1-12">Andrew Shiau — Designer & builder</p>
+  </div>
+  <div class="grid">
+    <h1 class="c1-10">I build things with AI agents, then keep the good ones.</h1>
+  </div>
+  <div class="grid">
+    <p class="dek c1-8" style="margin-top:var(--unit)">
+      This site is a running index of experiments made <em>with</em> language
+      models — not a portfolio of finished work. Some are tools, some are
+      systems, some are slop. Each links to the real thing.
+    </p>
+  </div>
+
+  <!-- One-idea statement -->
+  <div class="grid">
+    <div class="idea">
+      <p class="k">The premise</p>
+      <p>The interesting work now is the collaboration, not the artifact.</p>
+    </div>
+  </div>
+
+  <!-- Section head: the index -->
+  <div class="grid">
+    <div class="rule"></div>
+  </div>
+  <div class="grid">
+    <div class="c1-2"><span class="sn">§</span></div>
+    <div class="c3-12"><h2>Selected experiments</h2></div>
+  </div>
+
+  <!-- The numbered experiment index -->
+  <div style="margin-top:var(--unit)">
+    {experiments.map((x) => (
+      <a class="entry" href={x.href} target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
+        <span class="en">{x.n}</span>
+        <span class="et">
+          <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
+          <p class="ed">{x.blurb}</p>
+        </span>
+        <span class="em">{x.meta}</span>
+      </a>
+    ))}
+  </div>
+
+  <!-- Contact / colophon facts -->
+  <div class="grid">
+    <div class="rule"></div>
+  </div>
+  <div class="grid">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Elsewhere</div>
+        <div class="ftx">
+          <b><a href="https://github.com/halfcadence">github.com/halfcadence</a></b>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">This site</div>
+        <div class="ftx">
+          Astro, hand-set in the Müller-Brockmann grid system. No framework theme,
+          system Helvetica. Press <code>g</code> to reveal the grid.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">Prior work</div>
+        <div class="ftx">
+          The pre-AI portfolio is archived at
+          <b><a href="https://2018.andrewshiau.com">2018.andrewshiau.com</a></b>.
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

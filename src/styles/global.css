@@ -1,0 +1,166 @@
+/*
+  andrewshiau.com — Müller-Brockmann grid system.
+  Ported from the /muller house style: 12-field modular grid, large disciplined
+  Helvetica, structure drawn by RULES not boxes, one rationed signal-red accent,
+  baseline rhythm on --unit. Light default; dark follows the system.
+*/
+:root{
+  color-scheme: light dark;
+  --paper:#f4f3ef;
+  --panel:#ffffff;
+  --ink:#141412;
+  --dim:#5f5e57;
+  --faint:#94938b;
+  --line:#d5d4cd;
+  --accent:#d5241a;      /* signal red — structural only */
+  --on-accent:#ffffff;
+  --guide:rgba(213,36,26,0.055);
+  --unit:24px;           /* baseline unit — every vertical space is a multiple */
+  --gutter:28px;
+  --sans:"Helvetica Neue",Helvetica,"Akzidenz-Grotesk",Arial,"Liberation Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#141413; --panel:#1b1b19; --ink:#f0efe8; --dim:#a09f96; --faint:#67665f;
+    --line:#2b2b27; --accent:#ff4d3f; --on-accent:#ffffff; --guide:rgba(255,77,63,0.07);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:24px;font-weight:400;letter-spacing:-0.004em;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.wrap{max-width:1120px;margin:0 auto;padding:0 var(--gutter) calc(var(--unit)*5);position:relative}
+
+/* THE GRID — 12 fields */
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);row-gap:0}
+.grid + .grid{margin-top:var(--unit)}
+.c1-12{grid-column:1 / 13} .c1-8{grid-column:1 / 9}  .c9-12{grid-column:9 / 13}
+.c1-6{grid-column:1 / 7}   .c7-12{grid-column:7 / 13} .c1-4{grid-column:1 / 5}
+.c5-12{grid-column:5 / 13} .c1-3{grid-column:1 / 4}  .c4-12{grid-column:4 / 13}
+.c1-9{grid-column:1 / 10}  .c1-2{grid-column:1 / 3}  .c3-12{grid-column:3 / 13}
+.c1-10{grid-column:1 / 11} .c1-5{grid-column:1 / 6}  .c6-12{grid-column:6 / 13}
+.c1-7{grid-column:1 / 8}   .c8-12{grid-column:8 / 13}
+.c5-8{grid-column:5 / 9}   .c9-12b{grid-column:9 / 13}
+@media(max-width:720px){ .grid > *{grid-column:1 / 13 !important} }
+
+/* THE COLUMN GUIDE — hidden by default; press `g` to flash on */
+.guide{position:absolute;inset:0 var(--gutter);display:none;
+  grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);pointer-events:none;z-index:0}
+.guide i{background:var(--guide);display:block}
+body.showgrid .guide{display:grid}
+.content{position:relative;z-index:1}
+
+/* TYPE */
+.kicker{font-size:12px;line-height:24px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:600;margin:0}
+h1{font-weight:700;font-size:clamp(42px,7.5vw,88px);line-height:0.97;letter-spacing:-0.03em;margin:0;overflow-wrap:anywhere}
+h2{font-weight:700;font-size:clamp(21px,2.4vw,28px);line-height:1.1;letter-spacing:-0.014em;margin:0}
+.dek{font-size:clamp(18px,2vw,22px);line-height:1.36;color:var(--dim);margin:0;font-weight:400;max-width:32em}
+p{margin:0 0 var(--unit);max-width:33em}
+p:last-child{margin-bottom:0}
+b,strong{font-weight:700}
+a{color:var(--accent);text-underline-offset:2px}
+.num{color:var(--accent);font-weight:700}
+code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;
+  background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em}
+
+/* SECTION HEAD */
+.rule{grid-column:1 / 13;border-top:1px solid var(--ink);height:0;margin:calc(var(--unit)*2.5) 0 var(--unit)}
+.sn{font-weight:700;font-size:clamp(26px,3.4vw,42px);line-height:1;color:var(--accent);letter-spacing:-0.02em}
+
+/* ONE-IDEA statement */
+.idea{grid-column:1 / 9;border-top:3px solid var(--accent);padding-top:calc(var(--unit) - 3px);margin:var(--unit) 0 calc(var(--unit)*1.5)}
+.idea .k{color:var(--accent);font-size:12px;line-height:24px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;margin:0 0 8px}
+.idea p{font-size:clamp(23px,3vw,34px);line-height:1.12;font-weight:700;letter-spacing:-0.018em;color:var(--ink);max-width:20em;margin:0}
+.idea p + p{margin-top:12px}
+
+/* STEP / entry — top rule + type, no box */
+.step{padding-top:12px;border-top:2px solid var(--ink)}
+.step .sl{display:block;font-size:11px;line-height:20px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:8px}
+.step .snum{display:block;font-size:clamp(28px,3vw,40px);line-height:1;font-weight:700;letter-spacing:-0.02em;margin-bottom:10px}
+.step .st{display:block;font-weight:700;font-size:18px;line-height:24px;letter-spacing:-0.008em}
+.step .sd{display:block;color:var(--dim);font-size:15px;line-height:22px;margin-top:6px}
+.step.accent{border-top-color:var(--accent)}
+.step.accent .snum{color:var(--accent)}
+
+/* BLOCK — the ONE rationed filled form */
+.block{background:var(--accent);color:var(--on-accent);padding:16px 18px;align-self:start}
+.block .sl{color:var(--on-accent);opacity:.8}
+.block .st{display:block;font-weight:700;font-size:18px;line-height:24px}
+.block .sd{display:block;color:var(--on-accent);opacity:.92;font-size:15px;line-height:22px;margin-top:6px}
+
+/* RULED ROW — vertical hairlines between columns */
+.ruled > *{border-left:1px solid var(--line);padding-left:18px}
+.ruled > *:first-child{border-left:none;padding-left:0}
+@media(max-width:720px){.ruled > *{border-left:none;padding-left:0;margin-top:var(--unit)}
+  .ruled > *:first-child{margin-top:0}}
+
+/* FACTS — caption column + text column, hairline rows */
+.facts{grid-column:1 / 13}
+.frow{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);
+  border-top:1px solid var(--line);padding:16px 0}
+.frow:first-child{border-top:2px solid var(--ink)}
+.frow .fm{grid-column:1 / 4;font-weight:700;font-size:13px;line-height:22px;letter-spacing:.03em;text-transform:uppercase}
+.frow .ftx{grid-column:4 / 13;font-size:16px;line-height:24px;color:var(--dim)}
+.frow .ftx b{color:var(--ink)}
+@media(max-width:720px){.frow{grid-template-columns:1fr}.frow .fm,.frow .ftx{grid-column:1}.frow .ftx{margin-top:4px}}
+
+/* INDEX ROW — the numbered experiment list on the landing page. A hang-indent
+   set number + title + meta, separated by hairline rules (no cards). */
+.entry{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);
+  border-top:1px solid var(--line);padding:var(--unit) 0;text-decoration:none;color:var(--ink)}
+.entry:first-of-type{border-top:2px solid var(--ink)}
+.entry:last-of-type{border-bottom:1px solid var(--line)}
+.entry:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.entry .en{grid-column:1 / 2;font-weight:700;font-size:clamp(22px,2.6vw,32px);line-height:1;color:var(--accent);letter-spacing:-0.02em}
+.entry .et{grid-column:2 / 8}
+.entry .eh{font-weight:700;font-size:clamp(20px,2.2vw,26px);line-height:1.08;letter-spacing:-0.014em;margin:0}
+.entry .ed{color:var(--dim);font-size:15px;line-height:22px;margin:6px 0 0;max-width:34em}
+.entry .em{grid-column:9 / 13;justify-self:end;text-align:right;color:var(--faint);
+  font-size:11px;line-height:20px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.entry .arrowc{color:var(--accent);font-weight:700}
+@media(max-width:720px){
+  .entry{grid-template-columns:auto 1fr}
+  .entry .en{grid-column:1}.entry .et{grid-column:2}
+  .entry .em{grid-column:1 / 3;justify-self:start;text-align:left;margin-top:10px}
+}
+
+/* NAV / footer — thin ruled bars */
+.topbar{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);
+  align-items:baseline;padding:var(--unit) 0 calc(var(--unit)*0.75);
+  border-bottom:2px solid var(--ink);margin-bottom:calc(var(--unit)*1.5)}
+.topbar .brand{grid-column:1 / 7;font-weight:700;font-size:16px;letter-spacing:-0.01em;text-decoration:none;color:var(--ink)}
+.topbar .navlinks{grid-column:7 / 13;justify-self:end;display:flex;gap:20px}
+.topbar .navlinks a{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  color:var(--dim);text-decoration:none}
+.topbar .navlinks a:hover{color:var(--accent)}
+.foot{border-top:2px solid var(--ink);margin-top:calc(var(--unit)*3);padding-top:var(--unit);
+  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
+.foot .fl{grid-column:1 / 9;color:var(--dim);font-size:13px;line-height:22px}
+.foot .fr{grid-column:9 / 13;justify-self:end;text-align:right;color:var(--faint);
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+@media(max-width:720px){
+  .topbar,.foot{grid-template-columns:1fr}
+  .topbar .navlinks,.foot .fr{justify-self:start;text-align:left;margin-top:10px}
+}
+
+/* Back-link on case-study pages */
+.back{grid-column:1 / 13;margin-bottom:var(--unit)}
+.back a{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  color:var(--dim);text-decoration:none}
+.back a:hover{color:var(--accent)}
+
+/* Screenshot / figure — a plain image on the grid, thin rule caption, no card */
+figure.shot{margin:var(--unit) 0 0}
+figure.shot img{display:block;width:100%;height:auto;border:1px solid var(--line)}
+figure.shot figcaption{color:var(--faint);font-size:12px;line-height:20px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:700;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+
+/* External-link list on case studies */
+.links{grid-column:1 / 9}
+.links a{display:block;border-top:1px solid var(--line);padding:14px 0;text-decoration:none;
+  color:var(--ink);font-weight:700;font-size:17px}
+.links a:first-child{border-top:2px solid var(--ink)}
+.links a:hover{color:var(--accent)}
+.links a .lu{display:block;color:var(--faint);font-weight:400;font-size:13px;margin-top:4px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:0}
