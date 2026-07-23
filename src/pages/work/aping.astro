@@ -1,30 +1,10 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-
-// The two design-aping skills that live in the repo, with provenance taken
-// verbatim from their SKILL.md files. `/minimal` is referenced by both as a
-// quieter sibling but lives elsewhere.
-const styles = [
-  {
-    n: '01',
-    name: 'muller',
-    of: 'Josef Müller-Brockmann',
-    note: 'A visible, mathematical modular grid carrying large, precisely-set type. Structure comes from column alignment and thin rules — not boxes. One rationed signal-red accent. The grid as an ethic.',
-    accent: true,
-  },
-  {
-    n: '02',
-    name: 'jetset',
-    of: 'Experimental Jetset (Amsterdam)',
-    note: 'Pure black Helvetica on pure white. Type IS the image — words filling the surface, set tight and huge. Exactly one flat spot color per piece, used as a field. Flat, hard, zero effects.',
-    accent: false,
-  },
-];
 ---
 
 <Layout
-  title="Aping the modernists — Andrew Shiau"
-  description="Agent skills that generate documents in the voice of the Swiss typographers."
+  title="Aping — Andrew Shiau"
+  description="An agent skill that writes documents in the Swiss style, and where I drew the line."
 >
   <div class="grid">
     <div class="back"><a href="/">← Index</a></div>
@@ -32,30 +12,38 @@ const styles = [
 
   <div class="grid">
     <div class="c1-2"><span class="sn">01</span></div>
-    <div class="c3-12"><h1>Aping the modernists</h1></div>
+    <div class="c3-12"><h1>Aping</h1></div>
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      A set of agent skills that generate self-contained HTML documents in the
-      voice of specific design lineages — the Swiss grid, the Amsterdam poster
-      studio. You invoke one; the agent renders your content through that
-      studio's rules instead of the default machine-made look.
+      An agent skill that writes HTML in the Swiss style — Müller-Brockmann's grid.
+      You invoke it; the agent sets your content by that system's rules instead of
+      the default machine look.
     </p>
   </div>
 
+  <!-- The tension, and the line I drew. Dry. -->
   <div class="grid">
-    <div class="idea">
-      <p class="k">The trick</p>
-      <p>The style is encoded as constraints, so the machine can't drift out of it.</p>
+    <div class="c1-8" style="margin-top:calc(var(--unit)*1.5)">
+      <p>
+        Aping means imitating. It's the honest word for what this does: I taught an
+        agent to work in a style I admire, and it works in it well.
+      </p>
+      <p>
+        I started a second skill aimed at a studio that's still working today, and
+        stopped. Imitating a movement whose author died in 1996 is one thing; pointing
+        a machine at a living studio's look and shipping the output is a different
+        thing, and I didn't like it once I said it plainly. The essay below is me
+        working out where that line is.
+      </p>
     </div>
   </div>
 
   <!-- meta callout: this site IS an output -->
   <div class="grid">
     <div class="block c1-6">
-      <span class="sl">You are looking at one</span>
-      <span class="st">This entire site is rendered in the /muller style.</span>
-      <span class="sd">Press g to reveal the grid it's built on.</span>
+      <span class="st">This site is set in the /swiss style.</span>
+      <span class="sd">Press g to see the grid under it.</span>
     </div>
   </div>
 
@@ -64,19 +52,36 @@ const styles = [
   </div>
   <div class="grid">
     <div class="c1-2"><span class="sn">§</span></div>
-    <div class="c3-12"><h2>The houses</h2></div>
+    <div class="c3-12"><h2>The style</h2></div>
   </div>
 
-  <!-- The styles as rule-topped columns, not cards -->
   <div class="grid" style="margin-top:var(--unit)">
-    {styles.map((s) => (
-      <div class={s.accent ? 'step accent' : 'step'} style="grid-column:span 6">
-        <span class="snum">{s.n}</span>
-        <span class="sl">after {s.of}</span>
-        <span class="st">/{s.name}</span>
-        <span class="sd">{s.note}</span>
-      </div>
-    ))}
+    <div class="step accent" style="grid-column:span 8">
+      <span class="sl">after Josef Müller-Brockmann (1914–1996)</span>
+      <span class="st">/swiss</span>
+      <span class="sd">A visible modular grid carrying large, precisely-set type. Structure from column alignment and thin rules, not boxes. One signal-red accent. This site is set in it.</span>
+    </div>
+  </div>
+
+  <!-- Essays -->
+  <div class="grid">
+    <div class="rule"></div>
+  </div>
+  <div class="grid">
+    <div class="c1-2"><span class="sn">§</span></div>
+    <div class="c3-12"><h2>Written with it</h2></div>
+  </div>
+  <div class="grid" style="margin-top:var(--unit)">
+    <div class="links c1-8">
+      <a href="/writing/what-i-owe/">
+        What I owe the designers I copy
+        <span class="lu">the line, and why I drew it there</span>
+      </a>
+      <a href="/writing/10x-is-a-loop/">
+        10x is a loop, not a prompt
+        <span class="lu">on AI-assisted engineering, evidence first</span>
+      </a>
+    </div>
   </div>
 
   <div class="grid">
@@ -87,25 +92,15 @@ const styles = [
       <div class="frow">
         <div class="fm">Form</div>
         <div class="ftx">
-          Each style is a single <b>SKILL.md</b> — a spec of design tokens, a
-          grid, and an "anti-slop checklist" the agent must obey. No build step;
-          every output is one self-contained HTML file with system Helvetica.
-        </div>
-      </div>
-      <div class="frow">
-        <div class="fm">Why constraints</div>
-        <div class="ftx">
-          The rules are written as hard <b>MUST / MUST NOT</b> (RFC&nbsp;2119)
-          lines, so the model can't quietly drift a piece back toward generic
-          "AI look." The reference is the actual work — the book, the posters —
-          re-derived, not a vague memory.
+          The style is one <b>SKILL.md</b> — design tokens, a grid, and a
+          MUST/MUST&nbsp;NOT checklist the agent follows. Output is a single
+          self-contained HTML file.
         </div>
       </div>
       <div class="frow">
         <div class="fm">Source</div>
         <div class="ftx">
-          Lives in a private repository. <b>Sample output shown here</b> — this
-          page is one; source available on request.
+          Private repo. The pages here are the output; ask if you want the rules.
         </div>
       </div>
     </div>

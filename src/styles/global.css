@@ -1,9 +1,30 @@
 /*
   andrewshiau.com — Müller-Brockmann grid system.
   Ported from the /muller house style: 12-field modular grid, large disciplined
-  Helvetica, structure drawn by RULES not boxes, one rationed signal-red accent,
+  type, structure drawn by RULES not boxes, one rationed signal-red accent,
   baseline rhythm on --unit. Light default; dark follows the system.
+  Typeface: Graphik (self-hosted, from the 2018 portfolio), Helvetica fallback.
 */
+@font-face{
+  font-family:"Graphik"; font-style:normal; font-weight:400; font-display:swap;
+  src:url("/fonts/Graphik-400-Regular.woff2") format("woff2");
+}
+@font-face{
+  font-family:"Graphik"; font-style:italic; font-weight:400; font-display:swap;
+  src:url("/fonts/Graphik-400-Regular-Italic.woff2") format("woff2");
+}
+@font-face{
+  font-family:"Graphik"; font-style:normal; font-weight:500; font-display:swap;
+  src:url("/fonts/Graphik-500-Medium.woff2") format("woff2");
+}
+@font-face{
+  font-family:"Graphik"; font-style:normal; font-weight:600; font-display:swap;
+  src:url("/fonts/Graphik-600-Semibold.woff2") format("woff2");
+}
+@font-face{
+  font-family:"Graphik"; font-style:normal; font-weight:700; font-display:swap;
+  src:url("/fonts/Graphik-700-Bold.woff2") format("woff2");
+}
 :root{
   color-scheme: light dark;
   --paper:#f4f3ef;
@@ -17,7 +38,7 @@
   --guide:rgba(213,36,26,0.055);
   --unit:24px;           /* baseline unit — every vertical space is a multiple */
   --gutter:28px;
-  --sans:"Helvetica Neue",Helvetica,"Akzidenz-Grotesk",Arial,"Liberation Sans",system-ui,sans-serif;
+  --sans:"Graphik","Helvetica Neue",Helvetica,"Akzidenz-Grotesk",Arial,"Liberation Sans",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root{
@@ -105,43 +126,63 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 .frow .ftx b{color:var(--ink)}
 @media(max-width:720px){.frow{grid-template-columns:1fr}.frow .fm,.frow .ftx{grid-column:1}.frow .ftx{margin-top:4px}}
 
-/* INDEX ROW — the numbered experiment list on the landing page. A hang-indent
-   set number + title + meta, separated by hairline rules (no cards). */
-.entry{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);
-  border-top:1px solid var(--line);padding:var(--unit) 0;text-decoration:none;color:var(--ink)}
-.entry:first-of-type{border-top:2px solid var(--ink)}
-.entry:last-of-type{border-bottom:1px solid var(--line)}
+/* EXPERIMENT MATRIX — calendar-scatter layout (Müller-Brockmann). Cells drop into
+   non-adjacent modules of a 12-col × baseline-row grid; the empty modules between
+   them are the composition. Each cell is opened by a top rule, never a card. */
+.matrix{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:var(--unit);
+  column-gap:var(--gutter);row-gap:0;margin-top:var(--unit)}
+.entry{text-decoration:none;color:var(--ink);border-top:2px solid var(--ink);padding-top:10px;
+  align-self:start;transition:background .12s}
 .entry:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
-.entry .en{grid-column:1 / 2;font-weight:700;font-size:clamp(22px,2.6vw,32px);line-height:1;color:var(--accent);letter-spacing:-0.02em}
-.entry .et{grid-column:2 / 8}
-.entry .eh{font-weight:700;font-size:clamp(20px,2.2vw,26px);line-height:1.08;letter-spacing:-0.014em;margin:0}
-.entry .ed{color:var(--dim);font-size:15px;line-height:22px;margin:6px 0 0;max-width:34em}
-.entry .em{grid-column:9 / 13;justify-self:end;text-align:right;color:var(--faint);
-  font-size:11px;line-height:20px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.entry.accent{border-top-color:var(--accent)}
+.entry .en{display:block;font-weight:700;font-size:clamp(30px,3.6vw,46px);line-height:1;
+  color:var(--accent);letter-spacing:-0.02em}
+.entry .eh{font-weight:700;font-size:clamp(20px,2.2vw,26px);line-height:1.08;letter-spacing:-0.014em;margin:10px 0 0}
+.entry .ed{color:var(--dim);font-size:15px;line-height:22px;margin:6px 0 0}
+.entry .em{display:block;color:var(--faint);font-size:11px;line-height:18px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:700;margin-top:12px}
 .entry .arrowc{color:var(--accent);font-weight:700}
+/* the scatter placement — desktop only; mobile collapses to a stack */
+.pos-01{grid-column:1 / 5;grid-row:2 / 10}
+.pos-02{grid-column:8 / 12;grid-row:12 / 20}
+.pos-03{grid-column:3 / 8;grid-row:23 / 30}
 @media(max-width:720px){
-  .entry{grid-template-columns:auto 1fr}
-  .entry .en{grid-column:1}.entry .et{grid-column:2}
-  .entry .em{grid-column:1 / 3;justify-self:start;text-align:left;margin-top:10px}
+  .matrix{display:block}
+  .entry{display:block;margin-top:var(--unit)}
+  .entry:first-child{margin-top:0}
+}
+
+/* COLOPHON — grid-placed facts, not a stacked list. Ink rule spans full width;
+   a label sits far left, three facts drop into columns with empty modules between. */
+.colo-rule{grid-column:1 / 13;border-top:2px solid var(--ink);height:0;margin-bottom:var(--unit)}
+.colo-lab{grid-column:1 / 3;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:700;color:var(--accent)}
+.colo{font-size:14px;line-height:21px;color:var(--dim)}
+.colo .ck{display:block;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  font-weight:700;color:var(--faint);margin-bottom:6px}
+.colo a{color:var(--accent);text-decoration:none}
+.colo.c1{grid-column:3 / 6}
+.colo.c2{grid-column:6 / 9}
+.colo.c3{grid-column:10 / 13}
+@media(max-width:720px){
+  .colo-lab,.colo.c1,.colo.c2,.colo.c3{grid-column:1 / 13;margin-top:var(--unit)}
+  .colo-lab{margin-top:0}
 }
 
 /* NAV / footer — thin ruled bars */
-.topbar{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);
-  align-items:baseline;padding:var(--unit) 0 calc(var(--unit)*0.75);
+.topbar{display:flex;align-items:center;padding:var(--unit) 0 calc(var(--unit)*0.9);
   border-bottom:2px solid var(--ink);margin-bottom:calc(var(--unit)*1.5)}
-.topbar .brand{grid-column:1 / 7;font-weight:700;font-size:16px;letter-spacing:-0.01em;text-decoration:none;color:var(--ink)}
-.topbar .navlinks{grid-column:7 / 13;justify-self:end;display:flex;gap:20px}
-.topbar .navlinks a{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
-  color:var(--dim);text-decoration:none}
-.topbar .navlinks a:hover{color:var(--accent)}
+.topbar .brand{display:inline-flex;color:var(--ink);text-decoration:none;line-height:0}
+.topbar .brand .wordmark{height:44px;width:auto;display:block;color:var(--ink)}
+.topbar .brand:hover .wordmark{color:var(--accent)}
 .foot{border-top:2px solid var(--ink);margin-top:calc(var(--unit)*3);padding-top:var(--unit);
   display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
 .foot .fl{grid-column:1 / 9;color:var(--dim);font-size:13px;line-height:22px}
 .foot .fr{grid-column:9 / 13;justify-self:end;text-align:right;color:var(--faint);
   font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 @media(max-width:720px){
-  .topbar,.foot{grid-template-columns:1fr}
-  .topbar .navlinks,.foot .fr{justify-self:start;text-align:left;margin-top:10px}
+  .foot{grid-template-columns:1fr}
+  .foot .fr{justify-self:start;text-align:left;margin-top:10px}
 }
 
 /* Back-link on case-study pages */
@@ -155,6 +196,15 @@ figure.shot{margin:var(--unit) 0 0}
 figure.shot img{display:block;width:100%;height:auto;border:1px solid var(--line)}
 figure.shot figcaption{color:var(--faint);font-size:12px;line-height:20px;letter-spacing:.06em;
   text-transform:uppercase;font-weight:700;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+
+/* Live embed — the real site framed by a hairline, not a static shot */
+figure.embed{margin:var(--unit) 0 0}
+.embed-frame{border:1px solid var(--ink);aspect-ratio:16 / 10;overflow:hidden;background:var(--panel)}
+.embed-frame iframe{width:100%;height:100%;border:0;display:block}
+figure.embed figcaption{color:var(--faint);font-size:12px;line-height:20px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:700;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+figure.embed figcaption a{color:var(--accent);text-decoration:none}
+@media(max-width:720px){ .embed-frame{aspect-ratio:4 / 3} }
 
 /* External-link list on case studies */
 .links{grid-column:1 / 9}

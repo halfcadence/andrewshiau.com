@@ -4,30 +4,33 @@ export interface Experiment {
   n: string;          // set number, e.g. "01"
   title: string;
   blurb: string;
-  meta: string;       // right-column label (medium / status)
+  meta: string;       // small caps status line
   href: string;       // where the entry links
+  pos: string;        // matrix placement class (pos-01 …) for the calendar scatter
+  accent?: boolean;   // red top-rule instead of ink
   external?: boolean; // opens in a new tab
 }
 
 export const experiments: Experiment[] = [
   {
     n: '01',
-    title: 'Aping the modernists',
+    title: 'Aping',
     blurb:
-      'A set of agent skills that generate documents in the voice of the Swiss ' +
-      'typographers — Müller-Brockmann and Experimental Jetset. This very site ' +
-      'is one of their outputs.',
-    meta: 'Agent skills · 2026',
+      'An agent skill that writes in the Swiss style — Müller-Brockmann’s grid. ' +
+      'It built this site.',
+    meta: 'Agent skill · 2026',
     href: '/work/aping/',
+    pos: 'pos-01',
+    accent: true,
   },
   {
     n: '02',
-    title: 'A recipe system',
+    title: 'Recipes',
     blurb:
-      'A hand-built, agent-maintained collection of 120+ recipes and cooking ' +
-      'essays — Jekyll, self-owned CSS, system Helvetica. Precision cooking as a ' +
-      'design object.',
+      '124 recipes, kept in order by an agent against a fixed style guide. ' +
+      'Jekyll, no theme.',
     meta: 'Static site · ongoing',
     href: '/work/recipes/',
+    pos: 'pos-02',
   },
 ];
