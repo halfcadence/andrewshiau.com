@@ -1,8 +1,12 @@
 # andrewshiau.com
 
 AI-forward personal site. Astro static site, hand-set in the Müller-Brockmann
-grid system (`/muller` house style). Served from a DigitalOcean droplet behind
-Caddy (automatic HTTPS).
+grid system (`/muller` house style). Served from a DigitalOcean droplet over
+HTTPS (nginx + certbot / Let's Encrypt, auto-renew).
+
+**Design + voice spec: [`STYLE.md`](STYLE.md).** Read it before editing — it's the
+source of truth for tokens, the type ramp, the link system, motion, voice, and the
+`/design-critique` panel.
 
 ## Develop
 
