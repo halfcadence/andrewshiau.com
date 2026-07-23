@@ -2,13 +2,15 @@
   <style>
     .bg{fill:#f4f3ef}
     .ink{fill:#141412}
+    .red{fill:#d5241a}
     @media (prefers-color-scheme: dark){
       .bg{fill:#141413}
       .ink{fill:#f0efe8}
+      .red{fill:#ff4d3f}
     }
   </style>
   <rect class="bg" width="32" height="32"/>
-  <circle class="ink" cx="8" cy="8" r="4.5"/>
-  <circle cx="16" cy="16" r="4.5" fill="#d5241a"/>
-  <circle class="ink" cx="24" cy="24" r="4.5"/>
+  <circle class="ink" cx="8" cy="8" r="4"/>
+  <circle class="red" cx="16" cy="16" r="4"/>
+  <circle class="ink" cx="24" cy="24" r="4"/>
 </svg>
