@@ -45,12 +45,12 @@ export const experiments: Experiment[] = [
   },
   {
     n: '04',
-    title: 'Chooser',
+    title: 'Proofs',
     blurb:
       'A skill that renders every design option side by side, in the real system, ' +
       'so you pick by looking instead of imagining.',
     meta: 'Agent skill · 2026',
-    href: '/work/chooser/',
+    href: '/work/proofs/',
     pos: 'pos-04',
   },
 ];
