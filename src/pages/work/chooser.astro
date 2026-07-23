@@ -1,0 +1,80 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Chooser — Andrew Shiau"
+  description="A skill that renders every design option side by side, in the real system, so you pick by looking."
+>
+  <div class="grid">
+    <div class="back"><a href="/">← Index</a></div>
+  </div>
+
+  <div class="grid">
+    <div class="c1-2"><span class="sn">04</span></div>
+    <div class="c3-12"><h1>Chooser</h1></div>
+  </div>
+  <div class="grid">
+    <p class="dek c1-8" style="margin-top:var(--unit)">
+      A skill for design decisions with no obvious answer. Instead of describing the
+      options in prose, it renders every one for real — in the actual typeface,
+      tokens, and grid it will ship in — so you choose by looking.
+    </p>
+  </div>
+
+  <div class="grid">
+    <div class="c1-8" style="margin-top:calc(var(--unit)*1.5)">
+      <p>
+        You can't see prose. A byline treatment, a type ramp, a masthead — the
+        differences are visual and small, and the only honest way to decide is to
+        put the candidates next to each other and use your eyes.
+      </p>
+      <p>
+        This site's own layout was chosen that way. The demo below is the actual
+        chooser I used to pick the experiment grid you're reading now — three
+        poster compositions on a 12-column grid, rendered live.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="rule"></div>
+  </div>
+  <div class="grid">
+    <div class="c1-2"><span class="sn">§</span></div>
+    <div class="c3-12"><h2>The demo</h2></div>
+  </div>
+  <div class="grid">
+    <figure class="embed c1-12" style="margin-top:var(--unit)">
+      <div class="embed-frame embed-tall">
+        <iframe src="/demo/index-layouts/" title="A live layout chooser" loading="lazy"></iframe>
+      </div>
+      <figcaption>
+        <a href="/demo/index-layouts/" target="_blank" rel="noopener">open full-screen ↗</a>
+        — three index layouts, rendered live, on the real grid
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="grid">
+    <div class="rule"></div>
+  </div>
+  <div class="grid">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Form</div>
+        <div class="ftx">
+          One self-contained HTML page: every option rendered in the real design
+          system, labelled, with a one-line rationale. Open it, pick a number.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">The rule</div>
+        <div class="ftx">
+          Option 01 is always what's live today, so every alternative reads as a
+          delta from it. Five distinct options beat ten near-duplicates.
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
