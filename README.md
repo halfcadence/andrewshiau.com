@@ -6,14 +6,19 @@ Caddy (automatic HTTPS).
 
 ## Develop
 
+Repo lives in `workplace/andrewshiau` so Unison syncs the **source** to the Mac.
+`node_modules/` and `dist/` are intentionally NOT synced (native binaries differ
+per-OS) — run `npm install` once on whichever machine you build from.
+
 ```bash
 npm install
 npm run build          # → dist/
+npm run dev            # local dev server on 127.0.0.1 (run on the MAC, not the devbox)
 ```
 
-This is an Amazon devbox: **do not** run `npm run dev` bound to all interfaces.
-To preview, build and open the depth-relative copy that syncs to the Mac
-(`file://`), or view on the live site after deploy.
+Devbox rule: never run `npm run dev`/preview bound to all interfaces on the Amazon
+devbox. Build on the devbox and view via the synced `file://` copy, or run `npm run
+dev` on the Mac (where 127.0.0.1 is fine).
 
 ## Structure
 
