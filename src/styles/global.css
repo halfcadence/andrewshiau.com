@@ -72,9 +72,12 @@ body.showgrid .guide{display:grid}
 
 /* TYPE */
 h1{font-weight:700;font-size:clamp(42px,7.5vw,88px);line-height:0.97;letter-spacing:-0.03em;margin:0;overflow-wrap:anywhere}
-/* the "lately with AI" clause: starts light, fills to full ink on hover */
+/* the "lately with AI" clause: starts light, fills to full ink on hover, then
+   breathes lightly once it's resolved (O2 + pulse). */
 h1 .lately{color:var(--faint);transition:color .45s cubic-bezier(.2,.8,.2,1)}
-h1:hover .lately{color:var(--ink)}
+h1:hover .lately{color:var(--ink);animation:latePulse 2.6s var(--ease) .45s infinite}
+@keyframes latePulse{0%,100%{opacity:1}50%{opacity:.66}}
+@media(prefers-reduced-motion:reduce){h1:hover .lately{animation:none}}
 h2{font-weight:700;font-size:clamp(21px,2.4vw,28px);line-height:1.1;letter-spacing:-0.014em;margin:0}
 .dek{font-size:clamp(18px,2vw,22px);line-height:1.36;color:var(--dim);margin:0;font-weight:400;max-width:32em}
 p{margin:0 0 var(--unit);max-width:33em}
@@ -94,7 +97,8 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 
 /* SECTION HEAD */
 .rule{grid-column:1 / 13;border-top:1px solid var(--ink);height:0;margin:calc(var(--unit)*2.5) 0 var(--unit)}
-.sn{font-weight:700;font-size:clamp(26px,3.4vw,42px);line-height:1;color:var(--accent);letter-spacing:-0.02em}
+/* case-study page header — 1D: no case number, a short red rule marks the title */
+.shrule{width:32px;border-top:3px solid var(--accent);margin-bottom:12px}
 
 /* STEP / entry — top rule + type, no box */
 .step{padding-top:12px;border-top:2px solid var(--ink)}
@@ -139,7 +143,9 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 .entry .ed{color:var(--dim);font-size:15px;line-height:22px;margin:6px 0 0}
 .entry .em{display:block;color:var(--faint);font-size:11px;line-height:18px;letter-spacing:.14em;
   text-transform:uppercase;font-weight:700;margin-top:12px}
-.entry .arrowc{color:var(--accent);font-weight:700}
+.entry .arrowc{color:var(--accent);font-weight:700;display:inline-block;
+  transition:transform var(--dur-fast) var(--ease)}
+.entry:hover .arrowc{transform:translateX(6px)}
 /* the scatter placement — desktop only; mobile collapses to a stack.
    Four cells dropped into non-adjacent modules; the gaps are the composition. */
 .pos-01{grid-column:1 / 5;grid-row:2 / 10}

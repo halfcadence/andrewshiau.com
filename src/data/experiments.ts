@@ -16,8 +16,8 @@ export const experiments: Experiment[] = [
     n: '01',
     title: 'Recipes',
     blurb:
-      '124 recipes and cooking essays — a real, living site an agent keeps in order ' +
-      'against a fixed style guide. Jekyll, no theme.',
+      '124 recipes and cooking essays — filed like a reference manual, not a blog. ' +
+      'An agent files each entry against a fixed style guide; I do the cooking.',
     meta: 'Static site · ongoing',
     href: '/work/recipes/',
     pos: 'pos-01',
