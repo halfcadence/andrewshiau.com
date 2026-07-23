@@ -84,6 +84,13 @@ p{margin:0 0 var(--unit);max-width:33em}
 p:last-child{margin-bottom:0}
 b,strong{font-weight:700}
 a{color:var(--accent);text-underline-offset:2px}
+/* O7 — any link that opens in a new tab gets a ↗ marker; opacity lifts on hover.
+   Inherits currentColor so it stays legible inside the prose invert-fill (white on
+   hover) and the red colophon links alike. Excludes .entry (matrix cells carry their
+   own .arrowc glyph). */
+a[target]:not([href^="#"]):not(.entry)::after{content:"\00a0↗";font-size:.82em;opacity:.5;
+  transition:opacity var(--dur-fast) var(--ease)}
+a[target]:not(.entry):hover::after{opacity:1}
 /* INLINE prose links (inside body <p>): ink + underline by default, invert-fill
    (red box, white text) on hover via a simple fade — no wipe. Scoped to prose so
    it doesn't hit nav / colophon / project links. */
