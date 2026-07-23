@@ -4,17 +4,9 @@ import { experiments } from '../data/experiments';
 ---
 
 <Layout title="Andrew Shiau — AI experiments">
-  <!-- Masthead -->
-  <div class="grid">
-    <p class="kicker c1-12">Andrew Shiau</p>
-  </div>
-  <div class="grid">
+  <!-- Masthead — the wordmark in the nav already says the name; don't repeat it. -->
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <h1 class="c1-10">I design and build. These days, with a lot of AI.</h1>
-  </div>
-  <div class="grid">
-    <p class="dek c1-7" style="margin-top:var(--unit)">
-      Things I made with LLMs — the working ones, linked, not screenshots.
-    </p>
   </div>
 
   <!-- Experiments — calendar-scatter matrix (Layout A). The empty modules
@@ -51,7 +43,7 @@ import { experiments } from '../data/experiments';
     </div>
     <div class="colo c3">
       <span class="ck">This site</span>
-      Astro · Müller-Brockmann grid · Graphik. Press <code>g</code> for the grid.
+      Astro · 12-column grid · Graphik. Press <code>g</code> for the grid.
     </div>
   </div>
 </Layout>

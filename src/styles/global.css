@@ -142,10 +142,12 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 .entry .em{display:block;color:var(--faint);font-size:11px;line-height:18px;letter-spacing:.14em;
   text-transform:uppercase;font-weight:700;margin-top:12px}
 .entry .arrowc{color:var(--accent);font-weight:700}
-/* the scatter placement — desktop only; mobile collapses to a stack */
+/* the scatter placement — desktop only; mobile collapses to a stack.
+   Four cells dropped into non-adjacent modules; the gaps are the composition. */
 .pos-01{grid-column:1 / 5;grid-row:2 / 10}
-.pos-02{grid-column:8 / 12;grid-row:12 / 20}
-.pos-03{grid-column:3 / 8;grid-row:23 / 30}
+.pos-02{grid-column:8 / 12;grid-row:9 / 17}
+.pos-03{grid-column:3 / 7;grid-row:20 / 28}
+.pos-04{grid-column:9 / 13;grid-row:26 / 34}
 @media(max-width:720px){
   .matrix{display:block}
   .entry{display:block;margin-top:var(--unit)}
@@ -172,9 +174,10 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 /* NAV / footer — thin ruled bars */
 .topbar{display:flex;align-items:center;padding:var(--unit) 0 calc(var(--unit)*0.9);
   border-bottom:2px solid var(--ink);margin-bottom:calc(var(--unit)*1.5)}
-.topbar .brand{display:inline-flex;color:var(--ink);text-decoration:none;line-height:0}
-.topbar .brand .wordmark{height:44px;width:auto;display:block;color:var(--ink)}
-.topbar .brand:hover .wordmark{color:var(--accent)}
+.topbar .brand{display:inline-flex;align-items:center;gap:11px;color:var(--ink);text-decoration:none}
+.topbar .brand .mark{width:24px;height:24px;display:block;flex:none}
+.topbar .brand .brandname{font-weight:700;font-size:19px;letter-spacing:-0.02em;line-height:1}
+.topbar .brand:hover .brandname{color:var(--accent)}
 .foot{border-top:2px solid var(--ink);margin-top:calc(var(--unit)*3);padding-top:var(--unit);
   display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
 .foot .fl{grid-column:1 / 9;color:var(--dim);font-size:13px;line-height:22px}
@@ -200,6 +203,7 @@ figure.shot figcaption{color:var(--faint);font-size:12px;line-height:20px;letter
 /* Live embed — the real site framed by a hairline, not a static shot */
 figure.embed{margin:var(--unit) 0 0}
 .embed-frame{border:1px solid var(--ink);aspect-ratio:16 / 10;overflow:hidden;background:var(--panel)}
+.embed-frame.embed-tall{aspect-ratio:3 / 4}
 .embed-frame iframe{width:100%;height:100%;border:0;display:block}
 figure.embed figcaption{color:var(--faint);font-size:12px;line-height:20px;letter-spacing:.06em;
   text-transform:uppercase;font-weight:700;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}

@@ -33,4 +33,24 @@ export const experiments: Experiment[] = [
     href: '/work/recipes/',
     pos: 'pos-02',
   },
+  {
+    n: '03',
+    title: 'Explain',
+    blurb:
+      'A skill that turns something I figured out into an interactive explainer — ' +
+      'a diagram and a quiz that check the idea landed.',
+    meta: 'Agent skill · 2026',
+    href: '/work/explain/',
+    pos: 'pos-03',
+  },
+  {
+    n: '04',
+    title: 'Chooser',
+    blurb:
+      'A skill that renders every design option side by side, in the real system, ' +
+      'so you pick by looking instead of imagining.',
+    meta: 'Agent skill · 2026',
+    href: '/work/chooser/',
+    pos: 'pos-04',
+  },
 ];
