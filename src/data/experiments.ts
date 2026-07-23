@@ -14,23 +14,23 @@ export interface Experiment {
 export const experiments: Experiment[] = [
   {
     n: '01',
-    title: 'Aping',
+    title: 'Recipes',
     blurb:
-      'An agent skill that writes in the Swiss style — Müller-Brockmann’s grid. ' +
-      'It built this site.',
-    meta: 'Agent skill · 2026',
-    href: '/work/aping/',
+      '124 recipes and cooking essays — a real, living site an agent keeps in order ' +
+      'against a fixed style guide. Jekyll, no theme.',
+    meta: 'Static site · ongoing',
+    href: '/work/recipes/',
     pos: 'pos-01',
     accent: true,
   },
   {
     n: '02',
-    title: 'Recipes',
+    title: 'Aping',
     blurb:
-      '124 recipes, kept in order by an agent against a fixed style guide. ' +
-      'Jekyll, no theme.',
-    meta: 'Static site · ongoing',
-    href: '/work/recipes/',
+      "An agent skill that writes in the Swiss style — Müller-Brockmann's grid. " +
+      'It built this site.',
+    meta: 'Agent skill · 2026',
+    href: '/work/aping/',
     pos: 'pos-02',
   },
   {
