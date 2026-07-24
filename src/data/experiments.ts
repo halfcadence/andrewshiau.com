@@ -21,7 +21,7 @@ export const work: Entry[] = [
     blurb:
       'A design-system tool at Amazon that lets distributed teams build ' +
       'consistent shopping experiences — the through-line from Luthier.',
-    meta: 'At Amazon · 2023–now',
+    meta: 'At Amazon · 2023–present',
     href: '/work/stores-designer/',
     pos: 'pos-01',
     accent: true,

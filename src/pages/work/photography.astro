@@ -11,11 +11,11 @@ const photos = [
   { src: '/photos/07-butterfly-brick-wall.jpg', alt: 'A butterfly perched on a brick wall' },
   { src: '/photos/08-puppy-on-motorcycle.jpg', alt: 'A puppy sitting on a motorcycle' },
   { src: '/photos/09-woman-red-top.jpg', alt: 'A passer-by in a red top' },
-  { src: '/photos/03.jpg', alt: 'Photograph' },
-  { src: '/photos/10.jpg', alt: 'Photograph' },
-  { src: '/photos/06.jpg', alt: 'Photograph' },
-  { src: '/photos/11.jpg', alt: 'Photograph' },
-  { src: '/photos/12.jpg', alt: 'Photograph' },
+  { src: '/photos/03.jpg', alt: 'Curved white concrete architecture and stairs against a blue sky' },
+  { src: '/photos/10.jpg', alt: 'A row of trees and benches along a park path' },
+  { src: '/photos/06.jpg', alt: 'A lone figure on a coastal stone wall under a cloudy sky' },
+  { src: '/photos/11.jpg', alt: 'A tan short-haired dog standing on an ornate marble floor' },
+  { src: '/photos/12.jpg', alt: 'A string quartet posed against a stone museum wall' },
 ];
 ---
 
@@ -38,8 +38,8 @@ const photos = [
 
   <div class="grid" style="margin-top:var(--unit)">
     <div class="gallery">
-      {photos.map((p) => (
-        <figure><img src={p.src} alt={p.alt} loading="lazy" width="1400" height="933" /></figure>
+      {photos.map((p, i) => (
+        <figure><img src={p.src} alt={p.alt} loading={i === 0 ? 'eager' : 'lazy'} width="1400" height="933" /></figure>
       ))}
     </div>
   </div>

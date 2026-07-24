@@ -15,7 +15,7 @@ import { work, experiments } from '../data/experiments';
     <div style="grid-column:1 / 5"><h2>Work</h2></div>
   </div>
 
-  <div class="matrix matrix-3">
+  <div class="matrix matrix-compact">
     {work.map((x) => (
       <a class={`entry ${x.pos} ${x.accent ? 'accent' : ''}`} href={x.href}
          target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
