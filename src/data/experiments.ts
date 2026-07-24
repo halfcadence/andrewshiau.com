@@ -46,6 +46,15 @@ export const work: Entry[] = [
     href: '/work/powerpoint/',
     pos: 'pos-03',
   },
+  {
+    n: '04',
+    title: 'Photography',
+    blurb:
+      'Shot with iPhones, a Fuji X100, and a Leica Q.',
+    meta: 'Personal · ongoing',
+    href: '/work/photography/',
+    pos: 'pos-04',
+  },
 ];
 
 // AI-FORWARD EXPERIMENTS.

@@ -1,0 +1,55 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Self-hosted in /public/photos — my own photos, pulled from Unsplash (halfcadence)
+// after source.unsplash.com was retired. Shot with iPhones, a Fuji X100, and a Leica Q.
+const photos = [
+  { src: '/photos/01-irazu-volcano.jpg', alt: 'Irazú Volcano, Costa Rica' },
+  { src: '/photos/02-green-mailbox-pink-wall.jpg', alt: 'Green mailbox beside a pink wall' },
+  { src: '/photos/04-chairs-on-grass.jpg', alt: 'Grey chairs on a grass field' },
+  { src: '/photos/05-woman-on-stairs.jpg', alt: 'A figure leaning on concrete stairs, outdoors' },
+  { src: '/photos/07-butterfly-brick-wall.jpg', alt: 'A butterfly perched on a brick wall' },
+  { src: '/photos/08-puppy-on-motorcycle.jpg', alt: 'A puppy sitting on a motorcycle' },
+  { src: '/photos/09-woman-red-top.jpg', alt: 'A passer-by in a red top' },
+  { src: '/photos/03.jpg', alt: 'Photograph' },
+  { src: '/photos/10.jpg', alt: 'Photograph' },
+  { src: '/photos/06.jpg', alt: 'Photograph' },
+  { src: '/photos/11.jpg', alt: 'Photograph' },
+  { src: '/photos/12.jpg', alt: 'Photograph' },
+];
+---
+
+<Layout
+  title="Photography — Andrew Shiau"
+  description="Photographs shot with iPhones, a Fuji X100, and a Leica Q."
+>
+  <div class="grid">
+    <div class="back"><a href="/">← Index</a></div>
+  </div>
+
+  <div class="grid">
+    <div class="c1-10"><div class="shrule"></div><h1>Photography</h1></div>
+  </div>
+  <div class="grid">
+    <p class="dek c1-8" style="margin-top:var(--unit)">
+      Shot with iPhones, a Fuji X100, and a Leica Q.
+    </p>
+  </div>
+
+  <div class="grid" style="margin-top:var(--unit)">
+    <div class="gallery">
+      {photos.map((p) => (
+        <figure><img src={p.src} alt={p.alt} loading="lazy" width="1400" height="933" /></figure>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  /* photo gallery — a simple 2-up grid on the 12-col field, hairline gutters, no cards */
+  .gallery{grid-column:1 / 13;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    column-gap:var(--gutter);row-gap:var(--gutter)}
+  .gallery figure{margin:0}
+  .gallery img{display:block;width:100%;height:auto;border:1px solid var(--line)}
+  @media(max-width:720px){ .gallery{grid-template-columns:1fr} }
+</style>
