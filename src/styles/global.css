@@ -71,13 +71,7 @@ body.showgrid .guide{display:grid}
 .content{position:relative;z-index:1}
 
 /* TYPE */
-h1{font-weight:700;font-size:clamp(42px,7.5vw,88px);line-height:0.97;letter-spacing:-0.03em;margin:0;overflow-wrap:anywhere}
-/* the "lately with AI" clause: starts light, fills to full ink on hover, then
-   breathes lightly once it's resolved (O2 + pulse). */
-h1 .lately{color:var(--faint);transition:color .45s cubic-bezier(.2,.8,.2,1)}
-h1:hover .lately{color:var(--ink);animation:latePulse 2.6s var(--ease) .45s infinite}
-@keyframes latePulse{0%,100%{opacity:1}50%{opacity:.66}}
-@media(prefers-reduced-motion:reduce){h1:hover .lately{animation:none}}
+h1{font-weight:700;font-size:clamp(38px,6.4vw,72px);line-height:1.0;letter-spacing:-0.03em;margin:0;overflow-wrap:anywhere}
 h2{font-weight:700;font-size:clamp(21px,2.4vw,28px);line-height:1.1;letter-spacing:-0.014em;margin:0}
 .dek{font-size:clamp(18px,2vw,22px);line-height:1.36;color:var(--dim);margin:0;font-weight:400;max-width:32em}
 p{margin:0 0 var(--unit);max-width:33em}
