@@ -1,0 +1,143 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Luthier — Andrew Shiau"
+  description="Inventing a no-code graphics-automation process at Amazon scale: a Figma widget that turns a design into a production template."
+>
+  <div class="grid">
+    <div class="back"><a href="/">← Index</a></div>
+  </div>
+
+  <div class="grid">
+    <div class="c1-10"><div class="shrule"></div><h1>Luthier</h1></div>
+  </div>
+  <div class="grid">
+    <p class="dek c1-8" style="margin-top:var(--unit)">
+      Inventing a graphics-automation process at Amazon scale — a Figma widget that
+      turns a design into a production template, with no engineer required.
+    </p>
+  </div>
+
+  <!-- role / facts -->
+  <div class="grid">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Role</div>
+        <div class="ftx">
+          Sole engineer and designer — <b>frontend, backend, and UX</b>. Ideation,
+          requirements, prototyping, usability testing, and delivery.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">Stack</div>
+        <div class="ftx">React · functional JavaScript · Ruby on Rails · Figma API.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Shipped</div>
+        <div class="ftx">First version in <b>12 weeks</b>; beta-tested with 15 template designers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid"><div class="rule"></div></div>
+  <div class="grid">
+    <div class="c1-2"></div>
+    <div class="c3-12"><h2>The problem</h2></div>
+  </div>
+  <div class="grid">
+    <div class="c1-8" style="margin-top:var(--unit)">
+      <p>
+        Composer is Amazon-internal software that automates marketing-graphic
+        production: templates become pixel-perfect graphics, and it makes over
+        <b>50,000 marketing images a year</b> for placements including the Amazon
+        Gateway.
+      </p>
+      <p>
+        When I joined, each template was hand-coded by a front-end engineer — a
+        slow, expensive, unmaintainable process. To scale it, a designer needed to
+        be able to make a template without writing any code.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block c1-6">
+      <span class="st">The move: Figma is the interface.</span>
+      <span class="sd">A designer builds a Figma document; a widget sends it to Composer, which parses every layer into a working template — UI and all.</span>
+    </div>
+  </div>
+
+  <div class="grid"><div class="rule"></div></div>
+  <div class="grid">
+    <div class="c1-2"></div>
+    <div class="c3-12"><h2>How it works</h2></div>
+  </div>
+  <div class="grid">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Figma parsing</div>
+        <div class="ftx">A Figma→Composer transformer walks the document tree — text, images, shapes — and builds both the template and its editing UI from the layers.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Layout by Figma</div>
+        <div class="ftx">It interprets Figma's own layout features (auto-layout, alignment) and transforms them to Composer CSS, so designers use tools they already know.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Annotations</div>
+        <div class="ftx">A small annotation system supplies what Figma can't infer — e.g. which images the end user may replace vs. fixed brand logos, max file sizes, text limits.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Modes</div>
+        <div class="ftx">Figma Component Sets become template modes (a holiday background variant, say) — with a mode switch generated automatically, even for nested sets.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid"><div class="rule"></div></div>
+  <div class="grid">
+    <div class="c1-2"></div>
+    <div class="c3-12"><h2>Engineering</h2></div>
+  </div>
+  <div class="grid">
+    <div class="c1-8" style="margin-top:var(--unit)">
+      <p>
+        Two core modules. The <b>transformer</b> reads the Figma doc from the REST
+        API and converts it to a Composer JSON with a single pure function,
+        <code>getComposerDoc</code> — a tree traversal that collects the layers, UI,
+        and initial state. The <b>renderer</b> takes that JSON and produces the
+        template.
+      </p>
+      <p>
+        I built the JSON schema and renderer first, to cut manual template-coding —
+        then realized I could plug Figma in as the authoring interface on top of it.
+        That reframe is the whole project.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid"><div class="rule"></div></div>
+  <div class="grid">
+    <div class="c1-2"></div>
+    <div class="c3-12"><h2>Outcome</h2></div>
+  </div>
+  <div class="grid">
+    <div class="c1-8" style="margin-top:var(--unit)">
+      <p>
+        I interviewed template designers across AWS, Alexa, Amazon Business,
+        Payments, and Fresh; wrote the proposal; and built the transformer, the CRUD
+        app, and the backend in 12 weeks. I launched a beta and ran usability studies
+        with 15 designers — feedback was positive, and it surfaced the bugs and
+        features that became the roadmap.
+      </p>
+      <p>
+        In early 2023 my team was re-orged to focus on mechanizing Amazon's shopping
+        design system, and Composer graduated to another team. The question I took
+        with me — how do you help distributed teams build consistent experiences
+        without hand-coding each one — is the direct line to
+        <a href="/work/stores-designer/">Stores Designer</a>.
+      </p>
+    </div>
+  </div>
+</Layout>

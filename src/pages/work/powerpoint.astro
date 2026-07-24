@@ -1,0 +1,120 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="Powerpoint Pen Toolbox — Andrew Shiau"
+  description="Redesigning PowerPoint's inking toolbox through 20+ rounds of functional prototyping and user testing — where the data refuted the team's first design."
+>
+  <div class="grid">
+    <div class="back"><a href="/">← Index</a></div>
+  </div>
+
+  <div class="grid">
+    <div class="c1-10"><div class="shrule"></div><h1>Powerpoint Pen Toolbox</h1></div>
+  </div>
+  <div class="grid">
+    <p class="dek c1-8" style="margin-top:var(--unit)">
+      Redesigning PowerPoint's Pen Toolbox for the Draw tab through rapid, functional
+      prototyping — where testing the prototype refuted the team's own first design.
+    </p>
+  </div>
+
+  <div class="grid">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Role</div>
+        <div class="ftx">UX prototyper — <b>prototyping, usability testing, A/B testing, UX design</b>.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Tools</div>
+        <div class="ftx">Framer Classic · JavaScript · Sketch.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Span</div>
+        <div class="ftx"><b>13 weeks</b> · 20+ prototype iterations · with a UX designer and PM.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid"><div class="rule"></div></div>
+  <div class="grid">
+    <div class="c1-2"></div>
+    <div class="c3-12"><h2>The problem</h2></div>
+  </div>
+  <div class="grid">
+    <div class="c1-8" style="margin-top:var(--unit)">
+      <p>
+        The Draw tab is how millions of people get an idea onto a slide with a pen —
+        but its design confused users, and the tools didn't behave the way people
+        expected. A usability study of the live tab (8 users recreating two diagrams,
+        analyzed by affinity diagramming into six themes) produced 52 recommendations.
+      </p>
+      <p>
+        I joined after that study and prototyped candidates for a new toolbox from its
+        findings, tested them, and delivered a polished working prototype to hand the
+        final design to engineering.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid"><div class="rule"></div></div>
+  <div class="grid">
+    <div class="c1-2"></div>
+    <div class="c3-12"><h2>What changed</h2></div>
+  </div>
+  <div class="grid">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Remove "add pen"</div>
+        <div class="ftx">Users ink with the same tool repeatedly, so the add-pen button mostly added complexity. We gave one of each tool and moved "add" to a long-press for power users.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Eraser = a pen</div>
+        <div class="ftx">Users expected the eraser to work like a pen, so we moved it into the toolbox with its own width/type dropdown.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Dropdown refresh</div>
+        <div class="ftx">The ink preview and width slider now show real width and color; "colors" and "effects" merged; the recently-used-colors algorithm was retuned.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="block c1-6">
+      <span class="st">"If we didn't prototype, we'd have shipped one of the first three models as the spec."</span>
+      <span class="sd">— the UX designer on the team. The whole case study is that sentence.</span>
+    </div>
+  </div>
+
+  <div class="grid"><div class="rule"></div></div>
+  <div class="grid">
+    <div class="c1-2"></div>
+    <div class="c3-12"><h2>Why a functional prototype</h2></div>
+  </div>
+  <div class="grid">
+    <div class="c1-8" style="margin-top:var(--unit)">
+      <p>
+        I built each design as a <b>fully functional</b> prototype in Framer Classic —
+        a working toolbox on top of a real HTML/CSS/JS canvas you could actually draw
+        on (I wrote an ink drawer that listens for mouse-move and lays down SVG). That
+        mattered because we could test the prototype exactly like the live product:
+        give a user a real drawing task.
+      </p>
+      <p>
+        The team was confident about bringing color and thickness to the top level of
+        the UI. We built three ways to select a color, tested them with users, and
+        iterated on every misfit — an unset sixth color got a rainbow cue, a color
+        that jumped between slots got an enlarge animation, modifiable colors got an
+        arrow. Then we <b>A/B-tested</b> the favorite ribbon design against the plain
+        dropdown, holding everything else constant.
+      </p>
+      <p>
+        The result refuted the team's hypothesis: the ribbon's benefit was too
+        marginal to justify the engineering. Twenty-plus iterations got us to the
+        correct design precisely because it contradicted where we started — and there
+        is no substitute for putting a working prototype in front of real users.
+      </p>
+    </div>
+  </div>
+</Layout>

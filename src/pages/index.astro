@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { experiments } from '../data/experiments';
+import { work, experiments } from '../data/experiments';
 ---
 
 <Layout title="Andrew Shiau">
@@ -9,9 +9,27 @@ import { experiments } from '../data/experiments';
     <h1 class="c1-10">Andrew Shiau is a frontend engineer who designs and builds.</h1>
   </div>
 
-  <!-- Experiments — calendar-scatter matrix (Layout A). The empty modules
-       between cells are the composition. -->
+  <!-- Work — professional projects. Same calendar-scatter matrix as Experiments. -->
   <div class="grid" style="margin-top:calc(var(--unit)*2)">
+    <div class="rule"></div>
+    <div style="grid-column:1 / 5"><h2>Work</h2></div>
+  </div>
+
+  <div class="matrix matrix-3">
+    {work.map((x) => (
+      <a class={`entry ${x.pos} ${x.accent ? 'accent' : ''}`} href={x.href}
+         target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
+        <span class="en">{x.n}</span>
+        <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
+        <p class="ed">{x.blurb}</p>
+        <span class="em">{x.meta}</span>
+      </a>
+    ))}
+  </div>
+
+  <!-- Experiments — the AI-forward work. Calendar-scatter matrix (Layout A);
+       the empty modules between cells are the composition. -->
+  <div class="grid" style="margin-top:calc(var(--unit)*3)">
     <div class="rule"></div>
     <div style="grid-column:1 / 5"><h2>Experiments</h2></div>
   </div>

@@ -1,6 +1,8 @@
-// The experiment index. The landing page renders this list; each entry with a
-// `href` starting with /work/ has its own case-study page.
-export interface Experiment {
+// Two indexes the landing page renders as separate sections:
+//   work        — professional projects (pre-AI + shipped-at-work), each a case study
+//   experiments — the AI-forward experiments
+// Each entry with an internal `href` (/work/…) has its own case-study page.
+export interface Entry {
   n: string;          // set number, e.g. "01"
   title: string;
   blurb: string;
@@ -11,7 +13,43 @@ export interface Experiment {
   external?: boolean; // opens in a new tab
 }
 
-export const experiments: Experiment[] = [
+// PROFESSIONAL WORK — real projects, engineering + design. Pre-AI and at-work.
+export const work: Entry[] = [
+  {
+    n: '01',
+    title: 'Stores Designer',
+    blurb:
+      'A design-system tool at Amazon that lets distributed teams build ' +
+      'consistent shopping experiences — the through-line from Luthier.',
+    meta: 'At Amazon · 2023–now',
+    href: '/work/stores-designer/',
+    pos: 'pos-01',
+    accent: true,
+  },
+  {
+    n: '02',
+    title: 'Luthier',
+    blurb:
+      'Invented a no-code graphics-automation process at Amazon scale: a Figma ' +
+      'widget that turns a design into a production template, no engineer required.',
+    meta: 'At Amazon · full-stack + UX',
+    href: '/work/luthier/',
+    pos: 'pos-02',
+  },
+  {
+    n: '03',
+    title: 'Powerpoint Pen Toolbox',
+    blurb:
+      "Redesigned PowerPoint's inking toolbox through 20+ rounds of functional " +
+      'prototyping and user tests — the data refuted the team’s first design.',
+    meta: 'Rapid prototyping · UX',
+    href: '/work/powerpoint/',
+    pos: 'pos-03',
+  },
+];
+
+// AI-FORWARD EXPERIMENTS.
+export const experiments: Entry[] = [
   {
     n: '01',
     title: 'Recipes',
