@@ -46,15 +46,6 @@ export const work: Entry[] = [
     href: '/work/powerpoint/',
     pos: 'pos-03',
   },
-  {
-    n: '04',
-    title: 'Photography',
-    blurb:
-      'Shot with iPhones, a Fuji X100, and a Leica Q.',
-    meta: 'Personal · ongoing',
-    href: '/work/photography/',
-    pos: 'pos-04',
-  },
 ];
 
 // AI-FORWARD EXPERIMENTS.
@@ -99,5 +90,14 @@ export const experiments: Entry[] = [
     meta: 'Agent skill · 2026',
     href: '/work/proofs/',
     pos: 'pos-04',
+  },
+  {
+    n: '05',
+    title: 'Photography',
+    blurb:
+      'Shot with iPhones, a Fuji X100, and a Leica Q.',
+    meta: 'Personal · ongoing',
+    href: '/work/photography/',
+    pos: 'pos-05',
   },
 ];
