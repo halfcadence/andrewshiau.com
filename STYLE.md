@@ -117,8 +117,8 @@ else. Keep the two jobs separate:
   - `15` → blurbs, step detail, colophon
   - `16` → body (base)
   - `20 / 25` → `.dek`, project links (`clamp(18–24)`)
-  - `25 / 31` → `h2`, entry headings (`clamp(20–28)`); a **paired** `h2` inside `.shead`
-    caps at 25 (`clamp(21–25)`) so it fits the 2-column margin — see Layout blocks
+  - `25 / 31` → `h2`, entry headings (`clamp(20–28)`) — one size everywhere, including
+    inside `.shead`; the old 25px cap existed only to fit a 2-column margin that is gone
   - `31 / 39+` → section numbers `.sn` (`clamp(26–42)`), entry numbers `.en`
   - **display** → `h1` hero `clamp(42px, 7.5vw, 88px)`, line-height 0.97, tracking
     `-0.03em` (above the ramp; the one type-as-event moment)
@@ -196,6 +196,14 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
     numerals as the rhythm — survives as the tabular `.en` column.
   - The **only surviving scatter** is `.mscatter` (below); `grid-auto-rows` lives there,
     not on `.matrix`, since list rows are content-height.
+  - **Three sections, in this order: Method · Work · Experiments.** Method is a
+    **one-row** `.matrix` above the evidence — the statement at the top of the page IS the
+    spec's opening claim, so the thing that states it sits beside it, and a reader who
+    wants artifacts scrolls one row. It is one row and not a section of prose on purpose:
+    the cost of putting a claim before the evidence is a manifesto, and a single list row
+    can't be one. Section heads carry **no dek** (`Work` and `Experiments` have none, and
+    one dek would be the only one on the page); the row's own blurb does that job.
+    All three use the identical device — one mechanism, used everywhere.
 - **Section break — air, not a rule** (`.grid.sect`): a section is opened by `3.5 × --unit`
   of space plus its head, with **no** divider. A 1px ink line across all 12 columns was
   the heaviest mark on the page and never touched the thing it opened, so it read as a
@@ -215,20 +223,38 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   the design clause (`.t-design`) and build clause (`.t-build`) running on as the same
   paragraph. They MUST stay in one `.grid`: `.grid + .grid` adds a `--unit` gap, which
   breaks the block into two statements. This is the only place colour enters body copy.
-- **Section head — the paired head** (`.shead` + `.sbody`): above 720px the `h2` takes
-  **columns 1–2**, column 3 is left empty as the gap, and the head's **first paragraph
-  sits beside it at 4–12 on the same baseline**. The margin the head creates is occupied
-  by the head itself — an `h2` indented to c3–12 over an empty c1–2 reads as a stray
-  indent. At `≤720px` the pair stacks and the head goes **flush left**; a 2-column head
-  at phone width is one word per line, and the full-width rule above already separates.
-  - `.shead > h2` is capped at ramp step **25** (`clamp(21px,2.4vw,25px)`), not 31: a
-    2-column margin measures 154px at full width and "Engineering" at 28px is 163px — it
-    broke mid-word. Don't raise the cap without re-measuring the longest head on the site.
-  - Use `.shead` ONLY when a paragraph follows. When the head sits over a `.facts` table,
-    a `.links` staircase, a `.step` row, or a full-width embed — all of which need all 12
-    columns — put the `h2` in a flush-left `.c1-12` instead.
+- **Section head — the stacked head** (`.shead` + `.sbody`): the `h2` sits **above** its
+  prose and **both start at column 1**, spanning `1–9` (791px). Two vertical lines then run
+  the length of the page: **column 1** (head, prose, ledger label, clip left edge, `h1`,
+  `.back`) and the **right edge of column 9** at x=959 (prose column, ledger value, clip
+  right edge, where the hung caption starts). Measured on the live page at 1400px.
+  - This replaced a *paired* head (`h2` at c1–2, prose beside it at c4–12). The pairing
+    aligned nicely and wasted the page: `.sbody` measured 791px while `p{max-width:33em}`
+    is 528px, so every prose section on all eight pages carried **263px of dead space** on
+    the right, next to a near-empty 154px head margin. Proof sheet §1, option 04.
+  - The 25px size cap that protected the 154px margin is gone with the margin — `h2` uses
+    the full ramp step 31 (`clamp(21px,2.4vw,28px)`) with `overflow-wrap:anywhere`.
+  - Prose stops at **c1–9, not c1–10 or c1–12**: 791px is the same edge a hung-caption clip
+    stops at, so the two devices share a line instead of each ending somewhere private.
+  - `.shead` is still only for a head **with a paragraph**. Over a `.facts` ledger, a
+    `.links` staircase, a `.step` row, or a full-width embed, put the `h2` in a flush-left
+    `.c1-12` — it lands on the same column 1 either way.
   - `writing/*` pages are exempt: their `.c1-2` holds a real `<span class="sn">` section
     number, not an empty spacer.
+- **Two-column duality** (`.duo` + `.dcol.d` / `.dcol.b`): the **only** block that splits
+  the measure into two equal halves (span 6 each), each opened by a 3px rule in its
+  duality hue and a `.dk` kicker in the same hue. Used on `/method/` for the two
+  procedures, and only where **the two instruments are literally the subject** — this is
+  the second sanctioned place colour carries meaning in body copy (the homepage
+  `.statement` is the first). The composition states the argument before a word is read.
+  - It MUST be preceded by a **full-measure unified statement**. Two lists side by side
+    read as two unrelated lists to anyone meeting them cold; the shared claim runs
+    `.c1-8` above the split, so the columns arrive as halves of one thing.
+  - Do **not** reach for it to put any two things next to each other. Two arbitrary
+    columns are a layout convenience; the hued rules assert a relationship, and a `.duo`
+    that isn't about design-vs-build makes the hues decorative.
+  - Stacks to one column `≤900px` (same breakpoint as `.matrix`), where the two hued top
+    rules do the separating that the gutter did.
 - **Clip scatter** (`.matrix.mscatter` + `.m-a…d`): case-study video clips dropped into
   non-adjacent modules of a 12-col × `--unit`-row lattice (`.mscatter` supplies the
   `grid-auto-rows`). Recordings are not all the
@@ -247,8 +273,22 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   thing must not sit a screenful below) and the `figcaption` below. Mirrored hairlines —
   rule under the top label, rule over the caption — so the frame sits between two rules.
   Never write a literal `↗`: the O7 rule appends one to every `target="_blank"` link.
-- **Facts — F1** (`.facts` / `.frow`): three across on the grid, label-on-top, opened by
-  a top rule (`3n+1`→cols 1–4, `3n+2`→5–8, `3n+3`→9–12). Used for objective info.
+- **Facts — the ledger** (`.facts` / `.frow`): one row per fact, full width — label in
+  **c1–3**, value in **c4–12**, separated by a single hairline; only the first row gets the
+  2px ink rule. The most Müller-Brockmann device on the site (caption column + text column),
+  and a real table rather than a grid of tiles.
+  - It replaced three-across cells (`3n+1`→1–4, `3n+2`→5–8, `3n+3`→9–12). Three across only
+    composed when the count was a multiple of three: luthier's 4-row table left **two empty
+    cells** hanging off the last row, and every value was squeezed to a 245px measure that
+    made four-line paragraphs out of one-line facts.
+  - Values are body ramp (16/24) in `--dim`, `<b>` promotes to `--ink`. Labels are 13px
+    uppercase bold — a caption, not a heading.
+  - Stacks (`display:block`, label above value) `≤720px`.
+- **Clip with a hung caption** (`figure.demo.hang`): a full-measure clip stops at **c1–9**
+  and its `figcaption` sits in **c10–13**, beside the video rather than under it — the same
+  791px edge the prose stops at, so one line governs the page.
+  - Only for full-measure clips. A half-width clip (`.c1-6` / `.c7-12`) and the `.mscatter`
+    frames have no margin to hang anything in and keep the caption below.
 - **Links — L2** (`.links a`): a **diagonal staircase** — each link steps down-and-right
   (`3n+1`→1–6, `3n+2`→5–10 + 1 unit down, `3n+3`→8–13 + 2 units down). A gallery you
   navigate; echoes the clip scatter.

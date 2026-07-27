@@ -125,30 +125,28 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 /* fine print — a small faint aside (ramp step 13) */
 .fine{color:var(--faint);font-size:13px;line-height:20px}
 
-/* SECTION HEAD — two states, one markup.
-   WIDE (>720px): the head takes columns 1–2 and its first paragraph sits beside it at
-   4–12, sharing one baseline, with column 3 left empty as the gap. The old layout put
-   the head at c3-12 with an empty c1-2 spacer, which read as a stray indent — nothing
-   occupied the margin it created. Here the margin IS the head.
-   NARROW (≤720px): the pair stacks and the head goes flush left (chooser option 02) —
-   at phone width a 2-column head is one word per line, and the full-width rule above is
-   already doing all the separating a head needs.
-   Markup: <div class="shead"><h2>…</h2><div class="sbody"><p>…</p></div></div> */
+/* SECTION HEAD — the head sits above its prose, both flush to column 1 (proof-sheet
+   §1/04). The head used to occupy c1–2 as a margin with the prose beside it at c4–12,
+   and the measurement is what killed it: the prose column is 791px but `p` caps at 33em
+   = 528px, so every section was a 528px ribbon with a near-empty 154px margin on its
+   left and 263px of nothing on its right — 13 sections across eight pages, the same
+   accidental shape each time. A 1–2 word head does not fill 154px, so the margin was
+   never really occupied; it just pushed the text right without earning the indent.
+   Flush left, the head and the first line of prose start on the same axis as the h1,
+   the .back link, and the marker above them — one left edge down the whole page, which
+   is the alignment the grid was supposed to be showing. The prose keeps its 33em measure
+   (~62 characters, the band a reader tracks) and the space it doesn't use now falls in
+   ONE place, at the right, where a caption or an aside can take it.
+   Markup: <div class="shead"><h2>…</h2><div class="sbody"><p>…</p></div></div>
+   c1–9 for the prose, not all 12: 791px is the same edge figure.demo.hang gives the clips,
+   so the two devices line up instead of each stopping somewhere of its own. */
 .shead{grid-column:1 / 13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
   column-gap:var(--gutter)}
-/* A 2-column margin is 154px at full width, and h2's own 28px cap does NOT fit the
-   longest head on the site: "Engineering" measures 163px and broke as "Engineerin/g".
-   Capping at ramp step 25 puts it at 146px — every head fits whole. overflow-wrap stays
-   as the guard for a future head longer than any of these. */
-.shead > h2{grid-column:1 / 3;font-size:clamp(21px,2.4vw,25px);overflow-wrap:anywhere}
-.shead > .sbody{grid-column:4 / 13}
-/* h2 is 28px/1.1 ≈ 31px tall against body 16/24 — nudge the prose down 4px so the
-   head's cap-height and the paragraph's first baseline agree. */
-.shead > .sbody > p:first-child{margin-top:4px}
+.shead > h2{grid-column:1 / 10;overflow-wrap:anywhere;margin-bottom:var(--unit)}
+.shead > .sbody{grid-column:1 / 10}
 @media(max-width:720px){
   .shead{display:block}
-  .shead > .sbody{margin-top:var(--unit)}
-  .shead > .sbody > p:first-child{margin-top:0}
+  .shead > h2{margin-bottom:var(--unit)}
 }
 /* SECTION BREAK — air, no rule. A 1px ink line across all 12 columns was the heaviest
    mark on a page whose section heads occupy two columns: the line and the thing it
@@ -183,6 +181,33 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 .step .sd{display:block;color:var(--dim);font-size:15px;line-height:22px;margin-top:6px}
 .step.accent{border-top-color:var(--accent)}
 
+/* DUO — the two sides of the practice, side by side, each under its own hue. Used once,
+   on /method/, where the two instruments ARE the subject: the composition states the
+   duality before a word is read, which is the argument the page has to make.
+   Not .facts and not two .steps: both open every cell with the same ink rule, and here
+   the whole point is that the two columns are DIFFERENT halves — so each takes a 3px rule
+   in its own token, the same weight as a .step's, in the only other place the two hues are
+   allowed to carry meaning (the statement is the first).
+   Six columns each with no gap column: the two procedures are parallel and equal, so an
+   asymmetric split would rank one of them. Stacks ≤900px — at 6 columns each the ordered
+   lists wrap to one word per line well before the 720px breakpoint. */
+.duo{grid-column:1 / 13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+  column-gap:var(--gutter);row-gap:calc(var(--unit)*1.5)}
+.duo .dcol{grid-column:span 6;padding-top:12px}
+.duo .dcol.d{border-top:3px solid var(--design)}
+.duo .dcol.b{border-top:3px solid var(--build)}
+.duo .dk{display:block;font-size:11px;line-height:20px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.duo .dcol.d .dk{color:var(--design)}
+.duo .dcol.b .dk{color:var(--build)}
+.duo h3{font-weight:700;font-size:20px;line-height:1.15;letter-spacing:-0.012em;margin:0 0 10px}
+/* the numerals are the procedure's spine, so they stay visible and hang in the margin */
+.duo ol{margin:0;padding-left:1.4em;color:var(--dim);font-size:15px;line-height:23px}
+.duo li{margin-bottom:6px}
+.duo li:last-child{margin-bottom:0}
+.duo li b{color:var(--ink)}
+@media(max-width:900px){ .duo .dcol{grid-column:1 / 13} }
+
 /* BLOCK — the ONE rationed filled form */
 .block{background:var(--accent);color:var(--on-accent);padding:16px 18px;align-self:start}
 .block .st{display:block;font-weight:700;font-size:18px;line-height:24px}
@@ -194,6 +219,24 @@ figure.demo{margin:var(--unit) 0 0}
 figure.demo video{display:block;width:100%;height:auto;border:1px solid var(--ink);background:var(--panel)}
 figure.demo figcaption{color:var(--faint);font-size:12px;line-height:20px;letter-spacing:.06em;
   text-transform:uppercase;font-weight:700;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+
+/* HUNG CAPTION — the full-width clip stops at c1–9 and its caption sits in the three
+   columns beside it (proof-sheet §3/02). The clips were c1–10 = 882px, which is 91px past
+   the prose column's right edge and 182px short of the page's: an edge that matched nothing
+   else on the page, so the right margin read as an accident rather than a decision. At c1–9
+   the clip ends exactly where the prose ends, so one vertical line runs down the page
+   through the head, the prose, the ledger values, and every clip — and the caption occupies
+   the leftover instead of sitting under the video as a second stacked block.
+   Only for clips set at the FULL measure: a half-width clip (.c1-6 / .c7-12) and the
+   .mscatter frames have no margin to hang anything in, so they keep the caption below. */
+figure.demo.hang{grid-column:1 / 13;display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
+figure.demo.hang video{grid-column:1 / 10}
+figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
+@media(max-width:720px){
+  figure.demo.hang{display:block}
+  figure.demo.hang figcaption{margin-top:10px}
+}
 
 /* CLIP SCATTER — clips dropped into non-adjacent modules of the same .matrix lattice the
    index uses (12 cols × 24px auto-rows). Why, not decoration: these recordings are not all
@@ -218,20 +261,32 @@ figure.demo figcaption{color:var(--faint);font-size:12px;line-height:20px;letter
 }
 
 
-/* FACTS — F1: three across on the grid, label on top, one-col gaps between.
-   Each .frow is a cell (label + text stacked), opened by a top rule. Handles
-   2 or 3 facts; extra facts wrap to a new row. */
-.facts{grid-column:1 / 13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-  column-gap:var(--gutter);row-gap:var(--unit)}
-.frow{border-top:2px solid var(--ink);padding-top:12px}
-.frow:nth-child(3n+1){grid-column:1 / 4}
-.frow:nth-child(3n+2){grid-column:5 / 8}
-.frow:nth-child(3n+3){grid-column:9 / 12}
-.frow .fm{display:block;font-weight:700;font-size:13px;line-height:20px;letter-spacing:.03em;
-  text-transform:uppercase;margin-bottom:8px}
-.frow .ftx{display:block;font-size:15px;line-height:22px;color:var(--dim)}
+/* FACTS — a full-width ledger: label in the left margin, value across c4–12, one hairline
+   per row (proof-sheet §2/02). This replaced three cells across the grid, and the reason is
+   that the three-cell version could not hold its own content: a 245px cell set at 15px wrapped
+   luthier's Role fact to five lines, so the block ended up taller than it was wide, and a
+   FOURTH fact wrapped to a second row and left two holes (luthier's "How it works" put Modes
+   alone under three). A row count that changes the shape of the block is a layout that only
+   works for one page.
+   As rows: any number of facts reads the same, the value gets the body ramp (16/24) instead
+   of the 15px small step, and the label lands in the same left column the h2 heads and .en
+   numbers use — so the ledger, the section heads, and the index rows share one label axis.
+   The device is unchanged in kind — a rule that opens its content, no box — it just runs
+   horizontally now, which is the .frow row in Müller-Brockmann's own book: caption column,
+   text column. Same markup as before: .facts > .frow > .fm + .ftx. */
+.facts{grid-column:1 / 13}
+.frow{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);
+  border-top:1px solid var(--line);padding:14px 0}
+.frow:first-child{border-top:2px solid var(--ink)}
+.frow .fm{grid-column:1 / 4;font-weight:700;font-size:13px;line-height:24px;letter-spacing:.03em;
+  text-transform:uppercase}
+.frow .ftx{grid-column:4 / 13;font-size:16px;line-height:24px;color:var(--dim)}
 .frow .ftx b{color:var(--ink)}
-@media(max-width:720px){.frow,.frow:nth-child(3n+1),.frow:nth-child(3n+2),.frow:nth-child(3n+3){grid-column:1 / 13}}
+@media(max-width:720px){
+  .frow{display:block;padding:12px 0}
+  .frow .fm{margin-bottom:4px}
+  .frow .ftx{font-size:15px;line-height:22px}
+}
 
 /* THE INDEX — one reference list, both sections. This replaced a calendar scatter that
    dropped each cell into non-adjacent modules of a 12-col × baseline-row lattice. The
