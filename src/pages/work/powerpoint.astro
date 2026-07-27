@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SideMark from '../../components/SideMark.astro';
 ---
 
 <Layout
@@ -11,7 +12,11 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 
   <div class="grid">
-    <div class="c1-10"><div class="shrule"></div><h1>Powerpoint Pen Toolbox</h1></div>
+    <div class="c1-10">
+      <div class="shrule"></div>
+      <SideMark href="/work/powerpoint/" />
+      <h1>Powerpoint Pen Toolbox</h1>
+    </div>
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
@@ -37,24 +42,38 @@ import Layout from '../../layouts/Layout.astro';
     </div>
   </div>
 
+  <!-- Claim + evidence — the two fixed fields every project page carries.
+       Simplest form = what got removed. Proof = the measurement that made it real. -->
+  <div class="grid">
+    <div class="facts" style="margin-top:var(--unit)">
+      <div class="frow">
+        <div class="fm">Simplest form</div>
+        <div class="ftx">Removed the add-pen button and folded the eraser into the toolbox as just another pen — <b>fewer tools, not more options</b>.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Proof</div>
+        <div class="ftx">An <b>A/B test against the plain dropdown</b>, everything else held constant. The ribbon's benefit was too marginal to justify the engineering.</div>
+      </div>
+    </div>
+  </div>
+
   <div class="grid"><div class="rule"></div></div>
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>The problem</h2></div>
-  </div>
-  <div class="grid">
-    <div class="c1-8" style="margin-top:var(--unit)">
-      <p>
-        The Draw tab is how millions of people get an idea onto a slide with a pen —
-        but its design confused users, and the tools didn't behave the way people
-        expected. A usability study of the live tab (8 users recreating two diagrams,
-        analyzed by affinity diagramming into six themes) produced 52 recommendations.
-      </p>
-      <p>
-        I joined after that study and prototyped candidates for a new toolbox from its
-        findings, tested them, and delivered a polished working prototype to hand the
-        final design to engineering.
-      </p>
+    <div class="shead">
+      <h2>The problem</h2>
+      <div class="sbody">
+        <p>
+          The Draw tab is how millions of people get an idea onto a slide with a pen —
+          but its design confused users, and the tools didn't behave the way people
+          expected. A usability study of the live tab (8 users recreating two diagrams,
+          analyzed by affinity diagramming into six themes) produced 52 recommendations.
+        </p>
+        <p>
+          I joined after that study and prototyped candidates for a new toolbox from its
+          findings, tested them, and delivered a polished working prototype to hand the
+          final design to engineering.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -66,9 +85,9 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 
   <div class="grid"><div class="rule"></div></div>
+  <!-- .facts needs all 12 columns, so this head sits above it flush left (option 02). -->
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>What changed</h2></div>
+    <div class="c1-12"><h2>What changed</h2></div>
   </div>
   <div class="grid">
     <div class="facts">
@@ -96,39 +115,50 @@ import Layout from '../../layouts/Layout.astro';
 
   <div class="grid"><div class="rule"></div></div>
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>Why a functional prototype</h2></div>
-  </div>
-  <div class="grid">
-    <div class="c1-8" style="margin-top:var(--unit)">
-      <p>
-        I built each design as a <b>fully functional</b> prototype in Framer Classic —
-        a working toolbox on top of a real HTML/CSS/JS canvas you could actually draw
-        on (I wrote an ink drawer that listens for mouse-move and lays down SVG). That
-        mattered because we could test the prototype exactly like the live product:
-        give a user a real drawing task.
-      </p>
+    <div class="shead">
+      <h2>Why a functional prototype</h2>
+      <div class="sbody">
+        <p>
+          I built each design as a <b>fully functional</b> prototype in Framer Classic —
+          a working toolbox on top of a real HTML/CSS/JS canvas you could actually draw
+          on (I wrote an ink drawer that listens for mouse-move and lays down SVG). That
+          mattered because we could test the prototype exactly like the live product:
+          give a user a real drawing task.
+        </p>
+      </div>
     </div>
   </div>
-  <div class="grid">
-    <figure class="demo c1-6">
+  <!-- Four clips on the .matrix lattice instead of a two-up row: these recordings aren't
+       all the same shape, and side by side the taller one read as though its bottom edge
+       were cropped. Scattered, no two share a baseline, so the mismatch never registers —
+       and the page can show four of the fixes testing produced instead of two. -->
+  <div class="matrix mscatter">
+    <figure class="demo m-a">
       <video src="/media/pp-prototypeInUse.mp4" muted loop autoplay playsinline preload="metadata"></video>
       <figcaption>The working prototype in use — real drawing, not a click-through.</figcaption>
     </figure>
-    <figure class="demo c7-12">
+    <figure class="demo m-b">
       <video src="/media/pp-arrow.mp4" muted loop autoplay playsinline preload="metadata"></video>
       <figcaption>An arrow marks which colors can be modified — a fix found by testing.</figcaption>
     </figure>
+    <figure class="demo m-c">
+      <video src="/media/pp-colorJump.mp4" muted loop autoplay playsinline preload="metadata"></video>
+      <figcaption>A color that jumped between slots got an enlarge animation.</figcaption>
+    </figure>
+    <figure class="demo m-d">
+      <video src="/media/pp-longPress.mp4" muted loop autoplay playsinline preload="metadata"></video>
+      <figcaption>Long-press adds a pen — the power-user path that replaced the button.</figcaption>
+    </figure>
   </div>
-  <div class="grid">
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="c1-8">
       <p>
         The team was confident about bringing color and thickness to the top level of
         the UI. We built three ways to select a color, tested them with users, and
-        iterated on every misfit — an unset sixth color got a rainbow cue, a color
-        that jumped between slots got an enlarge animation, modifiable colors got an
-        arrow. Then we <b>A/B-tested</b> the favorite ribbon design against the plain
-        dropdown, holding everything else constant.
+        iterated on every misfit — the clips above are four of those fixes, each one a
+        response to something a user actually did. Then we <b>A/B-tested</b> the
+        favorite ribbon design against the plain dropdown, holding everything else
+        constant.
       </p>
       <p>
         The result contradicted the team's hypothesis: the ribbon's benefit was too

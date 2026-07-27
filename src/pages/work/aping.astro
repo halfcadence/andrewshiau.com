@@ -54,9 +54,11 @@ import SideMark from '../../components/SideMark.astro';
   <div class="grid">
     <div class="rule"></div>
   </div>
+  <!-- No paragraph follows this head — the .step below is the content — so there's
+       nothing to pair on the same row. Flush left (chooser option 02), same column-1
+       start as a .shead's h2 so every head on the site still lines up. -->
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>The style</h2></div>
+    <div class="c1-12"><h2>The style</h2></div>
   </div>
 
   <div class="grid" style="margin-top:var(--unit)">
@@ -72,8 +74,7 @@ import SideMark from '../../components/SideMark.astro';
     <div class="rule"></div>
   </div>
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>Written with it</h2></div>
+    <div class="c1-12"><h2>Written with it</h2></div>
   </div>
   <div class="grid" style="margin-top:var(--unit)">
     <div class="links">

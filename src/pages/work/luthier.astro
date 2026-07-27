@@ -48,22 +48,21 @@ import SideMark from '../../components/SideMark.astro';
 
   <div class="grid"><div class="rule"></div></div>
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>The problem</h2></div>
-  </div>
-  <div class="grid">
-    <div class="c1-8" style="margin-top:var(--unit)">
-      <p>
-        Composer is Amazon-internal software that automates marketing-graphic
-        production: templates become pixel-perfect graphics, and it makes over
-        <b>50,000 marketing images a year</b> for placements including the Amazon
-        Gateway.
-      </p>
-      <p>
-        When I joined, each template was hand-coded by a front-end engineer — a
-        slow, expensive, unmaintainable process. To scale it, a designer needed to
-        be able to make a template without writing any code.
-      </p>
+    <div class="shead">
+      <h2>The problem</h2>
+      <div class="sbody">
+        <p>
+          Composer is Amazon-internal software that automates marketing-graphic
+          production: templates become pixel-perfect graphics, and it makes over
+          <b>50,000 marketing images a year</b> for placements including the Amazon
+          Gateway.
+        </p>
+        <p>
+          When I joined, each template was hand-coded by a front-end engineer — a
+          slow, expensive, unmaintainable process. To scale it, a designer needed to
+          be able to make a template without writing any code.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -82,9 +81,11 @@ import SideMark from '../../components/SideMark.astro';
   </div>
 
   <div class="grid"><div class="rule"></div></div>
+  <!-- A .facts table needs the full 12 columns, so its head sits ABOVE it, flush left
+       (chooser option 02) rather than in the 2-column margin. Same column-1 start as a
+       .shead, so the heads still align down the page. -->
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>How it works</h2></div>
+    <div class="c1-12"><h2>How it works</h2></div>
   </div>
   <div class="grid">
     <div class="facts">
@@ -120,47 +121,43 @@ import SideMark from '../../components/SideMark.astro';
 
   <div class="grid"><div class="rule"></div></div>
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>Engineering</h2></div>
-  </div>
-  <div class="grid">
-    <div class="c1-8" style="margin-top:var(--unit)">
-      <p>
-        Two core modules. The <b>transformer</b> reads the Figma doc from the REST
-        API and converts it to a Composer JSON with a single pure function,
-        <code>getComposerDoc</code> — a tree traversal that collects the layers, UI,
-        and initial state. The <b>renderer</b> takes that JSON and produces the
-        template.
-      </p>
-      <p>
-        I built the JSON schema and renderer first, to cut manual template-coding —
-        then realized I could plug Figma in as the authoring interface on top of it.
-        That reframe is the whole project.
-      </p>
+    <div class="shead">
+      <h2>Engineering</h2>
+      <div class="sbody">
+        <p>
+          Two core modules. The <b>transformer</b> reads the Figma doc from the REST
+          API and converts it to a Composer JSON with a single pure function,
+          <code>getComposerDoc</code> — a tree traversal that collects the layers, UI,
+          and initial state. The <b>renderer</b> takes that JSON and produces the
+          template.
+        </p>
+        <p>
+          I built the JSON schema and renderer first, to cut manual template-coding —
+          then realized I could plug Figma in as the authoring interface on top of it.
+          That reframe is the whole project.
+        </p>
+      </div>
     </div>
   </div>
 
   <div class="grid"><div class="rule"></div></div>
   <div class="grid">
-    <div class="c1-2"></div>
-    <div class="c3-12"><h2>Outcome</h2></div>
-  </div>
-  <div class="grid">
-    <div class="c1-8" style="margin-top:var(--unit)">
-      <p>
-        I interviewed template designers across AWS, Alexa, Amazon Business,
-        Payments, and Fresh; wrote the proposal; and built the transformer, the CRUD
-        app, and the backend in 12 weeks. I launched a beta and ran usability studies
-        with 15 designers — feedback was positive, and it surfaced the bugs and
-        features that became the roadmap.
-      </p>
-      <p>
-        In early 2023 my team was re-orged to focus on mechanizing Amazon's shopping
-        design system, and Composer graduated to another team. The question I took
-        with me — how do you help distributed teams build consistent experiences
-        without hand-coding each one — is the direct line to
-        <a href="/work/stores-designer/">Stores Designer</a>.
-      </p>
+    <div class="shead">
+      <h2>Outcome</h2>
+      <div class="sbody">
+        <p>
+          I interviewed template designers across AWS, Alexa, Amazon Business,
+          Payments, and Fresh; wrote the proposal; and built the transformer, the CRUD
+          app, and the backend in 12 weeks. I launched a beta and ran usability studies
+          with 15 designers — feedback was positive, and it surfaced the bugs and
+          features that became the roadmap.
+        </p>
+        <p>
+          In early 2023 my team was re-orged and Composer graduated to another team.
+          The question I took with me: how do you help distributed teams build
+          consistent experiences without hand-coding each one.
+        </p>
+      </div>
     </div>
   </div>
 </Layout>

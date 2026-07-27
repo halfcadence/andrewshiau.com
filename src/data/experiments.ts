@@ -6,7 +6,11 @@ export interface Entry {
   n: string;          // set number, e.g. "01"
   title: string;
   blurb: string;
-  meta: string;       // small caps status line
+  // Small-caps meta line: the ARTIFACT TYPE, 1–3 words. One question answered the same
+  // way every time, so the eight entries read as a single column of nouns. No employer
+  // (that's in the blurb), no discipline (that's what the side marker is for), no date —
+  // any of those made the string long enough to wrap in a 4-column cell.
+  meta: string;
   href: string;       // where the entry links
   pos: string;        // matrix placement class (pos-01 …) for the calendar scatter
   side: Side;         // which half of the practice — renders the dot + word marker
@@ -41,8 +45,8 @@ export const work: Entry[] = [
     title: 'Stores Designer',
     blurb:
       'A design-system tool at Amazon that lets distributed teams build ' +
-      'consistent shopping experiences — the through-line from Luthier.',
-    meta: 'At Amazon · 2023–present',
+      'consistent shopping experiences without hand-coding each one.',
+    meta: 'Design system tool',
     href: '/work/stores-designer/',
     pos: 'pos-01',
     side: 'both',
@@ -54,7 +58,7 @@ export const work: Entry[] = [
     blurb:
       'Invented a no-code graphics-automation process at Amazon scale: a Figma ' +
       'widget that turns a design into a production template, no engineer required.',
-    meta: 'At Amazon · full-stack + UX',
+    meta: 'Figma widget',
     href: '/work/luthier/',
     pos: 'pos-02',
     side: 'both',
@@ -65,7 +69,7 @@ export const work: Entry[] = [
     blurb:
       "Redesigned PowerPoint's inking toolbox through 20+ rounds of functional " +
       'prototyping and user tests — the data refuted the team’s first design.',
-    meta: 'Rapid prototyping · UX',
+    meta: 'Prototype study',
     href: '/work/powerpoint/',
     pos: 'pos-03',
     side: 'design',
@@ -80,7 +84,7 @@ export const experiments: Entry[] = [
     blurb:
       '124 recipes and cooking essays — filed like a reference manual, not a blog. ' +
       'An agent files each entry against a fixed style guide; I do the cooking.',
-    meta: 'Static site · ongoing',
+    meta: 'Static site',
     href: '/work/recipes/',
     pos: 'pos-01',
     side: 'build',
@@ -92,7 +96,7 @@ export const experiments: Entry[] = [
     blurb:
       "An agent skill that writes in the Swiss style — Müller-Brockmann's grid. " +
       'It built this site.',
-    meta: 'Agent skill · 2026',
+    meta: 'Agent skill',
     href: '/work/aping/',
     pos: 'pos-02',
     side: 'both',
@@ -103,7 +107,7 @@ export const experiments: Entry[] = [
     blurb:
       'A skill that turns something I figured out into an interactive explainer — ' +
       'a diagram and a quiz that check the idea landed.',
-    meta: 'Agent skill · 2026',
+    meta: 'Agent skill',
     href: '/work/explain/',
     pos: 'pos-03',
     side: 'build',
@@ -114,7 +118,7 @@ export const experiments: Entry[] = [
     blurb:
       'A skill that renders every design option side by side, in the real system, ' +
       'so you pick by looking instead of imagining.',
-    meta: 'Agent skill · 2026',
+    meta: 'Agent skill',
     href: '/work/proofs/',
     pos: 'pos-04',
     side: 'design',
@@ -124,7 +128,7 @@ export const experiments: Entry[] = [
     title: 'Photography',
     blurb:
       'Shot with iPhones, a Fuji X100, and a Leica Q.',
-    meta: 'Personal · ongoing',
+    meta: 'Photographs',
     href: '/work/photography/',
     pos: 'pos-05',
     side: 'design',

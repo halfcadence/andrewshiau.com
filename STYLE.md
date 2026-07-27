@@ -117,7 +117,8 @@ else. Keep the two jobs separate:
   - `15` → blurbs, step detail, colophon
   - `16` → body (base)
   - `20 / 25` → `.dek`, project links (`clamp(18–24)`)
-  - `25 / 31` → `h2`, entry headings (`clamp(20–28)`)
+  - `25 / 31` → `h2`, entry headings (`clamp(20–28)`); a **paired** `h2` inside `.shead`
+    caps at 25 (`clamp(21–25)`) so it fits the 2-column margin — see Layout blocks
   - `31 / 39+` → section numbers `.sn` (`clamp(26–42)`), entry numbers `.en`
   - **display** → `h1` hero `clamp(42px, 7.5vw, 88px)`, line-height 0.97, tracking
     `-0.03em` (above the ramp; the one type-as-event moment)
@@ -186,6 +187,42 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   four cells dropped into non-adjacent grid modules; the empty modules between them are
   the composition. Each cell opened by a top rule, never a card. Collapses to a stack
   `≤900px`.
+- **Homepage statement** (`.statement` + `.thesis`): the `h1` and the two-clause thesis
+  are **one continuous block** in a single `.grid` — the name-sentence in `--ink`, then
+  the design clause (`.t-design`) and build clause (`.t-build`) running on as the same
+  paragraph. They MUST stay in one `.grid`: `.grid + .grid` adds a `--unit` gap, which
+  breaks the block into two statements. This is the only place colour enters body copy.
+- **Section head — the paired head** (`.shead` + `.sbody`): above 720px the `h2` takes
+  **columns 1–2**, column 3 is left empty as the gap, and the head's **first paragraph
+  sits beside it at 4–12 on the same baseline**. The margin the head creates is occupied
+  by the head itself — an `h2` indented to c3–12 over an empty c1–2 reads as a stray
+  indent. At `≤720px` the pair stacks and the head goes **flush left**; a 2-column head
+  at phone width is one word per line, and the full-width rule above already separates.
+  - `.shead > h2` is capped at ramp step **25** (`clamp(21px,2.4vw,25px)`), not 31: a
+    2-column margin measures 154px at full width and "Engineering" at 28px is 163px — it
+    broke mid-word. Don't raise the cap without re-measuring the longest head on the site.
+  - Use `.shead` ONLY when a paragraph follows. When the head sits over a `.facts` table,
+    a `.links` staircase, a `.step` row, or a full-width embed — all of which need all 12
+    columns — put the `h2` in a flush-left `.c1-12` instead.
+  - `writing/*` pages are exempt: their `.c1-2` holds a real `<span class="sn">` section
+    number, not an empty spacer.
+- **Clip scatter** (`.matrix.mscatter` + `.m-a…d`): case-study video clips dropped into
+  non-adjacent modules of the same lattice the index uses. Recordings are not all the
+  same shape, and a two-up row forces mismatched ratios onto one baseline where the
+  difference reads as a cropped bottom edge. Scattered, no two clips share a baseline.
+  Collapses to a stack `≤900px`. `.mscatter` is **not** a `.grid`, so the block after it
+  needs an explicit top margin — the `.grid + .grid` rule won't reach it.
+- **Photo gallery** (`.g-rag`): **two ragged column-flows** (`.col-l` c1–6, `.col-r`
+  c7–12 dropped `3 × --unit`), not a 2-up grid. Independent flows mean each photograph is
+  just the next one down, rather than half of a forced comparison pair. One column
+  `≤720px`, with the drop removed (it would leave a 72px hole at the top of the stack).
+- **Live embed** (`figure.embed`): **one proportion for every embed** — `16/10` on
+  desktop, `3/4` (portrait) `≤720px`, so the embedded page gets a phone-shaped viewport
+  instead of a letterbox scaled to unreadable. There is no tall variant. The link out
+  appears **twice**: `.esrc` above the frame (an embed is tall, so the one actionable
+  thing must not sit a screenful below) and the `figcaption` below. Mirrored hairlines —
+  rule under the top label, rule over the caption — so the frame sits between two rules.
+  Never write a literal `↗`: the O7 rule appends one to every `target="_blank"` link.
 - **Facts — F1** (`.facts` / `.frow`): three across on the grid, label-on-top, opened by
   a top rule (`3n+1`→cols 1–4, `3n+2`→5–8, `3n+3`→9–12). Used for objective info.
 - **Links — L2** (`.links a`): a **diagonal staircase** — each link steps down-and-right
@@ -197,6 +234,12 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   an 8px dot in the duality hue plus the word. In the matrix it sits in the `.em` meta
   line before the status text, separated by a `·`; on a case-study page it sits between
   `.shrule` and the `h1`. Both read `side` from `experiments.ts` — never hardcode one.
+- **Meta line = artifact nouns.** The `meta` field on each `Entry` names **what the thing
+  is** — "Design system tool", "Figma widget", "Static site", "Agent skill",
+  "Photographs". One consistent category across the whole index, so the column reads as a
+  set. It MUST NOT carry dates ("2023–present"), employers ("At Amazon"), or a discipline
+  list ("rapid prototyping + UX") — mixing those kinds made the column read as noise, and
+  the long ones overflowed. The side marker already says which half; the noun says what.
 - **The one filled form:** `.block` (`--accent` field, `--on-accent` text) — used once
   per page for the key statement. Everything else is type + rule. No filled cards.
 - **Structure is rules, not boxes.** A wrap-around hairline border to make a "card" is

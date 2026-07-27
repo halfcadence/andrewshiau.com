@@ -4,20 +4,35 @@ import SideMark from '../../components/SideMark.astro';
 
 // Self-hosted in /public/photos — my own photos, pulled from Unsplash (halfcadence)
 // after source.unsplash.com was retired. Shot with iPhones, a Fuji X100, and a Leica Q.
+//
+// `w`/`h` are the file's REAL pixel dimensions, measured from the JPEG headers, not a
+// shared guess — the browser needs the true ratio to reserve the right box, and three of
+// these are not 1400×933 (06 is 927 tall, 10 is 934). One wrong height is a visible reflow
+// on a slow connection.
+//
+// Alt text describes what is actually in the frame. Several of these filenames are
+// inherited from the Unsplash export and DON'T match their image (01 isn't a volcano;
+// 08 is a scooter, not a motorcycle) — the alt follows the photograph, not the filename.
 const photos = [
-  { src: '/photos/01-irazu-volcano.jpg', alt: 'Irazú Volcano, Costa Rica' },
-  { src: '/photos/02-green-mailbox-pink-wall.jpg', alt: 'Green mailbox beside a pink wall' },
-  { src: '/photos/04-chairs-on-grass.jpg', alt: 'Grey chairs on a grass field' },
-  { src: '/photos/05-woman-on-stairs.jpg', alt: 'A figure leaning on concrete stairs, outdoors' },
-  { src: '/photos/07-butterfly-brick-wall.jpg', alt: 'A butterfly perched on a brick wall' },
-  { src: '/photos/08-puppy-on-motorcycle.jpg', alt: 'A puppy sitting on a motorcycle' },
-  { src: '/photos/09-woman-red-top.jpg', alt: 'A passer-by in a red top' },
-  { src: '/photos/03.jpg', alt: 'Curved white concrete architecture and stairs against a blue sky' },
-  { src: '/photos/10.jpg', alt: 'A row of trees and benches along a park path' },
-  { src: '/photos/06.jpg', alt: 'A lone figure on a coastal stone wall under a cloudy sky' },
-  { src: '/photos/11.jpg', alt: 'A tan short-haired dog standing on an ornate marble floor' },
-  { src: '/photos/12.jpg', alt: 'A string quartet posed against a stone museum wall' },
+  { src: '/photos/01-irazu-volcano.jpg', w: 1400, h: 933, alt: 'White concrete architecture and a flight of stairs under a blue sky' },
+  { src: '/photos/02-green-mailbox-pink-wall.jpg', w: 1400, h: 933, alt: 'Green mailbox beside a pink wall' },
+  { src: '/photos/04-chairs-on-grass.jpg', w: 1400, h: 933, alt: 'Grey chairs on a grass field' },
+  { src: '/photos/05-woman-on-stairs.jpg', w: 1400, h: 933, alt: 'A figure leaning against a wall beneath a stone bridge by a river' },
+  { src: '/photos/07-butterfly-brick-wall.jpg', w: 1400, h: 933, alt: 'A butterfly perched on a brick wall' },
+  { src: '/photos/08-puppy-on-motorcycle.jpg', w: 1400, h: 933, alt: 'A grey toy poodle sitting on the footboard of a scooter' },
+  { src: '/photos/09-woman-red-top.jpg', w: 1400, h: 933, alt: 'A passer-by in a red top' },
+  { src: '/photos/03.jpg', w: 1400, h: 933, alt: 'Trees, benches, and a flowerbed along a park path' },
+  { src: '/photos/10.jpg', w: 1400, h: 934, alt: 'A figure photographing from a fort wall under a wide cloudy sky' },
+  { src: '/photos/06.jpg', w: 1400, h: 927, alt: 'A cello lying on a floor, in black and white' },
+  { src: '/photos/11.jpg', w: 1400, h: 933, alt: 'A tan short-haired dog standing on an ornate marble floor' },
+  { src: '/photos/12.jpg', w: 1400, h: 933, alt: 'A string quartet posed against a stone museum wall' },
 ];
+
+// Two ragged column-flows, not a 2-up grid: odds left, evens right. Splitting the list
+// here (rather than letting a grid pair them into rows) is what lets the two columns run
+// independently, so no two photos are forced to share a baseline.
+const left = photos.filter((_, i) => i % 2 === 0);
+const right = photos.filter((_, i) => i % 2 === 1);
 ---
 
 <Layout
@@ -42,19 +57,22 @@ const photos = [
   </div>
 
   <div class="grid" style="margin-top:var(--unit)">
-    <div class="gallery">
-      {photos.map((p, i) => (
-        <figure><img src={p.src} alt={p.alt} loading={i === 0 ? 'eager' : 'lazy'} width="1400" height="933" /></figure>
-      ))}
+    <div class="g-rag">
+      <div class="col-l">
+        {left.map((p, i) => (
+          <figure>
+            <img src={p.src} alt={p.alt} width={p.w} height={p.h}
+                 loading={i === 0 ? 'eager' : 'lazy'} />
+          </figure>
+        ))}
+      </div>
+      <div class="col-r">
+        {right.map((p) => (
+          <figure>
+            <img src={p.src} alt={p.alt} width={p.w} height={p.h} loading="lazy" />
+          </figure>
+        ))}
+      </div>
     </div>
   </div>
 </Layout>
-
-<style is:global>
-  /* photo gallery — a simple 2-up grid on the 12-col field, hairline gutters, no cards */
-  .gallery{grid-column:1 / 13;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-    column-gap:var(--gutter);row-gap:var(--gutter)}
-  .gallery figure{margin:0}
-  .gallery img{display:block;width:100%;height:auto;border:1px solid var(--line)}
-  @media(max-width:720px){ .gallery{grid-template-columns:1fr} }
-</style>
