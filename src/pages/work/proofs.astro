@@ -34,16 +34,26 @@ import SideMark from '../../components/SideMark.astro';
         put the candidates next to each other and use your eyes.
       </p>
       <p>
-        I chose this site's layout that way. The demo below is the actual proof
-        sheet I used to pick the experiment grid you're reading now — three
-        poster compositions on a 12-column grid, rendered live.
+        I chose this site's layout that way. Both sheets below are the real ones I
+        used, not reconstructions.
       </p>
     </div>
   </div>
 
   <div class="grid sect">
     <!-- a full-width embed follows, not a paragraph — head flush left (option 02) -->
-    <div class="c1-12"><h2>The demo</h2></div>
+    <div class="c1-12"><h2>This index</h2></div>
+  </div>
+  <div class="grid">
+    <div class="c1-8" style="margin-top:var(--unit)">
+      <p>
+        Three poster compositions on the 12-column grid, rendered live. I picked A,
+        the calendar scatter, and shipped it — then took it out. It composed well on
+        the sheet and indexed badly on the real page: two sections using the same
+        device, neither list ever whole in view. The index you're reading is a ruled
+        list instead. C survives as the staircase the links use.
+      </p>
+    </div>
   </div>
   <div class="grid">
     <figure class="embed c1-12" style="margin-top:var(--unit)">
@@ -55,7 +65,42 @@ import SideMark from '../../components/SideMark.astro';
       </div>
       <figcaption>
         <a href="/demo/index-layouts/index.html" target="_blank" rel="noopener">open full-screen</a>
-        — three index layouts, rendered live, on the real grid
+        — three index layouts, rendered live, on the real grid. A shipped, then lost
+        to the live page.
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="grid sect">
+    <!-- full-width embed again — head flush left, not .shead -->
+    <div class="c1-12"><h2>A harder one</h2></div>
+  </div>
+  <div class="grid">
+    <div class="c1-8" style="margin-top:var(--unit)">
+      <p>
+        My recipe archive needed a layout for a wide screen: a 26-column split with
+        the section names hung out in a margin. Six open questions, twenty options,
+        every frame rendered at a width it actually ships at — 1512, 1792, 2560, and
+        390 for a phone.
+      </p>
+      <p>
+        This is round two, so what the first round settled sits in a band at the top
+        marked locked. A sheet that reopens a decision you already made is how you
+        spend a week choosing a gutter.
+      </p>
+    </div>
+  </div>
+  <div class="grid">
+    <figure class="embed c1-12" style="margin-top:var(--unit)">
+      <div class="esrc">
+        <a href="/demo/recipes-ultrawide/index.html" target="_blank" rel="noopener">open the second proof sheet full-screen</a>
+      </div>
+      <div class="embed-frame">
+        <iframe src="/demo/recipes-ultrawide/index.html" title="A live proof sheet of ultrawide layouts for the recipe archive" loading="lazy"></iframe>
+      </div>
+      <figcaption>
+        <a href="/demo/recipes-ultrawide/index.html" target="_blank" rel="noopener">open full-screen</a>
+        — twenty options for the recipe archive's wide layout, at their real widths
       </figcaption>
     </figure>
   </div>
@@ -74,6 +119,13 @@ import SideMark from '../../components/SideMark.astro';
         <div class="ftx">
           The first option is always what's live today, so you read the rest
           against it. A few distinct options beat a dozen near-duplicates.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">Rounds</div>
+        <div class="ftx">
+          A second sheet opens with what the first one settled, marked
+          <b>locked</b>. Decisions close; only the open questions get frames.
         </div>
       </div>
     </div>
