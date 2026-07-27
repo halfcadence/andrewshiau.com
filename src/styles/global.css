@@ -89,18 +89,18 @@ body.showgrid .guide{display:grid}
 h1{font-weight:700;font-size:clamp(38px,6.4vw,72px);line-height:1.0;letter-spacing:-0.03em;margin:0;overflow-wrap:anywhere}
 h2{font-weight:700;font-size:clamp(21px,2.4vw,28px);line-height:1.1;letter-spacing:-0.014em;margin:0}
 .dek{font-size:clamp(18px,2vw,22px);line-height:1.36;color:var(--dim);margin:0;font-weight:400;max-width:32em}
-/* THE STATEMENT — the masthead h1 and the thesis are ONE continuous typographic block,
-   not headline + dek: same ramp step (39), same weight, no gap between them, so the
-   four clauses read as a single sentence. This is why the h1 overrides its own display
-   size here — at 72 the two lines competed and the reader got no entry point. */
+/* THE STATEMENT — one continuous sentence, set as a SINGLE element with the two thesis
+   clauses inline. Not an h1 + a p: block elements can't share a line, so that version
+   always broke before the thesis and read as two stacked statements. Inline spans let
+   the sentence run on and wrap only where the measure ends, so the colour change lands
+   mid-line — which is the whole idea. Ramp step 39; the h1's own 72 display size is
+   overridden here because at 72 the lines competed and gave the reader no entry point. */
 .statement{font-size:clamp(28px,3.6vw,39px);line-height:1.1;letter-spacing:-0.02em;
   font-weight:700;max-width:24em;margin:0}
-/* THE THESIS — the one place colour enters body copy, because the two halves of the
-   practice ARE the subject. Nowhere else. --dim ground so the h1 clause still leads
-   the block, and the two coloured clauses are the only things at full strength. */
-.thesis{color:var(--dim)}
-.thesis .t-design{color:var(--design)}
-.thesis .t-build{color:var(--build)}
+/* The one place colour enters body copy, because the two halves of the practice ARE the
+   subject. Nowhere else. */
+.statement .t-design{color:var(--design)}
+.statement .t-build{color:var(--build)}
 p{margin:0 0 var(--unit);max-width:33em}
 p:last-child{margin-bottom:0}
 b,strong{font-weight:700}
@@ -232,11 +232,19 @@ figure.demo figcaption{color:var(--faint);font-size:12px;line-height:20px;letter
 .entry:hover .arrowc{transform:translateX(6px)}
 /* SIDE MARKER — which half of the practice an entry belongs to. A dot in the
    duality hue plus the WORD: colour alone is never the signal (navy and olive are
-   only 2.14:1 apart in greyscale, so a colourblind reader reads the word). */
+   only 2.14:1 apart in greyscale, so a colourblind reader reads the word).
+   "Design + Build" is the MARK itself — two dots joined by a rule, the same figure as
+   the logo, laid horizontal instead of diagonal so it sits on the meta line's baseline.
+   The old half-and-half gradient dot said "two colours"; this says "two things, one
+   line", which is what the logo means and what the label means. */
 .side{display:inline-flex;align-items:center;gap:6px;flex:none}
 .side::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--design)}
 .side-build::before{background:var(--build)}
-.side-both::before{background:linear-gradient(90deg,var(--design) 0 50%,var(--build) 50% 100%)}
+/* 8px dot + 6px rule + 8px dot = 22px, drawn as one inline SVG so the rule truly joins
+   the two dots (a gradient can't, and two separate dots with a border between them
+   misaligns at fractional zoom). currentColor is not used: each dot keeps its own hue. */
+.side-both::before{display:none}
+.side-both .mk{width:22px;height:8px;flex:none;display:block;overflow:visible}
 .smeta{color:var(--faint)}
 .side + .smeta::before{content:"·";margin-right:6px;opacity:.55}
 /* the scatter placement — desktop only; mobile collapses to a stack.

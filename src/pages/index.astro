@@ -1,24 +1,21 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { work, experiments, SIDE_LABEL } from '../data/experiments';
+import { work, experiments } from '../data/experiments';
+import SideDot from '../components/SideDot.astro';
 ---
 
 <Layout title="Andrew Shiau">
-  <!-- Masthead + thesis as ONE typographic block (chooser pick 04). The h1 and the
-       thesis are set identically — same ramp step, same weight, no gap between them —
-       so they read as one four-clause statement rather than headline + dek. The h1
-       carries the ink; the thesis carries the two hues. The wordmark in the nav already
-       says the name, so the h1 doesn't repeat it as a standalone line. -->
-  <!-- One .grid, not two, so no `.grid + .grid` unit lands between the two lines —
-       the whole point of the block is that they touch. The two clauses carry the two
-       hues: the only place in body copy where colour is allowed, because here the two
-       halves of the practice ARE the subject. Each entry below is marked with its side. -->
+  <!-- Masthead + thesis as ONE typographic sentence (chooser pick 04), set as a single
+       element. An h1 + a p can't share a line, so that version always broke before the
+       thesis and read as two stacked statements; inline spans let the sentence run on
+       and wrap only where the measure ends, so the colour changes mid-line. The two
+       clauses carry the two hues — the only place in body copy where colour is allowed,
+       because here the two halves of the practice ARE the subject. The wordmark in the
+       nav already says the name, so this isn't a repeat. -->
   <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <h1 class="statement c1-10">Andrew Shiau is a frontend engineer who designs and builds, chasing simplicity.</h1>
-    <p class="statement thesis c1-10">
-      <span class="t-design">Taste finds the simplest form</span>,
-      <span class="t-build">engineering proves the simplest solution</span>.
-    </p>
+    <h1 class="statement c1-10">Andrew Shiau is a frontend engineer who designs and builds,
+      chasing simplicity. <span class="t-design">Taste finds the simplest form</span>,
+      <span class="t-build">engineering proves the simplest solution</span>.</h1>
   </div>
 
   <!-- Work — professional projects. Same calendar-scatter matrix as Experiments. -->
@@ -35,7 +32,7 @@ import { work, experiments, SIDE_LABEL } from '../data/experiments';
         <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
         <p class="ed">{x.blurb}</p>
         <span class="em">
-          <span class={`side side-${x.side}`}>{SIDE_LABEL[x.side]}</span>
+          <SideDot side={x.side} />
           <span class="smeta">{x.meta}</span>
         </span>
       </a>
@@ -57,7 +54,7 @@ import { work, experiments, SIDE_LABEL } from '../data/experiments';
         <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
         <p class="ed">{x.blurb}</p>
         <span class="em">
-          <span class={`side side-${x.side}`}>{SIDE_LABEL[x.side]}</span>
+          <SideDot side={x.side} />
           <span class="smeta">{x.meta}</span>
         </span>
       </a>

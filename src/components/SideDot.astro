@@ -1,0 +1,24 @@
+---
+// The side marker itself: the dot(s) plus the word. One component, three call sites
+// (the two index matrices and the case-study header), so the marker can't drift.
+//
+// `both` renders the MARK — two dots joined by a rule, the logo's own figure, laid
+// horizontal so it sits on the meta line's baseline rather than climbing out of it.
+// `design` / `build` render a single dot via `.side::before` in CSS.
+//
+// The word is always present: navy and olive are only 2.14:1 apart in greyscale, so
+// colour is never the only signal. See STYLE.md.
+import { SIDE_LABEL, type Side } from '../data/experiments';
+interface Props { side: Side }
+const { side } = Astro.props;
+---
+<span class={`side side-${side}`}>
+  {side === 'both' && (
+    <svg class="mk" viewBox="0 0 22 8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <line x1="4" y1="4" x2="18" y2="4" stroke="currentColor" stroke-width="1.25"/>
+      <circle cx="4" cy="4" r="4" fill="var(--design)"/>
+      <circle cx="18" cy="4" r="4" fill="var(--build)"/>
+    </svg>
+  )}
+  {SIDE_LABEL[side]}
+</span>
