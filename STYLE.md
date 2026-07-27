@@ -81,8 +81,8 @@ else. Keep the two jobs separate:
 
 - **`--accent` is structural, and it IS `--design`.** It appears in ~6 sanctioned roles
   and nowhere else: the first/lead top-rule of a group, a big set number (`.sn`/`.en`),
-  the `.shrule` case-study rule, the one filled `.block`, the correct-answer quiz state,
-  and link interaction (see Link system). Because `--accent: var(--design)`, changing
+  the flagship `.entry.accent` rule on each index list, the one filled `.block`, the
+  correct-answer quiz state, and link interaction (see Link system). Because `--accent: var(--design)`, changing
   the design hue moves every structural role in one line — never find-and-replace it.
 - **`--build` appears in exactly three places.** The mark (`.mark`, `favicon.svg`), the
   side marker (`.side-build` / `.side-both`), and the thesis clause (`.thesis .t-build`)
@@ -183,10 +183,33 @@ none of the above (e.g. figcaption, back-links have their own rules).
 
 The composition primitives, chosen from the base-blocks + link-style choosers:
 
-- **Experiment matrix** (`.matrix` / `.entry` / `.pos-01…04`): a **calendar-scatter** —
-  four cells dropped into non-adjacent grid modules; the empty modules between them are
-  the composition. Each cell opened by a top rule, never a card. Collapses to a stack
-  `≤900px`.
+- **The index list** (`.matrix` / `.entry`): **one ruled reference list**, used for both
+  homepage sections — number (c1) · title (c2–5) · blurb (c6–10) · marker (c11–12), each
+  row opened by a hairline, the list opened by a 2px ink rule. Never a card. The flagship
+  row of each list takes `.entry.accent` (accent rule) — the only per-row differentiator.
+  At `≤900px` the five columns collapse to `44px 1fr`: number + title on the first line,
+  blurb and marker stacked under them.
+  - This replaced a **calendar-scatter** (`.pos-01…05`, both sections). The scatter
+    composed better in isolation and indexed worse: both sections used the same device, so
+    only the heading told them apart, and the page ran ~2.5 screens with neither list ever
+    whole in view. An index shows what's there. The one thing the scatter did well —
+    numerals as the rhythm — survives as the tabular `.en` column.
+  - The **only surviving scatter** is `.mscatter` (below); `grid-auto-rows` lives there,
+    not on `.matrix`, since list rows are content-height.
+- **Section break — air, not a rule** (`.grid.sect`): a section is opened by `3.5 × --unit`
+  of space plus its head, with **no** divider. A 1px ink line across all 12 columns was
+  the heaviest mark on the page and never touched the thing it opened, so it read as a
+  divider dropped between sections; six per page also flattened the hierarchy. Whitespace
+  is structural — a rule that repeats has stopped being structure. It is a class on the
+  section's **own first `.grid`**, never a spacer div, and it must be written `.grid.sect`
+  to outrank `.grid + .grid`'s one-unit gap.
+  - Rules that **survive** are the ones that own something they touch: a `.frow` top rule
+    opens its fact, an `.entry`'s opens its row, `.colo-rule` closes the page. The
+    full-width `.rule` is kept for `writing/*` only, where it pairs with a numbered
+    section's set figure.
+  - There is **no rule above a case-study `h1`**. The old 32px `.shrule` accent stub was
+    not a column, not the word's width, not the measure — it read as template decoration.
+    The `.smark` side marker opens the page instead and says more.
 - **Homepage statement** (`.statement` + `.thesis`): the `h1` and the two-clause thesis
   are **one continuous block** in a single `.grid` — the name-sentence in `--ink`, then
   the design clause (`.t-design`) and build clause (`.t-build`) running on as the same
@@ -207,7 +230,8 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   - `writing/*` pages are exempt: their `.c1-2` holds a real `<span class="sn">` section
     number, not an empty spacer.
 - **Clip scatter** (`.matrix.mscatter` + `.m-a…d`): case-study video clips dropped into
-  non-adjacent modules of the same lattice the index uses. Recordings are not all the
+  non-adjacent modules of a 12-col × `--unit`-row lattice (`.mscatter` supplies the
+  `grid-auto-rows`). Recordings are not all the
   same shape, and a two-up row forces mismatched ratios onto one baseline where the
   difference reads as a cropped bottom edge. Scattered, no two clips share a baseline.
   Collapses to a stack `≤900px`. `.mscatter` is **not** a `.grid`, so the block after it
@@ -227,13 +251,14 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   a top rule (`3n+1`→cols 1–4, `3n+2`→5–8, `3n+3`→9–12). Used for objective info.
 - **Links — L2** (`.links a`): a **diagonal staircase** — each link steps down-and-right
   (`3n+1`→1–6, `3n+2`→5–10 + 1 unit down, `3n+3`→8–13 + 2 units down). A gallery you
-  navigate; echoes the matrix scatter.
+  navigate; echoes the clip scatter.
 - **Colophon** (`.colo`): grid-placed facts (label column + satellites 5–13), not a
   stacked list. Right columns stay intentionally empty.
-- **Side marker** (`.side` + `.smeta` in the matrix; `.smark` on a case-study header):
-  an 8px dot in the duality hue plus the word. In the matrix it sits in the `.em` meta
-  line before the status text, separated by a `·`; on a case-study page it sits between
-  `.shrule` and the `h1`. Both read `side` from `experiments.ts` — never hardcode one.
+- **Side marker** (`.side` + `.smeta` in the index list; `.smark` on a case-study header):
+  an 8px dot in the duality hue plus the word. In the list it sits in the `.em` marker
+  column (c11–12, right-aligned) before the artifact noun, separated by a `·`; on a
+  case-study page it is the **first thing on the page**, above the `h1`. Both read `side`
+  from `experiments.ts` — never hardcode one. One component, `SideDot.astro`.
 - **Meta line = artifact nouns.** The `meta` field on each `Entry` names **what the thing
   is** — "Design system tool", "Figma widget", "Static site", "Agent skill",
   "Photographs". One consistent category across the whole index, so the column reads as a

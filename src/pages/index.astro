@@ -18,15 +18,20 @@ import SideDot from '../components/SideDot.astro';
       <span class="t-build">engineering proves the simplest solution</span>.</h1>
   </div>
 
-  <!-- Work — professional projects. Same calendar-scatter matrix as Experiments. -->
-  <div class="grid" style="margin-top:calc(var(--unit)*2)">
-    <div class="rule"></div>
+  <!-- Work + Experiments — ONE reference list, the same ruled table twice: number ·
+       title · blurb · marker. This replaced a calendar scatter in both sections. The
+       scatter composed better in isolation and indexed worse: both sections used it, so
+       only the heading distinguished them, and the page ran ~2.5 screens with neither
+       list ever whole in view. An index's job is to show what's there.
+       The two sections are now separated by air alone (.grid.sect), same as a case-study
+       section break — one device, used everywhere. -->
+  <div class="grid sect">
     <div style="grid-column:1 / 5"><h2>Work</h2></div>
   </div>
 
-  <div class="matrix matrix-compact">
+  <div class="matrix">
     {work.map((x) => (
-      <a class={`entry ${x.pos} ${x.accent ? 'accent' : ''}`} href={x.href}
+      <a class:list={['entry', { accent: x.accent }]} href={x.href}
          target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
         <span class="en">{x.n}</span>
         <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
@@ -39,16 +44,13 @@ import SideDot from '../components/SideDot.astro';
     ))}
   </div>
 
-  <!-- Experiments — the AI-forward work. Calendar-scatter matrix (Layout A);
-       the empty modules between cells are the composition. -->
-  <div class="grid" style="margin-top:calc(var(--unit)*3)">
-    <div class="rule"></div>
+  <div class="grid sect">
     <div style="grid-column:1 / 5"><h2>Experiments</h2></div>
   </div>
 
   <div class="matrix">
     {experiments.map((x) => (
-      <a class={`entry ${x.pos} ${x.accent ? 'accent' : ''}`} href={x.href}
+      <a class:list={['entry', { accent: x.accent }]} href={x.href}
          target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
         <span class="en">{x.n}</span>
         <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>

@@ -12,7 +12,6 @@ export interface Entry {
   // any of those made the string long enough to wrap in a 4-column cell.
   meta: string;
   href: string;       // where the entry links
-  pos: string;        // matrix placement class (pos-01 …) for the calendar scatter
   side: Side;         // which half of the practice — renders the dot + word marker
   accent?: boolean;   // accent (design-hue) top-rule instead of ink
   external?: boolean; // opens in a new tab
@@ -48,7 +47,6 @@ export const work: Entry[] = [
       'consistent shopping experiences without hand-coding each one.',
     meta: 'Design system tool',
     href: '/work/stores-designer/',
-    pos: 'pos-01',
     side: 'both',
     accent: true,
   },
@@ -60,7 +58,6 @@ export const work: Entry[] = [
       'widget that turns a design into a production template, no engineer required.',
     meta: 'Figma widget',
     href: '/work/luthier/',
-    pos: 'pos-02',
     side: 'both',
   },
   {
@@ -71,7 +68,6 @@ export const work: Entry[] = [
       'prototyping and user tests — the data refuted the team’s first design.',
     meta: 'Prototype study',
     href: '/work/powerpoint/',
-    pos: 'pos-03',
     side: 'design',
   },
 ];
@@ -86,7 +82,6 @@ export const experiments: Entry[] = [
       'An agent files each entry against a fixed style guide; I do the cooking.',
     meta: 'Static site',
     href: '/work/recipes/',
-    pos: 'pos-01',
     side: 'build',
     accent: true,
   },
@@ -98,7 +93,6 @@ export const experiments: Entry[] = [
       'It built this site.',
     meta: 'Agent skill',
     href: '/work/aping/',
-    pos: 'pos-02',
     side: 'both',
   },
   {
@@ -109,7 +103,6 @@ export const experiments: Entry[] = [
       'a diagram and a quiz that check the idea landed.',
     meta: 'Agent skill',
     href: '/work/explain/',
-    pos: 'pos-03',
     side: 'build',
   },
   {
@@ -120,7 +113,6 @@ export const experiments: Entry[] = [
       'so you pick by looking instead of imagining.',
     meta: 'Agent skill',
     href: '/work/proofs/',
-    pos: 'pos-04',
     side: 'design',
   },
   {
@@ -130,7 +122,6 @@ export const experiments: Entry[] = [
       'Shot with iPhones, a Fuji X100, and a Leica Q.',
     meta: 'Photographs',
     href: '/work/photography/',
-    pos: 'pos-05',
     side: 'design',
   },
 ];
