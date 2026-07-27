@@ -228,6 +228,26 @@ a living studio you could just ask. This site's "Aping" page states the line; ke
 
 ---
 
+## Design feedback comes as annotations, not prose
+
+The user reviews this site by marking it up in the browser with the **Vibe Annotations**
+extension, then saying "read my annotations". The notes land in a JSON file the devbox
+can read directly — see [`CLAUDE.md`](CLAUDE.md) for the path, the payload shape, and the
+delete-after-implementing rule.
+
+Two things that follow for design work here:
+
+- **The note is the judgment; the location is free.** An annotation already carries the
+  selector, the computed styles, and the viewport width. What it adds that nothing else
+  can is *what's wrong*. Treat a terse note ("gap too big") as a real spec and resolve it
+  against this file's tokens — don't ask the user to restate it.
+- **Fix to the system, not to the pixel.** An annotation reports a symptom on one
+  element. If the cause is a token, a ramp step, or a shared block in `global.css`, fix it
+  there so every page moves together — a one-off override on the annotated node is how
+  this system rots.
+
+---
+
 ## Ship workflow
 
 The site is Astro static → `dist/`, served from a DigitalOcean droplet

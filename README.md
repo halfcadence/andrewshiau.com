@@ -8,6 +8,9 @@ HTTPS (nginx + certbot / Let's Encrypt, auto-renew).
 source of truth for tokens, the type ramp, the link system, motion, voice, and the
 `/design-critique` panel.
 
+**Working with an agent here: [`CLAUDE.md`](CLAUDE.md)** — the devbox/Mac split, the
+verify-live rule, and how to read the browser design annotations.
+
 ## Develop
 
 Repo lives in `workplace/andrewshiau` so Unison syncs the **source** to the Mac.
