@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SideMark from '../../components/SideMark.astro';
 
 // Self-hosted in /public/photos — my own photos, pulled from Unsplash (halfcadence)
 // after source.unsplash.com was retired. Shot with iPhones, a Fuji X100, and a Leica Q.
@@ -28,7 +29,11 @@ const photos = [
   </div>
 
   <div class="grid">
-    <div class="c1-10"><div class="shrule"></div><h1>Photography</h1></div>
+    <div class="c1-10">
+      <div class="shrule"></div>
+      <SideMark href="/work/photography/" />
+      <h1>Photography</h1>
+    </div>
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">

@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import SideMark from '../../components/SideMark.astro';
 ---
 
 <Layout
@@ -11,7 +12,11 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 
   <div class="grid">
-    <div class="c1-10"><div class="shrule"></div><h1>Recipes</h1></div>
+    <div class="c1-10">
+      <div class="shrule"></div>
+      <SideMark href="/work/recipes/" />
+      <h1>Recipes</h1>
+    </div>
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">

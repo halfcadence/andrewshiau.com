@@ -38,14 +38,15 @@ const {
   :root{
     color-scheme: light dark;
     --paper:#f4f3ef; --panel:#ffffff; --ink:#141412; --dim:#5f5e57; --faint:#6e6d64;
-    --line:#d5d4cd; --accent:#d5241a; --on-accent:#ffffff; --guide:rgba(213,36,26,0.055);
+    /* --accent is the design hue; explainers carry their own copy of the tokens */
+    --line:#d5d4cd; --accent:#14306b; --on-accent:#ffffff; --guide:rgba(20,48,107,0.06);
     --unit:24px; --gutter:28px;
     --ease:cubic-bezier(0.16,1,0.3,1); --dur:220ms; --dur-fast:140ms;
     --sans:"Graphik","Helvetica Neue",Helvetica,"Akzidenz-Grotesk",Arial,"Liberation Sans",system-ui,sans-serif;
   }
   @media (prefers-color-scheme: dark){
     :root{ --paper:#141413; --panel:#1b1b19; --ink:#f0efe8; --dim:#a09f96; --faint:#8f8e85;
-      --line:#2b2b27; --accent:#ff4d3f; --on-accent:#ffffff; --guide:rgba(255,77,63,0.07); }
+      --line:#2b2b27; --accent:#6ea8ff; --on-accent:#141413; --guide:rgba(110,168,255,0.08); }
   }
   @font-face{font-family:"Graphik";font-weight:400;font-display:swap;src:url("/fonts/Graphik-400-Regular.woff2") format("woff2")}
   @font-face{font-family:"Graphik";font-weight:400;font-style:italic;font-display:swap;src:url("/fonts/Graphik-400-Regular-Italic.woff2") format("woff2")}

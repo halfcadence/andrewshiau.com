@@ -1,7 +1,8 @@
 /*
   andrewshiau.com — Müller-Brockmann grid system.
   Ported from the /muller house style: 12-field modular grid, large disciplined
-  type, structure drawn by RULES not boxes, one rationed signal-red accent,
+  type, structure drawn by RULES not boxes, one rationed structural accent (--design)
+  plus a second hue (--build) that carries content, not emphasis — see STYLE.md,
   baseline rhythm on --unit. Light default; dark follows the system.
   Typeface: Graphik (self-hosted, from the 2018 portfolio), Helvetica fallback.
 */
@@ -29,9 +30,17 @@
   --dim:#5f5e57;
   --faint:#6e6d64;       /* meta labels — darkened to pass WCAG AA (4.7:1 on paper) */
   --line:#d5d4cd;
-  --accent:#d5241a;      /* signal red — structural only */
-  --on-accent:#ffffff;
-  --guide:rgba(213,36,26,0.055);
+  /* THE DUALITY — two hues, one for each half of the practice.
+     --design is also the structural accent (rules, set numbers, links, the one
+     filled block); --build appears ONLY where the duality is the point: the mark,
+     the side markers, the thesis clause. See STYLE.md. */
+  --design:#14306b;      /* navy — 11.36:1 on paper */
+  --build:#5c6b12;       /* olive — 5.30:1 on paper */
+  --accent:var(--design);
+  --on-accent:#ffffff;   /* type on a filled --accent field: 12.61:1 */
+  --guide:rgba(20,48,107,0.06);
+  /* dot cursor, in the design hue — one token so it flips with the scheme */
+  --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%2314306b"/></svg>');
   --unit:24px;           /* baseline unit — every vertical space is a multiple */
   --gutter:28px;
   --ease:cubic-bezier(0.16,1,0.3,1);  /* signature easing — everything animates on this */
@@ -41,7 +50,13 @@
 @media (prefers-color-scheme: dark){
   :root{
     --paper:#141413; --panel:#1b1b19; --ink:#f0efe8; --dim:#a09f96; --faint:#8f8e85;
-    --line:#2b2b27; --accent:#ff4d3f; --on-accent:#ffffff; --guide:rgba(255,77,63,0.07);
+    --line:#2b2b27;
+    /* same two hues, lifted for the near-black ground — not inverted, not recoloured */
+    --design:#6ea8ff;    /* 7.64:1 on dark paper */
+    --build:#b9cc4a;     /* 10.36:1 on dark paper */
+    --on-accent:#141413; /* type on the lifted field: 7.64:1 (white would be 2.6) */
+    --guide:rgba(110,168,255,0.08);
+    --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%236ea8ff"/></svg>');
   }
 }
 *{box-sizing:border-box}
@@ -49,8 +64,8 @@ html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:var(--sans);font-size:16px;line-height:24px;font-weight:400;letter-spacing:-0.004em;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-  /* red-dot cursor — the logo's dot as the pointer */
-  cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23d5241a"/></svg>') 9 9, auto}
+  /* dot cursor — the mark's design dot as the pointer */
+  cursor:var(--cursor) 9 9, auto}
 /* text highlight — pure invert (ink on paper → paper on ink) */
 ::selection{background:var(--ink);color:var(--paper)}
 .wrap{max-width:1120px;margin:0 auto;padding:0 var(--gutter) calc(var(--unit)*5);position:relative}
@@ -74,19 +89,24 @@ body.showgrid .guide{display:grid}
 h1{font-weight:700;font-size:clamp(38px,6.4vw,72px);line-height:1.0;letter-spacing:-0.03em;margin:0;overflow-wrap:anywhere}
 h2{font-weight:700;font-size:clamp(21px,2.4vw,28px);line-height:1.1;letter-spacing:-0.014em;margin:0}
 .dek{font-size:clamp(18px,2vw,22px);line-height:1.36;color:var(--dim);margin:0;font-weight:400;max-width:32em}
+/* THE THESIS — the one place colour enters body copy, because the two halves of the
+   practice ARE the subject. Nowhere else. */
+.thesis{color:var(--ink)}
+.thesis .t-design{color:var(--design)}
+.thesis .t-build{color:var(--build)}
 p{margin:0 0 var(--unit);max-width:33em}
 p:last-child{margin-bottom:0}
 b,strong{font-weight:700}
 a{color:var(--accent);text-underline-offset:2px}
 /* O7 — any link that opens in a new tab gets a ↗ marker; opacity lifts on hover.
    Inherits currentColor so it stays legible inside the prose invert-fill (white on
-   hover) and the red colophon links alike. Excludes .entry (matrix cells carry their
+   hover) and the accent colophon links alike. Excludes .entry (matrix cells carry their
    own .arrowc glyph). */
 a[target]:not([href^="#"]):not(.entry)::after{content:"\00a0↗";font-size:.82em;opacity:.5;
   transition:opacity var(--dur-fast) var(--ease)}
 a[target]:not(.entry):hover::after{opacity:1}
 /* INLINE prose links (inside body <p>): ink + underline by default, invert-fill
-   (red box, white text) on hover via a simple fade — no wipe. Scoped to prose so
+   (accent field, --on-accent text) on hover via a simple fade — no wipe. Scoped to prose so
    it doesn't hit nav / colophon / project links. */
 p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);
   text-underline-offset:2px;text-decoration-thickness:1px;
@@ -100,8 +120,13 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 
 /* SECTION HEAD */
 .rule{grid-column:1 / 13;border-top:1px solid var(--ink);height:0;margin:calc(var(--unit)*2.5) 0 var(--unit)}
-/* case-study page header — 1D: no case number, a short red rule marks the title */
+/* case-study page header — 1D: no case number, a short accent rule marks the title */
 .shrule{width:32px;border-top:3px solid var(--accent);margin-bottom:12px}
+/* the side marker used as a case-study kicker — sits between the rule and the title,
+   same small-caps meta type as the index matrix so the two read as one system. Its
+   20px line + 4px gap keeps the header on the baseline with the marker inserted. */
+.smark{font-size:11px;line-height:20px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--faint);margin:0 0 4px}
 
 /* STEP / entry — top rule + type, no box */
 .step{padding-top:12px;border-top:2px solid var(--ink)}
@@ -151,11 +176,20 @@ figure.demo figcaption{color:var(--faint);font-size:12px;line-height:20px;letter
   color:var(--accent);letter-spacing:-0.02em}
 .entry .eh{font-weight:700;font-size:clamp(20px,2.2vw,26px);line-height:1.08;letter-spacing:-0.014em;margin:10px 0 0}
 .entry .ed{color:var(--dim);font-size:15px;line-height:22px;margin:6px 0 0}
-.entry .em{display:block;color:var(--faint);font-size:11px;line-height:18px;letter-spacing:.14em;
-  text-transform:uppercase;font-weight:700;margin-top:12px}
+.entry .em{display:flex;align-items:center;gap:7px;color:var(--faint);font-size:11px;line-height:18px;
+  letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-top:12px}
 .entry .arrowc{color:var(--accent);font-weight:700;display:inline-block;
   transition:transform var(--dur-fast) var(--ease)}
 .entry:hover .arrowc{transform:translateX(6px)}
+/* SIDE MARKER — which half of the practice an entry belongs to. A dot in the
+   duality hue plus the WORD: colour alone is never the signal (navy and olive are
+   only 2.14:1 apart in greyscale, so a colourblind reader reads the word). */
+.side{display:inline-flex;align-items:center;gap:6px;flex:none}
+.side::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--design)}
+.side-build::before{background:var(--build)}
+.side-both::before{background:linear-gradient(90deg,var(--design) 0 50%,var(--build) 50% 100%)}
+.smeta{color:var(--faint)}
+.side + .smeta::before{content:"·";margin-right:6px;opacity:.55}
 /* the scatter placement — desktop only; mobile collapses to a stack.
    Four cells dropped into non-adjacent modules; the gaps are the composition. */
 .pos-01{grid-column:1 / 5;grid-row:2 / 10}

@@ -1,12 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { work, experiments } from '../data/experiments';
+import { work, experiments, SIDE_LABEL } from '../data/experiments';
 ---
 
 <Layout title="Andrew Shiau">
   <!-- Masthead — the wordmark in the nav already says the name; don't repeat it. -->
   <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <h1 class="c1-10">Andrew Shiau is a frontend engineer who designs and builds.</h1>
+  </div>
+
+  <!-- The thesis. Both sides, one principle. The two clauses carry the two hues —
+       the only place in body copy where colour is allowed, because here the two
+       halves ARE the subject. Each entry below is marked with the side it sat on. -->
+  <div class="grid" style="margin-top:var(--unit)">
+    <p class="dek thesis c1-8">
+      Both sides chase the same thing: the simplest thing that works.
+      <span class="t-design">Taste finds the simplest form</span>;
+      <span class="t-build">engineering proves the simplest solution</span>.
+      One looks, the other measures.
+    </p>
   </div>
 
   <!-- Work — professional projects. Same calendar-scatter matrix as Experiments. -->
@@ -22,7 +34,10 @@ import { work, experiments } from '../data/experiments';
         <span class="en">{x.n}</span>
         <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
         <p class="ed">{x.blurb}</p>
-        <span class="em">{x.meta}</span>
+        <span class="em">
+          <span class={`side side-${x.side}`}>{SIDE_LABEL[x.side]}</span>
+          <span class="smeta">{x.meta}</span>
+        </span>
       </a>
     ))}
   </div>
@@ -41,7 +56,10 @@ import { work, experiments } from '../data/experiments';
         <span class="en">{x.n}</span>
         <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
         <p class="ed">{x.blurb}</p>
-        <span class="em">{x.meta}</span>
+        <span class="em">
+          <span class={`side side-${x.side}`}>{SIDE_LABEL[x.side]}</span>
+          <span class="smeta">{x.meta}</span>
+        </span>
       </a>
     ))}
   </div>

@@ -9,8 +9,29 @@ export interface Entry {
   meta: string;       // small caps status line
   href: string;       // where the entry links
   pos: string;        // matrix placement class (pos-01 …) for the calendar scatter
-  accent?: boolean;   // red top-rule instead of ink
+  side: Side;         // which half of the practice — renders the dot + word marker
+  accent?: boolean;   // accent (design-hue) top-rule instead of ink
   external?: boolean; // opens in a new tab
+}
+
+// Which half of the practice an entry belongs to. Drives the side marker (a dot in
+// the duality hue + the WORD — colour is never the only signal). 'both' is a
+// half-and-half dot; use it only when the work genuinely spanned design AND build.
+export type Side = 'design' | 'build' | 'both';
+
+export const SIDE_LABEL: Record<Side, string> = {
+  design: 'Design',
+  build: 'Build',
+  both: 'Design + Build',
+};
+
+// A case-study page asks for its own side by href, so the marker on the page and
+// the marker in the index can never drift apart. Throws loudly on a typo'd href
+// rather than silently rendering the wrong half.
+export function sideOf(href: string): Side {
+  const entry = [...work, ...experiments].find((x) => x.href === href);
+  if (!entry) throw new Error(`sideOf: no entry with href "${href}" in experiments.ts`);
+  return entry.side;
 }
 
 // PROFESSIONAL WORK — real projects, engineering + design. Pre-AI and at-work.
@@ -24,6 +45,7 @@ export const work: Entry[] = [
     meta: 'At Amazon · 2023–present',
     href: '/work/stores-designer/',
     pos: 'pos-01',
+    side: 'both',
     accent: true,
   },
   {
@@ -35,6 +57,7 @@ export const work: Entry[] = [
     meta: 'At Amazon · full-stack + UX',
     href: '/work/luthier/',
     pos: 'pos-02',
+    side: 'both',
   },
   {
     n: '03',
@@ -45,6 +68,7 @@ export const work: Entry[] = [
     meta: 'Rapid prototyping · UX',
     href: '/work/powerpoint/',
     pos: 'pos-03',
+    side: 'design',
   },
 ];
 
@@ -59,6 +83,7 @@ export const experiments: Entry[] = [
     meta: 'Static site · ongoing',
     href: '/work/recipes/',
     pos: 'pos-01',
+    side: 'build',
     accent: true,
   },
   {
@@ -70,6 +95,7 @@ export const experiments: Entry[] = [
     meta: 'Agent skill · 2026',
     href: '/work/aping/',
     pos: 'pos-02',
+    side: 'both',
   },
   {
     n: '03',
@@ -80,6 +106,7 @@ export const experiments: Entry[] = [
     meta: 'Agent skill · 2026',
     href: '/work/explain/',
     pos: 'pos-03',
+    side: 'build',
   },
   {
     n: '04',
@@ -90,6 +117,7 @@ export const experiments: Entry[] = [
     meta: 'Agent skill · 2026',
     href: '/work/proofs/',
     pos: 'pos-04',
+    side: 'design',
   },
   {
     n: '05',
@@ -99,5 +127,6 @@ export const experiments: Entry[] = [
     meta: 'Personal · ongoing',
     href: '/work/photography/',
     pos: 'pos-05',
+    side: 'design',
   },
 ];

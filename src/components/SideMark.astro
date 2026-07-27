@@ -1,0 +1,13 @@
+---
+// The side marker for a case-study header: which half of the practice this project
+// sat on. Looks its own side up by href in experiments.ts, so the marker here and
+// the marker in the index matrix can never disagree.
+//
+// A dot in the duality hue PLUS the word — colour is never the only signal (navy and
+// olive are only 2.14:1 apart in greyscale). See STYLE.md.
+import { sideOf, SIDE_LABEL } from '../data/experiments';
+interface Props { href: string }
+const { href } = Astro.props;
+const side = sideOf(href);
+---
+<p class="smark"><span class={`side side-${side}`}>{SIDE_LABEL[side]}</span></p>

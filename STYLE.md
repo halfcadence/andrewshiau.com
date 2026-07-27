@@ -44,8 +44,11 @@ doesn't land is worse than no joke.
 
 International Typographic Style: one typeface, a visible 12-column modular grid every
 element snaps to, baseline rhythm, structure drawn by **rules and alignment — not
-boxes**, and **one rationed signal-red accent.** Hierarchy is size + weight + position,
-never a second colour. Light is default; dark follows `prefers-color-scheme`.
+boxes**, and **one rationed structural accent** (`--design`, navy). Hierarchy is size +
+weight + position, never colour. The second hue (`--build`, olive) is **not** a second
+accent — it is a piece of content: it says *which half of the practice* something is,
+and it appears in exactly three places (below). Light is default; dark follows
+`prefers-color-scheme`.
 
 All tokens live in `src/styles/global.css` `:root` (light) and one
 `@media (prefers-color-scheme: dark)` block. Every colour MUST be a `var(--…)` — a
@@ -61,15 +64,40 @@ hardcoded hex in an element won't flip in dark and is a bug.
 | `--dim` | `#5f5e57` | `#a09f96` | secondary text, deks, blurbs |
 | `--faint` | `#6e6d64` | `#8f8e85` | meta labels (kickers, `.lu`, `.em`) — **darkened to pass WCAG AA 4.5:1**; do not lighten |
 | `--line` | `#d5d4cd` | `#2b2b27` | hairline rules |
-| `--accent` | `#d5241a` | `#ff4d3f` | signal red — **structural only** (see below) |
-| `--on-accent` | `#ffffff` | `#ffffff` | text on a red field |
+| `--design` | `#14306b` navy | `#6ea8ff` | the design half — **and** the structural accent |
+| `--build` | `#5c6b12` olive | `#b9cc4a` | the build half — **content only**, 3 places |
+| `--accent` | `var(--design)` | `var(--design)` | indirection: every structural role reads this |
+| `--on-accent` | `#ffffff` | `#141413` | text on a filled `--accent` field |
 
-- There is **exactly one accent hue.** Red appears in ~5 sanctioned roles and nowhere
-  else: the first/lead top-rule of a group, a big set number (`.sn`/`.en`), the one
-  filled `.block`, the correct-answer quiz state, and link interaction (see Link system).
-  A second hue, or red used decoratively, is a slop finding — reject it.
-- The accent is the **same hue** in both modes; only the base tones invert. Don't
-  invert or recolour red in dark.
+**Measured** (WCAG contrast on the mode's own `--paper`): navy 11.36:1 light, 7.64:1
+dark; olive 5.30:1 light, 10.36:1 dark; `--on-accent` on the field 12.61:1 light,
+7.64:1 dark. Note the dark flip — **white on `#6ea8ff` is only 2.6:1**, so
+`--on-accent` MUST be near-black in dark. Don't "simplify" it back to white.
+
+#### The duality — why there are two hues
+
+The site's subject is a practice with two halves. The two hues carry that, and nothing
+else. Keep the two jobs separate:
+
+- **`--accent` is structural, and it IS `--design`.** It appears in ~6 sanctioned roles
+  and nowhere else: the first/lead top-rule of a group, a big set number (`.sn`/`.en`),
+  the `.shrule` case-study rule, the one filled `.block`, the correct-answer quiz state,
+  and link interaction (see Link system). Because `--accent: var(--design)`, changing
+  the design hue moves every structural role in one line — never find-and-replace it.
+- **`--build` appears in exactly three places.** The mark (`.mark`, `favicon.svg`), the
+  side marker (`.side-build` / `.side-both`), and the thesis clause (`.thesis .t-build`)
+  on the homepage. That's the whole list.
+- **Colour is never the only signal.** Navy and olive are just **2.14:1 apart in
+  greyscale** — a colourblind or greyscale reader can't tell the dots apart. So the side
+  marker always sets the **word** beside the dot ("Design" / "Build" / "Design + Build"),
+  and the marker's data lives in one place: `side` on each `Entry` in
+  `src/data/experiments.ts`. Case-study pages read it via `sideOf(href)` (the
+  `SideMark.astro` component) so the page and the index can't disagree.
+- **A third hue, or either hue used decoratively, is a slop finding — reject it.**
+  Colour in body copy is allowed in the thesis sentence ONLY, because there the two
+  halves *are* the subject.
+- Both hues are the **same hue family** in both modes — lifted for the dark ground, not
+  inverted, not recoloured.
 
 ### Type
 
@@ -125,8 +153,8 @@ Tokens in `:root`:
   `ease-in-out` or `0.3s` is off-system.
 - Motion is **rationed and subtle** — a few deliberate delights, not scattered gimmicks.
   Currently shipped: link interactions (below), logo 90° rotate on hover
-  (`.mark`, 0.5s), headline "— lately with AI." resolving from `--faint` to `--ink` on
-  `h1:hover` (0.45s). Reduce, don't add, unless it earns its place.
+  (`.mark`, 0.5s), `.entry` hover tint, `.arrowc` slide. Reduce, don't add, unless it
+  earns its place.
 - Respect `prefers-reduced-motion` for any new non-essential animation.
 
 ---
@@ -135,17 +163,17 @@ Tokens in `:root`:
 
 Three kinds of link, three treatments. This is deliberate — do not collapse them.
 
-1. **Inline prose links** (`p a`): ink text + red underline by default → **invert-fill**
-   on hover (red box, white text) via a simple `background-color`/`color` fade on
-   `--dur`. **No wipe.** Scoped to `p a` so it does NOT leak into nav, colophon, or
-   project links.
-2. **Project / gallery links** (`.links a`): red arrow (`.arrowc`) **slides right 6px**
-   on hover (`--dur-fast`); the invert-fill is explicitly reset here. Markup includes
-   `<span class="arrowc">→</span>` (or `↗` for external).
-3. **Utility / colophon links** (`.colo a`): red text, a **hairline underline appears**
-   on hover (`border-bottom` transparent → accent, `--dur-fast`). Quiet.
+1. **Inline prose links** (`p a`): ink text + accent underline by default →
+   **invert-fill** on hover (accent field, `--on-accent` text) via a simple
+   `background-color`/`color` fade on `--dur`. **No wipe.** Scoped to `p a` so it does
+   NOT leak into nav, colophon, or project links.
+2. **Project / gallery links** (`.links a`): accent arrow (`.arrowc`) **slides right
+   6px** on hover (`--dur-fast`); the invert-fill is explicitly reset here. Markup
+   includes `<span class="arrowc">→</span>` (or `↗` for external).
+3. **Utility / colophon links** (`.colo a`): accent text, a **hairline underline
+   appears** on hover (`border-bottom` transparent → accent, `--dur-fast`). Quiet.
 
-The bare `a` default is red text + underline-offset — a fallback for links that are
+The bare `a` default is accent text + underline-offset — a fallback for links that are
 none of the above (e.g. figcaption, back-links have their own rules).
 
 ---
@@ -165,8 +193,12 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   navigate; echoes the matrix scatter.
 - **Colophon** (`.colo`): grid-placed facts (label column + satellites 5–13), not a
   stacked list. Right columns stay intentionally empty.
-- **The one filled form:** `.block` (red field, `--on-accent` text) — used once per page
-  for the key statement. Everything else is type + rule. Do not add filled cards.
+- **Side marker** (`.side` + `.smeta` in the matrix; `.smark` on a case-study header):
+  an 8px dot in the duality hue plus the word. In the matrix it sits in the `.em` meta
+  line before the status text, separated by a `·`; on a case-study page it sits between
+  `.shrule` and the `h1`. Both read `side` from `experiments.ts` — never hardcode one.
+- **The one filled form:** `.block` (`--accent` field, `--on-accent` text) — used once
+  per page for the key statement. Everything else is type + rule. No filled cards.
 - **Structure is rules, not boxes.** A wrap-around hairline border to make a "card" is
   the un-Swiss tell — use a top rule + gutter + whitespace instead.
 
@@ -177,9 +209,12 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
 Kept because they're subtle and on-system. Don't add more without reason.
 
 - `::selection` → pure invert (`--ink` bg, `--paper` text).
-- Cursor → a red-dot SVG data-URI (the logo's dot as the pointer).
-- Logo (`.mark`) → 90° rotate on hover.
-- Headline `.lately` clause → resolves from `--faint` to `--ink` on hover.
+- Cursor → a dot SVG data-URI in `--design` (the mark's design dot as the pointer);
+  it's the `--cursor` token, so it flips with the scheme.
+- Logo (`.mark`) → 90° rotate on hover. The mark itself is the duality: two dots on the
+  descending diagonal (design then build) joined by a 1.5px `currentColor` hairline —
+  two things, one line; the rule is the relationship. `public/favicon.svg` is the same
+  drawing and carries its own `prefers-color-scheme` block; change both together.
 - `g` → flash the column grid.
 
 ---
