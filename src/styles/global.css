@@ -486,8 +486,25 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    Scoped to the index by `.split` (the case-study panels stay sticky: their reading column
    is prose of wildly varying length, and a box would trap a 4000px case study in a 700px
    window). Above 1100px only, and only where there's height for it — every fallback below
-   returns the page to one scrollbar and a stacked block. */
-@media(min-width:1101px) and (min-height:761px){
+   returns the page to one scrollbar and a stacked block.
+   693px is the height gate, and it is measured rather than picked. The box's one hard
+   requirement is that the panel FIT: `Elsewhere` is `margin-top:auto` at the foot of the
+   column, so on a viewport too short for the panel's own content the contact block hangs
+   past the bottom of the vertical rule and reads as detached from the column it belongs to.
+   Binary-searched that boundary on the running site at fourteen widths from 1101 to 3440,
+   light and dark: 637px at 1101px, rising to 693px by 1200px and flat from there. 693 is the
+   worst case, so it is the gate.
+   The gate was 761px until this was measured, which stranded 68px of real window. That band
+   is not hypothetical — a 1440x900 Mac display gives Chrome about 718px of viewport with the
+   Dock showing, so the most ordinary laptop window on the most ordinary display got the
+   stacked fallback and the panel scrolled away. The bug the user reported ("the panel
+   scrolls") was this gate, not the box: at every size where the box engages the panel was
+   measured pinned for the whole feed scroll. A threshold guessed one screen size at a time
+   is a threshold that silently disables the feature you built.
+   Note `pin.scrollHeight - pin.clientHeight` does NOT detect the overhang: the panel is an
+   `overflow:visible` flex column, where scrollHeight equals clientHeight even as content
+   spills out. The honest probe is the panel foot's bottom against the box's own bottom. */
+@media(min-width:1101px) and (min-height:693px){
   .grid.split{height:calc(100vh - var(--unit)*2.5);align-items:start}
   /* The panel is a plain cell of a box that doesn't scroll, so it needs no stickiness. Full
      height + space-between puts `Elsewhere` at the panel's foot, which is the shape the
