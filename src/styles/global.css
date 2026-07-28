@@ -278,6 +278,18 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .frow{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);
   border-top:1px solid var(--line);padding:14px 0}
 .frow:first-child{border-top:2px solid var(--ink)}
+
+/* .facts.claim — the claim+evidence ledger that follows the masthead on a Type A page.
+   Two .facts blocks stacked 48px apart both opened with the same 2px ink rule and shared the
+   same label column, so they read as ONE four-row ledger with an unexplained seam between
+   "Stack" and "Simplest form". The air alone didn't separate them: 48px is the same two units
+   that sit between a heading and its text elsewhere, so it reads as spacing, not as a break.
+   The fix is the accent top-rule, which is already how this site says "this row of the group
+   is the one that matters" (.entry.accent on the flagship index row, .step.accent). It costs
+   no vertical space, keeps the pair reading as a pair — they're both metadata-before-the-story,
+   not two sections — and it lands on the block that is actually the page's argument. A second
+   ink rule would have been a repeat; a label row would have added a row that says nothing. */
+.facts.claim .frow:first-child{border-top-color:var(--accent)}
 .frow .fm{grid-column:1 / 4;font-weight:700;font-size:13px;line-height:24px;letter-spacing:.03em;
   text-transform:uppercase}
 .frow .ftx{grid-column:4 / 13;font-size:16px;line-height:24px;color:var(--dim)}

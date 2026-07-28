@@ -55,9 +55,11 @@ import SideMark from '../../components/SideMark.astro';
   </div>
 
   <!-- Claim + evidence — the two fixed rows every Type A page carries, directly under the
-       masthead. Simplest form = the whole idea in one sentence. Proof = what makes it real. -->
+       masthead. Simplest form = the whole idea in one sentence. Proof = what makes it real.
+       .claim gives it the accent top-rule, so it doesn't read as two more rows of the
+       masthead ledger above it. -->
   <div class="grid">
-    <div class="facts" style="margin-top:var(--unit)">
+    <div class="facts claim" style="margin-top:var(--unit)">
       <div class="frow">
         <div class="fm">Simplest form</div>
         <div class="ftx">A designer builds the template in Figma. The widget hands it to Composer, which reads every layer and generates both the template and the UI an end user edits it with.</div>

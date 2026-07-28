@@ -89,8 +89,20 @@ h1 → dek → THE CLIP → facts masthead → facts claim+evidence → The prob
   skips this beat — it's the only beat the type allows to be missing.
 - **The facts block is the masthead** here, always: role, stack, span. Never a colophon.
 - **Claim + evidence** (`Simplest form` / `Proof`) is a second `.facts` block directly
-  under the masthead. Every Type A page carries it. It was a one-off on `powerpoint`
-  before, and that was visibly the only page that read like it had a point.
+  under the masthead, and it MUST carry **`.facts.claim`** — the accent top-rule. Every
+  Type A page carries the block. It was a one-off on `powerpoint` before, and that was
+  visibly the only page that read like it had a point.
+  The accent rule is load-bearing, not decoration: two `.facts` blocks 48px apart, both
+  opening on the same 2px ink rule and sharing the same label column, read as **one
+  four-row ledger with an unexplained seam** between "Stack" and "Simplest form". Air
+  alone can't fix it — 48px is the same two units that separate a head from its text, so
+  it reads as spacing. The accent rule is already how this site marks the member of a
+  group that matters (`.entry.accent`, `.step.accent`), it costs no vertical space, and it
+  keeps the two blocks reading as a *pair* of metadata-before-the-story rather than as two
+  sections. A second ink rule repeats; an extra label row says nothing.
+  It doesn't break the colour-is-never-the-only-signal rule either: the block boundary is
+  a **2px** rule against the **1px** hairlines inside a block, so a greyscale reader still
+  sees where one ledger ends. The accent only makes it read at a glance.
 - **The close is a named section, always last.** `Outcome` for finished work;
   `Where it stands` for work still running (an "Outcome" head on unfinished work
   overclaims). It MUST NOT be an unheaded paragraph — `powerpoint`'s most important claim
