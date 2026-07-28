@@ -79,8 +79,8 @@ the **opening and the close only**; the middle stays free, because a photo galle
 ### Type A — case study (`luthier`, `powerpoint`, `stores-designer`)
 
 ```
-h1 → dek → THE CLIP → facts masthead → facts claim+evidence → The problem
-     → [free middle: block, ledgers, clips] → a NAMED closing section
+h1 → dek → THE CLIP → facts masthead → The problem
+     → [free middle: block, ledgers, clips] → THE ALTERNATIVES → a NAMED closing section
 ```
 
 - **The clip is beat 2**, before any prose. The page opens on the thing working. Only the
@@ -88,21 +88,23 @@ h1 → dek → THE CLIP → facts masthead → facts claim+evidence → The prob
   down in the mechanics section. A page with nothing public to show (`stores-designer`)
   skips this beat — it's the only beat the type allows to be missing.
 - **The facts block is the masthead** here, always: role, stack, span. Never a colophon.
-- **Claim + evidence** (`Simplest form` / `Proof`) is a second `.facts` block directly
-  under the masthead, and it MUST carry **`.facts.claim`** — the accent top-rule. Every
-  Type A page carries the block. It was a one-off on `powerpoint` before, and that was
-  visibly the only page that read like it had a point.
-  The accent rule is load-bearing, not decoration: two `.facts` blocks 48px apart, both
-  opening on the same 2px ink rule and sharing the same label column, read as **one
-  four-row ledger with an unexplained seam** between "Stack" and "Simplest form". Air
-  alone can't fix it — 48px is the same two units that separate a head from its text, so
-  it reads as spacing. The accent rule is already how this site marks the member of a
-  group that matters (`.entry.accent`, `.step.accent`), it costs no vertical space, and it
-  keeps the two blocks reading as a *pair* of metadata-before-the-story rather than as two
-  sections. A second ink rule repeats; an extra label row says nothing.
-  It doesn't break the colour-is-never-the-only-signal rule either: the block boundary is
-  a **2px** rule against the **1px** hairlines inside a block, so a greyscale reader still
-  sees where one ledger ends. The accent only makes it read at a glance.
+- **The alternatives are a beat, and the claim ledger is gone.** Every Type A page carries
+  a named section — "What else was on the table", "The three we built" — stating what the
+  other options were and why they lost, placed after the mechanics and before the close.
+  It replaces the `Simplest form` / `Proof` ledger that used to sit under the masthead.
+  Why the ledger came out (round-3 sheet `andrewshiau-copy-ground/`, Q05 + Q06): the two
+  labels were vocabulary from the operating spec, so reading a portfolio page required
+  learning the site's private terms first, and "Simplest form" asserted a claim with no
+  rival to read it against — which is what makes a claim sound like a slogan. Three
+  rejected options are the same argument with the evidence attached.
+  **Only sourced alternatives go in.** Every option named MUST be one the page or its
+  history actually records. An invented rival is worse than no section, because it reads
+  as the strongest evidence on the page while being the only fabricated thing on it.
+- **The numbers live in the prose** (Q06). `12 weeks`, `15 designers`, `52
+  recommendations`, `50,000 images a year` sit in the sentence that needs them, in `<b>`.
+  They used to be collected in the `Proof` row, where a reader got the figures without the
+  claim they supported. The masthead ledger keeps role/stack/span only — the metadata you
+  read *before* the story, never the results.
 - **The close is a named section, always last.** `Outcome` for finished work;
   `Where it stands` for work still running (an "Outcome" head on unfinished work
   overclaims). It MUST NOT be an unheaded paragraph — `powerpoint`'s most important claim

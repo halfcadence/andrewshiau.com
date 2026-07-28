@@ -45,21 +45,6 @@ import SideMark from '../../components/SideMark.astro';
     </div>
   </div>
 
-  <!-- Claim + evidence — the two fixed rows, right under the masthead. .claim = the accent
-       top-rule that separates it from the masthead ledger. -->
-  <div class="grid">
-    <div class="facts claim" style="margin-top:var(--unit)">
-      <div class="frow">
-        <div class="fm">Simplest form</div>
-        <div class="ftx">Took the add-pen button out and put the eraser in the toolbox as one more pen, so the toolbox holds one of each tool and nothing else.</div>
-      </div>
-      <div class="frow">
-        <div class="fm">Proof</div>
-        <div class="ftx"><b>13 weeks</b>, 20-plus working prototypes, and an <b>A/B test</b> that killed the design the team had favoured for most of the project.</div>
-      </div>
-    </div>
-  </div>
-
   <div class="grid sect">
     <div class="shead">
       <h2>The problem</h2>
@@ -68,11 +53,12 @@ import SideMark from '../../components/SideMark.astro';
           Millions of people use the Draw tab to get an idea onto a slide with a pen, and
           its tools didn't behave the way they expected. A usability study of the shipped
           tab — eight users recreating two diagrams, sorted by affinity diagramming into
-          six themes — produced 52 recommendations.
+          six themes — produced <b>52 recommendations</b>.
         </p>
         <p>
-          I joined after that study, built candidate toolboxes from its findings, tested
-          them, and handed engineering a working prototype to build from.
+          I joined after that study and spent <b>13 weeks</b> on it: I built candidate
+          toolboxes from its findings, tested them across 20-plus working prototypes, and
+          handed engineering a prototype to build from.
         </p>
       </div>
     </div>
@@ -141,24 +127,48 @@ import SideMark from '../../components/SideMark.astro';
     </figure>
   </div>
 
+  <!-- TYPE A, the alternatives beat (round-3 sheet, Q05): the three candidates, before the
+       result. This page's alternatives are the best-sourced on the site — three built
+       designs and an A/B between two of them — and they used to be compressed into the
+       first paragraph of the closing section, where the outcome overshadowed them. -->
+  <div class="grid sect">
+    <div class="shead">
+      <h2>The three we built</h2>
+      <div class="sbody">
+        <p>
+          The team wanted colour and thickness at the top level of the UI and was
+          confident about it. So we built three ways to pick a colour rather than argue
+          about them. Two of the three mattered: a <b>ribbon</b> that put the swatches in
+          the top-level toolbox, and a plain <b>dropdown</b>. Each candidate went in front
+          of users, and what tripped them got fixed — four of those fixes are in the clips
+          above.
+        </p>
+        <p>
+          The ribbon was the favourite for most of the project. It cost the most
+          engineering, so it was the one that had to be right, which is why it's the one
+          we tested against a control instead of shipping on confidence.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- TYPE A close: a named final section. This was the page's most important claim and it
        used to sit in an unheaded prose block, which read as an afterthought. -->
   <div class="grid sect">
     <div class="shead">
-      <h2>What the test said</h2>
+      <h2>Outcome</h2>
       <div class="sbody">
         <p>
-          The team wanted colour and thickness at the top level of the UI, and was
-          confident about it. We built three ways to pick a colour, put each in front of
-          users, and fixed what tripped them; four of those fixes are in the clips above.
-          Then we <b>A/B-tested</b> the ribbon everyone favoured against the plain
-          dropdown, holding everything else constant.
+          We <b>A/B-tested</b> the ribbon against the plain dropdown, holding everything
+          else constant. The ribbon lost: its benefit was too small to pay for the
+          engineering, and the plain dropdown shipped. The final proposal took the add-pen
+          button out and moved the eraser into the toolbox as one more pen, so the toolbox
+          holds one of each tool.
         </p>
         <p>
-          The ribbon lost. Its benefit was too small to pay for the engineering, so the
-          plain dropdown shipped. We had been confident about that ribbon for most of the
-          project and we were wrong, and we found out because the prototype was real
-          enough to hand someone a drawing task.
+          We had been confident about that ribbon for most of the project and we were
+          wrong. We found out because the prototype was real enough to hand someone a
+          drawing task.
         </p>
       </div>
     </div>

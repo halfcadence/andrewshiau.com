@@ -10,10 +10,16 @@ import spec from '../../method/method.md?raw';
 // edited, and the sentences it shares with the spec are checked at build time. A typo in
 // the spec breaks the build; that is the intended behaviour.
 //
-// Boundary of what this checks: the two shared sentences, not the tone of the paragraphs
-// around them. Whitespace is collapsed because the markdown wraps mid-sentence.
+// Boundary of what this checks: the one sentence this page still quotes verbatim, not the
+// tone of the paragraphs around it. Whitespace is collapsed because the markdown wraps
+// mid-sentence.
+//
+// The thesis sentence used to be checked here too. It came out when the opening paragraphs
+// were reset in plain first person: the page now states the same idea as procedure ("I ask
+// the same question on both sides of the work") instead of quoting the aphorism, so
+// asserting it here would guard a string the page no longer prints. The index still
+// displays it verbatim and still asserts it — see the THESIS check in index.astro.
 const SHARED = [
-  'Taste finds the simplest form; engineering proves the simplest solution.',
   'Not a biography, not a résumé, not a decision log, and not a stand-in for a person.',
 ];
 const flat = spec.replace(/\s+/g, ' ');
@@ -40,26 +46,33 @@ for (const s of SHARED) {
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      Both sides chase the same thing: the simplest thing that works. Taste finds the
-      simplest form; engineering proves the simplest solution. One looks, the other
-      measures.
+      How I make a design decision and how I prove a change works, written down as
+      procedure. Both halves ask the same question: is this the simplest thing that works?
+      One answers it by looking, the other by measuring.
     </p>
   </div>
 
   <!-- The unified statement, before the split. The two columns below only make sense as
        two halves of one thing, and a reader who meets them cold reads them as two
-       unrelated lists — so the shared claim runs full-measure first. -->
+       unrelated lists — so the shared claim runs full-measure first.
+       Voice: plain first person (round-3 sheet, Q03-B). This paragraph used to run
+       "That is not two philosophies. It is one principle with two instruments" and close
+       on "a form nobody looked at isn't designed" — an antithesis snap and an aphorism,
+       both banned by STYLE.md, and both stating a principle where the procedure below
+       states a fact. -->
   <div class="grid">
     <div class="c1-8" style="margin-top:calc(var(--unit)*1.5)">
       <p>
-        That is not two philosophies. It is one principle with two instruments, and the
-        two sides check each other. Neither gets to skip its proof: a form nobody looked
-        at isn't designed, a solution nobody measured isn't done. When they conflict,
-        evidence wins and the loss gets recorded.
+        I ask the same question on both sides of the work. On a design I answer it by
+        rendering the options in the real system and looking at them. On code I answer it
+        by measuring against a control. When the two disagree I go with the measurement,
+        and I write down which one it was.
       </p>
       <p>
-        Below is what that actually means as procedure — written down so an agent can run
-        it, which is also the only way I know to check whether I still do.
+        This is the part I bring to a team. The procedures below are the ones I run at
+        work, on a system where a wrong component ships to a lot of pages at once — and
+        they're written as a spec an agent can execute, so a second person, or a machine,
+        can run them without me in the room.
       </p>
     </div>
   </div>
@@ -107,10 +120,10 @@ for (const s of SHARED) {
   <!-- The one filled form on the page, for the sentence that joins the two columns. -->
   <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="block c1-6">
-      <span class="st">The rule both sides share</span>
-      <span class="sd">A candidate is only readable against a baseline. In design that
-        baseline is what's live today, rendered beside the alternatives. In engineering
-        it's the control arm of an A/B. Same rule, different instrument.</span>
+      <span class="st">Both sides need a baseline</span>
+      <span class="sd">In design the baseline is what's live today, rendered beside the
+        alternatives. In engineering it's the control arm of an A/B. Without one I can't
+        tell whether a candidate is better or just different.</span>
     </div>
   </div>
 

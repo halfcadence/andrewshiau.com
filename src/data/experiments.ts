@@ -91,8 +91,8 @@ export const work: Entry[] = [
     n: '01',
     title: 'Stores Designer',
     blurb:
-      'A design-system tool at Amazon that lets distributed teams build ' +
-      'consistent shopping experiences without hand-coding each one.',
+      'A design-system tool at Amazon that lets many teams build one shopping ' +
+      'surface without hand-coding each page.',
     meta: 'Design system tool',
     href: '/work/stores-designer/',
     side: 'both',
@@ -102,8 +102,8 @@ export const work: Entry[] = [
     n: '02',
     title: 'Luthier',
     blurb:
-      'Invented a no-code graphics-automation process at Amazon scale: a Figma ' +
-      'widget that turns a design into a production template, no engineer required.',
+      'A Figma widget that turns a designer’s document into a production ' +
+      'template, for a pipeline that makes 50,000 marketing images a year.',
     meta: 'Figma widget',
     href: '/work/luthier/',
     side: 'both',
@@ -112,8 +112,8 @@ export const work: Entry[] = [
     n: '03',
     title: 'Powerpoint Pen Toolbox',
     blurb:
-      "Redesigned PowerPoint's inking toolbox through 20+ rounds of functional " +
-      'prototyping and user tests — the data refuted the team’s favourite design.',
+      "Redesigned PowerPoint's inking toolbox through 20-plus working prototypes " +
+      'and an A/B test that ruled out the design the team favoured.',
     meta: 'Prototype study',
     href: '/work/powerpoint/',
     side: 'design',
@@ -126,8 +126,8 @@ export const experiments: Entry[] = [
     n: '01',
     title: 'Recipes',
     blurb:
-      '124 recipes and cooking essays — filed like a reference manual, not a blog. ' +
-      'An agent files each entry against a fixed style guide; I do the cooking.',
+      '124 recipes and 20 technique essays. An agent files each entry against a ' +
+      'committed style guide; I do the cooking.',
     meta: 'Static site',
     href: '/work/recipes/',
     side: 'build',
@@ -137,8 +137,7 @@ export const experiments: Entry[] = [
     n: '02',
     title: 'Aping',
     blurb:
-      "An agent skill that writes in the Swiss style — Müller-Brockmann's grid. " +
-      'It built this site.',
+      "An agent skill that sets HTML on Müller-Brockmann's grid. It built this site.",
     meta: 'Agent skill',
     href: '/work/aping/',
     side: 'both',
@@ -147,8 +146,8 @@ export const experiments: Entry[] = [
     n: '03',
     title: 'Explain',
     blurb:
-      'A skill that turns something I figured out into an interactive explainer — ' +
-      'a diagram and a quiz that check the idea landed.',
+      'A skill that turns something I worked out into one HTML explainer with a ' +
+      'diagram and a quiz. Three of them are on this site.',
     meta: 'Agent skill',
     href: '/work/explain/',
     side: 'build',
@@ -157,8 +156,8 @@ export const experiments: Entry[] = [
     n: '04',
     title: 'Proofs',
     blurb:
-      'A skill that renders every design option side by side, in the real system, ' +
-      'so you pick by looking instead of imagining.',
+      'A skill that renders every design option side by side in the real system. ' +
+      'Three sheets from this site and my recipe archive are embedded live.',
     meta: 'Agent skill',
     href: '/work/proofs/',
     side: 'design',

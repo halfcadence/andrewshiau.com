@@ -54,23 +54,6 @@ import SideMark from '../../components/SideMark.astro';
     </div>
   </div>
 
-  <!-- Claim + evidence — the two fixed rows every Type A page carries, directly under the
-       masthead. Simplest form = the whole idea in one sentence. Proof = what makes it real.
-       .claim gives it the accent top-rule, so it doesn't read as two more rows of the
-       masthead ledger above it. -->
-  <div class="grid">
-    <div class="facts claim" style="margin-top:var(--unit)">
-      <div class="frow">
-        <div class="fm">Simplest form</div>
-        <div class="ftx">A designer builds the template in Figma. The widget hands it to Composer, which reads every layer and generates both the template and the UI an end user edits it with.</div>
-      </div>
-      <div class="frow">
-        <div class="fm">Proof</div>
-        <div class="ftx">First version in <b>12 weeks</b>, then a beta with <b>15 template designers</b> across five organizations.</div>
-      </div>
-    </div>
-  </div>
-
   <div class="grid sect">
     <div class="shead">
       <h2>The problem</h2>
@@ -151,6 +134,32 @@ import SideMark from '../../components/SideMark.astro';
     </div>
   </div>
 
+  <!-- TYPE A, the alternatives beat (round-3 sheet, Q05): what else was on the table and
+       why it lost. This is the beat the "Simplest form / Proof" ledger used to stand in
+       for — a claim with no rivals reads as a slogan, a rejected option reads as a
+       decision. Prose, so it goes under a .shead.
+       ONLY sourced alternatives go here. The two below come from the page's own account
+       (the status quo it replaced, and the build order I chose). Do not add a third
+       without a fact behind it. -->
+  <div class="grid sect">
+    <div class="shead">
+      <h2>What else was on the table</h2>
+      <div class="sbody">
+        <p>
+          The alternative to all of this was the status quo: keep one engineer hand-coding
+          every template. That is what the team was doing, and it capped the number of
+          templates at whatever one person could write in a year.
+        </p>
+        <p>
+          The order was also a choice. I could have started with the Figma widget, which
+          is the visible half. I built the schema and the renderer first instead, because
+          a template that was already a JSON document could accept any authoring tool —
+          and if the widget hadn't worked, the hand-coding would still have gotten faster.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <!-- TYPE A close: always a named final section, always last. "Outcome" for finished
        work; "Where it stands" for work still running (see /work/stores-designer/). -->
   <div class="grid sect">
@@ -160,8 +169,8 @@ import SideMark from '../../components/SideMark.astro';
         <p>
           I interviewed template designers on five teams (AWS, Alexa, Amazon Business,
           Payments, Fresh), wrote the proposal, and built the transformer, the CRUD app,
-          and the backend in twelve weeks. Fifteen designers used the beta. What they got
-          stuck on became the roadmap.
+          and the backend in <b>12 weeks</b>. <b>Fifteen</b> template designers used the
+          beta. What they got stuck on became the roadmap.
         </p>
         <p>
           My team was re-orged in early 2023 and Composer went to another team. I work on
