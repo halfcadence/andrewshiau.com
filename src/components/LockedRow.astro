@@ -35,30 +35,17 @@ const Row = open ? 'div' : 'a';
      href={open ? undefined : x.href}
      aria-controls={open ? undefined : id}>
   <span class="en">{x.n}</span>
-  <p class="eh">{x.title}
-    {/* THE LOCK, where every other row carries its arrow. This is the indicator the row was
-        missing: `Password` in the marker cell is the far-right column, read fourth, so the
-        row's first impression was identical to a row that just opens. A drawn mark in the
-        glyph's own slot says "this one is shut" at the title, before the click — and it is
-        drawn, in `currentColor` and the accent, like the two-dot mark and the arrow, rather
-        than an emoji padlock that would render as someone else's artwork on every platform.
-        `aria-hidden`, because the marker cell already says the word: colour and icon are
-        never the only signal (STYLE.md), and a screen reader should hear the fact once. */}
-    <span class="lockc" aria-hidden="true">
-      <svg viewBox="0 0 12 15" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 6V4a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/>
-        <rect x="0.75" y="6" width="10.5" height="8.25" fill="currentColor"/>
-      </svg>
-    </span>
-  </p>
+  {/* No lock mark and no `Password` marker. Both were added on the theory that the row had to
+      advertise being shut before the click, and on the page they read as a warning label on
+      the one row in the list that most wants opening — two extra marks in a matrix whose
+      whole device is one arrow per row. The gate itself is the disclosure: clicking opens the
+      ask in place, immediately, under the row that was clicked, so nothing is hidden and no
+      promise is broken. The row keeps the arrow every other row has. */}
+  <p class="eh">{x.title} <span class="arrowc">→</span></p>
   <p class="ed">{x.blurb}</p>
   <span class="em">
     <SideDot side={x.side} />
     <span class="smeta">{x.meta}</span>
-    {/* Still the word, still in the marker cell — it is a fact about the artifact, and it
-        belongs with the other two. What changed is that it is no longer carrying the signal
-        alone; the lock at the title arrives first and this confirms it. */}
-    <span class="lock">Password</span>
   </span>
 </Row>
 

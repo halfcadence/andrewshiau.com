@@ -415,10 +415,32 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .pin .pv b{color:var(--ink);font-weight:700}
 .pin .pfoot{margin-top:calc(var(--unit)*1.25);font-size:11px;line-height:20px;
   letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--faint)}
-/* Three stacked links under one label now (the address, github, instagram — chooser
-   andrewshiau-panel-shape Q2/03 promoted the last two out of the colophon). `display:block`
-   already stacks them; the only thing the third link needed was air between the rows, and
-   1.6 line-heights of it so the block reads as a list rather than a wrapped paragraph. */
+/* TWO labelled groups on the index — Contact and Elsewhere — SIDE BY SIDE, not stacked. The
+   wrapper exists so THE BOX has one thing to push to the panel's foot: `margin-top:auto` on a
+   bare `.pfoot` would only move the first group and leave the second riding under it with its
+   own margin. The case-study panels emit a single `.pfoot` with no wrapper and are unaffected.
+   Two columns rather than two stacked blocks, for a reason that is measured and a reason that
+   isn't:
+   - Stacked, the pair cost 138px against the single group's 94, and the panel's fit
+     requirement went from 693px of viewport to 701. The window this pass was reported from is
+     693px tall, so the box would have switched off exactly there and the panel would have
+     started scrolling again — the bug this pass exists to fix, reintroduced by the fix for a
+     different note. Side by side the pair costs 50px: the taller column sets the height, and
+     with the address in one column and two links in the other, neither is three rows deep.
+     That is 44px cheaper than the single stacked group it replaced, so the requirement fell
+     to 633px and the 693 gate now has 60px of headroom instead of being 8px short. Measured
+     on the built bundle at ten widths from 1101 to 3440.
+   - `Contact` and `Elsewhere` are a pair of alternatives, and two columns say that where a
+     stack says "first this, then that". The panel's ledger is already a two-track key/value
+     grid, so this is the shape the column above it uses.
+   `align-items:start` so the two labels sit on one baseline instead of the shorter group
+   centring against the taller. --gutter between them, the site's one horizontal gap. */
+.pin .pfeet{display:grid;grid-template-columns:auto auto;justify-content:start;
+  align-items:start;column-gap:var(--gutter)}
+.pin .pfeet > .pfoot{margin-top:0}
+/* Stacked links under each label. `display:block` already stacks them; the only thing they
+   needed was air between the rows, and 1.6 line-heights of it so a group reads as a list
+   rather than a wrapped paragraph. */
 .pin .pfoot a{display:block;color:var(--accent);text-decoration:none;
   border-bottom:1px solid transparent;width:fit-content;margin-top:3px;
   transition:border-color var(--dur-fast) var(--ease)}
@@ -534,7 +556,10 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
      chooser's concept 02 drew and the fix for the 921px of dead left column measured under
      the old ledger. */
   .grid.split > .pin{position:static;height:100%;display:flex;flex-direction:column}
-  .grid.split > .pin .pfoot{margin-top:auto;margin-bottom:0}
+  /* `.pfeet` is the target, not `.pfoot`: the two groups have to travel to the foot together
+     (see `.pin .pfeet` above). Kept as a `:is()` so a panel with a bare `.pfoot` and no
+     wrapper — every case study — still gets pushed down by the same rule. */
+  .grid.split > .pin > :is(.pfeet, .pfoot){margin-top:auto;margin-bottom:0}
   /* The scrollport. `min-height:0` is load-bearing: a grid item's default `min-height:auto`
      refuses to shrink below its content, so without it the feed reports its full 1482px,
      `overflow-y` never has anything to clip, and nothing scrolls. `padding-right` keeps the
@@ -735,42 +760,18 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 /* the `·` separator is for an inline marker (a case-study header). Stacked, the line break
    already separates, and the dot hangs off the left of the second line as a stray mark. */
 .entry .em .side + .smeta::before{content:none}
-/* LOCKED — a third line in the marker cell for a page behind the password gate. It inherits
-   the cell's 11px tracked caps, so it reads as one more fact in the same column rather than a
-   badge: the row's job is still to say what the artifact is.
-   A hairline above it and the ink colour are the whole distinction. Ink, not the accent —
-   the accent is structure on this site, and a padlock isn't structure. It stays even now that
-   `.lockc` draws a lock at the title: the glyph is `aria-hidden`, so this WORD is what a
-   screen reader and a greyscale render have, and neither the icon nor a colour is ever the
-   only signal. No `align-self`: the cell's own `align-items` already places it, so it follows the
-   cell from right-aligned at full width to left at ≤900px with no second rule. The hairline
-   is the width of the word, not the cell — it marks this fact, not the column. */
-.entry .em .lock{margin-top:4px;padding-top:4px;border-top:1px solid var(--line);
-  color:var(--ink)}
 .entry .arrowc{color:var(--accent);font-weight:700;display:inline-block;
   transition:transform var(--dur-fast) var(--ease)}
 .entry:hover .arrowc{transform:translateX(6px)}
-/* THE LOCK, in the arrow's slot. `Password` in the marker cell is column 10 of 12 — read
-   fourth, after the numeral, the title and the blurb — so a locked row's first impression was
-   identical to a row that just opens, and the ask ("be clear that it's restricted work")
-   is about the moment before the click. The glyph rides the TITLE because that is where this
-   list already puts the "what happens if you click" mark: every other row has `→` there.
-   Drawn as an inline SVG, not "🔒": an emoji renders as a different vendor's artwork at a
-   size the ramp doesn't set, in colours that aren't the site's. This is a 12×15 body and
-   shackle in `currentColor` — ink, like the word in the marker cell, and for the same reason
-   given there (the accent is structure; a padlock isn't structure).
-   `0.72em` and `translateY` rather than a px size and a margin: it is a glyph, so it scales
-   with whatever the title's clamp resolves to and sits on the same optical line at 20px in
-   the feed and 25px on the stacked page. No hover transform — the row's arrow slides because
-   it points where you're going; this one says the door is shut, and a shut door doesn't
-   animate on approach. */
-.entry .lockc{display:inline-block;width:0.72em;color:var(--ink);
-  transform:translateY(0.06em);margin-left:0.14em}
-.entry .lockc svg{display:block;width:100%;height:auto}
-/* Open, the lock takes the accent — the one state change on the mark, and it earns it: the
-   row is now the thing being interacted with, which is exactly the "link interaction" role
-   the accent already has (STYLE.md). */
-.entry.open .lockc{color:var(--accent)}
+/* No `.lock` word and no `.lockc` glyph. Both were built to advertise the locked row as shut
+   before the click — a drawn padlock at the title and a third line reading `Password` in the
+   marker cell. On the page they read as a warning label on the one row in the list that most
+   wants opening, in a matrix whose entire device is one arrow per row. The gate is its own
+   disclosure: the click opens the ask in place, under the row, so nothing is concealed and no
+   promise is broken by dropping the marks. The row now carries the same `→` as every other.
+   Deleted rather than left unused: `.entry .em .lock`, `.entry .lockc`, `.entry .lockc svg`,
+   and `.entry.open .lockc` had no remaining call site once LockedRow stopped emitting them,
+   and CSS for markup that doesn't exist is a trap for whoever greps this file next. */
 /* ≤900px: the five columns can't hold. Number and title share the first line, blurb and
    marker stack under them — the row stays a row, it just wraps. */
 @media(max-width:900px){

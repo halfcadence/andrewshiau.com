@@ -54,19 +54,23 @@ const ENTRY_COUNT = work.length + experiments.length;
         chasing simplicity. <span class="t-design">Taste finds the simplest form</span>,
         <span class="t-build">engineering proves the simplest solution</span>.</h1>
 
-      <!-- The ledger — the "instrument" half of the pick. Four facts, every one of them
-           already true elsewhere on the site: Role and Where are the Stores Designer
-           masthead verbatim, Index counts the lists below, Elsewhere is the colophon's.
-           No invented metric, and no magnitude bars: a bar whose length encodes "8 case
-           studies" against another encoding "124 recipes" compares nothing. -->
+      <!-- The ledger — the "instrument" half of the pick. Every fact here is already true
+           elsewhere on the site: Currently restates the Stores Designer masthead, Index
+           counts the lists below. No invented metric, and no magnitude bars: a bar whose
+           length encodes "8 case studies" against another encoding "124 recipes" compares
+           nothing.
+           `Currently`, not `Role`: the label was the category of the fact and the row read
+           like a form field. What a reader deciding whether to work with me wants from this
+           row is what I am doing NOW, and the label may as well say so.
+           There were two rows here, Role and Where, and Where held only "At Amazon ·
+           2023–present". Once the sentence names the employer itself the second row was the
+           same fact twice with a date attached, and the tenure is on the Stores Designer
+           page where the work it belongs to is. So one row states the whole thing. -->
       <div class="pled">
         <div class="prow">
-          <span class="pk">Role</span>
-          <span class="pv">Frontend engineer — the tooling, and the design system underneath it.</span>
-        </div>
-        <div class="prow">
-          <span class="pk">Where</span>
-          <span class="pv">At Amazon · <b>2023–present</b></span>
+          <span class="pk">Currently</span>
+          <span class="pv">Design systems engineer at Amazon, building a vibe design tool for
+            the Amazon store.</span>
         </div>
         <div class="prow">
           <span class="pk">Index</span>
@@ -77,18 +81,27 @@ const ENTRY_COUNT = work.length + experiments.length;
       <!-- WHERE TO REACH ME, at the foot of the column that never leaves the screen
            (chooser: andrewshiau-panel-shape, Q2/03 — "the colophon moves in", resolved as a
            split rather than a move; the reasoning is in the note above the closing band).
-           Three links, one label. They were previously in the colophon at the very bottom of
-           the page, which meant the only way to reach me was to finish reading: the panel is
-           permanently on screen, so this is the half of the old colophon that earns its
-           place here. The address stays first — it's the one worth acting on.
+           These were previously in the colophon at the very bottom of the page, which meant
+           the only way to reach me was to finish reading: the panel is permanently on screen,
+           so this is the half of the old colophon that earns its place here.
+           TWO labels, not one. All three links ran under `Elsewhere`, which made the address
+           — the one thing here worth acting on — the first item in a list of places I post.
+           `Contact` is a different ask from `Elsewhere`: one is how to reach me, the other is
+           where else I am. `Contact` also matches the case-study panels, which have carried
+           that exact label all along (see PanelHead.astro), so the index stops being the one
+           page that names the same thing differently.
            No literal ↗ in the link text: `a[target]` already appends one in CSS, and writing
            it by hand rendered "github ↗ ↗". The colophon's own external link never had one,
            which is the pattern these should have followed. -->
-      <p class="pfoot">Elsewhere
-        <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
-        <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a>
-        <a href="https://www.instagram.com/half_cadence" target="_blank" rel="noopener">instagram</a>
-      </p>
+      <div class="pfeet">
+        <p class="pfoot">Contact
+          <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+        </p>
+        <p class="pfoot">Elsewhere
+          <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a>
+          <a href="https://www.instagram.com/half_cadence" target="_blank" rel="noopener">instagram</a>
+        </p>
+      </div>
     </div>
 
     <!-- The split's rule. An empty element because it belongs to neither side; see
@@ -141,8 +154,9 @@ const ENTRY_COUNT = work.length + experiments.length;
                the row and its gate cell — which is why it is a component rather than a branch
                inside the markup here: a `<form>` cannot live inside the `<a>`, so the pair has
                to be emitted together, and `/gate/` renders the same pair already open.
-               The lock mark it adds at the title is the "clearer than a word in the marker
-               cell" indicator — see `.entry .lockc` in global.css. */
+               It looks like every other row — same numeral, same title, same arrow. The lock
+               glyph and the `Password` marker it used to carry are gone; the reasoning is in
+               the component and beside `.entry .arrowc` in global.css. */
             <LockedRow x={x} />
           ) : (
             <a class:list={['entry', { accent: x.accent }]} href={x.href}
