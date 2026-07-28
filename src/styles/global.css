@@ -43,6 +43,10 @@
   --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%2314306b"/></svg>');
   --unit:24px;           /* baseline unit — every vertical space is a multiple */
   --gutter:28px;
+  /* The measure. A token because THE BOX has to bleed its scrollport back out to the viewport
+     edge, and a second literal 1120px in that calc would be a number that drifts from this
+     one. `.wrap` reads it too, so there is exactly one place the page's width is stated. */
+  --measure:1120px;
   --ease:cubic-bezier(0.16,1,0.3,1);  /* signature easing — everything animates on this */
   --dur:220ms; --dur-fast:140ms; --dur-big:340ms;
   --sans:"Graphik","Helvetica Neue",Helvetica,"Akzidenz-Grotesk",Arial,"Liberation Sans",system-ui,sans-serif;
@@ -72,7 +76,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
   cursor:var(--cursor) 9 9, auto}
 /* text highlight — pure invert (ink on paper → paper on ink) */
 ::selection{background:var(--ink);color:var(--paper)}
-.wrap{max-width:1120px;margin:0 auto;padding:0 var(--gutter) calc(var(--unit)*5);position:relative}
+.wrap{max-width:var(--measure);margin:0 auto;padding:0 var(--gutter) calc(var(--unit)*5);position:relative}
 
 /* THE GRID — 12 fields */
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);row-gap:0}
@@ -444,7 +448,8 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
      being sticky, loses its vertical rule, and takes a horizontal one instead, because a
      rule must own the edge it draws and the edge is now horizontal.
    Short viewports — a sticky panel taller than the viewport scrolls its own bottom out of
-     reach and never comes back. Unsticking it is the only honest fallback. */
+     reach and never comes back. Unsticking it is the only honest fallback — but only where
+     the panel really doesn't fit; see the measured threshold below the block. */
 @media(max-width:1100px){
   .pin,.feed{grid-column:1 / 13;grid-row:auto}
   .splitrule{display:none}
@@ -459,7 +464,25 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    in the stacked range `figure.demo.hang` is untouched and hangs its caption exactly as it
    does on a full-width page. An earlier version needed a (min-width:721px) and (max-width:
    1100px) query here to undo a global override — deleting the override deleted the need. */
-@media(max-height:760px){
+/* The short-viewport unstick, for the eight case-study panels (the index's panel is THE BOX
+   below and has its own gate). The reason is real and stated above: a sticky panel taller
+   than the viewport scrolls its own bottom out of reach. But the number has to come from the
+   tallest panel on the site, not from a guess.
+   Measured every `.pin` on the site at its natural height: 258px on the Type B pages
+   (`aping`, `explain`, `proofs`, `method`), 368px on `stores-designer`, 428px on
+   `powerpoint`, 556px on `recipes` — the tallest, because its ledger carries the most rows.
+   `top` is one --unit (24px), and the same air below the panel's foot keeps it off the
+   viewport's bottom edge, so the requirement is 556 + 24*2 = 604px.
+   It was 760px, which unstuck all eight panels on any window shorter than that and stranded
+   157px of real window. Reported from a 1512x693 window, where every case-study panel had
+   quietly stopped being sticky while the index's panel — fixed one commit earlier — was
+   pinned. Same defect, same cause: a threshold picked from one screen size instead of
+   measured against the content it governs.
+   604 has margin built in: it clears the tallest panel with a full unit of air, and every
+   other panel by 300px or more. If a panel ever grows past ~556px this number has to be
+   re-measured, which is cheaper than the alternative of unsticking every page to protect
+   one. */
+@media(max-height:603px){
   .pin{position:static}
 }
 
@@ -515,8 +538,33 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   /* The scrollport. `min-height:0` is load-bearing: a grid item's default `min-height:auto`
      refuses to shrink below its content, so without it the feed reports its full 1482px,
      `overflow-y` never has anything to clip, and nothing scrolls. `padding-right` keeps the
-     rows' right edge off the scrollbar. */
-  .grid.split > .feed{height:100%;min-height:0;overflow-y:auto;padding-right:var(--unit);
+     rows' right edge off the scrollbar.
+     THE BLEED. `.wrap` caps the page at --measure and centres it, so on a wide window there
+     is a band of dead margin outside it — 196px each side at 1512px. A wheel out there hit
+     the document, so the page lurched to the colophon while the feed sat still: the reader
+     is looking at the list, spinning the wheel beside it, and the list doesn't move.
+     Reported from a 1512px window, and the ask was that a scroll anywhere on the right side
+     scroll the feed "even past the max width".
+     The fix is geometry, not a wheel listener. `margin-right` pulls the feed's right edge out
+     to the viewport, and `padding-right` puts exactly that much back as internal space, so
+     the ROWS stay on their grid tracks — nothing moves visually — while the SCROLLPORT now
+     covers the dead band and the wheel lands on the feed. The two values are one expression
+     each, both derived from --measure, because a bleed whose margin and padding can disagree
+     is a bleed that shifts the content it was supposed to leave alone.
+     TWO bands, and both have to be reclaimed or the fix stops one gutter short of the edge:
+     the centring margin outside `.wrap` — `max()`-clamped at 0 so the term vanishes below
+     --measure, where there is none — PLUS `.wrap`'s own --gutter of padding, which is INSIDE
+     the cap (`box-sizing:border-box`) and so always sits between the feed's content edge and
+     the window. Measured with the margin term alone: at 1512px the feed reached 1484 and a
+     wheel in the last 28px still moved the page. Summing both puts the feed's right edge at
+     exactly 100vw, which is what "even past the max width" asked for.
+     Note this widens only the RIGHT side. The left band belongs to the panel, which doesn't
+     scroll — a wheel there should keep moving the page, and the "scroll to the end" gesture
+     for the colophon has to stay reachable somewhere. */
+  .grid.split > .feed{height:100%;min-height:0;overflow-y:auto;
+    --bleed:calc(max(0px, (100vw - var(--measure)) / 2) + var(--gutter));
+    margin-right:calc(var(--bleed) * -1);
+    padding-right:calc(var(--bleed) + var(--unit));
     scrollbar-width:thin;scrollbar-color:var(--line) transparent}
   .grid.split > .feed::-webkit-scrollbar{width:8px}
   .grid.split > .feed::-webkit-scrollbar-thumb{background:var(--line)}
