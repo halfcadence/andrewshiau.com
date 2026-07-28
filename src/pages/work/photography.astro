@@ -51,11 +51,27 @@ const right = photos.filter((_, i) => i % 2 === 1);
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      Shot with iPhones, a Fuji X100, and a Leica Q.
+      Twelve photographs, shot over about a decade on whatever I had with me.
     </p>
   </div>
 
-  <div class="grid" style="margin-top:var(--unit)">
+  <!-- TYPE C: dek → the contents ledger → the work, and nothing after it. The ledger is
+       short here on purpose; a gallery's metadata is the count and the cameras, and there
+       is no claim to make about a photograph that the photograph doesn't make. -->
+  <div class="grid sect">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Contents</div>
+        <div class="ftx"><b>12 photographs</b>, in two ragged columns so no two share a baseline.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Cameras</div>
+        <div class="ftx">iPhones · Fuji X100 · Leica Q.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="g-rag">
       <div class="col-l">
         {left.map((p, i) => (

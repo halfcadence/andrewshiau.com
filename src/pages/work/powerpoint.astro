@@ -5,7 +5,7 @@ import SideMark from '../../components/SideMark.astro';
 
 <Layout
   title="Powerpoint Pen Toolbox — Andrew Shiau"
-  description="Redesigning PowerPoint's inking toolbox through 20+ rounds of functional prototyping and user testing — where the data refuted the team's first design."
+  description="Redesigning PowerPoint's inking toolbox through 20+ working prototypes and a test that proved the team's favourite design wrong."
 >
   <div class="grid">
     <div class="back"><a href="/">← Index</a></div>
@@ -19,12 +19,20 @@ import SideMark from '../../components/SideMark.astro';
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      Redesigning PowerPoint's Pen Toolbox for the Draw tab through rapid, functional
-      prototyping — where testing the prototype refuted the team's own first design.
+      Redesigning the Pen Toolbox in PowerPoint's Draw tab through twenty-odd working
+      prototypes. The last test proved the team's favourite design wrong.
     </p>
   </div>
 
-  <div class="grid">
+  <!-- TYPE A, beat 2: the clip is the lede. The final redesign, running, before any prose. -->
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+    <figure class="demo hang">
+      <video src="/media/pp-final.mp4" muted loop autoplay playsinline preload="metadata"></video>
+      <figcaption>The final redesign proposal.</figcaption>
+    </figure>
+  </div>
+
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="facts">
       <div class="frow">
         <div class="fm">Role</div>
@@ -34,24 +42,19 @@ import SideMark from '../../components/SideMark.astro';
         <div class="fm">Tools</div>
         <div class="ftx">Framer Classic · JavaScript · Sketch.</div>
       </div>
-      <div class="frow">
-        <div class="fm">Span</div>
-        <div class="ftx"><b>13 weeks</b> · 20+ prototype iterations · with a UX designer and PM.</div>
-      </div>
     </div>
   </div>
 
-  <!-- Claim + evidence — the two fixed fields every project page carries.
-       Simplest form = what got removed. Proof = the measurement that made it real. -->
+  <!-- Claim + evidence — the two fixed rows, right under the masthead. -->
   <div class="grid">
     <div class="facts" style="margin-top:var(--unit)">
       <div class="frow">
         <div class="fm">Simplest form</div>
-        <div class="ftx">Removed the add-pen button and folded the eraser into the toolbox as just another pen — <b>fewer tools, not more options</b>.</div>
+        <div class="ftx">Took the add-pen button out and put the eraser in the toolbox as one more pen, so the toolbox holds one of each tool and nothing else.</div>
       </div>
       <div class="frow">
         <div class="fm">Proof</div>
-        <div class="ftx">An <b>A/B test against the plain dropdown</b>, everything else held constant. The ribbon's benefit was too marginal to justify the engineering.</div>
+        <div class="ftx"><b>13 weeks</b>, 20-plus working prototypes, and an <b>A/B test</b> that killed the design the team had favoured for most of the project.</div>
       </div>
     </div>
   </div>
@@ -61,25 +64,17 @@ import SideMark from '../../components/SideMark.astro';
       <h2>The problem</h2>
       <div class="sbody">
         <p>
-          The Draw tab is how millions of people get an idea onto a slide with a pen —
-          but its design confused users, and the tools didn't behave the way people
-          expected. A usability study of the live tab (8 users recreating two diagrams,
-          analyzed by affinity diagramming into six themes) produced 52 recommendations.
+          Millions of people use the Draw tab to get an idea onto a slide with a pen, and
+          its tools didn't behave the way they expected. A usability study of the shipped
+          tab — eight users recreating two diagrams, sorted by affinity diagramming into
+          six themes — produced 52 recommendations.
         </p>
         <p>
-          I joined after that study and prototyped candidates for a new toolbox from its
-          findings, tested them, and delivered a polished working prototype to hand the
-          final design to engineering.
+          I joined after that study, built candidate toolboxes from its findings, tested
+          them, and handed engineering a working prototype to build from.
         </p>
       </div>
     </div>
-  </div>
-
-  <div class="grid">
-    <figure class="demo hang">
-      <video src="/media/pp-final.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>The final redesign proposal.</figcaption>
-    </figure>
   </div>
 
   <div class="grid sect">
@@ -89,15 +84,15 @@ import SideMark from '../../components/SideMark.astro';
     <div class="facts">
       <div class="frow">
         <div class="fm">Remove "add pen"</div>
-        <div class="ftx">Users ink with the same tool repeatedly, so the add-pen button mostly added complexity. We gave one of each tool and moved "add" to a long-press for power users.</div>
+        <div class="ftx">People ink with one tool over and over, so the add-pen button mostly added clutter. We gave one of each tool and moved "add" to a long-press for the users who wanted more.</div>
       </div>
       <div class="frow">
         <div class="fm">Eraser = a pen</div>
-        <div class="ftx">Users expected the eraser to work like a pen, so we moved it into the toolbox with its own width/type dropdown.</div>
+        <div class="ftx">Users reached for the eraser the way they reached for a pen, so we moved it into the toolbox and gave it its own width and type dropdown.</div>
       </div>
       <div class="frow">
         <div class="fm">Dropdown refresh</div>
-        <div class="ftx">The ink preview and width slider now show real width and color; "colors" and "effects" merged; the recently-used-colors algorithm was retuned.</div>
+        <div class="ftx">The ink preview and width slider now show the real width and colour, "colours" and "effects" merged into one panel, and the recently-used-colours algorithm was retuned.</div>
       </div>
     </div>
   </div>
@@ -105,7 +100,7 @@ import SideMark from '../../components/SideMark.astro';
   <div class="grid">
     <div class="block c1-6">
       <span class="st">"If we didn't prototype, we'd have shipped one of the first three models as the spec."</span>
-      <span class="sd">— the UX designer on the team. The whole case study is that sentence.</span>
+      <span class="sd">— the UX designer on the team.</span>
     </div>
   </div>
 
@@ -114,11 +109,10 @@ import SideMark from '../../components/SideMark.astro';
       <h2>Why a functional prototype</h2>
       <div class="sbody">
         <p>
-          I built each design as a <b>fully functional</b> prototype in Framer Classic —
-          a working toolbox on top of a real HTML/CSS/JS canvas you could actually draw
-          on (I wrote an ink drawer that listens for mouse-move and lays down SVG). That
-          mattered because we could test the prototype exactly like the live product:
-          give a user a real drawing task.
+          I built each design as a <b>working</b> prototype in Framer Classic: a real
+          toolbox over an HTML canvas you could draw on, with an ink drawer I wrote that
+          listens for mouse-move and lays down SVG. That let us test a prototype the same
+          way we'd test the shipped product, by handing someone a drawing task.
         </p>
       </div>
     </div>
@@ -130,37 +124,42 @@ import SideMark from '../../components/SideMark.astro';
   <div class="matrix mscatter">
     <figure class="demo m-a">
       <video src="/media/pp-prototypeInUse.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>The working prototype in use — real drawing, not a click-through.</figcaption>
+      <figcaption>The prototype in use. You draw on it with a real pen.</figcaption>
     </figure>
     <figure class="demo m-b">
       <video src="/media/pp-arrow.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>An arrow marks which colors can be modified — a fix found by testing.</figcaption>
+      <figcaption>An arrow marks which colours can be modified — a fix testing found.</figcaption>
     </figure>
     <figure class="demo m-c">
       <video src="/media/pp-colorJump.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>A color that jumped between slots got an enlarge animation.</figcaption>
+      <figcaption>A colour that jumped between slots got an enlarge animation.</figcaption>
     </figure>
     <figure class="demo m-d">
       <video src="/media/pp-longPress.mp4" muted loop autoplay playsinline preload="metadata"></video>
       <figcaption>Long-press adds a pen — the power-user path that replaced the button.</figcaption>
     </figure>
   </div>
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <div class="c1-8">
-      <p>
-        The team was confident about bringing color and thickness to the top level of
-        the UI. We built three ways to select a color, tested them with users, and
-        iterated on every misfit — the clips above are four of those fixes, each one a
-        response to something a user actually did. Then we <b>A/B-tested</b> the
-        favorite ribbon design against the plain dropdown, holding everything else
-        constant.
-      </p>
-      <p>
-        The result contradicted the team's hypothesis: the ribbon's benefit was too
-        marginal to justify the engineering. Twenty-plus iterations got us to the
-        right design precisely because the data overturned where we started. You only
-        learn that by putting a working prototype in front of real users.
-      </p>
+
+  <!-- TYPE A close: a named final section. This was the page's most important claim and it
+       used to sit in an unheaded prose block, which read as an afterthought. -->
+  <div class="grid sect">
+    <div class="shead">
+      <h2>What the test said</h2>
+      <div class="sbody">
+        <p>
+          The team wanted colour and thickness at the top level of the UI, and was
+          confident about it. We built three ways to pick a colour, put each in front of
+          users, and fixed what tripped them; four of those fixes are in the clips above.
+          Then we <b>A/B-tested</b> the ribbon everyone favoured against the plain
+          dropdown, holding everything else constant.
+        </p>
+        <p>
+          The ribbon lost. Its benefit was too small to pay for the engineering, so the
+          plain dropdown shipped. We had been confident about that ribbon for most of the
+          project and we were wrong, and we found out because the prototype was real
+          enough to hand someone a drawing task.
+        </p>
+      </div>
     </div>
   </div>
 </Layout>

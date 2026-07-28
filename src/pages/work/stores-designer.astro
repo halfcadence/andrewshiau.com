@@ -5,7 +5,7 @@ import SideMark from '../../components/SideMark.astro';
 
 <Layout
   title="Stores Designer — Andrew Shiau"
-  description="A design-system tool at Amazon that helps distributed teams build consistent shopping experiences."
+  description="Design-system tooling at Amazon: helping many teams build one consistent shopping surface without each of them coding it by hand."
 >
   <div class="grid">
     <div class="back"><a href="/">← Index</a></div>
@@ -19,16 +19,19 @@ import SideMark from '../../components/SideMark.astro';
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      Helping distributed teams at Amazon build consistent shopping experiences
-      without hand-coding each one.
+      Design-system tooling at Amazon. A lot of teams build one shopping surface, and my
+      job is to make sure they don't each build it their own way.
     </p>
   </div>
 
-  <div class="grid">
+  <!-- TYPE A with no clip: this is current production work at Amazon, so there is nothing
+       public to show. The masthead + claim/evidence beats still run — the clip beat is the
+       one part of the type that content can be missing. -->
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="facts">
       <div class="frow">
         <div class="fm">Role</div>
-        <div class="ftx">Frontend engineer — design-system tooling and the design system that keeps what teams build consistent.</div>
+        <div class="ftx">Frontend engineer — the tooling, and the design system underneath it.</div>
       </div>
       <div class="frow">
         <div class="fm">Where</div>
@@ -37,37 +40,54 @@ import SideMark from '../../components/SideMark.astro';
     </div>
   </div>
 
-  <div class="grid sect">
-    <div class="shead">
-      <h2>The premise</h2>
-      <div class="sbody">
-        <p>
-          Many teams, one shopping surface. Left alone, each team rebuilds the same
-          components slightly differently and consistency erodes. The job is to make the
-          consistent path the easy path — a design system plus tooling that lets people
-          build real experiences quickly, on shared rails, without hand-coding every
-          screen.
-        </p>
-        <p>
-          The principle: build against a shared system so consistency is the default,
-          not a thing you police afterward.
-        </p>
+  <div class="grid">
+    <div class="facts" style="margin-top:var(--unit)">
+      <div class="frow">
+        <div class="fm">Simplest form</div>
+        <div class="ftx">Give teams a design system and a tool that builds on it, so the consistent way to ship a page is also the fastest way.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Proof</div>
+        <div class="ftx">
+          Internal, and staying that way. The public version of this problem is
+          <a href="/work/luthier/">Luthier</a>, which I built at Amazon three years
+          earlier and can show.
+        </div>
       </div>
     </div>
   </div>
 
   <div class="grid sect">
     <div class="shead">
-      <h2>What I work on</h2>
+      <h2>The problem</h2>
       <div class="sbody">
         <p>
-          Front-end for the tooling, and the design system that keeps what teams build
-          consistent. The way I think about AI on this site — verification loops, keeping
-          a human in the judgment seat — comes from working on problems like this one.
+          Many teams, one shopping surface. Left alone, each team builds its own version
+          of the same component and the surface drifts apart — slightly different
+          spacing, slightly different behaviour, a hundred times over.
+        </p>
+        <p>
+          Telling people to be consistent doesn't work; nobody has time to check.
+          Building the shared thing so it's the quickest route to a shipped page does.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPE A close: named, last. "Where it stands" rather than "Outcome" — this work is
+       still running, and an "Outcome" head on unfinished work overclaims. -->
+  <div class="grid sect">
+    <div class="shead">
+      <h2>Where it stands</h2>
+      <div class="sbody">
+        <p>
+          Front-end for the tooling, and the design system it builds against. Most of what
+          I've learned about working with agents came out of this: the loops on
+          <a href="/method/">the method page</a> are the ones I run here, on a system
+          where a wrong component ships to a lot of pages at once.
         </p>
         <p class="fine">
-          This is production work at Amazon, so it's kept deliberately high level here —
-          no internal detail.
+          Production work at Amazon, so this page stays high level. No internal detail.
         </p>
       </div>
     </div>

@@ -5,7 +5,7 @@ import SideMark from '../../components/SideMark.astro';
 
 <Layout
   title="Proofs — Andrew Shiau"
-  description="A skill that renders every design option side by side, in the real system, so you pick by looking."
+  description="A skill that renders every design option side by side in the real system, so you pick by looking."
 >
   <div class="grid">
     <div class="back"><a href="/">← Index</a></div>
@@ -19,40 +19,46 @@ import SideMark from '../../components/SideMark.astro';
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      A skill for design decisions with no obvious answer. Instead of describing the
-      options in prose, it renders every one for real — in the actual typeface,
-      tokens, and grid it will ship in — so you choose by looking. A proof, in the
-      print sense: a trial pull you check before you commit.
+      A skill for design decisions with no obvious answer. It renders every option for
+      real — in the typeface, tokens, and grid the thing will ship in — so you choose by
+      looking. A proof in the print sense: a trial pull you check before you commit.
     </p>
   </div>
 
-  <div class="grid">
-    <div class="c1-8" style="margin-top:calc(var(--unit)*1.5)">
-      <p>
-        You can't see prose. A byline treatment, a type ramp, a masthead — the
-        differences are visual and small, and the only honest way to decide is to
-        put the candidates next to each other and use your eyes.
-      </p>
-      <p>
-        I chose this site's layout that way. Both sheets below are the real ones I
-        used, not reconstructions.
-      </p>
+  <!-- TYPE B, beat 2: named head over the page's argument (was unheaded prose). -->
+  <div class="grid sect">
+    <div class="shead">
+      <h2>Why render it</h2>
+      <div class="sbody">
+        <p>
+          You can't see prose. A byline, a type ramp, a masthead: the differences are
+          visual and small, and a paragraph describing them tells you nothing you can act
+          on. Put the candidates next to each other and you know in a second.
+        </p>
+        <p>
+          I chose this site's layout this way. Both sheets below are the ones I actually
+          used.
+        </p>
+      </div>
     </div>
   </div>
 
   <div class="grid sect">
-    <!-- a full-width embed follows, not a paragraph — head flush left (option 02) -->
-    <div class="c1-12"><h2>This index</h2></div>
-  </div>
-  <div class="grid">
-    <div class="c1-8" style="margin-top:var(--unit)">
-      <p>
-        Three poster compositions on the 12-column grid, rendered live. I picked A,
-        the calendar scatter, and shipped it — then took it out. It composed well on
-        the sheet and indexed badly on the real page: two sections using the same
-        device, neither list ever whole in view. The index you're reading is a ruled
-        list instead. C survives as the staircase the links use.
-      </p>
+    <!-- .shead, not a flush-left h2: a paragraph DOES follow this head (the embed comes
+         after it), and the site's rule is that a head with prose under it uses .shead so
+         the head and its first line share column 1. The old comment here claimed an embed
+         followed directly, which was never true. -->
+    <div class="shead">
+      <h2>This index</h2>
+      <div class="sbody">
+        <p>
+          Three poster compositions on the 12-column grid, rendered live. I picked A, the
+          calendar scatter, shipped it, and then took it out. It composed well on the sheet
+          and indexed badly on the real page: two sections used the same device, and neither
+          list was ever whole on screen. The index you're reading is a ruled list. C survives
+          as the staircase the links use.
+        </p>
+      </div>
     </div>
   </div>
   <div class="grid">
@@ -65,29 +71,26 @@ import SideMark from '../../components/SideMark.astro';
       </div>
       <figcaption>
         <a href="/demo/index-layouts/index.html" target="_blank" rel="noopener">open full-screen</a>
-        — three index layouts, rendered live, on the real grid. A shipped, then lost
-        to the live page.
+        — three index layouts on the real grid. A shipped, then lost to the live page.
       </figcaption>
     </figure>
   </div>
 
   <div class="grid sect">
-    <!-- full-width embed again — head flush left, not .shead -->
-    <div class="c1-12"><h2>A harder one</h2></div>
-  </div>
-  <div class="grid">
-    <div class="c1-8" style="margin-top:var(--unit)">
-      <p>
-        My recipe archive needed a layout for a wide screen: a 26-column split with
-        the section names hung out in a margin. Six open questions, twenty options,
-        every frame rendered at a width it actually ships at — 1512, 1792, 2560, and
-        390 for a phone.
-      </p>
-      <p>
-        This is round two, so what the first round settled sits in a band at the top
-        marked locked. A sheet that reopens a decision you already made is how you
-        spend a week choosing a gutter.
-      </p>
+    <div class="shead">
+      <h2>A harder one</h2>
+      <div class="sbody">
+        <p>
+          My recipe archive needed a layout for a wide screen: a 26-column split with the
+          section names hung out in the margin. Six open questions, twenty options, every
+          frame rendered at a width it ships at — 1512, 1792, 2560, and 390 for a phone.
+        </p>
+        <p>
+          This is round two, so whatever round one settled sits in a band at the top marked
+          locked. Reopening a decision you already made is how you spend a week choosing a
+          gutter.
+        </p>
+      </div>
     </div>
   </div>
   <div class="grid">
@@ -106,27 +109,28 @@ import SideMark from '../../components/SideMark.astro';
     </figure>
   </div>
 
+  <!-- TYPE B close: the facts colophon. -->
   <div class="grid sect">
     <div class="facts">
       <div class="frow">
         <div class="fm">Form</div>
         <div class="ftx">
-          One self-contained HTML page: every option rendered in the real design
-          system, labelled, with a one-line rationale. Open it, pick a number.
+          One self-contained HTML page. Every option rendered in the real design system,
+          labelled, with a line saying why it might win. Open it and pick a number.
         </div>
       </div>
       <div class="frow">
         <div class="fm">The rule</div>
         <div class="ftx">
-          The first option is always what's live today, so you read the rest
-          against it. A few distinct options beat a dozen near-duplicates.
+          Option 01 is always what's live today, so you read the rest against it. Four
+          distinct options beat a dozen near-duplicates.
         </div>
       </div>
       <div class="frow">
         <div class="fm">Rounds</div>
         <div class="ftx">
-          A second sheet opens with what the first one settled, marked
-          <b>locked</b>. Decisions close; only the open questions get frames.
+          A second sheet opens with whatever the first one settled, marked <b>locked</b>.
+          Decisions close; only the open questions get frames.
         </div>
       </div>
     </div>

@@ -38,6 +38,96 @@ doesn't land is worse than no joke.
   AI-transparency notes the site already carries (the footer, the "/swiss" attributions).
   No compliance boilerplate, no "rephrased for…", no tool instructions in prose.
 
+### Four habits that make prose read machine-written
+
+Found by counting, not vibes, across the eight case studies (Jul 2026): 32 antithesis
+snaps, 9 aphorism closers, 14 em-dashes on one page, 6 stated principles. All four are
+what a language model reaches for when it wants a sentence to *sound* concluded. Every
+one is banned:
+
+1. **The antithesis snap** — `X, not Y`. "Filed like a reference manual, not a blog";
+   "fewer tools, not more options"; "real drawing, not a click-through". It reads as
+   emphasis and carries no information: the reader was never considering Y. Say what the
+   thing is. (`, not ` inside a *title* is fine — "10x is a loop, not a prompt" is the
+   essay's name.)
+2. **The aphorism closer** — a section that ends on a maxim instead of a fact. "That
+   reframe is the whole project." "The quiz is the point." "That's the bar." A closing
+   line MUST end on something that happened, or a link to the next thing.
+3. **The em-dash as a general joint.** Two or three per page, for a real parenthetical.
+   Not as a way to avoid committing to a comma, a colon, or a full stop. Powerpoint had
+   14; it now has 6, and reads faster.
+4. **The stated principle** — "The job is to…", "The principle:", "The way I think
+   about…". A claim about how one *ought* to work, standing in for a fact about what
+   happened. Replace it with the fact: "Telling people to be consistent doesn't work;
+   nobody has time to check."
+
+The positive rule, from Orwell: **prefer the concrete**. "Feedback was positive" became
+"What they got stuck on became the roadmap" — same length, and it says something.
+
+---
+
+## Case-study page types
+
+Eight case-study pages, three shapes. The shapes already existed by accident, and the
+drift between them was the whole reason the set read as arbitrary — the facts block was
+beat 2 on four pages and the last beat on three, so a reader who learned the pattern on
+one page had it inverted on the next. **The type is now declared**, and the type fixes
+the **opening and the close only**; the middle stays free, because a photo gallery and a
+12-week engineering project don't have the same story.
+(Chooser: `work/understand/andrewshiau-case-study-beats/`, picks 1/02 · 2/03 · 3/03 · 4/02.)
+
+### Type A — case study (`luthier`, `powerpoint`, `stores-designer`)
+
+```
+h1 → dek → THE CLIP → facts masthead → facts claim+evidence → The problem
+     → [free middle: block, ledgers, clips] → a NAMED closing section
+```
+
+- **The clip is beat 2**, before any prose. The page opens on the thing working. Only the
+  one clip that shows the *whole idea* earns this slot; clips that explain a detail stay
+  down in the mechanics section. A page with nothing public to show (`stores-designer`)
+  skips this beat — it's the only beat the type allows to be missing.
+- **The facts block is the masthead** here, always: role, stack, span. Never a colophon.
+- **Claim + evidence** (`Simplest form` / `Proof`) is a second `.facts` block directly
+  under the masthead. Every Type A page carries it. It was a one-off on `powerpoint`
+  before, and that was visibly the only page that read like it had a point.
+- **The close is a named section, always last.** `Outcome` for finished work;
+  `Where it stands` for work still running (an "Outcome" head on unfinished work
+  overclaims). It MUST NOT be an unheaded paragraph — `powerpoint`'s most important claim
+  used to sit in the one block with no title.
+
+### Type B — skill (`aping`, `explain`, `proofs`)
+
+```
+h1 → dek → a NAMED head over the argument → block (the meta note)
+     → [free middle: step, links, embeds] → facts COLOPHON
+```
+
+- Beat 2 is a `.shead` with a real title — "The line I drew", "Why the quiz", "Why render
+  it". These were unheaded paragraphs, which made the best writing on each page look like
+  a stray thought that didn't earn a section.
+- **The facts block is the colophon** here, always last: what the thing is made of, read
+  after the work. Same device as Type A's masthead, opposite job — which is exactly why
+  it must be consistent *within* a type.
+
+### Type C — collection (`recipes`, `photography`)
+
+```
+h1 → dek → facts contents → the work, full width → nothing
+```
+
+- The ledger is short on purpose (a count and a stack, or a count and the cameras).
+- **No claim+evidence, no outcome.** There is no claim to make about a photograph that
+  the photograph doesn't make. This is why the type system has three types instead of one
+  frame: forcing a gallery to claim something is how you get filler.
+
+### The head rule that cuts across all three
+
+A head with **prose** under it uses `.shead` (head and first line share column 1). A head
+followed by a **ledger, a step, or a links staircase** is a flush-left `h2` in `.c1-12`
+— there's no paragraph to pair on the row. Two heads on `proofs` claimed in a comment
+that an embed followed them directly; prose did, and they're now `.shead`.
+
 ---
 
 ## Design system — Müller-Brockmann grid

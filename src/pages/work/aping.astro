@@ -5,7 +5,7 @@ import SideMark from '../../components/SideMark.astro';
 
 <Layout
   title="Aping — Andrew Shiau"
-  description="An agent skill that writes documents in the Swiss style, and where I drew the line."
+  description="An agent skill that sets documents in the Swiss style, and the line I drew about whose style to copy."
 >
   <div class="grid">
     <div class="back"><a href="/">← Index</a></div>
@@ -19,30 +19,33 @@ import SideMark from '../../components/SideMark.astro';
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      An agent skill that writes HTML in the Swiss style — Müller-Brockmann's grid.
-      You invoke it; the agent sets your content by that system's rules instead of
-      the flat default a machine reaches for.
+      An agent skill that writes HTML in the Swiss style, on Müller-Brockmann's grid. You
+      invoke it and the agent sets your content by that system's rules instead of the flat
+      default it reaches for on its own.
     </p>
   </div>
 
-  <!-- The tension, and the line I drew. Dry. -->
-  <div class="grid">
-    <div class="c1-8" style="margin-top:calc(var(--unit)*1.5)">
-      <p>
-        Aping means imitating. It's the honest word for what this does: I taught an
-        agent to work in a style I admire, and it does the job well.
-      </p>
-      <p>
-        I started a second skill aimed at a studio that's still working today, and
-        stopped. Imitating a movement whose author died in 1996 is one thing; pointing
-        a machine at a living studio's look and shipping the output is a different
-        thing, and I didn't like it once I said it plainly. So the rule is: the dead,
-        or a movement — not someone I could have just asked.
-      </p>
+  <!-- TYPE B, beat 2: a NAMED head over the page's argument. This used to be an unheaded
+       paragraph, which made the best writing on the page look like a stray thought. -->
+  <div class="grid sect">
+    <div class="shead">
+      <h2>The line I drew</h2>
+      <div class="sbody">
+        <p>
+          Aping means imitating, and it's the honest word for this. I taught an agent to
+          work in a style I admire and it does the job well.
+        </p>
+        <p>
+          I started a second skill aimed at a studio that's still working today, and
+          stopped. Müller-Brockmann died in 1996; copying a movement is what design
+          history is made of. Pointing a machine at a living studio's look and shipping
+          the output is something else, and I didn't like the sound of it once I'd said it
+          out loud. So the rule is: the dead, or a movement. Nobody I could have asked.
+        </p>
+      </div>
     </div>
   </div>
 
-  <!-- meta callout: this site IS an output -->
   <div class="grid">
     <div class="block c1-6">
       <span class="st">This site is set in the /swiss style.</span>
@@ -51,8 +54,8 @@ import SideMark from '../../components/SideMark.astro';
   </div>
 
   <!-- No paragraph follows this head — the .step below is the content — so there's
-       nothing to pair on the same row. Flush left (chooser option 02), same column-1
-       start as a .shead's h2 so every head on the site still lines up. -->
+       nothing to pair on the same row. Flush left, same column-1 start as a .shead's h2
+       so every head on the site still lines up. -->
   <div class="grid sect">
     <div class="c1-12"><h2>The style</h2></div>
   </div>
@@ -61,7 +64,7 @@ import SideMark from '../../components/SideMark.astro';
     <div class="step accent" style="grid-column:span 8">
       <span class="sl">after Josef Müller-Brockmann (1914–1996)</span>
       <span class="st">/swiss</span>
-      <span class="sd">A visible modular grid carrying large, precisely-set type. Structure from column alignment and thin rules, not boxes. One signal-red accent. This site is set in it.</span>
+      <span class="sd">A visible modular grid carrying large, precisely-set type. Structure comes from column alignment and thin rules; there are no boxes. One accent colour. This site is set in it.</span>
     </div>
   </div>
 
@@ -82,20 +85,21 @@ import SideMark from '../../components/SideMark.astro';
     </div>
   </div>
 
+  <!-- TYPE B close: the facts block as a colophon — what the thing is made of, read after
+       the work. On a Type A page the same device is the masthead instead. -->
   <div class="grid sect">
     <div class="facts">
       <div class="frow">
         <div class="fm">Form</div>
         <div class="ftx">
-          The style is one <b>SKILL.md</b> — design tokens, a grid, and a
-          MUST/MUST&nbsp;NOT checklist the agent follows. Output is a single
-          self-contained HTML file.
+          One <b>SKILL.md</b> holding the design tokens, the grid, and a MUST/MUST&nbsp;NOT
+          checklist the agent works through. Output is a single self-contained HTML file.
         </div>
       </div>
       <div class="frow">
         <div class="fm">Source</div>
         <div class="ftx">
-          Private repo. The pages here are the output; ask if you want the rules.
+          Private repo. The pages here are its output; ask if you want to read the rules.
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import SideMark from '../../components/SideMark.astro';
 
 <Layout
   title="Luthier — Andrew Shiau"
-  description="Inventing a no-code graphics-automation process at Amazon scale: a Figma widget that turns a design into a production template."
+  description="A Figma widget that turns a designer's document into a production template, so nobody has to hand-code one."
 >
   <div class="grid">
     <div class="back"><a href="/">← Index</a></div>
@@ -19,13 +19,26 @@ import SideMark from '../../components/SideMark.astro';
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      Invented a no-code graphics-automation process at Amazon scale — a Figma widget
-      that turns a design into a production template, with no engineer required.
+      A Figma widget that turns a designer's document into a production template, so
+      nobody has to hand-code one. Built for Amazon's marketing-graphics pipeline.
     </p>
   </div>
 
-  <!-- role / facts -->
-  <div class="grid">
+  <!-- TYPE A, beat 2: the clip is the lede (chooser: beats §2 option 03). The page opens
+       on the thing working, before any prose. This is the one clip that shows the whole
+       idea in one shot — a designer turning a Figma doc into a live template — so it earns
+       the position; the other two clips stay down in the mechanics section where they
+       explain a detail rather than the premise. -->
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+    <figure class="demo hang">
+      <video src="/media/luthier-04_creating_gateway.mp4" muted loop autoplay playsinline preload="metadata"></video>
+      <figcaption>The Figma widget creating a Gateway template.</figcaption>
+    </figure>
+  </div>
+
+  <!-- masthead: metadata you read before the story. On a Type A page the facts block is
+       ALWAYS this, never a closing colophon (which is Type B's job). -->
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="facts">
       <div class="frow">
         <div class="fm">Role</div>
@@ -38,9 +51,20 @@ import SideMark from '../../components/SideMark.astro';
         <div class="fm">Stack</div>
         <div class="ftx">React · functional JavaScript · Ruby on Rails · Figma API.</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Claim + evidence — the two fixed rows every Type A page carries, directly under the
+       masthead. Simplest form = the whole idea in one sentence. Proof = what makes it real. -->
+  <div class="grid">
+    <div class="facts" style="margin-top:var(--unit)">
       <div class="frow">
-        <div class="fm">Shipped</div>
-        <div class="ftx">First version in <b>12 weeks</b>; beta-tested with 15 template designers.</div>
+        <div class="fm">Simplest form</div>
+        <div class="ftx">A designer builds the template in Figma. The widget hands it to Composer, which reads every layer and generates both the template and the UI an end user edits it with.</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Proof</div>
+        <div class="ftx">First version in <b>12 weeks</b>, then a beta with <b>15 template designers</b> across five organizations.</div>
       </div>
     </div>
   </div>
@@ -50,15 +74,14 @@ import SideMark from '../../components/SideMark.astro';
       <h2>The problem</h2>
       <div class="sbody">
         <p>
-          Composer is Amazon-internal software that automates marketing-graphic
-          production: templates become pixel-perfect graphics, and it makes over
-          <b>50,000 marketing images a year</b> for placements including the Amazon
-          Gateway.
+          Composer is Amazon-internal software that turns templates into finished
+          marketing graphics. It makes more than <b>50,000 images a year</b>, including
+          placements on the Amazon Gateway.
         </p>
         <p>
-          When I joined, each template was hand-coded by a front-end engineer — a
-          slow, expensive, unmaintainable process. To scale it, a designer needed to
-          be able to make a template without writing any code.
+          When I joined, a front-end engineer hand-coded every template. Each one took
+          weeks, and nobody but that engineer could change it afterward. To get more
+          templates we needed designers who could build one themselves.
         </p>
       </div>
     </div>
@@ -66,16 +89,9 @@ import SideMark from '../../components/SideMark.astro';
 
   <div class="grid">
     <div class="block c1-6">
-      <span class="st">The move: Figma is the interface.</span>
-      <span class="sd">A designer builds a Figma document; a widget sends it to Composer, which parses every layer into a working template — UI and all.</span>
+      <span class="st">Figma is the interface.</span>
+      <span class="sd">A designer builds a Figma document. A widget sends it to Composer, which walks every layer and generates the template, the editing UI, and the initial state.</span>
     </div>
-  </div>
-
-  <div class="grid">
-    <figure class="demo hang">
-      <video src="/media/luthier-04_creating_gateway.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>The Figma widget creating a Gateway template.</figcaption>
-    </figure>
   </div>
 
   <div class="grid sect">
@@ -89,15 +105,15 @@ import SideMark from '../../components/SideMark.astro';
       </div>
       <div class="frow">
         <div class="fm">Layout by Figma</div>
-        <div class="ftx">It interprets Figma's own layout features (auto-layout, alignment) and transforms them to Composer CSS, so designers use tools they already know.</div>
+        <div class="ftx">It reads Figma's own layout features (auto-layout, alignment) and converts them to Composer CSS, so designers work in the tools they already use.</div>
       </div>
       <div class="frow">
         <div class="fm">Annotations</div>
-        <div class="ftx">A small annotation system supplies what Figma can't infer — e.g. which images the end user may replace vs. fixed brand logos, max file sizes, text limits.</div>
+        <div class="ftx">A small annotation system supplies what Figma can't infer: which images an end user may replace, which are fixed brand logos, maximum file sizes, text limits.</div>
       </div>
       <div class="frow">
         <div class="fm">Modes</div>
-        <div class="ftx">Figma Component Sets become template modes (a holiday background variant, say) — with a mode switch generated automatically, even for nested sets.</div>
+        <div class="ftx">Figma Component Sets become template modes — a holiday background, say — and the mode switch is generated for you, even for nested sets.</div>
       </div>
     </div>
   </div>
@@ -118,36 +134,38 @@ import SideMark from '../../components/SideMark.astro';
       <h2>Engineering</h2>
       <div class="sbody">
         <p>
-          Two core modules. The <b>transformer</b> reads the Figma doc from the REST
-          API and converts it to a Composer JSON with a single pure function,
-          <code>getComposerDoc</code> — a tree traversal that collects the layers, UI,
-          and initial state. The <b>renderer</b> takes that JSON and produces the
+          Two modules. The <b>transformer</b> reads the Figma document through the REST
+          API and converts it to Composer JSON with one pure function,
+          <code>getComposerDoc</code>: a tree traversal that collects the layers, the UI,
+          and the initial state. The <b>renderer</b> takes that JSON and produces the
           template.
         </p>
         <p>
-          I built the JSON schema and renderer first, to cut manual template-coding —
-          then realized I could plug Figma in as the authoring interface on top of it.
-          That reframe is the whole project.
+          I built the schema and the renderer first, to cut down the hand-coding. Figma
+          came after: once a template was just a JSON document, anything that could emit
+          that document could be the authoring tool.
         </p>
       </div>
     </div>
   </div>
 
+  <!-- TYPE A close: always a named final section, always last. "Outcome" for finished
+       work; "Where it stands" for work still running (see /work/stores-designer/). -->
   <div class="grid sect">
     <div class="shead">
       <h2>Outcome</h2>
       <div class="sbody">
         <p>
-          I interviewed template designers across AWS, Alexa, Amazon Business,
-          Payments, and Fresh; wrote the proposal; and built the transformer, the CRUD
-          app, and the backend in 12 weeks. I launched a beta and ran usability studies
-          with 15 designers — feedback was positive, and it surfaced the bugs and
-          features that became the roadmap.
+          I interviewed template designers on five teams (AWS, Alexa, Amazon Business,
+          Payments, Fresh), wrote the proposal, and built the transformer, the CRUD app,
+          and the backend in twelve weeks. Fifteen designers used the beta. What they got
+          stuck on became the roadmap.
         </p>
         <p>
-          In early 2023 my team was re-orged and Composer graduated to another team.
-          The question I took with me: how do you help distributed teams build
-          consistent experiences without hand-coding each one.
+          My team was re-orged in early 2023 and Composer went to another team. I work on
+          the same problem now at <a href="/work/stores-designer/">Stores Designer</a>:
+          how a lot of teams build one consistent thing without each of them coding it by
+          hand.
         </p>
       </div>
     </div>

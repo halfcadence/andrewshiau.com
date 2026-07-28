@@ -5,7 +5,7 @@ import SideMark from '../../components/SideMark.astro';
 
 <Layout
   title="Explain — Andrew Shiau"
-  description="A skill that turns something I figured out into an interactive explainer — a diagram and a quiz."
+  description="A skill that turns something I just worked out into an explainer with a diagram and a quiz that checks it landed."
 >
   <div class="grid">
     <div class="back"><a href="/">← Index</a></div>
@@ -19,20 +19,27 @@ import SideMark from '../../components/SideMark.astro';
   </div>
   <div class="grid">
     <p class="dek c1-8" style="margin-top:var(--unit)">
-      A skill that turns something I just figured out — an incident, a system, a
-      recipe — into a self-contained explainer: a diagram, and a short quiz that
-      checks the idea landed.
+      A skill that turns something I just worked out — an incident, a system, a recipe —
+      into one self-contained explainer: a diagram, and a short quiz that checks whether
+      the idea landed.
     </p>
   </div>
 
-  <div class="grid">
-    <div class="c1-8" style="margin-top:calc(var(--unit)*1.5)">
-      <p>
-        The quiz is the point. Writing something down proves you can phrase it; a
-        reader answering three questions right proves it landed in someone else's head.
-        The skill builds both from one prompt, in one HTML file, in whichever house
-        style fits.
-      </p>
+  <!-- TYPE B, beat 2: named head over the page's argument (was unheaded prose). -->
+  <div class="grid sect">
+    <div class="shead">
+      <h2>Why the quiz</h2>
+      <div class="sbody">
+        <p>
+          Writing something down proves you can phrase it. It doesn't prove anyone
+          understood it. Three questions a reader gets right does, which is why every
+          explainer this skill writes ends in a quiz it has to pass.
+        </p>
+        <p>
+          One prompt produces both halves, in one HTML file, set in whichever house style
+          suits the piece.
+        </p>
+      </div>
     </div>
   </div>
 
@@ -44,7 +51,7 @@ import SideMark from '../../components/SideMark.astro';
   </div>
 
   <div class="grid sect">
-    <!-- a .links staircase follows, not a paragraph — head flush left (option 02) -->
+    <!-- a .links staircase follows, not a paragraph — head flush left -->
     <div class="c1-12"><h2>Explainers</h2></div>
   </div>
   <div class="grid" style="margin-top:var(--unit)">
@@ -64,20 +71,21 @@ import SideMark from '../../components/SideMark.astro';
     </div>
   </div>
 
+  <!-- TYPE B close: the facts colophon. -->
   <div class="grid sect">
     <div class="facts">
       <div class="frow">
         <div class="fm">Form</div>
         <div class="ftx">
-          One prompt in, one self-contained HTML file out — explanation, a diagram,
-          and a scored quiz. Set in whichever house style suits the piece.
+          One prompt in, one self-contained HTML file out: the explanation, a diagram, and
+          a scored quiz, set in whichever house style suits the piece.
         </div>
       </div>
       <div class="frow">
-        <div class="fm">Why the quiz</div>
+        <div class="fm">The test</div>
         <div class="ftx">
-          Anyone can write a thing down. A reader passing the quiz is the proof it
-          worked. That's the bar.
+          If a reader can't pass the quiz, the explainer failed and I rewrite it. That's
+          the only check the skill makes.
         </div>
       </div>
     </div>
