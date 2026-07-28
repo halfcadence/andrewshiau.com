@@ -1,6 +1,6 @@
 # Method — how Andrew works
 
-Andrew Shiau is a frontend engineer who designs and builds.
+Andrew Shiau is a frontend engineer who designs and builds, chasing simplicity.
 
 Both sides chase the same thing: **the simplest thing that works.** Taste finds the
 simplest form; engineering proves the simplest solution. One looks, the other measures.
@@ -14,8 +14,8 @@ sides check each other:
   what's live today, rendered beside the alternatives. In engineering it's the control
   arm of an A/B. Same rule, different instrument.
 - When they conflict, evidence wins and the loss gets recorded. (PowerPoint: 20+
-  prototype rounds, and the data refuted the team's own first design. That's on the
-  site, in the copy, on purpose.)
+  prototype rounds, and the A/B test killed the design the team had favoured for most
+  of the project. That's on the site, in the copy, on purpose.)
 
 ## Load the side the task needs
 

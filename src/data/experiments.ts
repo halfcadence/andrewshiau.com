@@ -113,7 +113,7 @@ export const work: Entry[] = [
     title: 'Powerpoint Pen Toolbox',
     blurb:
       "Redesigned PowerPoint's inking toolbox through 20+ rounds of functional " +
-      'prototyping and user tests — the data refuted the team’s first design.',
+      'prototyping and user tests — the data refuted the team’s favourite design.',
     meta: 'Prototype study',
     href: '/work/powerpoint/',
     side: 'design',
