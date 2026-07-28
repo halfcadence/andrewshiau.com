@@ -372,11 +372,13 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    whether to work with me, and the cause was that the largest thing on it was a sentence
    ABOUT me, with the evidence below the fold. Pinning the sentence puts the evidence at
    the top of the reading column without deleting the claim.
-   It is `position:sticky`, NOT a fixed panel with an independently scrolled list:
+   It is `position:sticky` rather than a fixed panel, for two reasons that still hold below
+   1100px and on short viewports, where the split unwinds to a stacked block:
    - the page keeps ONE scrollbar, so the browser's own scroll position, find-in-page, and
-     deep links all still work. A nested scroller breaks all three.
-   - it degrades to a plain stacked block the moment the viewport can't hold it (below), so
-     there is no state where content is trapped in a box too short to show it.
+     deep links all still work.
+   - there is no state where content is trapped in a box too short to show it.
+   On the index above 1100px it is now `.split` — a real box with an internally scrolled
+   feed. See THE BOX below for what that trades away and what keeps the two guarantees.
    4 columns : 8 columns, not 6:6 — the reading column is the page's subject and a half
    split would rank the two equally.
    The vertical hairline is its own grid child (`.splitrule`), not a border on the panel.
@@ -459,6 +461,54 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    1100px) query here to undo a global override — deleting the override deleted the need. */
 @media(max-height:760px){
   .pin{position:static}
+}
+
+/* ─── THE BOX ─────────────────────────────────────────────────────────────────────────
+   The index's split is one screen tall and the FEED scrolls inside it. The panel doesn't
+   move at all — it isn't sticky here, it's simply a cell in a box that never scrolls — and
+   when the feed reaches its end the browser hands the wheel to the page, which carries on
+   to the colophon and the copyright.
+   Why this and not sticky: sticky only pins after the page has scrolled far enough to catch
+   the panel's top edge, so the identity column visibly drifts up for the first ~300px and
+   only then locks. Measured on the running page it held from y=300 to y=1008 and then, in
+   the last 94px, clipped its own first two lines off the top of the screen. What was asked
+   for is a panel that is pinned from the first pixel, which a box gives and sticky can't.
+   Scroll chaining does the handoff — it is the browser's default for a nested scroller that
+   has hit its end, so there is no script and no scroll listener here. `overscroll-behavior`
+   is deliberately NOT set: `contain` would break exactly the handoff this is for.
+   The three costs the note above the split names, and what each one costs here:
+   - Two scrollbars. Real, and the feed's is styled thin and colour-matched below.
+   - Find-in-page. Chrome and Safari scroll a nested scroller to reveal a match, so ⌘F still
+     works; the page's own scrollbar just won't reflect how far into the feed you are.
+   - Deep links. Nothing on the index links into the feed — the three h2s carry no ids and
+     the entries are links OUT — so there is no in-page anchor to break. If one is ever
+     added, `scroll-margin-top` on the target is the fix, not a rewrite.
+   Scoped to the index by `.split` (the case-study panels stay sticky: their reading column
+   is prose of wildly varying length, and a box would trap a 4000px case study in a 700px
+   window). Above 1100px only, and only where there's height for it — every fallback below
+   returns the page to one scrollbar and a stacked block. */
+@media(min-width:1101px) and (min-height:761px){
+  .grid.split{height:calc(100vh - var(--unit)*2.5);align-items:start}
+  /* The panel is a plain cell of a box that doesn't scroll, so it needs no stickiness. Full
+     height + space-between puts `Elsewhere` at the panel's foot, which is the shape the
+     chooser's concept 02 drew and the fix for the 921px of dead left column measured under
+     the old ledger. */
+  .grid.split > .pin{position:static;height:100%;display:flex;flex-direction:column}
+  .grid.split > .pin .pfoot{margin-top:auto;margin-bottom:0}
+  /* The scrollport. `min-height:0` is load-bearing: a grid item's default `min-height:auto`
+     refuses to shrink below its content, so without it the feed reports its full 1482px,
+     `overflow-y` never has anything to clip, and nothing scrolls. `padding-right` keeps the
+     rows' right edge off the scrollbar. */
+  .grid.split > .feed{height:100%;min-height:0;overflow-y:auto;padding-right:var(--unit);
+    scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  .grid.split > .feed::-webkit-scrollbar{width:8px}
+  .grid.split > .feed::-webkit-scrollbar-thumb{background:var(--line)}
+  .grid.split > .feed::-webkit-scrollbar-track{background:transparent}
+  /* The hairline spans the box, so it's the box's height rather than the old grid-row trick. */
+  .grid.split > .splitrule{height:100%}
+  /* The feed's last row would otherwise sit flush against the bottom edge with no sign that
+     it's the end; a unit of air reads as the foot of the list. */
+  .grid.split > .feed > .matrix:last-child{padding-bottom:var(--unit)}
 }
 
 /* THE SPLIT ON A CASE STUDY (chooser round 2, Q3 option 03, which includes 02: "each case
@@ -634,6 +684,27 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .entry .arrowc{color:var(--accent);font-weight:700;display:inline-block;
   transition:transform var(--dur-fast) var(--ease)}
 .entry:hover .arrowc{transform:translateX(6px)}
+/* THE LOCK, in the arrow's slot. `Password` in the marker cell is column 10 of 12 — read
+   fourth, after the numeral, the title and the blurb — so a locked row's first impression was
+   identical to a row that just opens, and the ask ("be clear that it's restricted work")
+   is about the moment before the click. The glyph rides the TITLE because that is where this
+   list already puts the "what happens if you click" mark: every other row has `→` there.
+   Drawn as an inline SVG, not "🔒": an emoji renders as a different vendor's artwork at a
+   size the ramp doesn't set, in colours that aren't the site's. This is a 12×15 body and
+   shackle in `currentColor` — ink, like the word in the marker cell, and for the same reason
+   given there (the accent is structure; a padlock isn't structure).
+   `0.72em` and `translateY` rather than a px size and a margin: it is a glyph, so it scales
+   with whatever the title's clamp resolves to and sits on the same optical line at 20px in
+   the feed and 25px on the stacked page. No hover transform — the row's arrow slides because
+   it points where you're going; this one says the door is shut, and a shut door doesn't
+   animate on approach. */
+.entry .lockc{display:inline-block;width:0.72em;color:var(--ink);
+  transform:translateY(0.06em);margin-left:0.14em}
+.entry .lockc svg{display:block;width:100%;height:auto}
+/* Open, the lock takes the accent — the one state change on the mark, and it earns it: the
+   row is now the thing being interacted with, which is exactly the "link interaction" role
+   the accent already has (STYLE.md). */
+.entry.open .lockc{color:var(--accent)}
 /* ≤900px: the five columns can't hold. Number and title share the first line, blurb and
    marker stack under them — the row stays a row, it just wraps. */
 @media(max-width:900px){
@@ -852,37 +923,32 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   .colo a{display:inline-block;padding:12px 6px;margin:-5px -6px}
 }
 
-/* THE CLOSING BAND SNAPS (chooser: andrewshiau-panel-shape, Q3/04).
-   The problem it solves, measured on the running page: the panel is sticky inside the split,
-   and a sticky box can only travel inside its own grid area — so in the last 94px of scroll
-   everything below the split pushes the panel up and its top two lines clip off the screen
-   while the colophon slides past beside it. The page let go instead of handing off.
-   `proximity`, NOT `mandatory`. Mandatory is the version of this that takes scroll away from
-   the reader: it captures every gesture near the end, including one meant to stop halfway.
-   Proximity only completes a scroll that was already arriving, so the colophon lands as one
-   composed screen and a reader who wanted to stop mid-band still can.
-   The snap container is `.wrap`, not `html` — one declaration, and the only element with a
-   snap-align inside it is the closing band, so nothing else on the page can be captured.
-   `align:END`, on the FOOTER, and both halves of that were measured rather than assumed:
-   - END, not start. The colophon band sits 1663px down a 2002px page, so aligning its TOP to
-     the viewport top needs a scroll offset of 1639 while the page's maximum scroll is 1102 at
-     900px tall (922 at 1080, 1242 at 760). A snap position past the end of the scroll range
-     is never reached, so `align:start` would have shipped as a rule that silently did nothing
-     on every screen.
-   - The footer, not the colophon. The ask was the colophon AND the copyright, and the whole
-     closing sequence is only 219px (169 band + 50 footer), so both fit on one screen with
-     room to spare. Aligning the band's own end stops with the copyright still below the fold;
-     aligning the footer's end brings the sequence up together. Needs 1006 at 900px tall —
-     inside the scroll range at every height.
-   `scroll-margin-bottom` keeps the copyright off the viewport's very edge when it lands. */
-.wrap{scroll-snap-type:y proximity}
-.foot{scroll-snap-align:end;scroll-margin-bottom:var(--unit)}
-/* Below 1100px the split unwinds to a stacked block and the panel stops being sticky, so
-   there is no clipping panel to hand off FROM — the snap would be motion with no defect to
-   fix. Off, along with the sticky behaviour that motivated it. */
-@media(max-width:1100px){
-  .wrap{scroll-snap-type:none}
-}
+/* THE CLOSING BAND — NO SNAP, and that is the pick, not a retreat from it (chooser:
+   andrewshiau-panel-shape, Q3/04: "the whole closing sequence arrives as one screen").
+   THE BOX delivers it by geometry. Collapsing the split to one screen leaves the page with
+   exactly one scroll left past the feed — the closing sequence and nothing else — so when the
+   feed hands the wheel over, the only place the page can go is the end. Measured at seven
+   viewports from 1101x762 to 2560x1440: every one lands at scrollY == max with the 2px rule,
+   the colophon and the copyright all fully on screen. A snap would be a second mechanism
+   aiming at a position the page already stops on.
+   It was implemented as `scroll-snap-type:y proximity` on `html` + `scroll-snap-align:end` on
+   `.foot` first, and measurement is what removed it. Two defects, both invisible to the build:
+   - It stopped EVERY page 96px short of its own bottom. `.foot` is in the shared layout, so
+     the align applied site-wide: /work/stores-designer/ ended at 608 of 704, /work/powerpoint/
+     at 3799 of 3895. The snap held the footer's end at the viewport edge minus the
+     `scroll-margin-bottom`, which is a position short of the real bottom — so the last 96px of
+     every long case study became unreachable by wheel.
+   - Fixing the index's own load position made the index worse. With the footer as the only
+     snap position on the page, `proximity` snapped to it AT LOAD on every viewport 950px and
+     taller (measured: opens at y=310, mark and first `h2` above the fold). Giving the box a
+     `scroll-snap-align:start` fixed the load — and then ordinary discrete wheel clicks could
+     never leave y=0, because each click's momentum died inside the top position's proximity
+     range. The colophon was reachable only by a fast trackpad flick.
+   A control with every snap declaration stripped never load-scrolled and always reached the
+   bottom, which is what pinned both defects on the snap rather than on the layout.
+   If this is ever revisited: the reachability bug is the hard one. Any `align:end` on an
+   element in the shared footer trades the bottom of all eight case studies for composition on
+   one page, and `scroll-margin-bottom` is what makes the snap position fall short. */
 
 /* Back-link on case-study pages */
 .back{grid-column:1 / 13;margin-bottom:var(--unit)}
@@ -964,9 +1030,4 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent);text-decorati
   /* The panel mark's 90° hover turn (was `.topbar .brand` before the mark moved into the
      panel — chooser Q1/02). */
   .pin a.pmark:hover .mark{transform:none}
-  /* The closing band's snap. `scroll-behavior:auto` above does NOT cover this: that governs
-     whether a programmatic scroll is smooth, while snapping is the viewport being moved to a
-     position the reader didn't choose — which is the thing this query is for. It has to be
-     turned off by name. */
-  .wrap{scroll-snap-type:none}
 }

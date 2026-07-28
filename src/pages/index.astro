@@ -35,7 +35,10 @@ const ENTRY_COUNT = work.length + experiments.length;
        One `.grid`, two children. Not two `.grid`s: `.grid + .grid` adds a --unit gap, and
        a sticky child positions against its own containing block, so the panel has to be a
        sibling of the feed or it has nothing to stick inside. -->
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+  <!-- `split` makes this one screen tall with the feed scrolling inside it, so the panel is
+       pinned from the first pixel instead of drifting until sticky catches it. See THE BOX in
+       global.css — including why the case-study panels deliberately stay sticky. -->
+  <div class="grid split" style="margin-top:calc(var(--unit)*1.5)">
     <div class="pin">
       <!-- The mark, moved here from the centred bar above the page (chooser:
            andrewshiau-panel-shape, Q1/02). `home={false}`: this IS the index, and a link
@@ -76,11 +79,14 @@ const ENTRY_COUNT = work.length + experiments.length;
            Three links, one label. They were previously in the colophon at the very bottom of
            the page, which meant the only way to reach me was to finish reading: the panel is
            permanently on screen, so this is the half of the old colophon that earns its
-           place here. The address stays first — it's the one worth acting on. -->
+           place here. The address stays first — it's the one worth acting on.
+           No literal ↗ in the link text: `a[target]` already appends one in CSS, and writing
+           it by hand rendered "github ↗ ↗". The colophon's own external link never had one,
+           which is the pattern these should have followed. -->
       <p class="pfoot">Elsewhere
         <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
-        <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github ↗</a>
-        <a href="https://www.instagram.com/half_cadence" target="_blank" rel="noopener">instagram ↗</a>
+        <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a>
+        <a href="https://www.instagram.com/half_cadence" target="_blank" rel="noopener">instagram</a>
       </p>
     </div>
 
@@ -166,18 +172,20 @@ const ENTRY_COUNT = work.length + experiments.length;
 
   <!-- THE CLOSING BAND — placed on the grid, not stacked full-width. Label column at the
        left, facts as aligned satellites; the right columns stay empty. `.colo-rule`'s 2px
-       line is what closes the page. It is also what the snap brings up: chooser Q3/04 snaps
-       the closing sequence into place, and the align sits on `.foot` so the colophon and the
-       copyright arrive together — measured, they're 219px, one screen. See `.wrap` /
-       `.foot{scroll-snap-align}` in global.css.
+       line is what closes the page. It is also what THE BOX brings up: chooser Q3/04 asked for
+       the closing sequence to arrive as one composed screen, and the box does that by geometry
+       rather than by a snap — collapsing the split to one screen leaves the page exactly one
+       scroll past the feed, so the only place it can go is the end. Measured at seven
+       viewports: colophon and copyright always land together. See THE CLOSING BAND in
+       global.css for the snap that was tried here first and what measuring it removed.
        It is SPLIT with the panel rather than moved into it (chooser Q2/03, "the colophon
        moves in", plus the ask to promote the contact links). Both picks were right about a
        different half, and moving all of it either way lost something:
        - Reaching me shouldn't require finishing the page, so github / instagram / the
          address went UP into the panel, where they're permanently on screen.
        - The page still has to end. Take the whole colophon into the panel and the feed just
-         stops: no 2px rule, nothing for Q3/04 to snap to, and the last row of Experiments
-         runs into the footer.
+         stops: no 2px rule, nothing for the handoff to land on, and the last row of
+         Experiments runs into the footer.
        What's left here is what a colophon is actually for — facts about the page and its
        lineage, read after the work, not links you need while deciding. Which also fixes a
        mislabel: this block called itself "Colophon" while its first column was contact
