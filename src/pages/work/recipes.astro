@@ -1,33 +1,20 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 ---
 
 <Layout
   title="Recipes — Andrew Shiau"
   description="124 recipes and cooking essays, filed like a reference manual by an agent working to a fixed style guide."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
+       site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
-
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/recipes/" />
-      <h1>Recipes</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      124 recipes and cooking essays — Japanese, Korean, French pastry, coffee. Filed like
-      a reference manual: numbered sections, one set of measures, no preamble. An agent
-      drafts and files each entry against a committed style guide. I do the cooking.
-    </p>
-  </div>
-
-  <!-- TYPE C: dek → the contents ledger → the work itself, and nothing after it. -->
-  <div class="grid sect">
-    <div class="facts">
+    <PanelHead href="/work/recipes/" title="Recipes">
+      <!-- TYPE C: dek → the contents ledger → the work itself, and nothing after it. The
+           ledger is the panel's content here, which is what the split is for: it stays on
+           screen while you scroll the collection it counts. -->
       <div class="frow">
         <div class="fm">Contents</div>
         <div class="ftx">
@@ -42,31 +29,44 @@ import SideMark from '../../components/SideMark.astro';
         </div>
       </div>
       <div class="frow">
-        <div class="fm">Agent's job</div>
+        <div class="fm">Agent’s job</div>
         <div class="ftx">
           Files each new recipe against a committed <b>steering.md</b>: numbered sections,
           consistent measures, a changelog it keeps up to date. It does the filing so the
-          archive stays usable when I don't feel like tidying.
+          archive stays usable when I don’t feel like tidying.
         </div>
       </div>
-    </div>
-  </div>
+    </PanelHead>
 
-  <!-- Live embed of the real site — not a screenshot -->
-  <div class="grid">
-    <figure class="embed c1-12">
-      <div class="esrc">
-        <!-- no literal ↗: the O7 rule appends one to every target="_blank" link -->
-        <a href="https://halfcadence.github.io/recipes/" target="_blank" rel="noopener">open halfcadence.github.io/recipes</a>
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is
+           narrower than 8 of the feed's 700px, so c1–8 would set a column the text
+           never reaches. No top margin — the dek is the top of the reading column. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          124 recipes and cooking essays — Japanese, Korean, French pastry, coffee. Filed like
+          a reference manual: numbered sections, one set of measures, no preamble. An agent
+          drafts and files each entry against a committed style guide. I do the cooking.
+        </p>
       </div>
-      <div class="embed-frame">
-        <iframe src="https://halfcadence.github.io/recipes/" title="The recipes collection, live"
-          loading="lazy" referrerpolicy="no-referrer"></iframe>
+
+      <!-- Live embed of the real site — not a screenshot -->
+      <div class="grid">
+        <figure class="embed c1-12">
+          <div class="esrc">
+            <!-- no literal ↗: the O7 rule appends one to every target="_blank" link -->
+            <a href="https://halfcadence.github.io/recipes/" target="_blank" rel="noopener">open halfcadence.github.io/recipes</a>
+          </div>
+          <div class="embed-frame">
+            <iframe src="https://halfcadence.github.io/recipes/" title="The recipes collection, live"
+              loading="lazy" referrerpolicy="no-referrer"></iframe>
+          </div>
+          <figcaption>
+            <a href="https://halfcadence.github.io/recipes/" target="_blank" rel="noopener">halfcadence.github.io/recipes</a>
+            — live, embedded
+          </figcaption>
+        </figure>
       </div>
-      <figcaption>
-        <a href="https://halfcadence.github.io/recipes/" target="_blank" rel="noopener">halfcadence.github.io/recipes</a>
-        — live, embedded
-      </figcaption>
-    </figure>
+    </div>
   </div>
 </Layout>

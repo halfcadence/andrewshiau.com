@@ -16,116 +16,153 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
     'method/method.md no longer contains the thesis sentence index.astro quotes:\n  ' + THESIS
   );
 }
+
+// The panel's Index row counts the page's own contents, so it can't fall out of date the
+// way a hand-written "8 case studies" would. methodSpec is the +1.
+const ENTRY_COUNT = work.length + experiments.length;
 ---
 
 <Layout title="Andrew Shiau">
-  <!-- Masthead + thesis as ONE typographic sentence (chooser pick 04), set as a single
-       element. An h1 + a p can't share a line, so that version always broke before the
-       thesis and read as two stacked statements; inline spans let the sentence run on
-       and wrap only where the measure ends, so the colour changes mid-line. The two
-       clauses carry the two hues — the only place in body copy where colour is allowed,
-       because here the two halves of the practice ARE the subject. The wordmark in the
-       nav already says the name, so this isn't a repeat. -->
+  <!-- THE PINNED PANEL + THE FEED (chooser: andrewshiau-redesign-directions round 2,
+       concept 02; round 1 picks direction 12 + 10, hover-only motion, warm paper).
+       The identity column stays put; the three ruled lists scroll past it.
+       What this replaced: the statement ran full width at the top and the three lists ran
+       under it, so the first screen was a sentence about me and the evidence started below
+       the fold. Someone deciding whether to work with me was reading the claim before any
+       of the work. Pinned, the claim is permanently on screen AND the artifacts start at
+       the top of the reading column — the trade the old order couldn't make.
+       One `.grid`, two children. Not two `.grid`s: `.grid + .grid` adds a --unit gap, and
+       a sticky child positions against its own containing block, so the panel has to be a
+       sibling of the feed or it has nothing to stick inside. -->
   <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <h1 class="statement c1-10">Andrew Shiau is a frontend engineer who designs and builds,
-      chasing simplicity. <span class="t-design">Taste finds the simplest form</span>,
-      <span class="t-build">engineering proves the simplest solution</span>.</h1>
-  </div>
+    <div class="pin">
+      <!-- Same single-element statement as before, at the panel's measure: the name
+           sentence with the two thesis clauses inline, each in its own hue. Still the only
+           place colour enters body copy, because here the two halves of the practice ARE
+           the subject. The nav wordmark already says the name, so this isn't a repeat. -->
+      <h1 class="statement">Andrew Shiau is a frontend engineer who designs and builds,
+        chasing simplicity. <span class="t-design">Taste finds the simplest form</span>,
+        <span class="t-build">engineering proves the simplest solution</span>.</h1>
 
-  <!-- Method FIRST, above the evidence (placement pick 04). The statement above IS this
-       spec's opening claim, so the thing that states it sits next to it; a reader who
-       wants the artifacts scrolls one row. One row, not a section of prose — the cost of
-       putting a claim before the evidence is a manifesto, and one list row can't be one.
-       Label only, no dek (copy pick 01): Work and Experiments carry no dek either, and a
-       dek here would be the only one on the page.
-       The row itself is `.espec` (round-2 pick 04): the same ruled row as the two lists
-       below, minus the numeral — one entry doesn't get a set "01" that promises an "02" —
-       with the duality carried as two nested sub-rows in the two hues instead of a blurb
-       that describes them. A `.duo` here would have been /method/'s device visiting the
-       index; rows are the index's unit. -->
-  <div class="grid sect">
-    <div style="grid-column:1 / 5"><h2>Method</h2></div>
-  </div>
-
-  <div class="matrix">
-    <a class="espec" href={methodSpec.href}>
-      <div class="eth">
-        <p class="eh">{methodSpec.title} <span class="arrowc">→</span></p>
-        <span class="em">
-          <SideDot side={methodSpec.side} />
-          <span class="smeta">{methodSpec.meta}</span>
-        </span>
-      </div>
-      {methodSpec.procedures.map((p) => (
-        <div class:list={['proc', p.side === 'design' ? 'd' : 'b']}>
-          <span class="pk">{p.label}</span>
-          <p class="pt">{p.title}</p>
-          <p class="pd">{p.blurb}</p>
+      <!-- The ledger — the "instrument" half of the pick. Four facts, every one of them
+           already true elsewhere on the site: Role and Where are the Stores Designer
+           masthead verbatim, Index counts the lists below, Elsewhere is the colophon's.
+           No invented metric, and no magnitude bars: a bar whose length encodes "8 case
+           studies" against another encoding "124 recipes" compares nothing. -->
+      <div class="pled">
+        <div class="prow">
+          <span class="pk">Role</span>
+          <span class="pv">Frontend engineer — the tooling, and the design system underneath it.</span>
         </div>
-      ))}
-    </a>
-  </div>
+        <div class="prow">
+          <span class="pk">Where</span>
+          <span class="pv">At Amazon · <b>2023–present</b></span>
+        </div>
+        <div class="prow">
+          <span class="pk">Index</span>
+          <span class="pv"><b>{ENTRY_COUNT}</b> case studies · <b>1</b> operating spec</span>
+        </div>
+      </div>
 
-  <!-- Work + Experiments — ONE reference list, the same ruled table twice: number ·
-       title · blurb · marker. This replaced a calendar scatter in both sections. The
-       scatter composed better in isolation and indexed worse: both sections used it, so
-       only the heading distinguished them, and the page ran ~2.5 screens with neither
-       list ever whole in view. An index's job is to show what's there.
-       The two sections are now separated by air alone (.grid.sect), same as a case-study
-       section break — one device, used everywhere. -->
-  <div class="grid sect">
-    <div style="grid-column:1 / 5"><h2>Work</h2></div>
-  </div>
+      <!-- The one call to action, at the foot of the column that never leaves the screen.
+           The colophon no longer repeats it — see the note above the colophon. -->
+      <p class="pfoot">Contact
+        <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+      </p>
+    </div>
 
-  <div class="matrix">
-    {work.map((x) => (
-      <a class:list={['entry', { accent: x.accent }]} href={x.href}
-         target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
-        <span class="en">{x.n}</span>
-        <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
-        <p class="ed">{x.blurb}</p>
-        <span class="em">
-          <SideDot side={x.side} />
-          <span class="smeta">{x.meta}</span>
-        </span>
-      </a>
-    ))}
-  </div>
+    <!-- The split's rule. An empty element because it belongs to neither side; see
+         `.splitrule` in global.css for why it isn't a border on the panel. -->
+    <div class="splitrule" aria-hidden="true"></div>
 
-  <div class="grid sect">
-    <div style="grid-column:1 / 5"><h2>Experiments</h2></div>
-  </div>
+    <div class="feed">
+      <!-- Method FIRST, above the evidence (placement pick 04). The statement in the panel
+           IS this spec's opening claim, so the thing that states it sits beside it; a
+           reader who wants the artifacts scrolls one row. One row, not a section of prose —
+           the cost of putting a claim before the evidence is a manifesto, and one list row
+           can't be one. Label only, no dek: Work and Experiments carry none either.
+           The row is `.espec`: the same ruled row as the two lists below, minus the numeral
+           (one entry doesn't get a set "01" that promises an "02"), with the duality as two
+           nested sub-rows in the two hues instead of a blurb describing them. -->
+      <h2>Method</h2>
+      <div class="matrix">
+        <a class="espec" href={methodSpec.href}>
+          <div class="eth">
+            <p class="eh">{methodSpec.title} <span class="arrowc">→</span></p>
+            <span class="em">
+              <SideDot side={methodSpec.side} />
+              <span class="smeta">{methodSpec.meta}</span>
+            </span>
+          </div>
+          {methodSpec.procedures.map((p) => (
+            <div class:list={['proc', p.side === 'design' ? 'd' : 'b']}>
+              <span class="pk">{p.label}</span>
+              <p class="pt">{p.title}</p>
+              <p class="pd">{p.blurb}</p>
+            </div>
+          ))}
+        </a>
+      </div>
 
-  <div class="matrix">
-    {experiments.map((x) => (
-      <a class:list={['entry', { accent: x.accent }]} href={x.href}
-         target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
-        <span class="en">{x.n}</span>
-        <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
-        <p class="ed">{x.blurb}</p>
-        <span class="em">
-          <SideDot side={x.side} />
-          <span class="smeta">{x.meta}</span>
-        </span>
-      </a>
-    ))}
+      <!-- Work + Experiments — ONE reference list, the same ruled table twice: number ·
+           title · blurb · marker. This replaced a calendar scatter in both sections. The
+           scatter composed better in isolation and indexed worse: both sections used it, so
+           only the heading distinguished them, and the page ran ~2.5 screens with neither
+           list ever whole in view. An index's job is to show what's there.
+           In the feed column the row runs on three tracks instead of twelve — see
+           `.feed .entry` in global.css; same device, narrower measure. -->
+      <h2>Work</h2>
+      <div class="matrix">
+        {work.map((x) => (
+          <a class:list={['entry', { accent: x.accent }]} href={x.href}
+             target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
+            <span class="en">{x.n}</span>
+            <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
+            <p class="ed">{x.blurb}</p>
+            <span class="em">
+              <SideDot side={x.side} />
+              <span class="smeta">{x.meta}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+
+      <h2>Experiments</h2>
+      <div class="matrix">
+        {experiments.map((x) => (
+          <a class:list={['entry', { accent: x.accent }]} href={x.href}
+             target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
+            <span class="en">{x.n}</span>
+            <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
+            <p class="ed">{x.blurb}</p>
+            <span class="em">
+              <SideDot side={x.side} />
+              <span class="smeta">{x.meta}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
   </div>
 
   <!-- Colophon — placed on the grid, not stacked full-width. Label column at the
-       left, three facts as aligned satellites; the right columns stay empty. -->
+       left, facts as aligned satellites; the right columns stay empty.
+       It stays FULL WIDTH under the split rather than moving into the panel: the panel
+       carries what's true while you read the work, and where to find me afterwards is the
+       page's closing fact. `.colo-rule`'s 2px line is what closes the page.
+       Contact used to be the first of three columns here, and now is not: the panel's foot
+       already carries the address, permanently on screen, and printing the same mailto
+       twice on one page makes the reader check whether they differ. The panel is the better
+       of the two places to keep it — it's the one that's visible while you're deciding. -->
   <div class="grid" style="margin-top:calc(var(--unit)*3)">
     <div class="colo-rule"></div>
     <div class="colo-lab">Colophon</div>
     <div class="colo c1">
-      <span class="ck">Contact</span>
-      <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
-    </div>
-    <div class="colo c2">
       <span class="ck">Elsewhere</span>
       <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a><br />
       <a href="https://www.instagram.com/half_cadence" target="_blank" rel="noopener">instagram</a>
     </div>
-    <div class="colo c3">
+    <div class="colo c2">
       <span class="ck">Before AI</span>
       <a href="https://2018.andrewshiau.com" target="_blank" rel="noopener">portfolio2018</a>
     </div>

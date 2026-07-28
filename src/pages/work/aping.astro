@@ -1,105 +1,140 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 ---
 
 <Layout
   title="Aping — Andrew Shiau"
   description="An agent skill that sets documents in the Swiss style, and the line I drew about whose style to copy."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
+       site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
+    <PanelHead href="/work/aping/" title="Aping">
+      <!-- TYPE B: no ledger in the panel. This page's facts block is a COLOPHON — what the
+           thing is made of, read AFTER the work (STYLE.md) — so it stays at the foot of the
+           reading column and the panel is marker + title + contact. The empty space under a
+           three-item panel is the same condition the index's own panel is in; a ledger
+           invented to fill it would be the one fabricated thing on the page. -->
+    </PanelHead>
 
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/aping/" />
-      <h1>Aping</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      An agent skill that writes HTML in the Swiss style, on Müller-Brockmann's grid. You
-      invoke it and the agent sets your content by that system's rules instead of the flat
-      default it reaches for on its own.
-    </p>
-  </div>
-
-  <!-- TYPE B, beat 2: a NAMED head over the page's argument. This used to be an unheaded
-       paragraph, which made the best writing on the page look like a stray thought. -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>The line I drew</h2>
-      <div class="sbody">
-        <p>
-          Aping means imitating, and it's the honest word for this. I taught an agent to
-          set documents in a style I admire, and the pages it produces hold up.
-        </p>
-        <p>
-          I started a second skill aimed at a studio that's still working today, and
-          stopped. Müller-Brockmann died in 1996; copying a movement is what design
-          history is made of. Pointing a machine at a living studio's look and shipping
-          the output is something else, and I didn't like the sound of it once I'd said it
-          out loud. So the rule is: the dead, or a movement. Nobody I could have asked.
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is
+           narrower than 8 of the feed's 700px, so c1–8 would set a column the text
+           never reaches. No top margin — the dek is the top of the reading column. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          An agent skill that writes HTML in the Swiss style, on Müller-Brockmann’s grid. You
+          invoke it and the agent sets your content by that system’s rules instead of the flat
+          default it reaches for on its own.
         </p>
       </div>
-    </div>
-  </div>
 
-  <div class="grid">
-    <div class="block c1-6">
-      <span class="st">This site is set in the /swiss style.</span>
-      <span class="sd">Press g to see the grid under it.</span>
-    </div>
-  </div>
-
-  <!-- No paragraph follows this head — the .step below is the content — so there's
-       nothing to pair on the same row. Flush left, same column-1 start as a .shead's h2
-       so every head on the site still lines up. -->
-  <div class="grid sect">
-    <div class="c1-12"><h2>The style</h2></div>
-  </div>
-
-  <div class="grid" style="margin-top:var(--unit)">
-    <div class="step accent" style="grid-column:span 8">
-      <span class="sl">after Josef Müller-Brockmann (1914–1996)</span>
-      <span class="st">/swiss</span>
-      <span class="sd">A visible modular grid carrying large, precisely-set type. Structure comes from column alignment and thin rules; there are no boxes. One accent colour. This site is set in it.</span>
-    </div>
-  </div>
-
-  <!-- Essays -->
-  <div class="grid sect">
-    <div class="c1-12"><h2>Written with it</h2></div>
-  </div>
-  <div class="grid" style="margin-top:var(--unit)">
-    <div class="links">
-      <a href="/writing/10x-is-a-loop/">
-        10x is a loop, not a prompt <span class="arrowc">→</span>
-        <span class="lu">on AI-assisted engineering, evidence first</span>
-      </a>
-      <a href="/writing/canele/">
-        What makes a canelé custardy <span class="arrowc">→</span>
-        <span class="lu">one ratio, from six recipes</span>
-      </a>
-    </div>
-  </div>
-
-  <!-- TYPE B close: the facts block as a colophon — what the thing is made of, read after
-       the work. On a Type A page the same device is the masthead instead. -->
-  <div class="grid sect">
-    <div class="facts">
-      <div class="frow">
-        <div class="fm">Form</div>
-        <div class="ftx">
-          One <b>SKILL.md</b> holding the design tokens, the grid, and a MUST/MUST&nbsp;NOT
-          checklist the agent works through. Output is a single self-contained HTML file.
+      <!-- TYPE B, beat 2: a NAMED head over the page's argument. This used to be an unheaded
+           paragraph, which made the best writing on the page look like a stray thought. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The line I drew</h2>
+          <div class="sbody">
+            <p>
+              Aping means imitating, and it’s the honest word for this. I taught an agent to
+              set documents in a style I admire, and the pages it produces hold up.
+            </p>
+            <p>
+              I started a second skill aimed at a studio that’s still working today, and
+              stopped. Müller-Brockmann died in 1996; copying a movement is what design
+              history is made of. Pointing a machine at a living studio’s look and shipping
+              the output is something else, and I didn’t like the sound of it once I’d said it
+              out loud. So the rule is: the dead, or a movement. Nobody I could have asked.
+            </p>
+          </div>
         </div>
       </div>
-      <div class="frow">
-        <div class="fm">Source</div>
-        <div class="ftx">
-          Private repo. The pages here are its output; ask if you want to read the rules.
+
+      <div class="grid">
+        <div class="block c1-6">
+          <span class="st">This site is set in the /swiss style.</span>
+          <span class="sd">Press g to see the grid under it.</span>
+        </div>
+      </div>
+
+      <!-- No paragraph follows this head — the .step below is the content — so there's
+           nothing to pair on the same row. Flush left, same column-1 start as a .shead's h2
+           so every head on the site still lines up. -->
+      <div class="grid sect">
+        <div class="c1-12"><h2>The style</h2></div>
+      </div>
+
+      <div class="grid" style="margin-top:var(--unit)">
+        <div class="step accent" style="grid-column:span 8">
+          <span class="sl">after Josef Müller-Brockmann (1914–1996)</span>
+          <span class="st">/swiss</span>
+          <span class="sd">A visible modular grid carrying large, precisely-set type. Structure comes from column alignment and thin rules; there are no boxes. One accent colour. This site is set in it.</span>
+        </div>
+      </div>
+
+      <!-- The missing media (chooser round 2, Q3/03), and it is an EMBED rather than a
+           recording. The claim above is "the agent sets a document by that system's rules" —
+           the evidence for it is a document the agent set, running. A screen recording of a
+           static page would be a video of something not moving, and a screenshot would be a
+           picture of a page you can open. The `figure.embed` device already ships on
+           `recipes` and `proofs`; this page had no visual evidence of any kind, which made
+           it the emptiest page in the set.
+           Canelé, not the 10x essay: this page's subject is the STYLE, and the canelé
+           explainer is the one whose argument is a table of ratios — so what the frame shows
+           is the grid setting type and figures, which is what /swiss is for. `explain` takes
+           the 10x essay for the opposite reason (its quiz). -->
+      <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+        <figure class="embed c1-12">
+          <div class="esrc">
+            <a href="/writing/canele/">open the canelé explainer full-screen</a>
+          </div>
+          <div class="embed-frame">
+            <iframe src="/writing/canele/" title="A canelé explainer set by the /swiss skill, live"
+              loading="lazy"></iframe>
+          </div>
+          <figcaption>
+            <a href="/writing/canele/">What makes a canelé custardy</a>
+            — set by the skill, live in the frame
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- Essays -->
+      <div class="grid sect">
+        <div class="c1-12"><h2>Written with it</h2></div>
+      </div>
+      <div class="grid" style="margin-top:var(--unit)">
+        <div class="links">
+          <a href="/writing/10x-is-a-loop/">
+            10x is a loop, not a prompt <span class="arrowc">→</span>
+            <span class="lu">on AI-assisted engineering, evidence first</span>
+          </a>
+          <a href="/writing/canele/">
+            What makes a canelé custardy <span class="arrowc">→</span>
+            <span class="lu">one ratio, from six recipes</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- TYPE B close: the facts block as a colophon — what the thing is made of, read after
+           the work. On a Type A page the same device is the masthead instead. -->
+      <div class="grid sect">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">Form</div>
+            <div class="ftx">
+              One <b>SKILL.md</b> holding the design tokens, the grid, and a MUST/MUST&nbsp;NOT
+              checklist the agent works through. Output is a single self-contained HTML file.
+            </div>
+          </div>
+          <div class="frow">
+            <div class="fm">Source</div>
+            <div class="ftx">
+              Private repo. The pages here are its output; ask if you want to read the rules.
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,39 +1,21 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 ---
 
 <Layout
-  title="Powerpoint Pen Toolbox — Andrew Shiau"
-  description="Redesigning PowerPoint's inking toolbox through 20+ working prototypes and a test that proved the team's favourite design wrong."
+  title="PowerPoint Pen Toolbox — Andrew Shiau"
+  description="Redesigning PowerPoint’s inking toolbox through 20+ working prototypes and a test that proved the team’s favourite design wrong."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
+       site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
-
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/powerpoint/" />
-      <h1>Powerpoint Pen Toolbox</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      Redesigning the Pen Toolbox in PowerPoint's Draw tab through twenty-odd working
-      prototypes. The last test proved the team's favourite design wrong.
-    </p>
-  </div>
-
-  <!-- TYPE A, beat 2: the clip is the lede. The final redesign, running, before any prose. -->
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <figure class="demo hang">
-      <video src="/media/pp-final.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>The final redesign proposal.</figcaption>
-    </figure>
-  </div>
-
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <div class="facts">
+    <PanelHead href="/work/powerpoint/" title="PowerPoint Pen Toolbox">
+      <!-- The masthead: metadata you read before the story. On a Type A page the facts block
+           is ALWAYS this, never a closing colophon (which is Type B's job) — and in the split
+           it is IN the panel, because "before the story" is what a column that never leaves
+           the screen means. -->
       <div class="frow">
         <div class="fm">Role</div>
         <div class="ftx">UX prototyper — <b>prototyping, usability testing, A/B testing, UX design</b>.</div>
@@ -42,134 +24,160 @@ import SideMark from '../../components/SideMark.astro';
         <div class="fm">Tools</div>
         <div class="ftx">Framer Classic · JavaScript · Sketch.</div>
       </div>
-    </div>
-  </div>
+    </PanelHead>
 
-  <div class="grid sect">
-    <div class="shead">
-      <h2>The problem</h2>
-      <div class="sbody">
-        <p>
-          Millions of people use the Draw tab to get an idea onto a slide with a pen, and
-          its tools didn't behave the way they expected. A usability study of the shipped
-          tab — eight users recreating two diagrams, sorted by affinity diagramming into
-          six themes — produced <b>52 recommendations</b>.
-        </p>
-        <p>
-          I joined after that study and spent <b>13 weeks</b> on it: I built candidate
-          toolboxes from its findings, tested them across 20-plus working prototypes, and
-          handed engineering a prototype to build from.
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is
+           narrower than 8 of the feed's 700px, so c1–8 would set a column the text
+           never reaches. No top margin — the dek is the top of the reading column. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          Redesigning the Pen Toolbox in PowerPoint’s Draw tab through twenty-odd working
+          prototypes. The last test proved the team’s favourite design wrong.
         </p>
       </div>
-    </div>
-  </div>
 
-  <div class="grid sect">
-    <div class="c1-12"><h2>What changed</h2></div>
-  </div>
-  <div class="grid">
-    <div class="facts">
-      <div class="frow">
-        <div class="fm">Remove "add pen"</div>
-        <div class="ftx">People ink with one tool over and over, so the add-pen button mostly added clutter. We gave one of each tool and moved "add" to a long-press for the users who wanted more.</div>
+      <!-- TYPE A, beat 2: the clip is the lede. The final redesign, running, before any prose. -->
+      <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+        <figure class="demo hang">
+          <video src="/media/pp-final.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: the final Pen Toolbox redesign proposal."></video>
+          <figcaption>The final redesign proposal.</figcaption>
+        </figure>
       </div>
-      <div class="frow">
-        <div class="fm">Eraser = a pen</div>
-        <div class="ftx">Users reached for the eraser the way they reached for a pen, so we moved it into the toolbox and gave it its own width and type dropdown.</div>
-      </div>
-      <div class="frow">
-        <div class="fm">Dropdown refresh</div>
-        <div class="ftx">The ink preview and width slider now show the real width and colour, "colours" and "effects" merged into one panel, and the recently-used-colours algorithm was retuned.</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="grid">
-    <div class="block c1-6">
-      <span class="st">"If we didn't prototype, we'd have shipped one of the first three models as the spec."</span>
-      <span class="sd">— the UX designer on the team.</span>
-    </div>
-  </div>
 
-  <div class="grid sect">
-    <div class="shead">
-      <h2>Why a functional prototype</h2>
-      <div class="sbody">
-        <p>
-          I built each design as a <b>working</b> prototype in Framer Classic: a real
-          toolbox over an HTML canvas you could draw on, with an ink drawer I wrote that
-          listens for mouse-move and lays down SVG. That let us test a prototype the same
-          way we'd test the shipped product, by handing someone a drawing task.
-        </p>
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The problem</h2>
+          <div class="sbody">
+            <p>
+              Millions of people use the Draw tab to get an idea onto a slide with a pen, and
+              its tools didn’t behave the way they expected. A usability study of the shipped
+              tab — eight users recreating two diagrams, sorted by affinity diagramming into
+              six themes — produced <b>52 recommendations</b>.
+            </p>
+            <p>
+              I joined after that study and spent <b>13 weeks</b> on it: I built candidate
+              toolboxes from its findings, tested them across 20-plus working prototypes, and
+              handed engineering a prototype to build from.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-  <!-- Four clips on the .matrix lattice instead of a two-up row: these recordings aren't
-       all the same shape, and side by side the taller one read as though its bottom edge
-       were cropped. Scattered, no two share a baseline, so the mismatch never registers —
-       and the page can show four of the fixes testing produced instead of two. -->
-  <div class="matrix mscatter">
-    <figure class="demo m-a">
-      <video src="/media/pp-prototypeInUse.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>The prototype in use. You draw on it with a real pen.</figcaption>
-    </figure>
-    <figure class="demo m-b">
-      <video src="/media/pp-arrow.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>An arrow marks which colours can be modified — a fix testing found.</figcaption>
-    </figure>
-    <figure class="demo m-c">
-      <video src="/media/pp-colorJump.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>A colour that jumped between slots got an enlarge animation.</figcaption>
-    </figure>
-    <figure class="demo m-d">
-      <video src="/media/pp-longPress.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>Long-press adds a pen — the power-user path that replaced the button.</figcaption>
-    </figure>
-  </div>
 
-  <!-- TYPE A, the alternatives beat (round-3 sheet, Q05): the three candidates, before the
-       result. This page's alternatives are the best-sourced on the site — three built
-       designs and an A/B between two of them — and they used to be compressed into the
-       first paragraph of the closing section, where the outcome overshadowed them. -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>The three we built</h2>
-      <div class="sbody">
-        <p>
-          The team wanted colour and thickness at the top level of the UI and was
-          confident about it. So we built three ways to pick a colour rather than argue
-          about them. Two of the three mattered: a <b>ribbon</b> that put the swatches in
-          the top-level toolbox, and a plain <b>dropdown</b>. Each candidate went in front
-          of users, and what tripped them got fixed — four of those fixes are in the clips
-          above.
-        </p>
-        <p>
-          The ribbon was the favourite for most of the project. It cost the most
-          engineering, so it was the one that had to be right, which is why it's the one
-          we tested against a control instead of shipping on confidence.
-        </p>
+      <div class="grid sect">
+        <div class="c1-12"><h2>What changed</h2></div>
       </div>
-    </div>
-  </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">Remove “add pen”</div>
+            <div class="ftx">People ink with one tool over and over, so the add-pen button mostly added clutter. We gave one of each tool and moved “add” to a long-press for the users who wanted more.</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Eraser = a pen</div>
+            <div class="ftx">Users reached for the eraser the way they reached for a pen, so we moved it into the toolbox and gave it its own width and type dropdown.</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Dropdown refresh</div>
+            <div class="ftx">The ink preview and width slider now show the real width and colour, “colours” and “effects” merged into one panel, and the recently-used-colours algorithm was retuned.</div>
+          </div>
+        </div>
+      </div>
 
-  <!-- TYPE A close: a named final section. This was the page's most important claim and it
-       used to sit in an unheaded prose block, which read as an afterthought. -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>Outcome</h2>
-      <div class="sbody">
-        <p>
-          We <b>A/B-tested</b> the ribbon against the plain dropdown, holding everything
-          else constant. The ribbon lost: its benefit was too small to pay for the
-          engineering, and the plain dropdown shipped. The final proposal took the add-pen
-          button out and moved the eraser into the toolbox as one more pen, so the toolbox
-          holds one of each tool.
-        </p>
-        <p>
-          We had been confident about that ribbon for most of the project and we were
-          wrong. We found out because the prototype was real enough to hand someone a
-          drawing task.
-        </p>
+      <div class="grid">
+        <div class="block c1-6">
+          <span class="st">“If we didn’t prototype, we’d have shipped one of the first three models as the spec.”</span>
+          <span class="sd">— the UX designer on the team.</span>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Why a functional prototype</h2>
+          <div class="sbody">
+            <p>
+              I built each design as a <b>working</b> prototype in Framer Classic: a real
+              toolbox over an HTML canvas you could draw on, with an ink drawer I wrote that
+              listens for mouse-move and lays down SVG. That let us test a prototype the same
+              way we’d test the shipped product, by handing someone a drawing task.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- Four clips on the .matrix lattice instead of a two-up row: these recordings aren't
+           all the same shape, and side by side the taller one read as though its bottom edge
+           were cropped. Scattered, no two share a baseline, so the mismatch never registers —
+           and the page can show four of the fixes testing produced instead of two. -->
+      <div class="matrix mscatter">
+        <figure class="demo m-a">
+          <video src="/media/pp-prototypeInUse.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: drawing on the working prototype with a pen."></video>
+          <figcaption>The prototype in use. You draw on it with a real pen.</figcaption>
+        </figure>
+        <figure class="demo m-b">
+          <video src="/media/pp-arrow.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: an arrow marking which colours can be modified."></video>
+          <figcaption>An arrow marks which colours can be modified — a fix testing found.</figcaption>
+        </figure>
+        <figure class="demo m-c">
+          <video src="/media/pp-colorJump.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: a colour jumping between slots, with an enlarge animation."></video>
+          <figcaption>A colour that jumped between slots got an enlarge animation.</figcaption>
+        </figure>
+        <figure class="demo m-d">
+          <video src="/media/pp-longPress.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: a long press adding a pen to the toolbox."></video>
+          <figcaption>Long-press adds a pen — the power-user path that replaced the button.</figcaption>
+        </figure>
+      </div>
+
+      <!-- TYPE A, the alternatives beat (round-3 sheet, Q05): the three candidates, before the
+           result. This page's alternatives are the best-sourced on the site — three built
+           designs and an A/B between two of them — and they used to be compressed into the
+           first paragraph of the closing section, where the outcome overshadowed them. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The three we built</h2>
+          <div class="sbody">
+            <p>
+              The team wanted colour and thickness at the top level of the UI and was
+              confident about it. So we built three ways to pick a colour rather than argue
+              about them. Two of the three mattered: a <b>ribbon</b> that put the swatches in
+              the top-level toolbox, and a plain <b>dropdown</b>. Each candidate went in front
+              of users, and what tripped them got fixed — four of those fixes are in the clips
+              above.
+            </p>
+            <p>
+              The ribbon was the favourite for most of the project. It cost the most
+              engineering, so it was the one that had to be right, which is why it’s the one
+              we tested against a control instead of shipping on confidence.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TYPE A close: a named final section. This was the page's most important claim and it
+           used to sit in an unheaded prose block, which read as an afterthought. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Outcome</h2>
+          <div class="sbody">
+            <p>
+              We <b>A/B-tested</b> the ribbon against the plain dropdown, holding everything
+              else constant. The ribbon lost: its benefit was too small to pay for the
+              engineering, and the plain dropdown shipped. The final proposal took the add-pen
+              button out and moved the eraser into the toolbox as one more pen, so the toolbox
+              holds one of each tool.
+            </p>
+            <p>
+              We had been confident about that ribbon for most of the project and we were
+              wrong. We found out because the prototype was real enough to hand someone a
+              drawing task.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

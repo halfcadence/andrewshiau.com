@@ -40,11 +40,22 @@ const year = 2026;
           </a>
         </nav>
 
-        <slot />
+        <!-- The one landmark the site was missing. Every page had a nav and a footer and
+             nothing that said where the page's own content starts, so a screen-reader user
+             had no way to skip the mark and the back link — on a case study that means
+             hearing the panel's ledger before the dek, every time. `.pin` and `.feed` are
+             both inside it: they are two columns of one page, not two regions. -->
+        <main>
+          <slot />
+        </main>
 
         <footer class="foot">
+          <!-- The grid hotkey is keyboard-only, so it is stated only where a keyboard is:
+               a phone reader sees "Set on a 12-column grid" instead of an instruction it
+               can't follow. Same line, same place, no layout change — see `.foot .fl`. -->
           <div class="fl">
-            Press <code>g</code> to see the grid.
+            <span class="kb">Press <code>g</code> to see the grid.</span>
+            <span class="tou">Set on a 12-column grid.</span>
           </div>
           <div class="fr">© {year} Andrew Shiau</div>
         </footer>
@@ -60,6 +71,32 @@ const year = 2026;
           document.body.classList.toggle('showgrid');
         }
       });
+
+      // REDUCED MOTION for the eight looping screen recordings. CSS can't do this — there
+      // is no property that pauses a playing <video> — so the media query is read here and
+      // the clip is stopped on its first frame and given `controls`. The evidence stays on
+      // the page; it holds still until the reader starts it.
+      // Not `autoplay` removed at build time: whether to animate is the reader's setting,
+      // not the page's, and it can change without a reload — hence the listener.
+      (function () {
+        const q = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const apply = () => {
+          document.querySelectorAll('figure.demo video').forEach((v) => {
+            if (q.matches) {
+              v.autoplay = false;
+              v.loop = false;
+              v.controls = true;
+              v.pause();
+            } else {
+              v.loop = true;
+              v.controls = false;
+              v.play().catch(() => {});
+            }
+          });
+        };
+        apply();
+        q.addEventListener('change', apply);
+      })();
     </script>
   </body>
 </html>

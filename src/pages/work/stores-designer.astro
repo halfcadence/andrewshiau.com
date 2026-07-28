@@ -1,96 +1,127 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 ---
 
 <Layout
   title="Stores Designer — Andrew Shiau"
   description="Design-system tooling at Amazon: helping many teams build one consistent shopping surface without each of them coding it by hand."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03 — "each case study gets the same
+       pinned column, with its own ledger already written on the page"). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the site's
+       one vertical division doesn't move when you click into a case study.
+       On a TYPE A page the masthead ledger moves into the panel: it is metadata read
+       BEFORE the story, which is exactly what a column that never leaves the screen is
+       for. The dek, the spec block, and every section stay in the reading column. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
-
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/stores-designer/" />
-      <h1>Stores Designer</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      Design-system tooling at Amazon. A lot of teams build one shopping surface, and my
-      job is to make sure they don't each build it their own way.
-    </p>
-  </div>
-
-  <!-- TYPE A with no clip: this is current production work at Amazon, so there is nothing
-       public to show. The masthead + claim/evidence beats still run — the clip beat is the
-       one part of the type that content can be missing. -->
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <div class="facts">
+    <PanelHead href="/work/stores-designer/" title="Stores Designer">
       <div class="frow">
         <div class="fm">Role</div>
         <div class="ftx">Frontend engineer — the tooling, and the design system underneath it.</div>
       </div>
       <div class="frow">
         <div class="fm">Where</div>
-        <div class="ftx">At Amazon · 2023–present.</div>
+        <div class="ftx">At Amazon · <b>2023–present</b></div>
       </div>
-    </div>
-  </div>
+    </PanelHead>
 
-  <!-- Claim + evidence. .claim = the accent top-rule, so this doesn't read as two more rows
-       of the masthead ledger above it. -->
-  <div class="grid">
-    <div class="facts claim" style="margin-top:var(--unit)">
-      <div class="frow">
-        <div class="fm">Simplest form</div>
-        <div class="ftx">Give teams a design system and a tool that builds on it, so the consistent way to ship a page is also the fastest way.</div>
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap (512px)
+           is narrower than 8 of the feed's 700px anyway, so c1–8 would have set a column
+           the text never reaches. No top margin — the dek is the top of the reading column,
+           and it lines up with the back link at the top of the panel. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          Design-system tooling at Amazon. A lot of teams build one shopping surface, and my
+          job is to make sure they don’t each build it their own way.
+        </p>
       </div>
-      <div class="frow">
-        <div class="fm">Proof</div>
-        <div class="ftx">
-          Internal, and staying that way. The public version of this problem is
-          <a href="/work/luthier/">Luthier</a>, which I built at Amazon three years
-          earlier and can show.
+
+      <!-- TYPE A with no clip: this is current production work at Amazon, so there is nothing
+           public to show. `.specblock` takes beat 2 instead (chooser round 2, Q2/02) — a mono
+           key/value listing of what the thing is made of, which argues the engineering in the
+           slot a recording would have held without putting anything internal on a public host.
+           It carries no screenshot, no component name, no metric, and no architecture: every
+           line here is already stated elsewhere on this page or in the dek.
+           There is no `i build` row, though it was the obvious one to write: the panel's
+           ledger opens with "Role — the tooling, and the design system underneath it," and
+           printing the same sentence twice on one screen makes a reader stop to check whether
+           the two differ. The ledger is the row that has to be there (Type A), so this block
+           is the one that gives it up. -->
+      <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+        <div class="specblock">
+          <div class="srow"><span class="sk">surface</span>
+            <span class="sv">one shopping surface, <b>many teams</b></span></div>
+          <div class="srow"><span class="sk">constraint</span>
+            <span class="sv">a wrong component ships to a lot of pages at once</span></div>
+          <div class="srow"><span class="sk">approach</span>
+            <span class="sv"><i>the consistent way to ship a page is also the fastest way</i></span></div>
+          <div class="srow"><span class="sk">visibility</span>
+            <span class="sv">internal — the public version of this problem is Luthier</span></div>
+          <figcaption>No clip: production work at Amazon</figcaption>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="grid sect">
-    <div class="shead">
-      <h2>The problem</h2>
-      <div class="sbody">
-        <p>
-          Many teams, one shopping surface. Left alone, each team builds its own version
-          of the same component and the surface drifts apart — slightly different
-          spacing, slightly different behaviour, a hundred times over.
-        </p>
-        <p>
-          Telling people to be consistent doesn't work; nobody has time to check.
-          Building the shared thing so it's the quickest route to a shipped page does.
-        </p>
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The problem</h2>
+          <div class="sbody">
+            <p>
+              Many teams, one shopping surface. Left alone, each team builds its own version
+              of the same component and the surface drifts apart — slightly different
+              spacing, slightly different behaviour, a hundred times over.
+            </p>
+            <p>
+              Telling people to be consistent doesn’t work; nobody has time to check.
+              Building the shared thing so it’s the quickest route to a shipped page does.
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- TYPE A close: named, last. "Where it stands" rather than "Outcome" — this work is
-       still running, and an "Outcome" head on unfinished work overclaims. -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>Where it stands</h2>
-      <div class="sbody">
-        <p>
-          Front-end for the tooling, and the design system it builds against. Most of what
-          I've learned about working with agents came out of this: the loops on
-          <a href="/method/">the method page</a> are the ones I run here, on a system
-          where a wrong component ships to a lot of pages at once.
-        </p>
-        <p class="fine">
-          Production work at Amazon, so this page stays high level. No internal detail.
-        </p>
+      <!-- TYPE A, the alternatives beat (round-3 sheet, Q05). This page has no numbers to
+           publish, so the alternatives ARE its argument: two approaches to the same problem,
+           one of which I'd already tried. Nothing internal — both options are stated at the
+           level of the dek. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>What else was on the table</h2>
+          <div class="sbody">
+            <p>
+              The usual answer is governance: a documented standard, a review step, and
+              someone to enforce it. It fails for a reason that isn’t about discipline — the
+              reviewer is a bottleneck on every team at once, and the standard is a document
+              nobody reads at the moment they’re shipping.
+            </p>
+            <p>
+              The other answer is the one I’d already built at <a href="/work/luthier/">Luthier</a>:
+              make the shared thing the fastest route to a finished page, so the consistent
+              version is the one a team reaches for. That’s the approach here, on a bigger
+              surface — and the public version of the problem is that earlier page, because
+              this one stays internal.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TYPE A close: named, last. "Where it stands" rather than "Outcome" — this work is
+           still running, and an "Outcome" head on unfinished work overclaims. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Where it stands</h2>
+          <div class="sbody">
+            <p>
+              Front-end for the tooling, and the design system it builds against. Most of what
+              I’ve learned about working with agents came out of this: the loops on
+              <a href="/method/">the method page</a> are the ones I run here, on a system
+              where a wrong component ships to a lot of pages at once.
+            </p>
+            <p class="fine">
+              Production work at Amazon, so this page stays high level. No internal detail.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

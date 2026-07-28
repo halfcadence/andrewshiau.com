@@ -35,7 +35,7 @@ src/pages/work/*.astro       one case study per experiment
 src/data/experiments.ts      the experiment list (edit here to add entries)
 src/layouts/Layout.astro     shared shell (nav, footer, `g`-to-show-grid)
 src/styles/global.css        the Müller-Brockmann system (tokens + grid)
-Caddyfile                    droplet HTTPS + vhosts
+Caddyfile                    UNUSED — production is nginx (see below)
 deploy.sh                    rsync dist/ → droplet
 ```
 
@@ -44,7 +44,93 @@ To add an experiment: append to `src/data/experiments.ts`; add a page under
 
 ---
 
+## Password-protecting a case study (nginx Basic Auth)
+
+**What runs in production is nginx, not Caddy.** `systemctl is-active nginx caddy` on the
+droplet returns `active` / `inactive`; the live vhost is
+`/etc/nginx/sites-enabled/andrewshiau` (root `/var/www/andrewshiau`, certbot-managed TLS).
+The `Caddyfile` in this repo was never installed — the "One-time droplet setup" section
+below describes a migration that didn't happen. Edit nginx, not the Caddyfile.
+
+**Read this first: Basic Auth is a speed bump, not a safety guarantee.** It keeps a page
+out of Google and off a casual visitor's screen. It does **not** make the page safe for
+material that shouldn't leave Amazon: the credential is shared, it can be forwarded in one
+paste, it lands in browser history and password managers, and the page still sits
+unencrypted on a public webroot where any config slip serves it plain. `/work/stores-designer/`
+is written to be publishable — no screenshot, no component name, no metric, no architecture
+(see the comment in the page). If a change to it would need auth to be safe, the change
+doesn't belong on this site.
+
+### The recipe
+
+Do these in order; step 3 fails silently-ish (HTTP 500) if step 2's ownership is wrong.
+
+**1. Make the credential.** `htpasswd` is NOT installed on the droplet — use openssl,
+locally, so the plaintext never lands in the droplet's shell history:
+
+```bash
+PW=$(openssl rand -base64 12 | tr -d '/+=' | cut -c1-14)   # keep this; it's the password
+printf '%s' "$PW" | openssl passwd -apr1 -stdin            # → $apr1$…  paste in step 2
+```
+
+**2. Install the hash file as `root:www-data 640`.** The worker runs as `www-data`
+(`grep ^user /etc/nginx/nginx.conf`), so a `root:root 640` file gives **HTTP 500 on every
+authenticated request** — `open() "/etc/nginx/.htpasswd" failed (13: Permission denied)` in
+`/var/log/nginx/error.log`. Measured: with 640 root:root the no-creds case still returns a
+correct 401, so a test that only checks "does it prompt" passes on a broken config. Test
+with real credentials.
+
+```bash
+ssh droplet "cat > /etc/nginx/.htpasswd <<'EOF'
+andrew:\$apr1\$…the hash…
+EOF
+chown root:www-data /etc/nginx/.htpasswd && chmod 640 /etc/nginx/.htpasswd"
+```
+
+Quote the heredoc (`<<'EOF'`) or the remote shell eats `$apr1` as a variable and writes a
+truncated file.
+
+**3. Add one `location` per protected path, above `location /`.** Back the vhost up first:
+
+```nginx
+location ^~ /work/stores-designer/ {
+  auth_basic "andrewshiau.com";
+  auth_basic_user_file /etc/nginx/.htpasswd;
+  try_files $uri $uri/ $uri/index.html =404;
+}
+```
+
+`^~` so the prefix wins over regex locations, and a **`=404` fallback, not `/index.html`** —
+the site-wide `try_files … /index.html` would otherwise serve the public homepage for any
+miss under the protected prefix, which reads like the auth silently failed.
+
+```bash
+ssh droplet 'cp /etc/nginx/sites-enabled/andrewshiau /root/andrewshiau.nginx.bak.$(date +%s)'
+# edit, then:
+ssh droplet 'nginx -t && systemctl reload nginx'
+```
+
+**4. Verify all four cases.** Anything less doesn't prove it works:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://andrewshiau.com/work/stores-designer/            # 401
+curl -s -o /dev/null -w "%{http_code}\n" -u andrew:wrong https://andrewshiau.com/work/stores-designer/  # 401
+curl -s -o /dev/null -w "%{http_code}\n" -u andrew:"$PW" https://andrewshiau.com/work/stores-designer/  # 200
+curl -s -o /dev/null -w "%{http_code}\n" https://andrewshiau.com/                                 # 200 — public page unaffected
+```
+
+**5. The index still links to it.** Basic Auth protects the page, not the link — a hiring
+manager clicking `01 Stores Designer` gets a browser credential prompt with no explanation.
+If a page goes behind auth, its index row needs to say so, and `robots.txt` should
+`Disallow:` the path (there is no `public/robots.txt` yet; add one if you protect anything).
+
+---
+
 ## One-time droplet setup (run from your Mac)
+
+> **Historical — not what production runs.** This describes a planned nginx→Caddy
+> migration that was never carried out; the droplet still serves the site with nginx +
+> certbot. See the Basic Auth section above for the live layout.
 
 The droplet (`104.236.237.122`, Ubuntu) currently runs nginx serving the old
 React site. These steps put **Caddy** in front for HTTPS, archive the old site

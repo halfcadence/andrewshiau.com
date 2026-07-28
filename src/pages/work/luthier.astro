@@ -1,45 +1,21 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 ---
 
 <Layout
   title="Luthier — Andrew Shiau"
-  description="A Figma widget that turns a designer's document into a production template, so nobody has to hand-code one."
+  description="A Figma widget that turns a designer’s document into a production template, so nobody has to hand-code one."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
+       site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
-
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/luthier/" />
-      <h1>Luthier</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      A Figma widget that turns a designer's document into a production template, so
-      nobody has to hand-code one. Built for Amazon's marketing-graphics pipeline.
-    </p>
-  </div>
-
-  <!-- TYPE A, beat 2: the clip is the lede (chooser: beats §2 option 03). The page opens
-       on the thing working, before any prose. This is the one clip that shows the whole
-       idea in one shot — a designer turning a Figma doc into a live template — so it earns
-       the position; the other two clips stay down in the mechanics section where they
-       explain a detail rather than the premise. -->
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <figure class="demo hang">
-      <video src="/media/luthier-04_creating_gateway.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>The Figma widget creating a Gateway template.</figcaption>
-    </figure>
-  </div>
-
-  <!-- masthead: metadata you read before the story. On a Type A page the facts block is
-       ALWAYS this, never a closing colophon (which is Type B's job). -->
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <div class="facts">
+    <PanelHead href="/work/luthier/" title="Luthier">
+      <!-- The masthead: metadata you read before the story. On a Type A page the facts block
+           is ALWAYS this, never a closing colophon (which is Type B's job) — and in the split
+           it is IN the panel, because "before the story" is what a column that never leaves
+           the screen means. -->
       <div class="frow">
         <div class="fm">Role</div>
         <div class="ftx">
@@ -51,133 +27,160 @@ import SideMark from '../../components/SideMark.astro';
         <div class="fm">Stack</div>
         <div class="ftx">React · functional JavaScript · Ruby on Rails · Figma API.</div>
       </div>
-    </div>
-  </div>
+    </PanelHead>
 
-  <div class="grid sect">
-    <div class="shead">
-      <h2>The problem</h2>
-      <div class="sbody">
-        <p>
-          Composer is Amazon-internal software that turns templates into finished
-          marketing graphics. It makes more than <b>50,000 images a year</b>, including
-          placements on the Amazon Gateway.
-        </p>
-        <p>
-          When I joined, a front-end engineer hand-coded every template. Each one took
-          weeks, and nobody but that engineer could change it afterward. To get more
-          templates we needed designers who could build one themselves.
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is
+           narrower than 8 of the feed's 700px, so c1–8 would set a column the text
+           never reaches. No top margin — the dek is the top of the reading column. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          A Figma widget that turns a designer’s document into a production template, so
+          nobody has to hand-code one. Built for Amazon’s marketing-graphics pipeline.
         </p>
       </div>
-    </div>
-  </div>
 
-  <div class="grid">
-    <div class="block c1-6">
-      <span class="st">Figma is the interface.</span>
-      <span class="sd">A designer builds a Figma document. A widget sends it to Composer, which walks every layer and generates the template, the editing UI, and the initial state.</span>
-    </div>
-  </div>
+      <!-- TYPE A, beat 2: the clip is the lede (chooser: beats §2 option 03). The page opens
+           on the thing working, before any prose. This is the one clip that shows the whole
+           idea in one shot — a designer turning a Figma doc into a live template — so it earns
+           the position; the other two clips stay down in the mechanics section where they
+           explain a detail rather than the premise. -->
+      <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+        <figure class="demo hang">
+          <video src="/media/luthier-04_creating_gateway.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: the Figma widget creating a Gateway template."></video>
+          <figcaption>The Figma widget creating a Gateway template.</figcaption>
+        </figure>
+      </div>
 
-  <div class="grid sect">
-    <div class="c1-12"><h2>How it works</h2></div>
-  </div>
-  <div class="grid">
-    <div class="facts">
-      <div class="frow">
-        <div class="fm">Figma parsing</div>
-        <div class="ftx">A Figma→Composer transformer walks the document tree — text, images, shapes — and builds both the template and its editing UI from the layers.</div>
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The problem</h2>
+          <div class="sbody">
+            <p>
+              Composer is Amazon-internal software that turns templates into finished
+              marketing graphics. It makes more than <b>50,000 images a year</b>, including
+              placements on the Amazon Gateway.
+            </p>
+            <p>
+              When I joined, a front-end engineer hand-coded every template. Each one took
+              weeks, and nobody but that engineer could change it afterward. To get more
+              templates we needed designers who could build one themselves.
+            </p>
+          </div>
+        </div>
       </div>
-      <div class="frow">
-        <div class="fm">Layout by Figma</div>
-        <div class="ftx">It reads Figma's own layout features (auto-layout, alignment) and converts them to Composer CSS, so designers work in the tools they already use.</div>
-      </div>
-      <div class="frow">
-        <div class="fm">Annotations</div>
-        <div class="ftx">A small annotation system supplies what Figma can't infer: which images an end user may replace, which are fixed brand logos, maximum file sizes, text limits.</div>
-      </div>
-      <div class="frow">
-        <div class="fm">Modes</div>
-        <div class="ftx">Figma Component Sets become template modes — a holiday background, say — and the mode switch is generated for you, even for nested sets.</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="grid" style="margin-top:var(--unit)">
-    <figure class="demo c1-6">
-      <video src="/media/luthier-05b_layout.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>Figma's own layout features align the elements.</figcaption>
-    </figure>
-    <figure class="demo c7-12">
-      <video src="/media/luthier-09_nested_mode.mp4" muted loop autoplay playsinline preload="metadata"></video>
-      <figcaption>Nested Component Sets → a mode switch, with unneeded UI hidden.</figcaption>
-    </figure>
-  </div>
-
-  <div class="grid sect">
-    <div class="shead">
-      <h2>Engineering</h2>
-      <div class="sbody">
-        <p>
-          Two modules. The <b>transformer</b> reads the Figma document through the REST
-          API and converts it to Composer JSON with one pure function,
-          <code>getComposerDoc</code>: a tree traversal that collects the layers, the UI,
-          and the initial state. The <b>renderer</b> takes that JSON and produces the
-          template.
-        </p>
-        <p>
-          I built the schema and the renderer first, to cut down the hand-coding. Figma
-          came after: once a template was just a JSON document, anything that could emit
-          that document could be the authoring tool.
-        </p>
+      <div class="grid">
+        <div class="block c1-6">
+          <span class="st">Figma is the interface.</span>
+          <span class="sd">A designer builds a Figma document. A widget sends it to Composer, which walks every layer and generates the template, the editing UI, and the initial state.</span>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- TYPE A, the alternatives beat (round-3 sheet, Q05): what else was on the table and
-       why it lost. This is the beat the "Simplest form / Proof" ledger used to stand in
-       for — a claim with no rivals reads as a slogan, a rejected option reads as a
-       decision. Prose, so it goes under a .shead.
-       ONLY sourced alternatives go here. The two below come from the page's own account
-       (the status quo it replaced, and the build order I chose). Do not add a third
-       without a fact behind it. -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>What else was on the table</h2>
-      <div class="sbody">
-        <p>
-          The alternative to all of this was the status quo: keep one engineer hand-coding
-          every template. That is what the team was doing, and it capped the number of
-          templates at whatever one person could write in a year.
-        </p>
-        <p>
-          The order was also a choice. I could have started with the Figma widget, which
-          is the visible half. I built the schema and the renderer first instead, because
-          a template that was already a JSON document could accept any authoring tool —
-          and if the widget hadn't worked, the hand-coding would still have gotten faster.
-        </p>
+      <div class="grid sect">
+        <div class="c1-12"><h2>How it works</h2></div>
       </div>
-    </div>
-  </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">Figma parsing</div>
+            <div class="ftx">A Figma→Composer transformer walks the document tree — text, images, shapes — and builds both the template and its editing UI from the layers.</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Layout by Figma</div>
+            <div class="ftx">It reads Figma’s own layout features (auto-layout, alignment) and converts them to Composer CSS, so designers work in the tools they already use.</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Annotations</div>
+            <div class="ftx">A small annotation system supplies what Figma can’t infer: which images an end user may replace, which are fixed brand logos, maximum file sizes, text limits.</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Modes</div>
+            <div class="ftx">Figma Component Sets become template modes — a holiday background, say — and the mode switch is generated for you, even for nested sets.</div>
+          </div>
+        </div>
+      </div>
 
-  <!-- TYPE A close: always a named final section, always last. "Outcome" for finished
-       work; "Where it stands" for work still running (see /work/stores-designer/). -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>Outcome</h2>
-      <div class="sbody">
-        <p>
-          I interviewed template designers on five teams (AWS, Alexa, Amazon Business,
-          Payments, Fresh), wrote the proposal, and built the transformer, the CRUD app,
-          and the backend in <b>12 weeks</b>. <b>Fifteen</b> template designers used the
-          beta. What they got stuck on became the roadmap.
-        </p>
-        <p>
-          My team was re-orged in early 2023 and Composer went to another team. I work on
-          the same problem now at <a href="/work/stores-designer/">Stores Designer</a>:
-          how a lot of teams build one consistent thing without each of them coding it by
-          hand.
-        </p>
+      <div class="grid" style="margin-top:var(--unit)">
+        <figure class="demo c1-6">
+          <video src="/media/luthier-05b_layout.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: Figma’s own layout features aligning the elements."></video>
+          <figcaption>Figma’s own layout features align the elements.</figcaption>
+        </figure>
+        <figure class="demo c7-12">
+          <video src="/media/luthier-09_nested_mode.mp4" muted loop autoplay playsinline
+            preload="metadata" aria-label="Silent screen recording: nested Component Sets becoming a mode switch."></video>
+          <figcaption>Nested Component Sets → a mode switch, with unneeded UI hidden.</figcaption>
+        </figure>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Engineering</h2>
+          <div class="sbody">
+            <p>
+              Two modules. The <b>transformer</b> reads the Figma document through the REST
+              API and converts it to Composer JSON with one pure function,
+              <code>getComposerDoc</code>: a tree traversal that collects the layers, the UI,
+              and the initial state. The <b>renderer</b> takes that JSON and produces the
+              template.
+            </p>
+            <p>
+              I built the schema and the renderer first, to cut down the hand-coding. Figma
+              came after: once a template was just a JSON document, anything that could emit
+              that document could be the authoring tool.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TYPE A, the alternatives beat (round-3 sheet, Q05): what else was on the table and
+           why it lost. This is the beat the "Simplest form / Proof" ledger used to stand in
+           for — a claim with no rivals reads as a slogan, a rejected option reads as a
+           decision. Prose, so it goes under a .shead.
+           ONLY sourced alternatives go here. The two below come from the page's own account
+           (the status quo it replaced, and the build order I chose). Do not add a third
+           without a fact behind it. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>What else was on the table</h2>
+          <div class="sbody">
+            <p>
+              The alternative to all of this was the status quo: keep one engineer hand-coding
+              every template. That is what the team was doing, and it capped the number of
+              templates at whatever one person could write in a year.
+            </p>
+            <p>
+              The order was also a choice. I could have started with the Figma widget, which
+              is the visible half. I built the schema and the renderer first instead, because
+              a template that was already a JSON document could accept any authoring tool —
+              and if the widget hadn’t worked, the hand-coding would still have gotten faster.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TYPE A close: always a named final section, always last. "Outcome" for finished
+           work; "Where it stands" for work still running (see /work/stores-designer/). -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Outcome</h2>
+          <div class="sbody">
+            <p>
+              I interviewed template designers on five teams (AWS, Alexa, Amazon Business,
+              Payments, Fresh), wrote the proposal, and built the transformer, the CRUD app,
+              and the backend in <b>12 weeks</b>. <b>Fifteen</b> template designers used the
+              beta. What they got stuck on became the roadmap.
+            </p>
+            <p>
+              My team was re-orged in early 2023 and Composer went to another team. I work on
+              the same problem now at <a href="/work/stores-designer/">Stores Designer</a>:
+              how a lot of teams build one consistent thing without each of them coding it by
+              hand.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

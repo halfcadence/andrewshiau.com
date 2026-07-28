@@ -1,91 +1,132 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 ---
 
 <Layout
   title="Explain — Andrew Shiau"
   description="A skill that turns something I just worked out into an explainer with a diagram and a quiz that checks it landed."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
+       site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
+    <PanelHead href="/work/explain/" title="Explain">
+      <!-- TYPE B: no ledger in the panel. This page's facts block is a COLOPHON — what the
+           thing is made of, read AFTER the work (STYLE.md) — so it stays at the foot of the
+           reading column and the panel is marker + title + contact. The empty space under a
+           three-item panel is the same condition the index's own panel is in; a ledger
+           invented to fill it would be the one fabricated thing on the page. -->
+    </PanelHead>
 
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/explain/" />
-      <h1>Explain</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      A skill that turns something I just worked out — an incident, a system, a recipe —
-      into one self-contained explainer: a diagram, and a short quiz that checks whether
-      the idea landed.
-    </p>
-  </div>
-
-  <!-- TYPE B, beat 2: named head over the page's argument (was unheaded prose). -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>Why the quiz</h2>
-      <div class="sbody">
-        <p>
-          Writing something down proves I can phrase it. It doesn't tell me whether anyone
-          understood it. Three questions a reader gets right does, so every explainer this
-          skill writes ends in a quiz.
-        </p>
-        <p>
-          One prompt produces both halves, in one HTML file, set in whichever house style
-          suits the piece.
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is
+           narrower than 8 of the feed's 700px, so c1–8 would set a column the text
+           never reaches. No top margin — the dek is the top of the reading column. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          A skill that turns something I just worked out — an incident, a system, a recipe —
+          into one self-contained explainer: a diagram, and a short quiz that checks whether
+          the idea landed.
         </p>
       </div>
-    </div>
-  </div>
 
-  <div class="grid">
-    <div class="block c1-6">
-      <span class="st">Both examples below are live.</span>
-      <span class="sd">Answer a quiz question — correct turns red, wrong gets an ✕.</span>
-    </div>
-  </div>
-
-  <div class="grid sect">
-    <!-- a .links staircase follows, not a paragraph — head flush left -->
-    <div class="c1-12"><h2>Explainers</h2></div>
-  </div>
-  <div class="grid" style="margin-top:var(--unit)">
-    <div class="links">
-      <a href="/writing/10x-is-a-loop/">
-        10x is a loop, not a prompt <span class="arrowc">→</span>
-        <span class="lu">AI-assisted engineering, from the public research</span>
-      </a>
-      <a href="/writing/canele/">
-        What makes a canelé custardy <span class="arrowc">→</span>
-        <span class="lu">one ratio, from six recipes normalized</span>
-      </a>
-      <a href="/writing/loops-vs-graphs/">
-        Loops vs graphs <span class="arrowc">→</span>
-        <span class="lu">agent architecture — when a loop should become a graph</span>
-      </a>
-    </div>
-  </div>
-
-  <!-- TYPE B close: the facts colophon. -->
-  <div class="grid sect">
-    <div class="facts">
-      <div class="frow">
-        <div class="fm">Form</div>
-        <div class="ftx">
-          One prompt in, one self-contained HTML file out: the explanation, a diagram, and
-          a scored quiz, set in whichever house style suits the piece.
+      <!-- TYPE B, beat 2: named head over the page's argument (was unheaded prose). -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Why the quiz</h2>
+          <div class="sbody">
+            <p>
+              Writing something down proves I can phrase it. It doesn’t tell me whether anyone
+              understood it. Three questions a reader gets right does, so every explainer this
+              skill writes ends in a quiz.
+            </p>
+            <p>
+              One prompt produces both halves, in one HTML file, set in whichever house style
+              suits the piece.
+            </p>
+          </div>
         </div>
       </div>
-      <div class="frow">
-        <div class="fm">The test</div>
-        <div class="ftx">
-          If a reader can't pass the quiz, I rewrite the explainer. It's the only check
-          the skill makes.
+
+      <div class="grid">
+        <div class="block c1-6">
+          <span class="st">Both examples below are live.</span>
+          <!-- "correct turns red" was wrong, and wrong in the one way this site can't afford:
+               an explainer's accent has been the design navy (#14306b, #6ea8ff on dark) since
+               the tokens were written, and it is measurably not red on either ground. A page
+               arguing "verify against the real artifact" that mis-describes its own artifact
+               loses the argument. What actually happens is described instead of named by
+               colour, which is also the STYLE.md rule: colour is never the only signal. -->
+          <span class="sd">Answer a quiz question — correct gets a ✓ and the accent rule, wrong gets an ✕.</span>
+        </div>
+      </div>
+
+      <!-- The missing media (chooser round 2, Q3/03), as an EMBED rather than a recording.
+           The block directly above says "both examples below are live" and then asks the
+           reader to answer a quiz question — and until now the only thing below it was a
+           links staircase, so the instruction pointed at nothing on the page. The quiz IS the
+           claim on this page ("three questions a reader gets right"), and a quiz is the one
+           artifact a recording actively weakens: watching me answer it proves nothing, and
+           answering it in the frame is the whole test. So the frame is the evidence and it is
+           also the interaction.
+           The 10x essay, not canelé: its quiz is the one about the argument the site makes
+           elsewhere, so a reader who answers it has read the thesis. `aping` embeds canelé —
+           the two pages don't show the same page twice. -->
+      <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+        <figure class="embed c1-12">
+          <div class="esrc">
+            <a href="/writing/10x-is-a-loop/">open the explainer full-screen</a>
+          </div>
+          <div class="embed-frame">
+            <iframe src="/writing/10x-is-a-loop/" title="An explainer with a diagram and a scored quiz, live"
+              loading="lazy"></iframe>
+          </div>
+          <figcaption>
+            <a href="/writing/10x-is-a-loop/">10x is a loop, not a prompt</a>
+            — the diagram and the quiz, live in the frame
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="grid sect">
+        <!-- a .links staircase follows, not a paragraph — head flush left -->
+        <div class="c1-12"><h2>Explainers</h2></div>
+      </div>
+      <div class="grid" style="margin-top:var(--unit)">
+        <div class="links">
+          <a href="/writing/10x-is-a-loop/">
+            10x is a loop, not a prompt <span class="arrowc">→</span>
+            <span class="lu">AI-assisted engineering, from the public research</span>
+          </a>
+          <a href="/writing/canele/">
+            What makes a canelé custardy <span class="arrowc">→</span>
+            <span class="lu">one ratio, from six recipes normalized</span>
+          </a>
+          <a href="/writing/loops-vs-graphs/">
+            Loops vs graphs <span class="arrowc">→</span>
+            <span class="lu">agent architecture — when a loop should become a graph</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- TYPE B close: the facts colophon. -->
+      <div class="grid sect">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">Form</div>
+            <div class="ftx">
+              One prompt in, one self-contained HTML file out: the explanation, a diagram, and
+              a scored quiz, set in whichever house style suits the piece.
+            </div>
+          </div>
+          <div class="frow">
+            <div class="fm">The test</div>
+            <div class="ftx">
+              If a reader can’t pass the quiz, I rewrite the explainer. It’s the only check
+              the skill makes.
+            </div>
+          </div>
         </div>
       </div>
     </div>

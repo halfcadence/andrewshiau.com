@@ -68,6 +68,10 @@ The positive rule, from Orwell: **prefer the concrete**. "Feedback was positive"
 
 ## Case-study page types
 
+Every one of these pages is laid out in **the split** (above): the beats below describe
+the order of the *content*, and the split decides which column each beat lands in — the
+facts block goes to the panel on Type A and C, stays in the feed on Type B.
+
 Eight case-study pages, three shapes. The shapes already existed by accident, and the
 drift between them was the whole reason the set read as arbitrary — the facts block was
 beat 2 on four pages and the last beat on three, so a reader who learned the pattern on
@@ -141,6 +145,121 @@ A head with **prose** under it uses `.shead` (head and first line share column 1
 followed by a **ledger, a step, or a links staircase** is a flush-left `h2` in `.c1-12`
 — there's no paragraph to pair on the row. Two heads on `proofs` claimed in a comment
 that an embed followed them directly; prose did, and they're now `.shead`.
+
+---
+
+## The split — the site's shape
+
+Every page of this site — the index and all eight case studies — is one **pinned identity
+column beside one scrolling reading column**, divided by the site's only vertical rule.
+There is no second page shape.
+(Chooser: `work/understand/andrewshiau-redesign-directions/`, round 1 picks 12 + 10 +
+hover-only motion + warm paper; round 2 picks concept 02 · spec block · scope 03.)
+
+Why it exists: the complaint was that the landing page read *pedestrian* to someone
+deciding whether to work with me, and the cause was that the largest thing on it was a
+sentence **about** me with the evidence below the fold. Pinning the sentence puts the
+evidence at the top of the reading column without deleting the claim.
+
+### The three children, at one ratio, on every page
+
+`.pin` (c1–5) · `.splitrule` (c5) · `.feed` (c5–13) — **4:8, never 6:6**, no modifier
+class and no second ratio. The reading column is the page's subject, and a half split
+would rank the two equally. Measured at 1440: panel 336px, rule at x=524, feed 700px —
+identical on the index and on all eight case studies, so clicking into a case study
+doesn't move the one division the site has.
+
+- **`.pin` is `position:sticky`, NOT a fixed panel with an independently scrolled list.**
+  The page keeps ONE scrollbar, so scroll position, find-in-page, and deep links all still
+  work; a nested scroller breaks all three. And it degrades to a stacked block the moment
+  the viewport can't hold it, so there is no state where content is trapped in a box too
+  short to show it.
+- **`.splitrule` is its own grid child, not a border on the panel.** The panel is 560px
+  tall against a 1550px feed, so a border on the panel's own edge stopped a third of the
+  way down and the rest of the page had a wide empty left third with nothing dividing it.
+  A rule that spans something is its own element — same principle as `.colo-rule`. It is
+  `width:0` + `justify-self:start` with a negative `margin-left`, so it draws at the end of
+  column 4 and occupies no area; a stretched 1-column box would overlap the feed's numeral
+  column and eat its hover and clicks.
+- **It is the only rule on the site that runs vertically**, which is affordable because it
+  is the one division the page actually has. Do not add a second.
+- **Measured in both schemes:** the hairline reads at the same weight either way — dark
+  `#2b2b27` on `#141413` = **1.30:1**, light `#d5d4cd` on `#f4f3ef` = **1.34:1**, same x
+  and same height. "Structure by rules" fails if the rule is loud in one mode.
+
+### `PanelHead.astro` — the panel is a component, not eight copies
+
+The case-study panel is one component: back link, `SideMark`, `h1`, a `.facts` ledger whose
+**first row is always `Type`**, then a `<slot>`, then the contact address. The `Type` value
+comes from `metaOf(href)` — the same artifact noun `experiments.ts` prints in the index's
+marker column, so the page and the index can't drift.
+
+The ledger is left **open** on purpose: the component emits the block and the `Type` row and
+the page adds its own rows. That is what lets one component serve all three page types, and
+it is why a Type B panel isn't a title floating over 300px of nothing.
+
+`src/layouts/Layout.astro` was **not** changed. Putting the panel in the layout would have
+forced every page's ledger through a prop, and the ledgers are page content.
+
+### Where each type's ledger goes
+
+The ledger moves into the panel **only where it is metadata read before the work**:
+
+| type | ledger | where it goes |
+|---|---|---|
+| A — case study | masthead (role, stack, span) | **into the panel** |
+| B — skill | colophon (what it's made of) | **stays last in the feed** |
+| C — collection | contents (a count, the cameras) | **into the panel** |
+
+Type B's facts block is read *after* the work, so moving it up would invert the one thing
+the page types were declared to fix. On `aping` / `explain` / `proofs` the panel is title +
+marker + `Type` + contact, and the air under it is the same condition the index's own panel
+is already in.
+
+### Two breakpoints, two different failures
+
+- **≤1100px — the split unwinds to a stacked block.** At 4 columns the panel is 300px,
+  where "Design system tool" in the marker column starts wrapping to three lines. The panel
+  stops being sticky, loses the vertical rule, and takes a **horizontal** 2px ink rule
+  instead — a rule must own the edge it draws, and the edge is now horizontal.
+- **`max-height:760px` — the panel unsticks.** A sticky panel taller than the viewport
+  scrolls its own bottom out of reach and never comes back.
+
+### The rule that MUST NOT be broken: scope the split's CSS to `min-width:1101px`
+
+**Every** rule that exists because the feed is 700px and the panel 308px lives inside
+`@media(min-width:1101px)` in `global.css` (one block, ending in a labelled comment). Below
+1101px the panel *is* the page's full measure and the feed is 1064px, so the correct values
+there are the page's own defaults, already written once at the top of the file.
+
+This is not tidiness. The first version declared those rules globally and un-declared them
+in the ≤1100px unwind, and it shipped a real bug: the split's block sits **later in the
+file at equal specificity**, so `.pin h1{39px}` and `.pin .frow{88px 1fr}` beat the unwind's
+overrides, and at 1099px a stacked full-measure panel rendered a 35px title over an 88px
+ledger key with 941px of value beside it. Scoping the cause means the stacked page can't be
+broken by adding a rule to the split. The same cascade trap bit a second time on
+`.matrix.mscatter` at ≤900px, which needed **two classes** to outrank a later
+`.matrix{display:grid}`.
+
+### What the feed re-cuts, and the cost of each
+
+The feed is 700px where the page was 1064px, so a block on the feed's own 12 sub-tracks is
+~34% narrower. Five blocks were re-measured rather than left to shrink:
+
+1. `figure.demo.hang` → `display:block`, caption under. The hung caption put the video at
+   9 of 12 sub-tracks = 518px; as a block it takes the full 700px (an 11.5% loss against
+   791px, not 35%). There is no margin left to hang a caption in — the split spent it.
+2. `.shead > h2` / `.sbody` → `1 / 13`. c1–10 of the feed is 518px against a 528px prose
+   measure, so the track had stopped framing the paragraph and started cropping it.
+3. `.feed .mscatter` → a stack. The four powerpoint clips rendered 336/275/275/275px from
+   1000px recordings (0.28–0.34), and three of those captions point at a detail that is a
+   few pixels at 0.28. Costs ~800px of scroll; scroll is the cheaper thing to spend.
+4. `.feed .g-rag` → one flow. Two ragged columns inside the feed give 336px per photograph
+   from a 1400px file (0.24) — and the page has no lightbox, so 336px isn't a thumbnail of
+   the work, it *is* the work. One flow gives each frame 700px, the same 0.50 the two-column
+   version gave on the old page.
+5. `.feed .specblock .sk` → c1–3. The 154px key was measured against a masthead that is in
+   the panel now.
 
 ---
 
@@ -390,12 +509,18 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   `grid-auto-rows`). Recordings are not all the
   same shape, and a two-up row forces mismatched ratios onto one baseline where the
   difference reads as a cropped bottom edge. Scattered, no two clips share a baseline.
-  Collapses to a stack `≤900px`. `.mscatter` is **not** a `.grid`, so the block after it
-  needs an explicit top margin — the `.grid + .grid` rule won't reach it.
+  Collapses to a stack `≤900px` — written `.matrix.mscatter`, **two classes**, because a
+  later `.matrix{display:grid}` outranks a one-class rule at equal specificity (this is the
+  cascade trap from the split; it shipped four clips at 153/123/123/123px on a phone).
+  `.mscatter` is **not** a `.grid`, so the block after it needs an explicit top margin — the
+  `.grid + .grid` rule won't reach it. Inside the feed it stacks at every width (see The
+  split).
 - **Photo gallery** (`.g-rag`): **two ragged column-flows** (`.col-l` c1–6, `.col-r`
   c7–12 dropped `3 × --unit`), not a 2-up grid. Independent flows mean each photograph is
   just the next one down, rather than half of a forced comparison pair. One column
-  `≤720px`, with the drop removed (it would leave a 72px hole at the top of the stack).
+  `≤720px`, with the drop removed (it would leave a 72px hole at the top of the stack) —
+  by spanning both children `1 / 13`, so it stays `display:grid` there. Inside the feed it
+  is one flow at every width (see The split).
 - **Live embed** (`figure.embed`): **one proportion for every embed** — `16/10` on
   desktop, `3/4` (portrait) `≤720px`, so the embedded page gets a phone-shaped viewport
   instead of a letterbox scaled to unreadable. There is no tall variant. The link out

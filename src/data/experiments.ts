@@ -38,6 +38,19 @@ export function sideOf(href: string): Side {
   return entry.side;
 }
 
+// Same contract for `meta`, and for the same reason. Every case-study page's pinned panel
+// opens its ledger with a Type row, and this is where that string comes from — so the
+// artifact type a reader saw in the index is the one the page repeats, character for
+// character, or the build fails. (Chooser round 2, Q3/02: "src/data/experiments.ts — a
+// facts field".) It is the one ledger row all eight panels share: Type A adds role and
+// span beneath it, Type C adds a count, and Type B has only this, because a skill's other
+// facts are its colophon and a colophon is read after the work, not before it.
+export function metaOf(href: string): string {
+  const entry = [methodSpec, ...work, ...experiments].find((x) => x.href === href);
+  if (!entry) throw new Error(`metaOf: no entry with href "${href}" in experiments.ts`);
+  return entry.meta;
+}
+
 // THE METHOD — the operating spec, not a project, and deliberately NOT an `Entry`. It gets
 // the index's row device (see `.espec`) with two differences the data has to carry:
 //   no `n` — there is exactly one of it, and a set "01" promises an "02" that never comes;
@@ -110,7 +123,7 @@ export const work: Entry[] = [
   },
   {
     n: '03',
-    title: 'Powerpoint Pen Toolbox',
+    title: 'PowerPoint Pen Toolbox',
     blurb:
       "Redesigned PowerPoint's inking toolbox through 20-plus working prototypes " +
       'and an A/B test that ruled out the design the team favoured.',

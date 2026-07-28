@@ -149,6 +149,11 @@ const {
   }
   .foot{grid-column:1 / 13;border-top:2px solid var(--ink);margin-top:calc(var(--unit)*2);padding-top:var(--unit);color:var(--dim);font-size:13px;line-height:20px}
   .foot a{color:var(--dim);text-decoration:none;font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:12px}
+  .foot .tou{display:none}
+  @media(hover:none),(pointer:coarse){
+    .foot .kb{display:none}
+    .foot .tou{display:inline}
+  }
   @media(max-width:720px){ .quiz{grid-column:1/13} }
 </style>
 </head>
@@ -162,15 +167,26 @@ const {
       <span class="c">{mastNote}</span>
     </nav>
 
-    <div class="grid"><p class="kicker" style="grid-column:1/13">{kicker}</p></div>
-    <div class="grid"><h1 style="grid-column:1/11">{heading}</h1></div>
+    <!-- `main` opens at the kicker and closes after the foot, so all sixteen `.grid`
+         rows stay siblings and the `.grid + .grid` rhythm is untouched — the nav stays
+         outside it, which is why the kicker's own margin was already 0. The explainers
+         are built on this layout rather than Layout.astro, so the landmark had to be
+         added here too: without it a screen-reader user has no way to skip the mast. -->
+    <main>
+      <div class="grid"><p class="kicker" style="grid-column:1/13">{kicker}</p></div>
+      <div class="grid"><h1 style="grid-column:1/11">{heading}</h1></div>
 
-    <slot />
+      <slot />
 
-    <div class="grid"><div class="foot">
-      <slot name="foot" />
-      <br /><br /><a href={backHref}>{backLabel}</a> &nbsp; Press <b>g</b> for the grid
-    </div></div>
+      <div class="grid"><div class="foot">
+        <slot name="foot" />
+        <br /><br /><a href={backHref}>{backLabel}</a> &nbsp;
+        <!-- Same swap as the site footer: `g` is a keydown handler, so stating it as a
+             fact to a touch device describes something that can't be done there. -->
+        <span class="kb">Press <b>g</b> for the grid</span>
+        <span class="tou">Set on a 12-column grid</span>
+      </div></div>
+    </main>
   </div>
 </div>
 <script is:inline define:vars={{ quiz }}>

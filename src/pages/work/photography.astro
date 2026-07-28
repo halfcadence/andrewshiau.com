@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 
 // Self-hosted in /public/photos — my own photos, pulled from Unsplash (halfcadence)
 // after source.unsplash.com was retired. Shot with iPhones, a Fuji X100, and a Leica Q.
@@ -39,54 +39,62 @@ const right = photos.filter((_, i) => i % 2 === 1);
   title="Photography — Andrew Shiau"
   description="Photographs shot with iPhones, a Fuji X100, and a Leica Q."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
+       site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
-
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/photography/" />
-      <h1>Photography</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      Twelve photographs, shot over about a decade on whatever I had with me.
-    </p>
-  </div>
-
-  <!-- TYPE C: dek → the contents ledger → the work, and nothing after it. The ledger is
-       short here on purpose; a gallery's metadata is the count and the cameras, and there
-       is no claim to make about a photograph that the photograph doesn't make. -->
-  <div class="grid sect">
-    <div class="facts">
+    <PanelHead href="/work/photography/" title="Photography">
+      <!-- TYPE C: dek → the contents ledger → the work, and nothing after it. The ledger is
+           the panel's content here, which is what the split is for: a collection's metadata
+           is a count and a stack, and it stays on screen while you look at the work it
+           counts. Short on purpose — there is no claim to make about a photograph that the
+           photograph doesn't make.
+           The count only. It used to read "in two ragged columns so no two share a baseline",
+           which was true of the full-width page and is not true in the feed — the gallery runs
+           one flow there so each frame gets the whole 700px (see `.feed .g-rag`). A ledger row
+           that describes the layout has to be re-checked every time the layout moves, and this
+           one had already gone stale once; the count doesn't. And only the count — the dek
+           directly to the right already says "shot over about a decade on whatever I had with
+           me", so a row repeating it would put the same clause twice on one screen. -->
       <div class="frow">
         <div class="fm">Contents</div>
-        <div class="ftx"><b>12 photographs</b>, in two ragged columns so no two share a baseline.</div>
+        <div class="ftx"><b>12 photographs</b></div>
       </div>
       <div class="frow">
         <div class="fm">Cameras</div>
         <div class="ftx">iPhones · Fuji X100 · Leica Q.</div>
       </div>
-    </div>
-  </div>
+    </PanelHead>
 
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
-    <div class="g-rag">
-      <div class="col-l">
-        {left.map((p, i) => (
-          <figure>
-            <img src={p.src} alt={p.alt} width={p.w} height={p.h}
-                 loading={i === 0 ? 'eager' : 'lazy'} />
-          </figure>
-        ))}
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is
+           narrower than 8 of the feed's 700px, so c1–8 would set a column the text
+           never reaches. No top margin — the dek is the top of the reading column. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          Twelve photographs, shot over about a decade on whatever I had with me.
+        </p>
       </div>
-      <div class="col-r">
-        {right.map((p) => (
-          <figure>
-            <img src={p.src} alt={p.alt} width={p.w} height={p.h} loading="lazy" />
-          </figure>
-        ))}
+
+
+      <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+        <div class="g-rag">
+          <div class="col-l">
+            {left.map((p, i) => (
+              <figure>
+                <img src={p.src} alt={p.alt} width={p.w} height={p.h}
+                     loading={i === 0 ? 'eager' : 'lazy'} />
+              </figure>
+            ))}
+          </div>
+          <div class="col-r">
+            {right.map((p) => (
+              <figure>
+                <img src={p.src} alt={p.alt} width={p.w} height={p.h} loading="lazy" />
+              </figure>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   </div>

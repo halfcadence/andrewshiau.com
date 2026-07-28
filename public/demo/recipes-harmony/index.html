@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recipes ultrawide — harmony &amp; colophon width</title>
+<style>
+/* ── chooser chrome tokens ──────────────────────────────────────────────────
+   The RENDER tokens below are copied verbatim from assets/main.scss so every
+   option is cut from the real site. Chrome tokens are separate and quieter. */
+:root{
+  /* real site tokens — main.scss "Tokens" block */
+  --paper:#ffffff; --ink:#111111; --grey:#6b6b6b; --hair:#e4e4e4;
+  --fs-kicker:0.6875rem; --fs-small:0.8125rem; --fs-body:15px;
+  --fs-lede:1.3125rem; --fs-cat:1.625rem; --base:0.5rem;
+  --sans:"Helvetica Neue",Helvetica,Arial,"Liberation Sans",system-ui,sans-serif;
+  /* chooser chrome */
+  --panel:#fafafa; --dim:#6b6b6b; --faint:#a0a0a0; --line:#e4e4e4;
+  --accent:#111111; --build:#1a7f37;
+  --unit:20px; --gutter:28px; --ease:cubic-bezier(.4,0,.2,1); --dur-fast:140ms;
+}
+@media screen and (prefers-color-scheme:dark){
+  :root{
+    --paper:#0c0c0d; --ink:#f2f2f0; --grey:#9a9a98; --hair:#2a2a2c;
+    --panel:#151517; --dim:#9a9a98; --faint:#6a6a6c; --line:#2a2a2c;
+    --accent:#f2f2f0; --build:#3fb950;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding-bottom:96px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 var(--gutter)}
+
+/* ── sheet header ── */
+.hd{padding:56px 0 28px;border-bottom:2px solid var(--ink)}
+.hd .k{font-size:var(--fs-kicker);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--grey);margin:0 0 14px}
+.hd h1{margin:0 0 12px;font-size:34px;line-height:1.06;font-weight:700;letter-spacing:-.035em}
+.hd p{margin:0;max-width:64ch;color:var(--dim);font-size:14px}
+.hd .note{margin-top:14px;font-size:12px;color:var(--faint)}
+
+/* ── question sections ── */
+.sect{padding:44px 0 8px;border-bottom:1px solid var(--line)}
+.sect>h2{margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-.02em}
+.sect>.sd{margin:0 0 6px;color:var(--dim);max-width:78ch}
+.sect>.ev{margin:0 0 26px;font-size:12px;color:var(--faint);max-width:78ch}
+.sect>.ev b{color:var(--dim);font-weight:700}
+
+/* ── option frames ── */
+.opt{padding:22px 0 28px;border-top:1px solid var(--line)}
+.opt:first-of-type{border-top:0}
+.ohd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.on{font-size:var(--fs-kicker);font-weight:700;letter-spacing:.1em;
+  color:var(--faint);font-variant-numeric:tabular-nums;flex:none}
+/* `flex:none` keeps the name on one line beside the number at any sane width, but
+   it also forbade wrapping — a long name ("Three equal thirds — ingredients, steps,
+   steps") pushed 88px past the viewport once the sheet was embedded in a 332px
+   phone-shaped iframe. min-width:0 lets it wrap only when it must. */
+.om{font-size:15px;font-weight:700;letter-spacing:-.01em;flex:0 1 auto;min-width:0}
+.ow{font-size:12.5px;color:var(--dim);flex:1 1 340px;min-width:0}
+.ow b{color:var(--ink);font-weight:700}
+.cost{display:block;margin-top:3px;font-size:11.5px;color:var(--faint)}
+
+/* ── the render frame: a faux browser field at ~1881px, scaled down ────────
+   Options are rendered at the REAL ultrawide width and transform-scaled, so
+   proportions are true — a hand-drawn "approximation" at 1120px would lie
+   about exactly the thing being judged (how much air the halves have). */
+.stage{margin-top:18px;border:1px solid var(--line);background:var(--paper);
+  overflow:hidden;position:relative}
+.stage .vwlab{position:absolute;top:0;right:0;z-index:2;
+  font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  color:var(--faint);background:var(--panel);padding:3px 7px;border-left:1px solid var(--line);
+  border-bottom:1px solid var(--line)}
+/* `zoom`, not `transform: scale()` — a transform paints smaller but does NOT
+   shrink LAYOUT height, so each stage reserved the full 1881px-wide page height
+   and left ~40% of the frame empty below the render. `zoom` scales the box for
+   layout, so the frame hugs the page. Proportions stay exact either way.
+
+   The factor is MEASURED (see the fit script at the foot) rather than the
+   1124/1881 = .5975 this sheet started with. A baked-in number is right at
+   exactly one column width and clips the right edge of every frame at any
+   other — including inside the 1090px iframe the case study embeds it in,
+   which cut the step numbers off. */
+.s1881{width:1881px;zoom:var(--fit,.5975)}
+
+/* ── REAL SITE RENDER — rules transcribed from main.scss ─────────────────── */
+.pg{font-family:var(--sans);font-size:var(--fs-body);color:var(--ink);
+  background:var(--paper);line-height:1.5;padding:26px 28px 34px}
+.crumb{font-size:var(--fs-kicker);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--grey);margin:0 0 26px}
+.crumb b{color:var(--ink)}
+.ttl{font-size:74px;margin:0 0 8px;text-transform:lowercase;font-weight:700;
+  letter-spacing:-.045em;line-height:.9}
+.ttl i{font-style:normal;font-size:.32em;color:var(--grey);font-weight:700;
+  letter-spacing:0;margin-left:.4em;font-variant-numeric:tabular-nums}
+/* the 26-col wrapper */
+.g26{display:grid;grid-template-columns:repeat(26,1fr);column-gap:20px;margin-top:34px}
+.h2{font-size:var(--fs-lede);font-weight:700;text-transform:lowercase;
+  letter-spacing:-.03em;margin:0 0 12px;line-height:1.1}
+/* ingredient table — main.scss: display block, columns 2 12rem */
+.ing{font-size:var(--fs-body);margin:0}
+.ing dl{margin:0;display:grid;grid-template-columns:auto 1fr;column-gap:14px;row-gap:0}
+.ing dt{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;padding:5px 0}
+.ing dd{margin:0;padding:5px 0}
+.ing.two dl{grid-template-columns:auto 1fr auto 1fr;column-gap:14px}
+/* steps — number pinned right, 34rem measure */
+.stp{list-style:none;margin:0;padding:0;counter-reset:s}
+.stp li{counter-increment:s;display:grid;grid-template-columns:minmax(0,34rem) auto;
+  justify-content:space-between;column-gap:20px;margin:0 0 28px}
+.stp li::after{content:counter(s,decimal-leading-zero);align-self:end;justify-self:end;
+  font-size:var(--fs-small);color:var(--grey);font-variant-numeric:tabular-nums;
+  letter-spacing:.06em}
+.stp li p{margin:0}
+/* notes band */
+.nb{border-top:1px solid var(--ink);margin-top:80px;padding-top:24px;
+  display:grid;grid-template-columns:repeat(4,1fr);column-gap:20px;
+  font-size:var(--fs-small);line-height:1.5;color:var(--grey)}
+.nb span{display:block}
+.nb b{color:var(--ink);font-weight:700;font-size:.78em;margin-right:.5em}
+/* doc layout (steering) */
+.dl{display:grid;grid-template-columns:224px 1fr;gap:20px;align-items:start;margin-top:34px}
+.dnav{font-size:var(--fs-small);padding-top:24px}
+.dnav ol{list-style:none;margin:0;padding:0}
+.dnav li{margin:0 0 5px;line-height:1.3}
+.dnav a{color:var(--grey);text-decoration:none;display:block;padding-left:11px;
+  border-left:1px solid var(--hair)}
+.dnav a.cur{color:var(--ink);font-weight:700;border-left-color:var(--ink)}
+.dbody{max-width:40rem}
+.dbody h2{font-size:var(--fs-lede);font-weight:700;letter-spacing:-.01em;
+  margin:24px 0 8px;padding-top:12px;border-top:1px solid var(--hair)}
+.dbody h2:first-child{margin-top:0;border-top:0;padding-top:0}
+.dbody p{margin:0 0 12px}
+.dbody code{background:rgba(17,17,17,.06);padding:.05em .25em;font-weight:500;
+  font-family:var(--sans)}
+@media screen and (prefers-color-scheme:dark){
+  .dbody code{background:rgba(242,242,240,.08)}
+}
+/* dead-space marker — chooser annotation, NOT part of the render */
+.dead{position:absolute;top:0;bottom:0;background:
+  repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,var(--ink) 7%,transparent) 7px 8px);
+  border-left:1px dashed color-mix(in srgb,var(--ink) 22%,transparent);pointer-events:none}
+.dead em{position:absolute;top:8px;left:8px;font-style:normal;font-size:15px;
+  letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--faint)}
+.relpos{position:relative}
+/* in-flow variant: fills whatever vertical space is left in its own column, so
+   the marker sits ON the gap it names instead of being hand-positioned over the
+   notes band (which is where the first draft accidentally put it). */
+.deadfill{position:relative;flex:1 1 auto;min-height:40px;margin-top:14px;background:
+  repeating-linear-gradient(135deg,transparent 0 7px,color-mix(in srgb,var(--ink) 7%,transparent) 7px 8px);
+  border-top:1px dashed color-mix(in srgb,var(--ink) 22%,transparent)}
+.deadfill em{position:absolute;top:8px;left:0;font-style:normal;font-size:15px;
+  letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--faint)}
+.colflex{display:flex;flex-direction:column}
+/* rule under both heads (option variants) */
+.headrule{border-bottom:1px solid var(--ink);padding-bottom:10px;margin-bottom:16px}
+.headrule .h2{margin:0}
+/* ingredient group subhead — main.scss `.post-content h3` */
+.sub{font-size:var(--fs-small);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--grey);margin:0 0 8px}
+/* a steps list in a NARROW field: the number can't sit out to the right of a
+   24rem measure, so it moves above the step. This is the real cost of options
+   07/08/10 and the sheet has to show it, not describe it. */
+.stp.narrow li{grid-template-columns:1fr;margin-bottom:22px}
+.stp.narrow li::after{justify-self:start;align-self:auto;order:-1;margin-bottom:3px}
+/* round-2 band — separates the settled question from the open one */
+.r2{border-top:2px solid var(--ink);padding-top:20px;margin-top:8px}
+.r2h{margin:0 0 8px;font-size:var(--fs-kicker);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink)}
+.r2p{margin:0 0 6px;color:var(--dim);max-width:78ch}
+.r2p b{color:var(--ink);font-weight:700}
+.r2e{margin:0;font-size:12px;color:var(--faint);max-width:78ch}
+.r2e b{color:var(--dim);font-weight:700}
+/* ── round 3: the split is CONDITIONAL, so an option is two renders ──────────
+   Options 11–13 each show the same rule twice: once on a recipe it fires on and
+   once on a recipe it doesn't. A single frame can't show a conditional layout. */
+.pair{display:grid;gap:0}
+.pairlab{font-size:var(--fs-kicker);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);margin:14px 0 6px;
+  display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.pairlab i{font-style:normal;font-weight:400;letter-spacing:0;text-transform:none;
+  font-size:12px;color:var(--faint)}
+.pairlab .fires{color:var(--ink)}
+/* two step columns in a wide field. `columns`, not a grid — a step list has to
+   BALANCE across the two, and only multicol does that without JS. */
+.stp.two{columns:2;column-gap:20px;display:block}
+.stp.two li{break-inside:avoid;display:grid}
+/* the number LEADS the step (option 13): at a column boundary a right-hung number
+   sits 20px from the NEXT column's text and reads as its number instead. */
+.stp.lead li{grid-template-columns:2rem minmax(0,34rem);justify-content:start;
+  column-gap:0}
+.stp.lead li::after{justify-self:start;align-self:start;order:-1}
+/* the measured-numbers table under 11–13. `display:block` + overflow keeps a
+   5-column table from pushing the whole sheet wide at phone width — at 332px
+   (which is what the case-study iframe gives it) it overflowed by 93px. */
+.mtab{font-size:12px;color:var(--dim);border-collapse:collapse;margin:10px 0 0;
+  display:block;max-width:100%;overflow-x:auto}
+.mtab th{text-align:left;font-weight:700;color:var(--faint);font-size:var(--fs-kicker);
+  letter-spacing:.1em;text-transform:uppercase;padding:0 18px 4px 0;font-weight:700}
+.mtab td{padding:2px 18px 2px 0;font-variant-numeric:tabular-nums}
+.mtab td b{color:var(--ink)}
+/* a question already answered: kept visible, marked closed */
+.lockband{border:1px solid var(--ink);padding:12px 14px;margin:0 0 24px;
+  display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.lockband .lk{font-size:var(--fs-kicker);font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink);flex:none}
+.lockband .lv{font-size:12.5px;color:var(--dim);flex:1 1 300px}
+.lockband .lv b{color:var(--ink);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="hd">
+  <p class="k">Recipes · ultrawide ≥ 112rem</p>
+  <h1>Two ultrawide layouts that aren&rsquo;t finished</h1>
+  <p>The spread ships, but the two halves don&rsquo;t feel like a pair, and the colophon
+  pages don&rsquo;t use the width at all. Two questions, one sheet. Every option is
+  rendered at a real 1881&thinsp;px and scaled down, so the proportions are true.</p>
+  <p class="note">Options are clickable — the sheet copies your picks itself. Toggle
+  your OS light/dark to check both.</p>
+</header>
+
+<!-- ══════════════════════ QUESTION 1 ══════════════════════ -->
+<section class="sect" data-name="Spread harmony">
+  <h2>1 &nbsp;The recipe spread — how do the two halves become a pair?</h2>
+  <p class="sd">Ingredients are short, steps are long, so the right half hangs far
+  below the left and the two read as two unrelated columns rather than one spread.</p>
+  <div class="lockband">
+    <span class="lk">Settled — round 1</span>
+    <span class="lv"><b>The hairline across both heads (03/06) is in.</b> 01–06 stay
+    for reference; the live question is <b>07–10</b>, which all keep the rule and vary
+    only how the width divides.</span>
+  </div>
+  <p class="ev">Measured across all 124 recipes at 1881&thinsp;px:
+  <b>median left 229px, right 461px — a 2.0× ratio.</b> The right half is taller on
+  <b>113</b> recipes, worst 5.2× (matcha-chiffon-cake: 166px vs 865px).
+  But <b>6 recipes are the other way round</b> — ishikari-nabe is 641px of ingredients
+  against 394px of steps — so nothing here may assume steps are the long side.</p>
+
+  <!-- 01 CURRENT -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">01</span><span class="om">Current — equal halves</span>
+      <span class="ow">Two 12-column fields, each the width the whole page used to be.
+      <b>The heads align but nothing else does</b> — the left half stops and 230px of
+      white runs down beside four more steps.</span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>pantry</b></p>
+        <h1 class="ttl">mentsuyu<i>058</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/13" class="colflex">
+            <h2 class="h2">ingredients</h2>
+            <div class="ing two"><dl>
+              <dt>120g</dt><dd>sake</dd><dt>5g</dt><dd>kombu (dried kelp)</dd>
+              <dt>270g</dt><dd>mirin</dd><dt>10g</dt><dd>katsuobushi, packed</dd>
+              <dt>240g</dt><dd>soy sauce</dd><dt></dt><dd></dd>
+            </dl></div>
+            <div class="deadfill"><em>230px of dead left half</em></div>
+          </div>
+          <div style="grid-column:15/27">
+            <h2 class="h2">steps</h2>
+            <ol class="stp">
+              <li><p>Combine sake, mirin, soy sauce, kombu, and katsuobushi in a saucepan.</p></li>
+              <li><p>Slowly bring to a boil over medium-low heat.</p></li>
+              <li><p>Reduce heat to low and simmer for 5 minutes. Turn off heat and let cool.</p></li>
+              <li><p>Strain through a fine-mesh sieve. Discard solids (or save for furikake).</p></li>
+            </ol>
+          </div>
+          <div style="grid-column:1/-1">
+            <div class="nb">
+              <span><b>1</b>This is a concentrate — no water. Dilute when using.</span>
+              <span><b>2</b>Roughly 1 part sake : 2 mirin : 2 soy sauce.</span>
+              <span><b>3</b>Keeps refrigerated up to a month.</span>
+              <span><b>4</b>For vegetarian: replace katsuobushi with shiitake.</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 02 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">02</span><span class="om">Narrow ingredient column</span>
+      <span class="ow">Ingredients take a <b>7-col field, steps take 17</b> — the ask&rsquo;s
+      &ldquo;2–3 col&rdquo; idea, sized to what an ingredient line actually needs
+      (a weight + a name, never a sentence). The asymmetry is <b>declared</b> rather
+      than accidental, and the imbalance halves because the short half is narrow.
+      <span class="cost">Cost: the 6 ingredient-heavy recipes (ishikari-nabe, 25 lines)
+      get a taller, more cramped left column.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>pantry</b></p>
+        <h1 class="ttl">mentsuyu<i>058</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/8">
+            <h2 class="h2">ingredients</h2>
+            <div class="ing"><dl>
+              <dt>120g</dt><dd>sake</dd>
+              <dt>270g</dt><dd>mirin</dd>
+              <dt>240g</dt><dd>soy sauce</dd>
+              <dt>5g</dt><dd>kombu (dried kelp)</dd>
+              <dt>10g</dt><dd>katsuobushi, packed</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:10/27">
+            <h2 class="h2">steps</h2>
+            <ol class="stp">
+              <li><p>Combine sake, mirin, soy sauce, kombu, and katsuobushi in a saucepan.</p></li>
+              <li><p>Slowly bring to a boil over medium-low heat.</p></li>
+              <li><p>Reduce heat to low and simmer for 5 minutes. Turn off heat and let cool.</p></li>
+              <li><p>Strain through a fine-mesh sieve. Discard solids (or save for furikake).</p></li>
+            </ol>
+          </div>
+          <div style="grid-column:1/-1">
+            <div class="nb">
+              <span><b>1</b>This is a concentrate — no water. Dilute when using.</span>
+              <span><b>2</b>Roughly 1 part sake : 2 mirin : 2 soy sauce.</span>
+              <span><b>3</b>Keeps refrigerated up to a month.</span>
+              <span><b>4</b>For vegetarian: replace katsuobushi with shiitake.</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 03 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">03</span><span class="om">One rule under both heads</span>
+      <span class="ow">Equal halves kept; a <b>single hairline runs under both heads
+      across the alley</b>, so the pair is bound at the top the way the home
+      directory&rsquo;s categories are. <b>Doesn&rsquo;t fix the imbalance — reframes
+      it</b>: the eye reads one band that starts level, and the ragged bottom stops
+      being the story.
+      <span class="cost">Cheapest option: one rule, no reflow. Works on all 124
+      regardless of which half is longer.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>pantry</b></p>
+        <h1 class="ttl">mentsuyu<i>058</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/13;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:15/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/13">
+            <div class="ing two"><dl>
+              <dt>120g</dt><dd>sake</dd><dt>5g</dt><dd>kombu (dried kelp)</dd>
+              <dt>270g</dt><dd>mirin</dd><dt>10g</dt><dd>katsuobushi, packed</dd>
+              <dt>240g</dt><dd>soy sauce</dd><dt></dt><dd></dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:15/27">
+            <ol class="stp">
+              <li><p>Combine sake, mirin, soy sauce, kombu, and katsuobushi in a saucepan.</p></li>
+              <li><p>Slowly bring to a boil over medium-low heat.</p></li>
+              <li><p>Reduce heat to low and simmer for 5 minutes. Turn off heat and let cool.</p></li>
+              <li><p>Strain through a fine-mesh sieve. Discard solids (or save for furikake).</p></li>
+            </ol>
+          </div>
+          <div style="grid-column:1/-1">
+            <div class="nb">
+              <span><b>1</b>This is a concentrate — no water. Dilute when using.</span>
+              <span><b>2</b>Roughly 1 part sake : 2 mirin : 2 soy sauce.</span>
+              <span><b>3</b>Keeps refrigerated up to a month.</span>
+              <span><b>4</b>For vegetarian: replace katsuobushi with shiitake.</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 04 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">04</span><span class="om">Steps split into two step columns</span>
+      <span class="ow">The ask&rsquo;s &ldquo;steps being split&rdquo;: ingredients in
+      7 cols, then <b>steps flow down one column and up the next</b>, so the spread
+      ends nearly level. <b>Genuinely fixes the ragged bottom</b> — and is the only
+      option that makes a 12-step cake fit one screen.
+      <span class="cost">Cost: numbered instructions that snake are easy to lose your
+      place in — you must find step 7 at the top of column two. Weakest on 4-step
+      recipes, where a split column is 2 and 2.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · 12-step recipe</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>sweets</b></p>
+        <h1 class="ttl">earl grey chiffon cake<i>091</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/8">
+            <h2 class="h2">ingredients</h2>
+            <div class="ing"><dl>
+              <dt>6</dt><dd>egg yolks</dd><dt>60g</dt><dd>caster sugar</dd>
+              <dt>70g</dt><dd>vegetable oil</dd><dt>90g</dt><dd>earl grey infusion</dd>
+              <dt>110g</dt><dd>cake flour</dd><dt>6</dt><dd>egg whites</dd>
+              <dt>70g</dt><dd>caster sugar</dd><dt>1g</dt><dd>cream of tartar</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:10/27">
+            <h2 class="h2">steps</h2>
+            <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:38px">
+              <ol class="stp">
+                <li><p>Steep 8g earl grey in 90g hot water for 5 minutes. Strain, cool.</p></li>
+                <li><p>Whisk yolks with 60g sugar until pale and thick.</p></li>
+                <li><p>Stream in oil, then the cooled infusion.</p></li>
+                <li><p>Sift in flour; whisk to a smooth batter.</p></li>
+                <li><p>Whip whites with cream of tartar to soft peaks.</p></li>
+                <li><p>Add sugar in three additions; whip to firm peaks.</p></li>
+              </ol>
+              <ol class="stp" style="counter-reset:s 6">
+                <li><p>Fold a third of the meringue into the base to loosen it.</p></li>
+                <li><p>Fold in the rest in two additions, stopping while streaks remain.</p></li>
+                <li><p>Pour into an ungreased tube pan from 20cm up.</p></li>
+                <li><p>Bake 165°C for 45 minutes until the top springs back.</p></li>
+                <li><p>Invert immediately onto its feet; cool completely upside down.</p></li>
+                <li><p>Release with a thin knife. Serve plain.</p></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 05 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">05</span><span class="om">Ingredients as a sticky rail</span>
+      <span class="ow">Ingredients become a <b>6-col rail that sticks</b> while the
+      steps scroll — what you actually want at the stove: the quantities never leave
+      the screen. The dead space disappears because <b>the left half is deliberately
+      short, not accidentally short</b>.
+      <span class="cost">Cost: the one genuinely new interaction here, and it does
+      nothing for the 60% of recipes that already fit one screen. Sticky needs care
+      with the 25-line ingredient lists.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · scrolled</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>sweets</b></p>
+        <div class="g26">
+          <div style="grid-column:1/7">
+            <div style="border-top:1px solid var(--ink);padding-top:12px">
+              <h2 class="h2" style="font-size:var(--fs-small);letter-spacing:.14em;
+                text-transform:uppercase;color:var(--grey)">ingredients</h2>
+              <div class="ing" style="font-size:var(--fs-small)"><dl>
+                <dt>6</dt><dd>egg yolks</dd><dt>60g</dt><dd>caster sugar</dd>
+                <dt>70g</dt><dd>vegetable oil</dd><dt>90g</dt><dd>earl grey infusion</dd>
+                <dt>110g</dt><dd>cake flour</dd><dt>6</dt><dd>egg whites</dd>
+                <dt>70g</dt><dd>caster sugar</dd><dt>1g</dt><dd>cream of tartar</dd>
+              </dl></div>
+            </div>
+          </div>
+          <div style="grid-column:9/27">
+            <h2 class="h2">steps</h2>
+            <ol class="stp" style="counter-reset:s 4">
+              <li><p>Sift in flour; whisk to a smooth batter.</p></li>
+              <li><p>Whip whites with cream of tartar to soft peaks.</p></li>
+              <li><p>Add sugar in three additions; whip to firm peaks.</p></li>
+              <li><p>Fold a third of the meringue into the base to loosen it.</p></li>
+              <li><p>Fold in the rest in two additions, stopping while streaks remain.</p></li>
+              <li><p>Pour into an ungreased tube pan from 20cm up.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 06 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">06</span><span class="om">Narrow ingredients + head rule</span>
+      <span class="ow"><b>02 and 03 together</b> — the field sizes match what each
+      side holds, and one rule across both heads declares them a pair. Two small
+      moves, no new interaction, no snaking numbers.
+      <span class="cost">Cost: still ragged at the bottom on a 12-step cake — it
+      narrows the gap rather than closing it.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>pantry</b></p>
+        <h1 class="ttl">mentsuyu<i>058</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/8;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:10/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/8">
+            <div class="ing"><dl>
+              <dt>120g</dt><dd>sake</dd>
+              <dt>270g</dt><dd>mirin</dd>
+              <dt>240g</dt><dd>soy sauce</dd>
+              <dt>5g</dt><dd>kombu (dried kelp)</dd>
+              <dt>10g</dt><dd>katsuobushi, packed</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:10/27">
+            <ol class="stp">
+              <li><p>Combine sake, mirin, soy sauce, kombu, and katsuobushi in a saucepan.</p></li>
+              <li><p>Slowly bring to a boil over medium-low heat.</p></li>
+              <li><p>Reduce heat to low and simmer for 5 minutes. Turn off heat and let cool.</p></li>
+              <li><p>Strain through a fine-mesh sieve. Discard solids (or save for furikake).</p></li>
+            </ol>
+          </div>
+          <div style="grid-column:1/-1">
+            <div class="nb">
+              <span><b>1</b>This is a concentrate — no water. Dilute when using.</span>
+              <span><b>2</b>Roughly 1 part sake : 2 mirin : 2 soy sauce.</span>
+              <span><b>3</b>Keeps refrigerated up to a month.</span>
+              <span><b>4</b>For vegetarian: replace katsuobushi with shiitake.</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- ═════ ROUND 2 — the distribution question ═════
+       06 settled the RULE. What's still open is how the width divides, so these
+       four all keep the head rule from 03/06 and vary only the field split. -->
+  <div class="opt r2">
+    <p class="r2h">Round 2 — the rule is settled, the split isn&rsquo;t</p>
+    <p class="r2p">06 wins the <b>hairline across both heads</b>, so every option
+    below keeps it and changes only how the 26 columns divide. The idea on the table
+    is <b>one narrow steps column and the rest split evenly</b> — so these test that
+    against its neighbours at the same width. <b>07–10 each pick one split for all
+    124 recipes; 11–13 below let the recipe pick.</b></p>
+    <p class="r2e">Steps per recipe across all 124: <b>median 6, max 12</b>.
+    <b>29 recipes have 4 steps or fewer</b> and 54 have 7 or more. Ingredient lines:
+    median 10, max 27 (ishikari-nabe), and <b>17 recipes carry 15+ lines</b> —
+    which is what breaks a single narrow ingredient column.</p>
+  </div>
+
+  <!-- 07 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">07</span><span class="om">Two ingredient columns, steps at 1/4</span>
+      <span class="ow">The proposal as written: <b>steps take 6 of 26 columns on the
+      right, and the remaining 18 split evenly into two ingredient columns</b> of 9.
+      Ingredient groups stop being a stack — dumplings on the left, dipping sauce on
+      the right — and the two halves end level because the tall side got narrower.
+      <span class="cost">Cost: a 6-col steps field is a 24rem measure — under the
+      34rem the site sets everywhere else, so a long step goes to five lines. This is
+      the option that changes the reading measure.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · gyoza, 6 steps</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>savoury</b></p>
+        <h1 class="ttl">gyoza<i>031</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/20;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:21/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/10">
+            <h3 class="sub">Dumplings</h3>
+            <div class="ing"><dl>
+              <dt>450g</dt><dd>napa cabbage, finely minced</dd>
+              <dt>15g</dt><dd>kosher salt, divided</dd>
+              <dt>450g</dt><dd>ground pork shoulder</dd>
+              <dt>5g</dt><dd>white pepper</dd>
+              <dt>15g</dt><dd>fresh garlic, minced</dd>
+              <dt>5g</dt><dd>fresh ginger, minced</dd>
+              <dt>55g</dt><dd>scallions, minced</dd>
+              <dt>10g</dt><dd>sugar</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:11/20">
+            <h3 class="sub">Dipping Sauce</h3>
+            <div class="ing"><dl>
+              <dt>120g</dt><dd>rice vinegar</dd>
+              <dt>60g</dt><dd>soy sauce</dd>
+              <dt>1</dt><dd>package round wrappers (40–50)</dd>
+              <dt></dt><dd>Chili oil, to taste</dd>
+              <dt></dt><dd>Vegetable oil, for cooking</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:21/27">
+            <ol class="stp narrow">
+              <li><p>Toss minced cabbage with 10g salt. Rest in a strainer 15 minutes, then wring out as much liquid as possible.</p></li>
+              <li><p>Combine pork, drained cabbage, salt, white pepper, garlic, ginger, scallions, and sugar. Knead until tacky.</p></li>
+              <li><p>Spread 10g filling in a disk on each wrapper. Moisten the edge, fold into a crescent, pleat one side.</p></li>
+              <li><p>Heat 15g oil over medium. Add dumplings flat-side down; fry until golden, about 90 seconds.</p></li>
+              <li><p>Add 120g water, raise the heat, cover immediately. Steam 3 minutes.</p></li>
+              <li><p>Uncover and cook until the water goes and the bottoms crisp again, about 2 minutes.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 08 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">08</span><span class="om">Three equal thirds — ingredients, steps, steps</span>
+      <span class="ow">Every field is <b>8 columns wide</b>: one ingredient column and
+      two step columns. The most Swiss answer on the sheet — a single module repeated
+      three times, no field a special case, and <b>the head rule crosses three equal
+      bays</b>. Steps still snake, but into columns the same width as the ingredients.
+      <span class="cost">Cost: the same snaking-number cost as 04, and 8 cols is a
+      31rem measure — close to the 34rem standard but not it.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · gyoza, 6 steps</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>savoury</b></p>
+        <h1 class="ttl">gyoza<i>031</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/9;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:10/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/9">
+            <div class="ing"><dl>
+              <dt>450g</dt><dd>napa cabbage, minced</dd>
+              <dt>15g</dt><dd>kosher salt, divided</dd>
+              <dt>450g</dt><dd>ground pork shoulder</dd>
+              <dt>5g</dt><dd>white pepper</dd>
+              <dt>15g</dt><dd>garlic, minced</dd>
+              <dt>5g</dt><dd>ginger, minced</dd>
+              <dt>55g</dt><dd>scallions, minced</dd>
+              <dt>10g</dt><dd>sugar</dd>
+              <dt>1</dt><dd>package wrappers</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:10/18">
+            <ol class="stp narrow">
+              <li><p>Toss minced cabbage with 10g salt. Rest in a strainer 15 minutes, then wring out as much liquid as possible.</p></li>
+              <li><p>Combine pork, drained cabbage, salt, white pepper, garlic, ginger, scallions, and sugar. Knead until tacky.</p></li>
+              <li><p>Spread 10g filling in a disk on each wrapper. Moisten the edge, fold into a crescent, pleat one side.</p></li>
+            </ol>
+          </div>
+          <div style="grid-column:19/27">
+            <ol class="stp narrow" style="counter-reset:s 3">
+              <li><p>Heat 15g oil over medium. Add dumplings flat-side down; fry until golden and blistered, about 90 seconds.</p></li>
+              <li><p>Add 120g water, raise the heat, cover immediately. Steam 3 minutes (5 if frozen).</p></li>
+              <li><p>Uncover and cook until the water goes and the bottoms crisp again, about 2 minutes. Serve crisp-side up.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 09 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">09</span><span class="om">Ingredient groups split, steps keep 34rem</span>
+      <span class="ow">The distribution idea, but <b>the steps column keeps the
+      site&rsquo;s 34rem measure</b> (12 cols) and the freed 12 on the left split into
+      two 6-col ingredient columns. <b>Nothing about reading changes</b> — the
+      measure, the numbers, the order are all what ships now; the only edit is that a
+      recipe with two ingredient groups shows them side by side.
+      <span class="cost">Cost: does nothing for the 71 single-group recipes, which
+      are back to 06 exactly. Least ambitious option here.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · ishikari-nabe, 4 groups</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>savoury</b></p>
+        <h1 class="ttl">ishikari nabe<i>044</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/14;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:15/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/7">
+            <h3 class="sub">Hot Pot</h3>
+            <div class="ing"><dl>
+              <dt>340g</dt><dd>salmon fillets, 5cm</dd>
+              <dt>400g</dt><dd>Yukon Gold potatoes</dd>
+              <dt>225g</dt><dd>daikon, 1cm slices</dd>
+              <dt>113g</dt><dd>onion, wedges</dd>
+              <dt>170g</dt><dd>sweet corn</dd>
+              <dt>425g</dt><dd>green cabbage</dd>
+              <dt>50g</dt><dd>carrot, ribboned</dd>
+              <dt>100g</dt><dd>shungiku</dd>
+              <dt>70g</dt><dd>shiitake</dd>
+              <dt>40g</dt><dd>Tokyo negi</dd>
+              <dt>397g</dt><dd>medium-firm tofu</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:8/14">
+            <h3 class="sub">Soup Broth</h3>
+            <div class="ing"><dl>
+              <dt>960g</dt><dd>water</dd><dt>8g</dt><dd>kombu</dd><dt>1g</dt><dd>kosher salt</dd>
+            </dl></div>
+            <h3 class="sub" style="margin-top:20px">Miso Sauce</h3>
+            <div class="ing"><dl>
+              <dt>75g</dt><dd>miso (white)</dd><dt>60g</dt><dd>sake</dd>
+              <dt>30g</dt><dd>mirin</dd><dt>5g</dt><dd>soy sauce</dd>
+            </dl></div>
+            <h3 class="sub" style="margin-top:20px">For Serving</h3>
+            <div class="ing"><dl>
+              <dt>30g</dt><dd>unsalted butter</dd><dt></dt><dd>Sansho pepper</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:15/27">
+            <ol class="stp">
+              <li><p>Soak kombu in water (30 min to overnight). Salt salmon and refrigerate. Mix the miso sauce.</p></li>
+              <li><p>Add potatoes, daikon, and corn to the kombu water. Simmer gently; remove kombu. Cook 10–15 minutes until a skewer pierces the daikon.</p></li>
+              <li><p>Stir in two-thirds of the miso sauce. Taste and adjust with salt.</p></li>
+              <li><p>Add salmon, cabbage, onion, carrot, tofu, mushrooms, negi, and shungiku. Cover and cook 10 minutes.</p></li>
+              <li><p>Add the remaining miso sauce and top with butter. Serve with sansho pepper.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 10 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">10</span><span class="om">Steps at 1/4, second column only when needed</span>
+      <span class="ow">07&rsquo;s proportions, but the ingredient side takes <b>as many
+      columns as its content needs</b> — two 9-col columns on a grouped recipe, one on
+      a short one, with the steps field at 6 fixed. The head rule is the constant; the
+      ingredient field is the variable. <b>The 29 four-step recipes never get a
+      half-empty second column.</b>
+      <span class="cost">Cost, and the render shows it rather than hiding it: with
+      steps pinned to the right edge, a one-group recipe moves the empty space from
+      the right into the <b>middle</b>, which reads worse. 71 of 124 recipes have one
+      group. This option needs a second decision before it works.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · mentsuyu, 4 steps, one group</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>pantry</b></p>
+        <h1 class="ttl">mentsuyu<i>058</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/10;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:21/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/10">
+            <div class="ing"><dl>
+              <dt>120g</dt><dd>sake</dd>
+              <dt>270g</dt><dd>mirin</dd>
+              <dt>240g</dt><dd>soy sauce</dd>
+              <dt>5g</dt><dd>kombu (dried kelp)</dd>
+              <dt>10g</dt><dd>katsuobushi, packed</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:21/27">
+            <ol class="stp narrow">
+              <li><p>Combine sake, mirin, soy sauce, kombu, and katsuobushi in a saucepan.</p></li>
+              <li><p>Slowly bring to a boil over medium-low heat.</p></li>
+              <li><p>Reduce heat to low and simmer for 5 minutes. Turn off heat and let cool.</p></li>
+              <li><p>Strain through a fine-mesh sieve. Discard solids (or save for furikake).</p></li>
+            </ol>
+          </div>
+          <div style="grid-column:1/-1">
+            <div class="nb">
+              <span><b>1</b>This is a concentrate — no water. Dilute when using.</span>
+              <span><b>2</b>Roughly 1 part sake : 2 mirin : 2 soy sauce.</span>
+              <span><b>3</b>Keeps refrigerated up to a month.</span>
+              <span><b>4</b>For vegetarian: replace katsuobushi with shiitake.</span>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- ═════ ROUND 3 — let the CONTENT choose the split ═════
+       07–10 all pick one split and apply it to all 124 recipes. These three let the
+       recipe decide. Each is rendered TWICE, because a conditional layout can't be
+       judged from the case where it fires. -->
+  <div class="opt r2">
+    <p class="r2h">Round 3 — the split decided by the recipe, not by me</p>
+    <p class="r2p">Every option above sets <b>one</b> split for all 124 recipes, which
+    is why each has a cost: the same geometry that fixes a 12-step cake leaves a
+    3-step cocktail worse off. These three <b>switch on the step count</b> instead.
+    It is deterministic and needs no JavaScript —
+    <b><code>:has(&gt; ol &gt; li:nth-child(6))</code></b> means &ldquo;six or more
+    steps&rdquo;, and I checked its count against the real DOM on <b>124 of 124</b>
+    recipes.</p>
+    <p class="r2e">Where the threshold comes from, measured at 1881&thinsp;px on all
+    124 pages: splitting the steps at <b>4+</b> gives the least empty paper
+    (103&thinsp;px mean) but leaves <b>27 recipes with a two-step column</b>, which
+    doesn&rsquo;t read as a column. <b>6+</b> is the first threshold where that never
+    happens: 0 columns under three steps, 66 of 124 recipes split, empty paper down
+    from <b>256&thinsp;px to 126</b> and the worst case from <b>783 to 420</b>.
+    Ingredient count is <em>not</em> a second trigger — a single
+    <code>&lt;table&gt;</code> won&rsquo;t break across a column, so the only place
+    the ingredient side can divide is a group boundary, and doing it there measured
+    no better than today (167 vs 163&thinsp;px on those 18 recipes) while cutting
+    the step measure to 510&thinsp;px.</p>
+  </div>
+
+  <!-- 11 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">11</span><span class="om">6+ steps split — keep the 34rem measure</span>
+      <span class="ow">Three <b>8-track bays</b> (8 + 1 + 8 + 1 + 8 = 26). A bay is
+      548&thinsp;px, which is <b>exactly the 34rem measure</b> the site already caps
+      every step at — so the reading line is untouched and the second column is free.
+      Recipes with five steps or fewer are <b>bit-for-bit what ships today</b>.
+      <span class="cost">Cost, and the render shows it: the number hangs at its
+      column&rsquo;s right edge, which in two columns is <b>20&thinsp;px from the next
+      column&rsquo;s text</b> — 01 reads as if it belongs to 05. This is the option
+      that has the flaw, and 12 and 13 are the two ways out.</span></span>
+    </div>
+    <p class="pairlab"><span class="fires">Fires</span> — tortilla española, 7 steps
+      <i>the number sits beside the wrong column</i></p>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>mains</b></p>
+        <h1 class="ttl">tortilla<i>034</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/9;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:10/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/9">
+            <div class="ing"><dl>
+              <dt>8</dt><dd>large eggs</dd>
+              <dt></dt><dd>Kosher salt</dd>
+              <dt>475g</dt><dd>extra-virgin olive oil</dd>
+              <dt>700g</dt><dd>Yukon Gold potatoes, thinly sliced</dd>
+              <dt>350g</dt><dd>yellow onions, thinly sliced</dd>
+              <dt></dt><dd>Aioli, for serving</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:10/27">
+            <ol class="stp two">
+              <li><p>Beat eggs vigorously with a large pinch of salt until frothy. Set aside.</p></li>
+              <li><p>Heat olive oil in a 10-inch nonstick skillet over medium-high until shimmering. Add potatoes and onions. Regulate heat so they bubble gently but not vigorously. Cook, stirring occasionally, until meltingly tender, about 25 minutes.</p></li>
+              <li><p>Drain potatoes and onions through a fine-mesh strainer over a heatproof bowl. Reserve the oil. Season generously with salt.</p></li>
+              <li><p>Re-froth the eggs, then fold in the potato-onion mixture. Stir until thoroughly combined. Rest 5 minutes.</p></li>
+              <li><p>Wipe out skillet. Add 45g reserved oil and heat until shimmering. Scrape in the egg mixture. Cook, shaking and swirling the pan, until bottom and sides begin to set, about 3 minutes. Press edges inward to form a puck.</p></li>
+              <li><p>Place a large flat plate over the skillet and, in one quick motion, invert the tortilla onto it. Add 15g more oil. Slide the tortilla back in. Cook until the second side is lightly browned but the centre is still tender, about 4 minutes.</p></li>
+              <li><p>Slide or invert onto a serving plate. Rest at least 5 minutes. Serve with aioli. Equally good at room temperature.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <p class="pairlab">Does not fire — manhattan, 3 steps
+      <i>identical to what ships today; no half-empty second column</i></p>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>drinks</b></p>
+        <h1 class="ttl">manhattan<i>052</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/13;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:15/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/13">
+            <div class="ing"><dl>
+              <dt>2 oz</dt><dd>rye whiskey (or bourbon)</dd>
+              <dt>1 oz</dt><dd>sweet vermouth</dd>
+              <dt>2</dt><dd>dashes Angostura bitters</dd>
+              <dt></dt><dd>Brandied cherry, for garnish</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:15/27">
+            <ol class="stp">
+              <li><p>Add rye, sweet vermouth, and bitters to a mixing glass with ice. Stir until well-chilled.</p></li>
+              <li><p>Strain into a chilled coupe or Nick &amp; Nora glass.</p></li>
+              <li><p>Garnish with a brandied cherry.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 12 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">12</span><span class="om">6+ steps split — one track of alley between them</span>
+      <span class="ow">11&rsquo;s rule, with the gap between the two step columns
+      widened from the 20&thinsp;px gutter to <b>a full grid track plus its two
+      gutters</b> — so the two columns land on bays 2 and 3 rather than merely near
+      them, and the number clears the next column by <b>91&thinsp;px instead of
+      20</b>. The columns are now <b>on</b> the grid, which is the whole argument for
+      having one.
+      <span class="cost">Cost: the alley has to come out of the text, so the measure
+      goes from 544&thinsp;px to <b>510</b> — 31.9rem against the site&rsquo;s 34.
+      It is the only option here that changes the reading line at all, by 6%.</span></span>
+    </div>
+    <p class="pairlab"><span class="fires">Fires</span> — tortilla española, 7 steps
+      <i>each number now unambiguously belongs to the step at its left</i></p>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>mains</b></p>
+        <h1 class="ttl">tortilla<i>034</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/9;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:10/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/9">
+            <div class="ing"><dl>
+              <dt>8</dt><dd>large eggs</dd>
+              <dt></dt><dd>Kosher salt</dd>
+              <dt>475g</dt><dd>extra-virgin olive oil</dd>
+              <dt>700g</dt><dd>Yukon Gold potatoes, thinly sliced</dd>
+              <dt>350g</dt><dd>yellow onions, thinly sliced</dd>
+              <dt></dt><dd>Aioli, for serving</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:10/27">
+            <ol class="stp two" style="column-gap:91px">
+              <li><p>Beat eggs vigorously with a large pinch of salt until frothy. Set aside.</p></li>
+              <li><p>Heat olive oil in a 10-inch nonstick skillet over medium-high until shimmering. Add potatoes and onions. Regulate heat so they bubble gently but not vigorously. Cook, stirring occasionally, until meltingly tender, about 25 minutes.</p></li>
+              <li><p>Drain potatoes and onions through a fine-mesh strainer over a heatproof bowl. Reserve the oil. Season generously with salt.</p></li>
+              <li><p>Re-froth the eggs, then fold in the potato-onion mixture. Stir until thoroughly combined. Rest 5 minutes.</p></li>
+              <li><p>Wipe out skillet. Add 45g reserved oil and heat until shimmering. Scrape in the egg mixture. Cook, shaking and swirling the pan, until bottom and sides begin to set, about 3 minutes. Press edges inward to form a puck.</p></li>
+              <li><p>Place a large flat plate over the skillet and, in one quick motion, invert the tortilla onto it. Add 15g more oil. Slide the tortilla back in. Cook until the second side is lightly browned but the centre is still tender, about 4 minutes.</p></li>
+              <li><p>Slide or invert onto a serving plate. Rest at least 5 minutes. Serve with aioli. Equally good at room temperature.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <p class="pairlab">Does not fire — mentsuyu, 4 steps
+      <i>the reference pages keep the full 34rem, because nothing splits</i></p>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>pantry</b></p>
+        <h1 class="ttl">mentsuyu<i>058</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/13;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:15/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/13">
+            <div class="ing"><dl>
+              <dt>120g</dt><dd>sake</dd>
+              <dt>270g</dt><dd>mirin</dd>
+              <dt>240g</dt><dd>soy sauce</dd>
+              <dt>5g</dt><dd>kombu (dried kelp)</dd>
+              <dt>10g</dt><dd>katsuobushi, packed</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:15/27">
+            <ol class="stp">
+              <li><p>Combine sake, mirin, soy sauce, kombu, and katsuobushi in a saucepan.</p></li>
+              <li><p>Slowly bring to a boil over medium-low heat.</p></li>
+              <li><p>Reduce heat to low and simmer for 5 minutes. Turn off heat and let cool.</p></li>
+              <li><p>Strain through a fine-mesh sieve. Discard solids (or save for furikake).</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 13 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">13</span><span class="om">6+ steps split — the number leads its step</span>
+      <span class="ow">11&rsquo;s rule again, fixing the number a different way:
+      instead of buying clearance with width, the number <b>moves to the head of its
+      own step</b>. A right-hung number works in one column because nothing is to its
+      right; in two, there is. This keeps the measure at <b>531&thinsp;px</b> and
+      makes the pairing unambiguous at any gap. <b>The step you are reading and its
+      number now start on the same line</b>, which is also how the notes band already
+      numbers itself.
+      <span class="cost">Cost: the numbers stop being a flush right-hand rail. That
+      rail is a real part of how the spread looks today, and 58 recipes keep it while
+      66 lose it — so the page is no longer numbered one consistent way.</span></span>
+    </div>
+    <p class="pairlab"><span class="fires">Fires</span> — tortilla española, 7 steps
+      <i>34rem-ish measure kept, numbering unambiguous, no extra alley needed</i></p>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>mains</b></p>
+        <h1 class="ttl">tortilla<i>034</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/9;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:10/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/9">
+            <div class="ing"><dl>
+              <dt>8</dt><dd>large eggs</dd>
+              <dt></dt><dd>Kosher salt</dd>
+              <dt>475g</dt><dd>extra-virgin olive oil</dd>
+              <dt>700g</dt><dd>Yukon Gold potatoes, thinly sliced</dd>
+              <dt>350g</dt><dd>yellow onions, thinly sliced</dd>
+              <dt></dt><dd>Aioli, for serving</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:10/27">
+            <ol class="stp two lead">
+              <li><p>Beat eggs vigorously with a large pinch of salt until frothy. Set aside.</p></li>
+              <li><p>Heat olive oil in a 10-inch nonstick skillet over medium-high until shimmering. Add potatoes and onions. Regulate heat so they bubble gently but not vigorously. Cook, stirring occasionally, until meltingly tender, about 25 minutes.</p></li>
+              <li><p>Drain potatoes and onions through a fine-mesh strainer over a heatproof bowl. Reserve the oil. Season generously with salt.</p></li>
+              <li><p>Re-froth the eggs, then fold in the potato-onion mixture. Stir until thoroughly combined. Rest 5 minutes.</p></li>
+              <li><p>Wipe out skillet. Add 45g reserved oil and heat until shimmering. Scrape in the egg mixture. Cook, shaking and swirling the pan, until bottom and sides begin to set, about 3 minutes. Press edges inward to form a puck.</p></li>
+              <li><p>Place a large flat plate over the skillet and, in one quick motion, invert the tortilla onto it. Add 15g more oil. Slide the tortilla back in. Cook until the second side is lightly browned but the centre is still tender, about 4 minutes.</p></li>
+              <li><p>Slide or invert onto a serving plate. Rest at least 5 minutes. Serve with aioli. Equally good at room temperature.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <p class="pairlab">Does not fire — manhattan, 3 steps
+      <i>numbers stay in the right-hand rail — which is the inconsistency</i></p>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>drinks</b></p>
+        <h1 class="ttl">manhattan<i>052</i></h1>
+        <div class="g26">
+          <div style="grid-column:1/-1;border-bottom:1px solid var(--ink);
+            padding-bottom:10px;margin-bottom:18px;display:grid;
+            grid-template-columns:repeat(26,1fr);column-gap:20px">
+            <h2 class="h2" style="grid-column:1/13;margin:0">ingredients</h2>
+            <h2 class="h2" style="grid-column:15/27;margin:0">steps</h2>
+          </div>
+          <div style="grid-column:1/13">
+            <div class="ing"><dl>
+              <dt>2 oz</dt><dd>rye whiskey (or bourbon)</dd>
+              <dt>1 oz</dt><dd>sweet vermouth</dd>
+              <dt>2</dt><dd>dashes Angostura bitters</dd>
+              <dt></dt><dd>Brandied cherry, for garnish</dd>
+            </dl></div>
+          </div>
+          <div style="grid-column:15/27">
+            <ol class="stp">
+              <li><p>Add rye, sweet vermouth, and bitters to a mixing glass with ice. Stir until well-chilled.</p></li>
+              <li><p>Strain into a chilled coupe or Nick &amp; Nora glass.</p></li>
+              <li><p>Garnish with a brandied cherry.</p></li>
+            </ol>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <table class="mtab">
+      <tr><th>measured on all 124 at 1881px</th><th>empty paper, mean</th><th>worst</th><th>step measure</th><th>number → next column</th></tr>
+      <tr><td>Today (01)</td><td>256px</td><td>783px</td><td><b>544px</b></td><td>—</td></tr>
+      <tr><td>11 — keep the measure</td><td><b>126px</b></td><td><b>420px</b></td><td><b>544px</b></td><td>20px</td></tr>
+      <tr><td>12 — one track of alley</td><td><b>126px</b></td><td><b>420px</b></td><td>510px</td><td><b>91px</b></td></tr>
+      <tr><td>13 — number leads</td><td><b>126px</b></td><td><b>420px</b></td><td>531px</td><td>n/a — number is left</td></tr>
+    </table>
+  </article>
+</section>
+
+<!-- ══════════════════════ QUESTION 2 ══════════════════════ -->
+<section class="sect" data-name="Colophon width">
+  <h2>2 &nbsp;Colophon pages — what fills the right half?</h2>
+  <p class="sd">Steering, changelog, drafts, type and photos all keep a single reading
+  measure at 1881&thinsp;px. Prose shouldn&rsquo;t get wider, so the question is what
+  the freed width is <em>for</em>.</p>
+  <p class="ev">Measured at 1881&thinsp;px: steering&rsquo;s widest text line is
+  <b>632px, ending at x=912 — 969px of empty paper to its right</b>. Changelog is
+  worse in a different way (<b>19 screens tall</b>, 27 sections, no nav at all);
+  photos is <b>11.8 screens</b>. Only steering has <code>toc: true</code> — the other
+  four get no nav today.</p>
+
+  <div class="lockband">
+    <span class="lk">Chosen — round 1</span>
+    <span class="lv"><b>06 — marginalia + nav everywhere.</b> Left here so the
+    comparison stays readable; reopen it only if 06 fails in the build.</span>
+  </div>
+
+  <!-- 01 CURRENT -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">01</span><span class="om">Current — nav + measure, rest empty</span>
+      <span class="ow">224px nav, 640px prose, <b>969px of nothing</b>. The nav is
+      right and the measure is right; they&rsquo;re just both pinned to the far left
+      of a 1825px field.</span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>steering</b></p>
+        <h1 class="ttl" style="font-size:58px">steering</h1>
+        <div class="relpos">
+          <div class="dead" style="left:49%;right:0;top:26px;bottom:0">
+            <em>969px empty</em></div>
+          <div class="dl">
+            <nav class="dnav"><ol>
+              <li><a href="#">Voice &amp; Tone</a></li>
+              <li><a href="#" class="cur">Front Matter</a></li>
+              <li><a href="#">Measurements</a></li>
+              <li><a href="#">Ingredients</a></li>
+              <li><a href="#">Steps</a></li>
+              <li><a href="#">Notes</a></li>
+              <li><a href="#">Naming</a></li>
+              <li><a href="#">File Naming &amp; Linking</a></li>
+              <li><a href="#">Design system</a></li>
+            </ol></nav>
+            <div class="dbody">
+              <h2>Front Matter</h2>
+              <p>Every recipe declares <code>layout: page</code>, a
+              <code>title</code>, a <code>category</code>, and a
+              <code>number</code>. The number is validated by
+              <code>bin/check-numbers.py</code> — contiguous 1..N, no gaps.</p>
+              <h2>Measurements</h2>
+              <p>Grams for everything that can be weighed. Volume only where weight
+              is meaningless (a teaspoon of vanilla). No cups.</p>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 02 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">02</span><span class="om">Centre the pair</span>
+      <span class="ow">Nav + measure stay exactly as they are and <b>sit in the middle
+      of the page</b>. The emptiness becomes symmetric margin instead of a hole on one
+      side — the classic Swiss answer to a short measure on wide paper.
+      <span class="cost">Cost: breaks the flush-left crumb/title alignment every other
+      page has, unless the header centres too.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <div style="max-width:1000px;margin:0 auto">
+          <p class="crumb">← index / <b>steering</b></p>
+          <h1 class="ttl" style="font-size:58px">steering</h1>
+          <div class="dl">
+            <nav class="dnav"><ol>
+              <li><a href="#">Voice &amp; Tone</a></li>
+              <li><a href="#" class="cur">Front Matter</a></li>
+              <li><a href="#">Measurements</a></li>
+              <li><a href="#">Ingredients</a></li>
+              <li><a href="#">Steps</a></li>
+              <li><a href="#">Notes</a></li>
+              <li><a href="#">Naming</a></li>
+            </ol></nav>
+            <div class="dbody">
+              <h2>Front Matter</h2>
+              <p>Every recipe declares <code>layout: page</code>, a
+              <code>title</code>, a <code>category</code>, and a
+              <code>number</code>. The number is validated by
+              <code>bin/check-numbers.py</code> — contiguous 1..N, no gaps.</p>
+              <h2>Measurements</h2>
+              <p>Grams for everything that can be weighed. Volume only where weight
+              is meaningless (a teaspoon of vanilla). No cups.</p>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 03 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">03</span><span class="om">Marginalia — heads in the margin</span>
+      <span class="ow">The section head <b>leaves the prose and hangs in the outer
+      margin</b>, beside its own first paragraph — the exact treatment the articles
+      and the home directory already use. Nav on the left, heads in the middle margin,
+      prose in a 40rem measure. <b>The width holds structure, not filler</b>, and it
+      makes the colophon look like the rest of the site.
+      <span class="cost">Cost: only helps pages whose sections are long enough to
+      carry a margin head; a 27-section changelog gets very busy.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>steering</b></p>
+        <h1 class="ttl" style="font-size:58px">steering</h1>
+        <div class="g26">
+          <nav class="dnav" style="grid-column:1/5">
+            <ol>
+              <li><a href="#">Voice &amp; Tone</a></li>
+              <li><a href="#" class="cur">Front Matter</a></li>
+              <li><a href="#">Measurements</a></li>
+              <li><a href="#">Ingredients</a></li>
+              <li><a href="#">Steps</a></li>
+              <li><a href="#">Notes</a></li>
+              <li><a href="#">Naming</a></li>
+            </ol>
+          </nav>
+          <div style="grid-column:7/27;display:grid;
+            grid-template-columns:repeat(20,1fr);column-gap:20px;row-gap:0">
+            <h2 style="grid-column:1/5;font-size:var(--fs-small);font-weight:700;
+              text-transform:lowercase;letter-spacing:-.02em;margin:0;line-height:1.4">front matter</h2>
+            <div style="grid-column:6/17;max-width:40rem">
+              <p style="margin:0 0 12px">Every recipe declares <code>layout: page</code>, a
+              <code>title</code>, a <code>category</code>, and a <code>number</code>.
+              The number is validated by <code>bin/check-numbers.py</code> —
+              contiguous 1..N, no gaps.</p>
+            </div>
+            <h2 style="grid-column:1/5;font-size:var(--fs-small);font-weight:700;
+              text-transform:lowercase;letter-spacing:-.02em;margin:34px 0 0;line-height:1.4">measurements</h2>
+            <div style="grid-column:6/17;max-width:40rem;margin-top:34px">
+              <p style="margin:0 0 12px">Grams for everything that can be weighed.
+              Volume only where weight is meaningless (a teaspoon of vanilla). No cups.</p>
+            </div>
+            <h2 style="grid-column:1/5;font-size:var(--fs-small);font-weight:700;
+              text-transform:lowercase;letter-spacing:-.02em;margin:34px 0 0;line-height:1.4">ingredients</h2>
+            <div style="grid-column:6/17;max-width:40rem;margin-top:34px">
+              <p style="margin:0">One table, two columns: amount then item. Amounts are
+              right-aligned and bold; the unit is part of the amount.</p>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 04 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">04</span><span class="om">Two prose columns</span>
+      <span class="ow">Reference prose flows down one 40rem measure and up the next,
+      so a 19-screen changelog becomes ~10. <b>Halves the scroll on the two long
+      pages</b> and uses the width literally.
+      <span class="cost">Cost: this was explicitly rejected for articles — snaking
+      prose on a 2560px screen is worse to read. A changelog you scan rather than
+      read is the one place it might be defensible.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · changelog</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>changelog</b></p>
+        <h1 class="ttl" style="font-size:58px">changelog</h1>
+        <div style="margin-top:34px;columns:2;column-gap:90px;max-width:1600px">
+          <div style="break-inside:avoid">
+            <h2 style="font-size:var(--fs-lede);font-weight:700;margin:0 0 8px;
+              padding-top:12px;border-top:1px solid var(--hair)">2026-07-27</h2>
+            <p style="margin:0 0 12px">Ultrawide layout (≥ 112rem) — one recipe on one
+            screen, and a directory that uses the whole monitor.</p>
+            <p style="margin:0 0 12px">Fix stacked ingredient groups: a single
+            <code>grid-row: 3</code> matched every following table.</p>
+          </div>
+          <div style="break-inside:avoid">
+            <h2 style="font-size:var(--fs-lede);font-weight:700;margin:24px 0 8px;
+              padding-top:12px;border-top:1px solid var(--hair)">2026-07-24</h2>
+            <p style="margin:0 0 12px">Responsive / mobile pass — home masthead wraps
+            below 34rem; article tables scroll rather than overflow.</p>
+          </div>
+          <div style="break-inside:avoid">
+            <h2 style="font-size:var(--fs-lede);font-weight:700;margin:24px 0 8px;
+              padding-top:12px;border-top:1px solid var(--hair)">2026-07-22</h2>
+            <p style="margin:0">Homepage masthead: remove the heavy 3px rule under the
+            wordmark — the only 3px divider on an otherwise-1px site.</p>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 05 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">05</span><span class="om">Nav to all five, measure stays left</span>
+      <span class="ow">Don&rsquo;t fill the width — <b>fix the real problem, which is
+      that four of the five pages have no nav at all</b>. Changelog (27 sections,
+      19 screens) and photos (11.8 screens) get the same sticky rail steering has,
+      by dropping <code>toc: true</code> into their front matter. The right side stays
+      paper.
+      <span class="cost">Cost: doesn&rsquo;t answer the annotation as written — the
+      emptiness remains. It just makes it not matter.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real · changelog with rail</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>changelog</b></p>
+        <h1 class="ttl" style="font-size:58px">changelog</h1>
+        <div class="dl">
+          <nav class="dnav"><ol>
+            <li><a href="#" class="cur">2026-07-27</a></li>
+            <li><a href="#">2026-07-24</a></li>
+            <li><a href="#">2026-07-22</a></li>
+            <li><a href="#">2026-07-21</a></li>
+            <li><a href="#">2026-07-19</a></li>
+            <li><a href="#">2026-07-16</a></li>
+          </ol></nav>
+          <div class="dbody">
+            <h2>2026-07-27</h2>
+            <p>Ultrawide layout (≥ 112rem) — one recipe on one screen, and a directory
+            that uses the whole monitor. The threshold is a single Sass variable
+            (<code>$split</code>).</p>
+            <h2>2026-07-24</h2>
+            <p>Responsive / mobile pass — home masthead wraps below 34rem; article
+            tables scroll rather than overflow the page.</p>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 06 -->
+  <article class="opt">
+    <div class="ohd">
+      <span class="on">06</span><span class="om">Marginalia + nav everywhere</span>
+      <span class="ow"><b>03 and 05 together</b>, and the answer that makes the colophon
+      match the site: every colophon page gets the sticky rail, and its section heads
+      hang in the margin beside their prose. <b>One treatment, all five pages</b>, same
+      grammar as the articles and the home directory.
+      <span class="cost">Cost: the largest change here — touches the doc layout, five
+      pages&rsquo; front matter, and needs the changelog&rsquo;s 27 dated sections to
+      read well as margin heads.</span></span>
+    </div>
+    <div class="stage"><span class="vwlab">1881 × real</span>
+      <div class="scaler s1881"><div class="pg">
+        <p class="crumb">← index / <b>steering</b></p>
+        <h1 class="ttl" style="font-size:58px">steering</h1>
+        <div class="g26">
+          <nav class="dnav" style="grid-column:1/5;border-top:1px solid var(--ink);
+            padding-top:12px">
+            <p style="font-size:var(--fs-kicker);font-weight:700;letter-spacing:.14em;
+              text-transform:uppercase;color:var(--grey);margin:0 0 10px">Contents</p>
+            <ol>
+              <li><a href="#">Voice &amp; Tone</a></li>
+              <li><a href="#" class="cur">Front Matter</a></li>
+              <li><a href="#">Measurements</a></li>
+              <li><a href="#">Ingredients</a></li>
+              <li><a href="#">Steps</a></li>
+              <li><a href="#">Notes</a></li>
+              <li><a href="#">Naming</a></li>
+            </ol>
+          </nav>
+          <div style="grid-column:7/27;display:grid;
+            grid-template-columns:repeat(20,1fr);column-gap:20px">
+            <h2 style="grid-column:1/5;font-size:var(--fs-small);font-weight:700;
+              text-transform:lowercase;letter-spacing:-.02em;margin:0;line-height:1.4">front matter</h2>
+            <div style="grid-column:6/17;max-width:40rem">
+              <p style="margin:0 0 12px">Every recipe declares <code>layout: page</code>,
+              a <code>title</code>, a <code>category</code>, and a
+              <code>number</code>. The number is validated by
+              <code>bin/check-numbers.py</code> — contiguous 1..N, no gaps.</p>
+            </div>
+            <h2 style="grid-column:1/5;font-size:var(--fs-small);font-weight:700;
+              text-transform:lowercase;letter-spacing:-.02em;margin:34px 0 0;line-height:1.4">measurements</h2>
+            <div style="grid-column:6/17;max-width:40rem;margin-top:34px">
+              <p style="margin:0 0 12px">Grams for everything that can be weighed.
+              Volume only where weight is meaningless. No cups.</p>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <article class="opt">
+    <div class="ohd">
+      <span class="om">Click the options you want</span>
+      <span class="ow">Or just reply with numbers — e.g. &ldquo;1: 06, 2: 03&rdquo;.
+      Picking one from each question is enough; they&rsquo;re independent.</span>
+    </div>
+  </article>
+</section>
+
+</div>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────
+     /proofs picker — pasted verbatim from ~/workplace/work/skills/proofs/picker.html
+     ───────────────────────────────────────────────────────────────────────────── -->
+<style>
+  .ohd{cursor:pointer;user-select:none;padding:6px 10px;margin:-6px -10px 6px;
+    transition:background var(--dur-fast,140ms) var(--ease,ease)}
+  .ohd:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+  .ohd:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .opt.sel > .ohd{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  .pm{flex:none;align-self:baseline;margin-bottom:-2px;display:inline-block;
+    width:12px;height:12px;border:1.5px solid var(--faint);border-radius:0;
+    transition:background var(--dur-fast,140ms) var(--ease,ease),
+               border-color var(--dur-fast,140ms) var(--ease,ease)}
+  .ohd:hover .pm{border-color:var(--ink)}
+  .opt.sel .pm{background:var(--accent);border-color:var(--accent);
+    box-shadow:inset 0 0 0 2px var(--paper)}
+  .opt.sel .on{color:var(--ink)}
+  .tray{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--panel);
+    border-top:2px solid var(--ink);padding:10px var(--gutter)}
+  .tray .tin{max-width:1180px;margin:0 auto;display:flex;align-items:center;
+    gap:14px var(--unit);flex-wrap:wrap}
+  .tray .tq{flex:1 1 380px;min-width:0;font-size:12px;line-height:19px;color:var(--dim);
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px}
+  .tray .ti{white-space:nowrap}
+  .tray .tq b{color:var(--ink);font-weight:700}
+  .tray .un{color:var(--faint)}
+  .tray .tsep{margin:0 8px;color:var(--line)}
+  .tray .tst{font-size:11px;line-height:18px;letter-spacing:.13em;text-transform:uppercase;
+    font-weight:700;color:var(--faint);white-space:nowrap}
+  .tray.done .tst{color:var(--build)}
+  .tray button{font:inherit;font-size:13px;font-weight:700;line-height:1;padding:8px 12px;
+    border:0;cursor:pointer;background:var(--ink);color:var(--paper)}
+  .tray button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .tray textarea{flex:1 1 100%;font:inherit;font-size:11px;line-height:1.4;
+    background:var(--paper);color:var(--ink);border:1px solid var(--line);padding:6px;
+    height:52px;resize:none}
+  @media(max-width:720px){
+    .tray{padding:8px var(--gutter)}
+    .tray .tq{font-size:11px}
+  }
+</style>
+<script>
+(function(){
+  var sects=[].slice.call(document.querySelectorAll('.sect')).map(function(s,i){
+    var opts=[].slice.call(s.querySelectorAll('.opt')).filter(function(o){
+      return o.querySelector('.on'); });
+    if(!opts.length) return null;
+    return { el:s, idx:i+1,
+      name:s.getAttribute('data-name')||(s.querySelector('h2')||{}).textContent||('Q'+(i+1)),
+      multi:s.hasAttribute('data-multi'), opts:opts, picked:[] };
+  }).filter(Boolean);
+  if(!sects.length) return;
+
+  var tray=document.createElement('div'); tray.className='tray';
+  tray.innerHTML='<div class="tin"><div class="tq"></div>'+
+    '<span class="tst"></span><button class="copy">Copy picks</button>'+
+    '<button class="ghost clear">Clear</button></div>';
+  document.body.appendChild(tray);
+  var tq=tray.querySelector('.tq'), tst=tray.querySelector('.tst');
+
+  sects.forEach(function(sec){
+    sec.opts.forEach(function(o){
+      var hd=o.querySelector('.ohd'); if(!hd) return;
+      var pm=document.createElement('span'); pm.className='pm';
+      hd.insertBefore(pm,hd.firstChild);
+      hd.setAttribute('tabindex','0'); hd.setAttribute('role','button');
+      hd.setAttribute('aria-pressed','false');
+      function toggle(){
+        if(sec.multi){
+          var k=sec.picked.indexOf(o);
+          if(k>=0) sec.picked.splice(k,1); else sec.picked.push(o);
+        } else {
+          sec.picked = sec.picked[0]===o ? [] : [o];
+        }
+        sec.opts.forEach(function(x){
+          var on=sec.picked.indexOf(x)>=0;
+          x.classList.toggle('sel',on);
+          var h=x.querySelector('.ohd'); if(h) h.setAttribute('aria-pressed',on?'true':'false');
+        });
+        render();
+      }
+      hd.addEventListener('click',toggle);
+      hd.addEventListener('keydown',function(e){
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}
+      });
+    });
+  });
+
+  function label(o){
+    var n=(o.querySelector('.on')||{}).textContent||'';
+    var m=(o.querySelector('.om')||{}).textContent||'';
+    return {n:n.trim(),m:m.trim()};
+  }
+  function summary(){
+    var out=[document.title];
+    sects.forEach(function(s){
+      if(!s.picked.length) return;
+      var parts=s.picked.map(function(o){var l=label(o);return l.n+' — '+l.m;});
+      out.push(s.idx+' '+s.name+': '+parts.join(' + '));
+    });
+    return out.join('\n');
+  }
+  var done=false;
+  function render(){
+    tq.innerHTML='';
+    sects.forEach(function(s,i){
+      var span=document.createElement('span'); span.className='ti';
+      var v=s.picked.length? s.picked.map(function(o){return label(o).n;}).join('+') : '—';
+      span.innerHTML='<b>'+s.idx+'</b> '+s.name+' '+
+        (s.picked.length?'<b>'+v+'</b>':'<span class="un">—</span>');
+      tq.appendChild(span);
+    });
+    var n=sects.filter(function(s){return s.picked.length;}).length;
+    tst.textContent=n+' of '+sects.length+' chosen';
+    tray.classList.toggle('done',n===sects.length);
+    if(n===sects.length){ copy(true); done=true; }
+    else if(done && n<sects.length){ done=false; }
+  }
+  function fallback(txt){
+    var ta=tray.querySelector('textarea');
+    if(!ta){ ta=document.createElement('textarea'); tray.querySelector('.tin').appendChild(ta); }
+    ta.value=txt; ta.select();
+    tst.textContent='select the box, then ⌘C';
+  }
+  function copy(auto){
+    var txt=summary();
+    function ok(){ tst.textContent=auto?'copied — paste in chat':'copied'; }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok,function(){legacy(txt,ok);});
+    } else legacy(txt,ok);
+  }
+  function legacy(txt,ok){
+    var ta=document.createElement('textarea');
+    ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    var good=false; try{ good=document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    if(good) ok(); else fallback(txt);
+  }
+  tray.querySelector('.copy').addEventListener('click',function(){copy(false);});
+  tray.querySelector('.clear').addEventListener('click',function(){
+    sects.forEach(function(s){ s.picked=[];
+      s.opts.forEach(function(x){ x.classList.remove('sel');
+        var h=x.querySelector('.ohd'); if(h) h.setAttribute('aria-pressed','false'); }); });
+    var ta=tray.querySelector('textarea'); if(ta) ta.remove();
+    done=false; render();
+  });
+  render();
+})();
+</script>
+
+<script>
+// Fit the 1881px renders to whatever width this sheet is actually in — its own
+// tab, or the 1090px iframe on the case study. Measures a real stage's content
+// box, so the padding and the scrollbar are already accounted for.
+(function(){
+  var st=document.querySelector('.stage');
+  if(!st) return;
+  function fit(){
+    var w=st.clientWidth;
+    if(w>4) document.documentElement.style.setProperty('--fit',(w/1881).toFixed(4));
+  }
+  fit();
+  addEventListener('resize',fit);
+})();
+</script>
+</body>
+</html>

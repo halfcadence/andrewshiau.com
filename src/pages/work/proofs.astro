@@ -1,136 +1,193 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SideMark from '../../components/SideMark.astro';
+import PanelHead from '../../components/PanelHead.astro';
 ---
 
 <Layout
   title="Proofs — Andrew Shiau"
   description="A skill that renders every design option side by side in the real system, so you pick by looking."
 >
+  <!-- THE SPLIT (chooser round 2: concept 02, scope 03). Same `.pin` /
+       `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
+       site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <div class="back"><a href="/">← Index</a></div>
-  </div>
+    <PanelHead href="/work/proofs/" title="Proofs">
+      <!-- TYPE B: no ledger in the panel. This page's facts block is a COLOPHON — what the
+           thing is made of, read AFTER the work (STYLE.md) — so it stays at the foot of the
+           reading column and the panel is marker + title + contact. The empty space under a
+           three-item panel is the same condition the index's own panel is in; a ledger
+           invented to fill it would be the one fabricated thing on the page. -->
+    </PanelHead>
 
-  <div class="grid">
-    <div class="c1-10">
-      <SideMark href="/work/proofs/" />
-      <h1>Proofs</h1>
-    </div>
-  </div>
-  <div class="grid">
-    <p class="dek c1-8" style="margin-top:var(--unit)">
-      A skill for design decisions with no obvious answer. It renders every option for
-      real — in the typeface, tokens, and grid the thing will ship in — so you choose by
-      looking. A proof in the print sense: a trial pull you check before you commit.
-    </p>
-  </div>
-
-  <!-- TYPE B, beat 2: named head over the page's argument (was unheaded prose). -->
-  <div class="grid sect">
-    <div class="shead">
-      <h2>Why render it</h2>
-      <div class="sbody">
-        <p>
-          You can't see prose. A byline, a type ramp, a masthead: the differences are
-          visual and small, and a paragraph describing them tells you nothing you can act
-          on. Put the candidates next to each other and you know in a second.
-        </p>
-        <p>
-          I chose this site's layout this way. Both sheets below are the ones I actually
-          used.
+    <div class="feed">
+      <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is
+           narrower than 8 of the feed's 700px, so c1–8 would set a column the text
+           never reaches. No top margin — the dek is the top of the reading column. -->
+      <div class="grid">
+        <p class="dek c1-12">
+          A skill for design decisions with no obvious answer. It renders every option for
+          real — in the typeface, tokens, and grid the thing will ship in — so you choose by
+          looking. A proof in the print sense: a trial pull you check before you commit.
         </p>
       </div>
-    </div>
-  </div>
 
-  <div class="grid sect">
-    <!-- .shead, not a flush-left h2: a paragraph DOES follow this head (the embed comes
-         after it), and the site's rule is that a head with prose under it uses .shead so
-         the head and its first line share column 1. The old comment here claimed an embed
-         followed directly, which was never true. -->
-    <div class="shead">
-      <h2>This index</h2>
-      <div class="sbody">
-        <p>
-          Three poster compositions on the 12-column grid, rendered live. I picked A, the
-          calendar scatter, shipped it, and then took it out. It composed well on the sheet
-          and indexed badly on the real page: two sections used the same device, and neither
-          list was ever whole on screen. The index you're reading is a ruled list. C survives
-          as the staircase the links use.
-        </p>
-      </div>
-    </div>
-  </div>
-  <div class="grid">
-    <figure class="embed c1-12" style="margin-top:var(--unit)">
-      <div class="esrc">
-        <a href="/demo/index-layouts/index.html" target="_blank" rel="noopener">open the proof sheet full-screen</a>
-      </div>
-      <div class="embed-frame">
-        <iframe src="/demo/index-layouts/index.html" title="A live proof sheet of index layouts" loading="lazy"></iframe>
-      </div>
-      <figcaption>
-        <a href="/demo/index-layouts/index.html" target="_blank" rel="noopener">open full-screen</a>
-        — three index layouts on the real grid. A shipped, then lost to the live page.
-      </figcaption>
-    </figure>
-  </div>
-
-  <div class="grid sect">
-    <div class="shead">
-      <h2>A harder one</h2>
-      <div class="sbody">
-        <p>
-          My recipe archive needed a layout for a wide screen: a 26-column split with the
-          section names hung out in the margin. Six open questions, twenty options, every
-          frame rendered at a width it ships at — 1512, 1792, 2560, and 390 for a phone.
-        </p>
-        <p>
-          This is round two, so whatever round one settled sits in a band at the top marked
-          locked. Reopening a decision you already made is how you spend a week choosing a
-          gutter.
-        </p>
-      </div>
-    </div>
-  </div>
-  <div class="grid">
-    <figure class="embed c1-12" style="margin-top:var(--unit)">
-      <div class="esrc">
-        <a href="/demo/recipes-ultrawide/index.html" target="_blank" rel="noopener">open the second proof sheet full-screen</a>
-      </div>
-      <div class="embed-frame">
-        <iframe src="/demo/recipes-ultrawide/index.html" title="A live proof sheet of ultrawide layouts for the recipe archive" loading="lazy"></iframe>
-      </div>
-      <figcaption>
-        <a href="/demo/recipes-ultrawide/index.html" target="_blank" rel="noopener">open full-screen</a>
-        — twenty options for the recipe archive's wide layout, at their real widths.
-        Round 2, July 2026, as it stood.
-      </figcaption>
-    </figure>
-  </div>
-
-  <!-- TYPE B close: the facts colophon. -->
-  <div class="grid sect">
-    <div class="facts">
-      <div class="frow">
-        <div class="fm">Form</div>
-        <div class="ftx">
-          One self-contained HTML page. Every option rendered in the real design system,
-          labelled, with a line saying why it might win. Open it and pick a number.
+      <!-- TYPE B, beat 2: named head over the page's argument (was unheaded prose). -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Why render it</h2>
+          <div class="sbody">
+            <p>
+              You can’t see prose. A byline, a type ramp, a masthead: the differences are
+              visual and small, and a paragraph describing them tells you nothing you can act
+              on. Put the candidates next to each other and you know in a second.
+            </p>
+            <p>
+              I chose this site’s layout this way. Every sheet below is one I actually used.
+            </p>
+          </div>
         </div>
       </div>
-      <div class="frow">
-        <div class="fm">The rule</div>
-        <div class="ftx">
-          Option 01 is always what's live today, so you read the rest against it. Four
-          distinct options beat a dozen near-duplicates.
+
+      <div class="grid sect">
+        <!-- .shead, not a flush-left h2: a paragraph DOES follow this head (the embed comes
+             after it), and the site's rule is that a head with prose under it uses .shead so
+             the head and its first line share column 1. The old comment here claimed an embed
+             followed directly, which was never true. -->
+        <div class="shead">
+          <h2>This index</h2>
+          <div class="sbody">
+            <p>
+              Three poster compositions on the 12-column grid, rendered live. I picked A, the
+              calendar scatter, shipped it, and then took it out. It composed well on the sheet
+              and indexed badly on the real page: two sections used the same device, and neither
+              list was ever whole on screen. The index you’re reading is a ruled list. C survives
+              as the staircase the links use.
+            </p>
+          </div>
         </div>
       </div>
-      <div class="frow">
-        <div class="fm">Rounds</div>
-        <div class="ftx">
-          A second sheet opens with whatever the first one settled, marked <b>locked</b>.
-          Decisions close; only the open questions get frames.
+      <div class="grid">
+        <figure class="embed c1-12" style="margin-top:var(--unit)">
+          <div class="esrc">
+            <a href="/demo/index-layouts/index.html" target="_blank" rel="noopener">open the proof sheet full-screen</a>
+          </div>
+          <div class="embed-frame">
+            <iframe src="/demo/index-layouts/index.html" title="A live proof sheet of index layouts" loading="lazy"></iframe>
+          </div>
+          <figcaption>
+            <a href="/demo/index-layouts/index.html" target="_blank" rel="noopener">open full-screen</a>
+            — three index layouts on the real grid. A shipped, then lost to the live page.
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>A harder one</h2>
+          <div class="sbody">
+            <p>
+              My recipe archive needed a layout for a wide screen: a 26-column split with the
+              section names hung out in the margin. Six open questions, twenty options, every
+              frame rendered at a width it ships at — 1512, 1792, 2560, and 390 for a phone.
+            </p>
+            <p>
+              This is round two, so whatever round one settled sits in a band at the top marked
+              locked. Reopening a decision you already made is how you spend a week choosing a
+              gutter.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <figure class="embed c1-12" style="margin-top:var(--unit)">
+          <div class="esrc">
+            <a href="/demo/recipes-ultrawide/index.html" target="_blank" rel="noopener">open the second proof sheet full-screen</a>
+          </div>
+          <div class="embed-frame">
+            <iframe src="/demo/recipes-ultrawide/index.html" title="A live proof sheet of ultrawide layouts for the recipe archive" loading="lazy"></iframe>
+          </div>
+          <figcaption>
+            <a href="/demo/recipes-ultrawide/index.html" target="_blank" rel="noopener">open full-screen</a>
+            — twenty options for the recipe archive’s wide layout, at their real widths.
+            Round 2, July 2026, as it stood.
+          </figcaption>
+        </figure>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>What a round two looks like</h2>
+          <div class="sbody">
+            <p>
+              The wide layout shipped, and then two things about it were wrong: the ingredient
+              and step columns didn’t read as a pair, and the reference pages left a thousand
+              pixels of blank paper. So a third sheet, one question each. I measured all 124
+              recipes first: the right column runs twice the height of the left, and on six
+              recipes it runs the other way, which killed three options I would have drawn.
+            </p>
+            <p>
+              I picked a hairline across both heads and then couldn’t decide how the width
+              should divide, so four more frames went on the same sheet under a band marking
+              the part already settled. One of them shows its own flaw. Pinning the steps to
+              the right edge moves the empty space into the middle of the page on the 71
+              recipes with a single ingredient group, so the frame stays up with that written
+              into its caption.
+            </p>
+            <p>
+              Then a better question: why should one split apply to every recipe? Three more
+              frames let the page decide — six or more steps and the list runs in two
+              columns, fewer and nothing changes. CSS can count, so no script is involved,
+              and I checked the count against the real page on all 124. The threshold is
+              measured too: splitting at four leaves the least blank paper but gives 27
+              recipes a two-step column, which doesn’t read as a column at all. You can’t
+              judge a conditional layout from the case where it fires, so each of these
+              three is drawn twice: once on a recipe it changes, once on a recipe it
+              leaves alone.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <figure class="embed c1-12" style="margin-top:var(--unit)">
+          <div class="esrc">
+            <a href="/demo/recipes-harmony/index.html" target="_blank" rel="noopener">open the third proof sheet full-screen</a>
+          </div>
+          <div class="embed-frame">
+            <iframe src="/demo/recipes-harmony/index.html" title="A live proof sheet of column splits and reference-page layouts" loading="lazy"></iframe>
+          </div>
+          <figcaption>
+            <a href="/demo/recipes-harmony/index.html" target="_blank" rel="noopener">open full-screen</a>
+            — twenty-two frames at 1881px: how two columns become a pair, and what a wide
+            reference page is for. Round 3, July 2026, mid-decision.
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- TYPE B close: the facts colophon. -->
+      <div class="grid sect">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">Form</div>
+            <div class="ftx">
+              One self-contained HTML page. Every option rendered in the real design system,
+              labelled, with a line saying why it might win. Open it and pick a number.
+            </div>
+          </div>
+          <div class="frow">
+            <div class="fm">The rule</div>
+            <div class="ftx">
+              Option 01 is always what’s live today, so you read the rest against it. Four
+              distinct options beat a dozen near-duplicates.
+            </div>
+          </div>
+          <div class="frow">
+            <div class="fm">Rounds</div>
+            <div class="ftx">
+              A second sheet opens with whatever the first one settled, marked <b>locked</b>.
+              When one question of two closes, the band goes inside the sheet and the new
+              frames sit under it. Only the open questions get drawn.
+            </div>
+          </div>
         </div>
       </div>
     </div>

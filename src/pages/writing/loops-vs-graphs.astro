@@ -24,12 +24,12 @@ const quiz = [
       "A graph is easier to draw and looks more professional in a design review.",
       "You want the agent to iterate a few more times before stopping.",
       "A step must be blocked until a human approves it before the flow may continue.",
-      "The loop's system prompt is getting long and unwieldy.",
+      "The loop’s system prompt is getting long and unwieldy.",
     ], a:2 },
   { q: "The critique \"the same agent that did the task grades the task\" points at which property of a loop?",
     opts:[
       "Loops keep no memory between iterations.",
-      "Loops can't call external tools.",
+      "Loops can’t call external tools.",
       "Self-verification — the actor is also the judge, so it can optimize its own metric past the point the metric still means anything.",
       "Loops run forever and never terminate.",
     ], a:2 },
@@ -43,7 +43,7 @@ const quiz = [
   { q: "Pipeline: research → draft → fact-check → publish, where fact-check must block publish and a human signs off before publish. Loop or graph?",
     opts:[
       "Loop — graphs are only for parallel or branching work.",
-      "Graph — there's a hard gate (human sign-off blocking an edge) plus distinct stages a single self-judging loop can't enforce.",
+      "Graph — there’s a hard gate (human sign-off blocking an edge) plus distinct stages a single self-judging loop can’t enforce.",
       "Loop — one agent could just perform all four steps in sequence.",
       "Graph — because four steps is simply too many for a loop to handle.",
     ], a:1 },
@@ -51,8 +51,8 @@ const quiz = [
 ---
 <Explainer
   title="Loops vs graphs — Andrew Shiau"
-  description="An interactive explainer on agent architecture: when a loop should become a graph, and when it shouldn't."
-  kicker="Agent architecture · when a loop should become a graph — and when it shouldn't"
+  description="An interactive explainer on agent architecture: when a loop should become a graph, and when it shouldn’t."
+  kicker="Agent architecture · when a loop should become a graph — and when it shouldn’t"
   heading="Loops vs graphs."
   backHref="/work/explain/"
   backLabel="← Explain"
@@ -60,22 +60,22 @@ const quiz = [
 >
   <div class="grid"><p class="dek" style="grid-column:1/9">
     In July 2026 Peter Steinberger poked the field with one line — "are we still
-    talking loops, or did we shift to graphs yet?" It read as a verdict. It wasn't.
+    talking loops, or did we shift to graphs yet?" It read as a verdict. It wasn’t.
     It was a question, and the answer is a test you can run on any agent you build.
   </p></div>
 
   <div class="grid"><div class="idea">
     <p class="k">The one idea</p>
-    <p>A loop is one agent iterating on its own judgment until it's done. A graph cuts that work into fixed nodes joined by gated edges. Escalate only to buy a gate, determinism, or a real handoff.</p>
+    <p>A loop is one agent iterating on its own judgment until it’s done. A graph cuts that work into fixed nodes joined by gated edges. Escalate only to buy a gate, determinism, or a real handoff.</p>
   </div></div>
 
   <div class="grid"><div class="rule"></div></div>
   <div class="grid"><div class="c1-2"><span class="sn">1</span></div><div class="c3-12"><h2>The two shapes</h2></div></div>
   <div class="grid"><div class="body">
     <p>
-      These are not "old vs new." A loop is a cycle; a graph is a fixed path with
-      checkpoints. The defining difference isn't how many agents there are — it's
-      <b>who decides what happens next</b>: the model's own judgment (loop), or a
+      These are not “old vs new.” A loop is a cycle; a graph is a fixed path with
+      checkpoints. The defining difference isn’t how many agents there are — it’s
+      <b>who decides what happens next</b>: the model’s own judgment (loop), or a
       structure you wired in advance (graph).
     </p>
   </div></div>
@@ -87,7 +87,7 @@ const quiz = [
       <div class="arr">↓</div>
       <div class="node"><span class="nl">Step</span><span class="nt">Act</span><span class="nd">Pick one tool, run it, see the result.</span></div>
       <div class="arr">↓</div>
-      <div class="node invert"><span class="nl">The crux</span><span class="nt">Self-check</span><span class="nd">The same agent judges "done?" — actor and judge are one.</span></div>
+      <div class="node invert"><span class="nl">The crux</span><span class="nt">Self-check</span><span class="nd">The same agent judges “done?” — actor and judge are one.</span></div>
       <div class="loopback">↺ not done → back to Observe</div>
     </div>
     <div class="flow c7-12">
@@ -101,9 +101,9 @@ const quiz = [
   </div>
   <div class="grid"><div class="body" style="margin-top:var(--unit)">
     <p>
-      The inverted node is the loop's crux — it grades its own work. The red node is
-      the only thing a graph gives you that a loop can't: an edge the flow is forced
-      through. Everything else a graph "adds" — more steps, more prompts — a loop
+      The inverted node is the loop’s crux — it grades its own work. The gate is
+      the only thing a graph gives you that a loop can’t: an edge the flow is forced
+      through. Everything else a graph “adds” — more steps, more prompts — a loop
       already has.
     </p>
   </div></div>
@@ -113,20 +113,20 @@ const quiz = [
   <div class="grid"><div class="body">
     <p>
       There are exactly three honest reasons to break a loop into a graph. If none
-      apply, you're adding latency and rigidity for tidiness.
+      apply, you’re adding latency and rigidity for tidiness.
     </p>
   </div></div>
   <div class="grid"><div class="facts">
-    <div class="frow"><div class="fm">Gate</div><div class="ftx">A step must be blocked until a hard condition passes or a human approves. A self-judging loop can't enforce a stop it isn't allowed to overrule.</div></div>
-    <div class="frow"><div class="fm">Determinism</div><div class="ftx">You need a boundary to behave the same way every time — a fixed route, a checkpoint you can resume from — not "whatever the model decided this run."</div></div>
+    <div class="frow"><div class="fm">Gate</div><div class="ftx">A step must be blocked until a hard condition passes or a human approves. A self-judging loop can’t enforce a stop it isn’t allowed to overrule.</div></div>
+    <div class="frow"><div class="fm">Determinism</div><div class="ftx">You need a boundary to behave the same way every time — a fixed route, a checkpoint you can resume from — not “whatever the model decided this run.”</div></div>
     <div class="frow"><div class="fm">Real handoff</div><div class="ftx">Stages genuinely differ — different tools or models per node (cheap researcher → strong writer → strict reviewer), not one agent play-acting all three.</div></div>
-    <div class="frow"><div class="fm">Not a reason</div><div class="ftx">"The prompt got long." "Four steps feels like a lot." "A diagram looks more professional." Step count and neatness aren't reasons.</div></div>
+    <div class="frow"><div class="fm">Not a reason</div><div class="ftx">“The prompt got long.” “Four steps feels like a lot.” “A diagram looks more professional.” Step count and neatness aren’t reasons.</div></div>
   </div></div>
 
   <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="idea">
       <p class="k">The collapse test</p>
-      <p>Try to fold every node back into one agent's loop. If you can and lose nothing — no gate goes unenforced, no determinism disappears, no real tool/model split collapses — it was never a graph. It was a loop wearing a diagram, and you paid latency for the costume.</p>
+      <p>Try to fold every node back into one agent’s loop. If you can and lose nothing — no gate goes unenforced, no determinism disappears, no real tool/model split collapses — it was never a graph. It was a loop wearing a diagram, and you paid latency for the costume.</p>
     </div>
   </div>
   <div class="grid"><div class="body" style="margin-top:var(--unit)">
@@ -143,7 +143,7 @@ const quiz = [
 
   <Fragment slot="foot">
     Adapted from my own prototype on agent architecture. Prompted by Peter
-    Steinberger's July 2026 "loops or graphs?" question. Public-safe; no proprietary detail.
+    Steinberger’s July 2026 “loops or graphs?” question. Public-safe; no proprietary detail.
   </Fragment>
 </Explainer>
 

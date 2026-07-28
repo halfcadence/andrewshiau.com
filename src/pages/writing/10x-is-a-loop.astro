@@ -4,18 +4,18 @@
 import Explainer from '../../layouts/Explainer.astro';
 
 const quiz = [
-  { q: "The METR study: experienced devs were 19% slower with AI on familiar code, yet believed they'd been 20% faster. The takeaway?",
+  { q: "The METR study: experienced devs were 19% slower with AI on familiar code, yet believed they’d been 20% faster. The takeaway?",
     opts:["AI tools slow everyone down; serious engineers should avoid them.","Felt speed is untrustworthy — without measurement and a verification loop, AI use can cost time while feeling like acceleration.","The study proves AI only helps on unfamiliar code, so restrict it to that."], a:1 },
   { q: "Why is \"give the agent a check it can run\" the highest-leverage single change?",
     opts:["It stops the agent ending sessions early, so it works longer.","It makes the agent write more tests, and coverage is the goal.","It closes the loop: the agent iterates against pass/fail on its own, so you review evidence at the end instead of verifying every step in real time."], a:2 },
   { q: "The agent replies \"Done — all tests pass.\" What do you do?",
-    opts:["Re-run the entire suite yourself every time to be safe.","Require the evidence: the actual output, the command it ran, or a screenshot. An assertion of success is not verification.","Accept it — the agent ran the tests, that's what the loop is for."], a:1 },
+    opts:["Re-run the entire suite yourself every time to be safe.","Require the evidence: the actual output, the command it ran, or a screenshot. An assertion of success is not verification.","Accept it — the agent ran the tests, that’s what the loop is for."], a:1 },
   { q: "Per the \"70% problem,\" why does the same AI accelerate seniors but strand juniors?",
     opts:["Seniors have access to better models.","Juniors write worse prompts; prompt training closes the gap.","Seniors accelerate what they already understand and can judge; juniors substitute AI for understanding, so the last 30% becomes whack-a-mole in a system nobody in the loop knows."], a:2 },
-  { q: "You've corrected the agent twice on the same issue and it's still wrong. Next move?",
+  { q: "You’ve corrected the agent twice on the same issue and it’s still wrong. Next move?",
     opts:["Switch to a bigger model and repeat the same prompt.","Reset: clear the context or change strategy, and start fresh with a prompt encoding what the failures taught you.","Correct a third time with a firmer, more detailed prompt in the same session."], a:1 },
   { q: "When does running parallel agents actually multiply output?",
-    opts:["Immediately — parallelism is the main lever; add process later.","Only on greenfield projects; legacy code can't be parallelized.","Only after the single-agent loop is closed. Parallelizing an open loop multiplies unverified work that converges on one reviewer: you."], a:2 },
+    opts:["Immediately — parallelism is the main lever; add process later.","Only on greenfield projects; legacy code can’t be parallelized.","Only after the single-agent loop is closed. Parallelizing an open loop multiplies unverified work that converges on one reviewer: you."], a:2 },
 ];
 ---
 <Explainer
@@ -28,9 +28,9 @@ const quiz = [
   quiz={quiz}
 >
   <div class="grid"><p class="dek" style="grid-column:1/9">
-    Read across the people worth reading on this — Anthropic's agent guidance, the
-    METR trial, Simon Willison, Mitchell Hashimoto, Armin Ronacher, and Addy Osmani's
-    "70% problem." The answer is not "prompt better." It is: build the loop the agent
+    Read across the people worth reading on this — Anthropic’s agent guidance, the
+    METR trial, Simon Willison, Mitchell Hashimoto, Armin Ronacher, and Addy Osmani’s
+    “70% problem.” The answer is not “prompt better.” It is: build the loop the agent
     runs in, and stay the one who judges.
   </p></div>
 
@@ -53,10 +53,10 @@ const quiz = [
     </p>
     <p>
       Read the scope before despairing: experts, on code they knew intimately —
-      AI's weakest terrain. Where it measurably shines is the other side of that
+      AI’s weakest terrain. Where it measurably shines is the other side of that
       boundary: unfamiliar code, greenfield, prototypes, and projects that would
-      never have justified the time at all. The lesson isn't "AI slows you down."
-      It's that unverified AI use can slow you down while feeling like acceleration.
+      never have justified the time at all. The lesson isn’t “AI slows you down.”
+      It’s that unverified AI use can slow you down while feeling like acceleration.
     </p>
   </div></div>
 
@@ -66,18 +66,18 @@ const quiz = [
     <p>
       The single most repeated instruction in every source: give the agent a check
       it can run itself — tests, a build, a lint pass, a screenshot diff. Anthropic:
-      "the difference between a session you watch and one you walk away from."
-      Willison: "if you haven't seen it run, it's not a working system."
+      “the difference between a session you watch and one you walk away from.”
+      Willison: “if you haven’t seen it run, it’s not a working system.”
     </p>
   </div></div>
   <div class="grid" style="margin-top:0">
-    <div class="step c1-6"><span class="sl">Open loop — where the −19% lives</span><span class="st">Agent works → "looks done" → stops.</span><span class="sd">You are the verifier. Every mistake waits for you to notice it. You can't leave.</span></div>
-    <div class="block c7-12" style="align-self:start"><span class="st">Closed loop</span><span class="sd">Agent works → runs the check → reads the result → iterates until it passes. You review evidence at the end — not every line as it's typed.</span></div>
+    <div class="step c1-6"><span class="sl">Open loop — where the −19% lives</span><span class="st">Agent works → “looks done” → stops.</span><span class="sd">You are the verifier. Every mistake waits for you to notice it. You can’t leave.</span></div>
+    <div class="block c7-12" style="align-self:start"><span class="st">Closed loop</span><span class="sd">Agent works → runs the check → reads the result → iterates until it passes. You review evidence at the end — not every line as it’s typed.</span></div>
   </div>
   <div class="grid"><div class="body" style="margin-top:var(--unit)">
     <p>
-      Demand evidence, not assertion: "ran the tests" means showing the output.
-      Ronacher's tooling rules feed the same loop — tools must be fast (a 5-second
+      Demand evidence, not assertion: “ran the tests” means showing the output.
+      Ronacher’s tooling rules feed the same loop — tools must be fast (a 5-second
       compile wrecks iteration), loud on misuse, observable via logs the agent reads.
     </p>
   </div></div>
@@ -86,7 +86,7 @@ const quiz = [
   <div class="grid"><div class="c1-2"><span class="sn">3</span></div><div class="c3-12"><h2>Keep vs delegate</h2></div></div>
   <div class="grid" style="margin-top:0">
     <div class="step c1-6"><span class="sl">You keep</span><span class="sd">Architecture and interface decisions · the plan (interview first, edit by hand) · final review of every line that ships · breaking deadlocks (after ~2 failed corrections, change strategy) · the last 30% of polish and taste.</span></div>
-    <div class="step c7-12"><span class="sl">You delegate</span><span class="sd">First drafts against a scaffold · research and codebase archaeology (in subagents) · test generation, migrations, mechanical refactors · the iteration grind — the agent never tires of "again, but…".</span></div>
+    <div class="step c7-12"><span class="sl">You delegate</span><span class="sd">First drafts against a scaffold · research and codebase archaeology (in subagents) · test generation, migrations, mechanical refactors · the iteration grind — the agent never tires of “again, but…”.</span></div>
   </div>
   <div class="grid"><div class="body" style="margin-top:var(--unit)">
     <p>
@@ -103,17 +103,17 @@ const quiz = [
     <div class="frow"><div class="fm">Reset</div><div class="ftx">Clear between unrelated tasks. Two failed corrections → the context is polluted with bad approaches; start clean.</div></div>
     <div class="frow"><div class="fm">Plan → fresh</div><div class="ftx">Interview and plan in one session, write the spec down, execute in a new session holding only the spec. The chatter is disposable.</div></div>
     <div class="frow"><div class="fm">Subagents</div><div class="ftx">Research burns context. Delegate exploration to subagents that report summaries; keep the main window for building.</div></div>
-    <div class="frow"><div class="fm">Prune memory</div><div class="ftx"><b>CLAUDE.md</b> holds only what the agent can't infer. Test each line: "would removing this cause mistakes?" Bloat makes it ignore the rules that matter.</div></div>
+    <div class="frow"><div class="fm">Prune memory</div><div class="ftx"><b>CLAUDE.md</b> holds only what the agent can’t infer. Test each line: “would removing this cause mistakes?” Bloat makes it ignore the rules that matter.</div></div>
   </div></div>
 
   <div class="grid"><div class="rule"></div></div>
   <div class="grid"><div class="c1-2"><span class="sn">5</span></div><div class="c3-12"><h2>Start Monday</h2></div></div>
   <div class="grid"><div class="facts">
     <div class="frow"><div class="fm">Mon</div><div class="ftx"><b>Add a check.</b> Give the agent something runnable that returns pass/fail and tell it to iterate until green. Ask it to show the output.</div></div>
-    <div class="frow"><div class="fm">Tue</div><div class="ftx"><b>Prune memory.</b> For each line of CLAUDE.md: "would removing this cause mistakes?" Delete half. Watch adherence improve.</div></div>
+    <div class="frow"><div class="fm">Tue</div><div class="ftx"><b>Prune memory.</b> For each line of CLAUDE.md: “would removing this cause mistakes?” Delete half. Watch adherence improve.</div></div>
     <div class="frow"><div class="fm">Wed</div><div class="ftx"><b>The 2-strike rule.</b> Corrected the agent twice on one issue? Stop. Clear the session, write one better prompt.</div></div>
     <div class="frow"><div class="fm">Thu</div><div class="ftx"><b>Plan, then fresh.</b> Have the agent interview you, write SPEC.md, then execute in a brand-new session that reads only the spec.</div></div>
-    <div class="frow"><div class="fm">Fri</div><div class="ftx"><b>Delegate the reading.</b> "Use a subagent to investigate X and report back." Keep your context for the build.</div></div>
+    <div class="frow"><div class="fm">Fri</div><div class="ftx"><b>Delegate the reading.</b> “Use a subagent to investigate X and report back.” Keep your context for the build.</div></div>
   </div></div>
 
   <div class="grid"><div class="rule"></div></div>
@@ -122,8 +122,8 @@ const quiz = [
 
   <Fragment slot="foot">
     Sources: Anthropic, Claude Code best practices · METR, RCT on AI &amp; experienced
-    developer productivity (2025) · Simon Willison · Mitchell Hashimoto, "Non-trivial
-    vibing" · Armin Ronacher, "Agentic coding recommendations" · Addy Osmani, "The 70%
-    problem." Public sources; no proprietary information.
+    developer productivity (2025) · Simon Willison · Mitchell Hashimoto, “Non-trivial
+    vibing” · Armin Ronacher, “Agentic coding recommendations” · Addy Osmani, “The 70%
+    problem.” Public sources; no proprietary information.
   </Fragment>
 </Explainer>

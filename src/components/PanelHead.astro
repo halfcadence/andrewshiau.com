@@ -1,0 +1,42 @@
+---
+// The pinned panel's head, shared by all eight case-study pages: the back link, the side
+// marker, the title, and the ledger's first row — Type, which is the artifact type the
+// index already printed for this page (`metaOf`, so the two can never drift).
+//
+// It exists because the alternative was eight copies of the same six lines, and the last
+// time this site had a shape repeated by hand across eight pages the shapes drifted — the
+// facts block was beat 2 on four pages and the last beat on three, which is the drift the
+// page types were declared to stop (STYLE.md).
+//
+// The ledger is left OPEN: the component emits `.facts` and the Type row, and the page adds
+// its own rows as children. So Type A follows with Role and Where, Type C with a count, and
+// Type B adds nothing and still gets a ledger — which is why the Type B panels aren't a
+// title floating over 300px of nothing.
+import { metaOf } from '../data/experiments';
+import SideMark from './SideMark.astro';
+interface Props { href: string; title: string }
+const { href, title } = Astro.props;
+---
+<div class="pin">
+  <div class="back"><a href="/">← Index</a></div>
+  <SideMark href={href} />
+  <h1>{title}</h1>
+
+  <div class="facts">
+    <div class="frow">
+      <div class="fm">Type</div>
+      <div class="ftx">{metaOf(href)}</div>
+    </div>
+    <slot />
+  </div>
+
+  <!-- The one call to action, at the foot of the column that never leaves the screen —
+       the same place and the same treatment as on the index. -->
+  <p class="pfoot">Contact
+    <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+  </p>
+</div>
+
+<!-- The split's rule. An empty element because it belongs to neither side; see
+     `.splitrule` in global.css for why it isn't a border on the panel. -->
+<div class="splitrule" aria-hidden="true"></div>

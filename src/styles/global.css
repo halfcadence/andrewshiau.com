@@ -46,6 +46,10 @@
   --ease:cubic-bezier(0.16,1,0.3,1);  /* signature easing — everything animates on this */
   --dur:220ms; --dur-fast:140ms; --dur-big:340ms;
   --sans:"Graphik","Helvetica Neue",Helvetica,"Akzidenz-Grotesk",Arial,"Liberation Sans",system-ui,sans-serif;
+  /* One mono stack, one token. Body type is Graphik everywhere; mono is allowed in
+     exactly two roles — inline `code`, and the `.specblock` key/value listing. It is
+     never prose. See STYLE.md § Type. */
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
 }
 @media (prefers-color-scheme: dark){
   :root{
@@ -120,7 +124,7 @@ p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--accen
   box-decoration-break:clone;padding:0 .08em;margin:0 -.08em;border-radius:1px;
   transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 p a:hover{background:var(--accent);color:var(--on-accent);text-decoration-color:transparent}
-code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;
+code{font-family:var(--mono);font-size:.86em;
   background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em}
 /* fine print — a small faint aside (ramp step 13) */
 .fine{color:var(--faint);font-size:13px;line-height:20px}
@@ -208,6 +212,18 @@ code{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 .duo li b{color:var(--ink)}
 @media(max-width:900px){ .duo .dcol{grid-column:1 / 13} }
 
+/* RULES — the five numbered rules on /method/, as a lattice of `.step` cells rather than
+   two `.grid` rows of hand-written `grid-column` spans. The spans were inline styles, which
+   no media query can re-cut without !important, and the 3-up they hard-coded is 155px per
+   cell inside the 700px feed — narrower than "Simplify by removal, not by hiding" needs.
+   Auto-fit, not a fixed count: 3-up at the full 1064px measure (the original composition,
+   with the fifth cell's empty module intact), 2-up in the feed, one column on a phone. The
+   240px floor is where an 18px `.st` stops wrapping to three lines.
+   `row-gap` matches `.duo`'s, so the two devices on the page break to the same rhythm. */
+.rules{grid-column:1 / 13;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  column-gap:var(--gutter);row-gap:calc(var(--unit)*1.5)}
+
 /* BLOCK — the ONE rationed filled form */
 .block{background:var(--accent);color:var(--on-accent);padding:16px 18px;align-self:start}
 .block .st{display:block;font-weight:700;font-size:18px;line-height:24px}
@@ -254,12 +270,60 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .m-b{grid-column:8 / 13;grid-row:8 / 22}
 .m-c{grid-column:2 / 7;grid-row:22 / 35}
 .m-d{grid-column:8 / 13;grid-row:30 / 45}
+/* `.matrix.mscatter`, not `.mscatter` — two classes, because the rule it has to beat is
+   `.matrix{display:grid}` and that sits ~50 lines LATER in this file. At one class each, the
+   later declaration won and this stack never applied: measured on `powerpoint` at 390px, the
+   four clips rendered 153 / 123 / 123 / 123px wide from 1000px screen recordings. The whole
+   scatter was rendering on a phone as a 12-column lattice inside 334px.
+   That was a live bug on the phone before the split existed; the split just made it visible,
+   because checking `.mscatter` at every breakpoint is what caught it. */
 @media(max-width:900px){
-  .mscatter{display:block}
-  .mscatter figure.demo{margin-top:calc(var(--unit)*1.5)}
-  .mscatter figure.demo:first-child{margin-top:0}
+  .matrix.mscatter{display:block}
+  .matrix.mscatter figure.demo{margin-top:calc(var(--unit)*1.5)}
+  .matrix.mscatter figure.demo:first-child{margin-top:0}
 }
 
+
+/* SPEC BLOCK — what fills beat 2 on a Type A page that has no clip (chooser round 2, Q2
+   option 02). Stores Designer is the one page the type allows to skip the clip, and the
+   result was that the page's first beat after the dek was a ledger of two rows: the reader
+   met the least interesting fact first.
+   It is a key/value listing set in `--mono`, and the mono IS the argument — it says
+   "engineer" in the slot a screen recording would have occupied, without a screenshot of
+   anything internal. Rules, no box: a 2px ink rule opens it, hairlines separate the rows,
+   which is the .frow grammar with a mono value column.
+   Second of exactly two sanctioned mono roles (inline `code` is the first). It MUST NOT
+   be used for prose, and it MUST NOT appear on a page that has a clip — a page with both
+   is a page arguing the same point twice.
+   Its rows are `.frow`'s tracks exactly — key c1–4, value c4–11 — NOT a fixed 120px key
+   column. Measured: a 120px key put the value axis at x=336 while the facts ledger 36px
+   below put its own at x=461, so two ledgers stacked one on top of the other started their
+   values in two different places. Sharing `.frow`'s tracks means the mono block and the
+   masthead read as one ledger in two voices, which is what they are. c4–11, not c4–13, so
+   the value keeps a measure; the hairlines still span the full width, the same way the
+   facts rules do over a short value. */
+.specblock{grid-column:1 / 13;border-top:2px solid var(--ink);
+  font-family:var(--mono);font-size:13px;line-height:22px}
+.specblock .srow{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+  column-gap:var(--gutter);border-top:1px solid var(--line);padding:9px 0}
+.specblock .sk{grid-column:1 / 4}
+.specblock .sv{grid-column:4 / 11}
+.specblock .srow:first-child{border-top:0}
+.specblock .sk{color:var(--faint);font-weight:400}
+.specblock .sv{color:var(--dim)}
+.specblock .sv b{color:var(--ink);font-weight:400}
+/* the one accent inside the block: the value that is the page's own claim. Accent on a
+   MONO value is still the sanctioned "lead member of a group" role — nothing new. */
+.specblock .sv i{color:var(--accent);font-style:normal}
+.specblock figcaption{color:var(--faint);font-family:var(--sans);font-size:12px;
+  line-height:20px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;
+  margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+/* ≤720px matches what `.frow` does at the same width: the two columns become two lines. */
+@media(max-width:720px){
+  .specblock{font-size:12px;line-height:20px}
+  .specblock .srow{display:block;padding:8px 0}
+  .specblock .sk,.specblock .sv{display:block}
+}
 
 /* FACTS — a full-width ledger: label in the left margin, value across c4–12, one hairline
    per row (proof-sheet §2/02). This replaced three cells across the grid, and the reason is
@@ -299,6 +363,207 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   .frow .fm{margin-bottom:4px}
   .frow .ftx{font-size:15px;line-height:22px}
 }
+
+/* THE PINNED PANEL — the index's shape (chooser: andrewshiau-redesign-directions round 2,
+   concept 02 "pinned spec, ruled feed"; round 1 picks 12 + 10, hover-only motion, warm
+   paper). The landing page splits into an identity column that stays put and the three
+   ruled lists scrolling past it.
+   Why, in one line: the complaint was that the page reads pedestrian to someone deciding
+   whether to work with me, and the cause was that the largest thing on it was a sentence
+   ABOUT me, with the evidence below the fold. Pinning the sentence puts the evidence at
+   the top of the reading column without deleting the claim.
+   It is `position:sticky`, NOT a fixed panel with an independently scrolled list:
+   - the page keeps ONE scrollbar, so the browser's own scroll position, find-in-page, and
+     deep links all still work. A nested scroller breaks all three.
+   - it degrades to a plain stacked block the moment the viewport can't hold it (below), so
+     there is no state where content is trapped in a box too short to show it.
+   4 columns : 8 columns, not 6:6 — the reading column is the page's subject and a half
+   split would rank the two equally.
+   The vertical hairline is its own grid child (`.splitrule`), not a border on the panel.
+   Measured: the panel is 560px tall and the feed 1550, so a border on the panel's own edge
+   stopped a third of the way down and the lower two-thirds of the page had a wide empty
+   left third with nothing dividing it — it read as if the structure gave up below the
+   ledger. The rule belongs to the SPLIT, so it spans the split. Same principle as
+   `.colo-rule`: a rule that spans something is its own element.
+   It is the only rule on the page that runs vertically, which is affordable because it is
+   the one division the page actually has. */
+.pin{grid-column:1 / 5;grid-row:1;position:sticky;top:var(--unit);align-self:start;
+  padding-right:var(--gutter)}
+/* width:0 + justify-self:start, so it draws the line at the end of column 4 (where the
+   panel's border used to sit) and occupies no area — a stretched 1-column-wide box would
+   have overlapped the feed's numeral column and eaten its hover and clicks. */
+.splitrule{grid-column:5;grid-row:1;justify-self:start;width:0;
+  margin-left:calc(var(--gutter) * -1);border-left:1px solid var(--line)}
+.pin .statement{font-size:clamp(25px,2.6vw,31px);line-height:1.12;max-width:none}
+/* The ledger under the statement is the "instrument" half of the pick (round 1 direction
+   10), and it is deliberately the EXISTING .frow device at panel width rather than a new
+   block: label column, value column, one hairline per row. Four facts, all of which exist
+   in the site already — nothing is invented to fill the panel. */
+.pin .pled{margin-top:calc(var(--unit)*1.25)}
+.pin .prow{display:grid;grid-template-columns:88px 1fr;column-gap:14px;
+  border-top:1px solid var(--line);padding:8px 0}
+.pin .prow:first-child{border-top:2px solid var(--ink)}
+.pin .pk{font-size:11px;line-height:18px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--faint)}
+.pin .pv{font-size:13px;line-height:19px;color:var(--dim)}
+.pin .pv b{color:var(--ink);font-weight:700}
+.pin .pfoot{margin-top:calc(var(--unit)*1.25);font-size:11px;line-height:20px;
+  letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--faint)}
+.pin .pfoot a{display:block;color:var(--accent);text-decoration:none;
+  border-bottom:1px solid transparent;width:fit-content;
+  transition:border-color var(--dur-fast) var(--ease)}
+.pin .pfoot a:hover{border-bottom-color:var(--accent)}
+.feed{grid-column:5 / 13;grid-row:1}
+/* The feed's own section heads. The page previously opened each list with an h2 in its own
+   `.grid.sect`; inside the feed column that `.grid` would re-divide the 8 columns into 12
+   of its own, so the heads are set directly on the feed and keep the 3.5-unit section air
+   as a margin instead. First head loses it — the panel's top edge is the page's top edge. */
+.feed > h2{margin-top:calc(var(--unit)*3.5)}
+.feed > h2:first-child{margin-top:0}
+/* Two breakpoints, and they are different failures:
+   ≤1100px — the 4-col panel is 300px, where "Design system tool" in the marker column
+     starts wrapping to three lines. The split unwinds to a stacked block: the panel stops
+     being sticky, loses its vertical rule, and takes a horizontal one instead, because a
+     rule must own the edge it draws and the edge is now horizontal.
+   Short viewports — a sticky panel taller than the viewport scrolls its own bottom out of
+     reach and never comes back. Unsticking it is the only honest fallback. */
+@media(max-width:1100px){
+  .pin,.feed{grid-column:1 / 13;grid-row:auto}
+  .splitrule{display:none}
+  .pin{position:static;padding-right:0;
+    border-bottom:2px solid var(--ink);padding-bottom:var(--unit);
+    margin-bottom:calc(var(--unit)*1.5)}
+  .pin .statement{font-size:clamp(28px,3.6vw,39px);max-width:24em}
+  .pin .prow{grid-template-columns:120px 1fr}
+}
+/* No rule here restores the hung clip caption between 721 and 1100px, and none is needed:
+   `.feed figure.demo.hang{display:block}` now lives inside the split's own ≥1101px block, so
+   in the stacked range `figure.demo.hang` is untouched and hangs its caption exactly as it
+   does on a full-width page. An earlier version needed a (min-width:721px) and (max-width:
+   1100px) query here to undo a global override — deleting the override deleted the need. */
+@media(max-height:760px){
+  .pin{position:static}
+}
+
+/* THE SPLIT ON A CASE STUDY (chooser round 2, Q3 option 03, which includes 02: "each case
+   study gets the same pinned column, with its own ledger already written on the page").
+   The eight case-study pages take the SAME `.pin` / `.splitrule` / `.feed` children at the
+   SAME 4:8 columns — no modifier class, no second ratio. That is the point: the vertical
+   rule sits at the same x on every page of the site, so clicking from the index into a case
+   study doesn't move the one division the site has. It also means the sticky behaviour, both
+   breakpoints, and the short-viewport unstick above are one implementation, not two.
+   What the panel holds on a case study: the back link, the side marker, the title, the
+   page's own ledger, and the contact address. What the reading column holds: the dek, the
+   clip, and every section — the body markup is untouched, it just runs at 700px instead of
+   1064px inside its own `.grid` children.
+   The ledger only moves into the panel where it is metadata read BEFORE the work — Type A's
+   masthead and Type C's contents. Type B's facts block is a colophon read AFTER the work
+   (STYLE.md), so on `aping` / `explain` / `proofs` it stays last and the panel is title +
+   marker + contact only. A three-item panel with air under it is the same condition the
+   index's own panel is already in (560px of panel against 1550px of feed).
+   The cost, stated: the feed is 700px where the page was 1064px, so a block placed at the
+   feed's own 12 sub-tracks is ~34% narrower than it was. Everything measured below either
+   keeps its width (the lede clip) or was checked at the new one.
+   EVERY rule in this block is inside `min-width:1101px`, and that is the whole reason it is
+   one media query instead of eight bare selectors. All of them exist because the feed is
+   700px and the panel 308px — which is true only where the split is. Below 1101px the panel
+   IS the page's full measure and the feed is 1064px, so the correct values there are the
+   page's own defaults, already written once at the top of this file.
+   The first version of this block declared these globally and un-declared them in the
+   ≤1100px unwind above. That was wrong and it shipped a real bug: this block sits LATER in
+   the file at equal specificity, so `.pin h1{39px}` and `.pin .frow{88px 1fr}` beat the
+   unwind's overrides, and at 1099px a stacked full-measure panel rendered a 35px title over
+   an 88px ledger key with 941px of value beside it. Measured. Scoping the cause instead of
+   patching the symptom means the stacked page can't be broken by adding a rule here. */
+@media(min-width:1101px){
+.pin h1{font-size:clamp(28px,3.2vw,39px);line-height:1.06;letter-spacing:-0.022em}
+/* 39, not the page h1's 72: the panel is 308px of usable width and "Powerpoint" alone is
+   360px at 72. 39 is the ramp step above the index panel's 31px statement, which is the
+   right order — a case study's title is the loudest thing in its own panel. */
+.pin .back{margin-bottom:calc(var(--unit)*1.25)}
+/* The ledger at panel width — the existing `.facts > .frow > .fm + .ftx` markup, moved, not
+   rewritten. Same re-cut as `.pin .prow`: an 88px key, a 14px gap, one hairline per row, a
+   2px ink rule opening the block. The key steps down to the 11px faint caps the panel's
+   other label uses and the value to 13px, because at 308px the ledger's 13px ink key and
+   16px value were the two biggest things in a column whose subject is the title above them. */
+.pin .facts{margin-top:calc(var(--unit)*1.25)}
+.pin .frow{grid-template-columns:88px 1fr;column-gap:14px;padding:8px 0}
+.pin .frow .fm{grid-column:1;font-size:11px;line-height:18px;letter-spacing:.14em;
+  color:var(--faint)}
+.pin .frow .ftx{grid-column:2;font-size:13px;line-height:19px}
+/* THE FEED ON A CASE STUDY — one re-cut, for one measured reason. `figure.demo.hang` hangs
+   its caption in the three columns beside the clip; inside the feed that sub-grid put the
+   video at 9 of 12 sub-tracks = 518px, a 35% cut to the strongest asset on the site. As a
+   block the video takes the full feed measure — 700px against 791px on the old full-width
+   page, an 11.5% loss instead — and the caption goes back under it, which is what the same
+   figure already does at ≤720px. There is no margin left to hang a caption in: the split
+   spent it on the panel. */
+.feed figure.demo.hang{display:block}
+.feed figure.demo.hang figcaption{margin-top:10px}
+/* The section head and its prose take all twelve of the feed's sub-tracks, and the 33em
+   `p` measure sets the right edge instead of a track. Measured: c1–10 of the feed is 518px
+   and the prose measure is 528px, so the track had stopped framing the paragraph and
+   started cropping it — every section lost its last ten pixels of measure to a column
+   boundary. c1–10 was chosen on the full-width page to land the prose on the same right
+   edge as a hung clip at 791px; in the feed the clip is full measure (above), so there is
+   no edge left to match and the honest right edge is where the sentence ends. */
+.feed .shead > h2,.feed .shead > .sbody{grid-column:1 / 13}
+/* And the clip scatter collapses inside the feed. `.mscatter` already declares its own floor
+   — it becomes a stack at ≤900px, because a 12-column lattice with 5-and-6-column spans
+   can't hold a legible clip below that — and the feed is 700px, which is inside the range
+   its author said it doesn't work in. Measured on `powerpoint`: the four frames rendered
+   336 / 275 / 275 / 275px from 1000px-wide screen recordings, a scale of 0.28–0.34. Three of
+   those four captions point at a detail ("an arrow marks which colours can be modified", "a
+   colour that jumped between slots got an enlarge animation") that is a few pixels at 0.28.
+   Evidence you can't read isn't evidence, and this is the site's best-sourced alternatives
+   page. Stacked, each clip takes the full 700px measure.
+   The cost, stated: the scatter existed so the page could carry four clips "without becoming
+   a wall of video", and stacking spends about 800px of extra scroll to get it back. Scroll is
+   the cheaper thing to spend. (Only above 1101px, per this block: the ≤1100px stack gives the
+   feed the full 1064px measure back, where the lattice works as designed — and below 900px
+   `.mscatter`'s own rule stacks it, now that that rule actually applies; see below.) */
+.feed .mscatter{display:block}
+.feed .mscatter figure.demo{margin-top:calc(var(--unit)*1.5)}
+.feed .mscatter figure.demo:first-child{margin-top:0}
+/* And the photo gallery goes to one flow. `.g-rag` runs two ragged columns at c1–7 and
+   c7–13; inside the feed that is 336px per photograph from a 1400px file — a scale of 0.24,
+   and the page has no lightbox, so 336px is not a thumbnail of the work, it IS the work. On
+   `photography` the ledger describing the photographs was then physically wider than any
+   photograph. One flow gives each frame the full 700px (0.50), which is what the two-column
+   version gave them on the old 1064px page.
+   What is lost is the reason `.g-rag` exists: two independent flows so no two photographs
+   share a baseline and no row reads as a comparison of two unrelated pictures. A single
+   column doesn't need that defence — there is no neighbour to compare against, and each
+   photograph is just the next one down, which is the effect the ragging was buying. (Above
+   1101px only, per this block — the stacked layout below gives the gallery the full measure
+   back, where two columns are 518px and work as designed.)
+   One known effect, not a bug: the page splits the list into `.col-l` (odds) and `.col-r`
+   (evens) in the markup, so one flow reads all the odds and then all the evens rather than
+   the array order. The ≤720px stack has always done this, and it doesn't matter here — these
+   twelve photographs are not a sequence, they have no captions, and no one of them follows
+   from another. If the gallery ever gets an order that means something, the split has to move
+   out of the markup and into CSS columns. */
+.feed .g-rag{display:block}
+.feed .g-rag .col-r{margin-top:0}
+/* And the spec block's key column comes in from c1–4 to c1–3. The 154px key was measured
+   against the facts masthead that used to sit 36px below it, so the two ledgers would share
+   one value axis; that masthead is in the panel now, so the only thing 154px still does is
+   leave 76px of empty track beside a one-word mono key while the value wraps with 121px
+   unused to its right. c3–13 gives the value 579px, which fits every row on one line. */
+.feed .specblock .sk{grid-column:1 / 3}
+.feed .specblock .sv{grid-column:3 / 13}
+/* And the two instruments stack. `.duo` gives each procedure 6 of 12 columns; inside the
+   feed that is 336px, and the numbered lists in there are 15px/23px prose — "Verify the
+   change is in the live artifact" runs six lines at that width, so the two five-item lists
+   became two columns of ragged fragments. Measured: 336px against 518px on the old
+   full-width page, which is where `.duo`'s own ≤900px stack rule was drawn.
+   The cost is the composition: the whole reason `.duo` exists is that the two columns side
+   by side state the duality before a word is read. Stacked, the argument is carried by the
+   two hues and the two kickers instead, which is the same job the `Design + Build` side
+   marker does in the panel two hundred pixels away — so the claim survives in the place the
+   reader meets it first. A layout that states an argument in fragments states it worse. */
+.feed .duo .dcol{grid-column:1 / 13}
+} /* end min-width:1101px — the split's own rules */
 
 /* THE INDEX — one reference list, both sections. This replaced a calendar scatter that
    dropped each cell into non-adjacent modules of a 12-col × baseline-row lattice. The
@@ -354,6 +619,62 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
      right-aligned under a flush-left title. */
   .entry .em{grid-column:2;align-items:flex-start;text-align:left;margin-top:10px}
 }
+/* The row, re-cut for the feed column. The 12-track row (numeral · title · blurb · marker)
+   was measured for the full 1064px measure; inside the 8-column feed it has ~700px, where
+   the title track is 4 of 12 = 233px and "Powerpoint Pen Toolbox" wraps to three lines
+   while the blurb track wraps to five. So the feed uses THREE tracks — numeral, a stacked
+   title+blurb, and the marker — which is the same row grammar the page already collapses
+   to at ≤900px, just applied because the column is narrow rather than the screen.
+   The set numeral, the hairline per row, the 2px rule opening the list, the accent flagship
+   rule, the hover tint and the arrow slide are all unchanged: this is the same device at a
+   different measure, not a second one.
+   156px on the marker, measured, not guessed: the widest side is "Design + Build" at 138px
+   and the widest type is "Design system tool" at 151px. At 132 the flagship row's marker
+   wrapped to FOUR lines (two per part) beside a one-line title — the marker column then read
+   as the loudest thing in the row it was supposed to annotate. 156 fits both on one line
+   each, so the column is two lines everywhere and stays subordinate. */
+.feed .entry{grid-template-columns:44px 1fr 156px}
+/* 21px, matching what the ≤900px collapse already does: the numeral steps down with the
+   title it labels. Left at its 25px it was BIGGER than the 20px title, which inverts the
+   row — the numeral is an address, not the headline. */
+.feed .entry .en{grid-column:1;font-size:21px}
+.feed .entry .eh{grid-column:2;font-size:20px}
+.feed .entry .ed{grid-column:2;margin-top:4px}
+.feed .entry .em{grid-column:3}
+/* The spec row's sub-grids get the same treatment — its own kicker/title/blurb tracks are
+   the row's tracks one level down, so they have to follow the row. */
+.feed .espec .eth{grid-template-columns:1fr 156px}
+.feed .espec .eth .eh{grid-column:1;font-size:20px}
+.feed .espec .eth .em{grid-column:2}
+.feed .espec .proc{grid-template-columns:88px 1fr}
+.feed .espec .proc .pk{grid-column:1}
+.feed .espec .proc .pt{grid-column:2;font-size:16px}
+.feed .espec .proc .pd{grid-column:2;margin-top:2px}
+@media(max-width:1100px){
+  /* stacked again: the feed is the full measure, so the page-level row returns */
+  .feed .entry{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .feed .entry .en{grid-column:1 / 2;font-size:25px}
+  .feed .entry .eh{grid-column:2 / 6;font-size:clamp(20px,2vw,25px)}
+  .feed .entry .ed{grid-column:6 / 10;margin-top:0}
+  .feed .entry .em{grid-column:10 / 13}
+  .feed .espec .eth{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .feed .espec .eth .eh{grid-column:1 / 6;font-size:clamp(20px,2vw,25px)}
+  .feed .espec .eth .em{grid-column:10 / 13}
+  .feed .espec .proc{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .feed .espec .proc .pk{grid-column:1 / 2}
+  .feed .espec .proc .pt{grid-column:2 / 6;font-size:17px}
+  .feed .espec .proc .pd{grid-column:6 / 13;margin-top:0}
+}
+@media(max-width:900px){
+  /* and below 900 the page's own collapse takes over for both */
+  .feed .entry{grid-template-columns:44px 1fr}
+  .feed .entry .eh,.feed .entry .ed,.feed .entry .em{grid-column:2}
+  .feed .espec .eth{grid-template-columns:1fr}
+  .feed .espec .eth .eh,.feed .espec .eth .em{grid-column:1}
+  .feed .espec .proc{grid-template-columns:1fr}
+  .feed .espec .proc .pk,.feed .espec .proc .pt,.feed .espec .proc .pd{grid-column:1}
+}
+
 /* THE SPEC ROW — the Method row, the one entry in the list that is a spec and not a
    project (chooser: method-row round 2, option 04). It is an `.entry` with two changes,
    both forced by content:
@@ -437,7 +758,9 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .colo a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;
   transition:border-color var(--dur-fast) var(--ease)}
 .colo a:hover{border-bottom-color:var(--accent)}
-/* label 1-3 · empty 3-5 · four items each 2 cols across 5-13 */
+/* label 1-3 · empty 3-5 · items each 2 cols from 5. `.c3` is unused on the index now that
+   Contact lives in the pinned panel; it stays defined because the slot is the pattern, not
+   the content, and the next fact added here belongs in it rather than in a new rule. */
 .colo.c1{grid-column:5 / 7}
 .colo.c2{grid-column:7 / 9}
 .colo.c3{grid-column:9 / 11}
@@ -458,9 +781,47 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .foot .fl{grid-column:1 / 9;color:var(--dim);font-size:13px;line-height:22px}
 .foot .fr{grid-column:9 / 13;justify-self:end;text-align:right;color:var(--faint);
   font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+/* One of the two footer lines, never both. `Press g` is a keyboard instruction and it was
+   printed on every phone screen on the site, where there is no `g` to press — an affordance
+   the device can't reach, told to the reader as a fact. A pointer query, not a width one:
+   the thing that decides is whether there's a keyboard, and a 500px window on a laptop has
+   one. `.tou` is the touch fallback, and it says what the keypress would have revealed. */
+.foot .tou{display:none}
+@media(hover:none),(pointer:coarse){
+  .foot .kb{display:none}
+  .foot .tou{display:inline}
+}
 @media(max-width:720px){
   .foot{grid-template-columns:1fr}
   .foot .fr{justify-self:start;text-align:left;margin-top:10px}
+}
+
+/* TOUCH TARGETS — 44px of reachable area for the standalone controls, on touch only.
+   Measured at 390px before this rule: the brand mark was 26×26, `← Index` 12px tall, the
+   panel's contact line 21px, and the colophon links 15px. All well under the 44px in WCAG
+   2.5.5, and all four are things you navigate WITH rather than read.
+   The type ramp does NOT change. 12px uppercase tracked .12em is right for a back link at
+   any width, and growing it to reach 44px would make a subordinate control shout louder
+   than the h1 it sits above — the hierarchy is the design. What was wrong was the hit
+   area, not the letter size, so the fix is invisible padding and a negative margin that
+   gives it back, leaving every measured position identical.
+   Scoped to a pointer query, not a width: a 390px window on a laptop has a mouse, and a
+   mouse doesn't need 44px. Inline links inside a sentence are deliberately left alone —
+   WCAG exempts them, and padding a link mid-paragraph would break the line box it sits in.
+   Verified with `hasTouch` emulation: every rect below is ≥44 tall and none of the
+   surrounding geometry moved. */
+@media(hover:none),(pointer:coarse){
+  /* The mark: 26px of ink, 44px of reach, still optically centred in the bar. */
+  .topbar .brand{padding:9px;margin:-9px}
+  /* `← Index`: inline-block so vertical padding applies at all. The negative margin is
+     only vertical — the left edge is the page's left edge and must not move. */
+  .back a{display:inline-block;padding:16px 8px;margin:-16px -8px}
+  /* Contact in the panel. Already `display:block; width:fit-content`, so it only needs
+     the vertical run; the hover underline stays on the text, not the padding. */
+  .pin .pfoot a{padding:12px 0;margin:-12px 0}
+  /* Colophon: two or three of these stack in one cell, so they need row spacing between
+     them as well as height, or the 44px boxes overlap and you tap the wrong one. */
+  .colo a{display:inline-block;padding:12px 6px;margin:-5px -6px}
 }
 
 /* Back-link on case-study pages */
@@ -524,3 +885,21 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent);text-decorati
 .links a .lu{display:block;color:var(--faint);font-weight:700;font-size:11px;margin-top:8px;
   letter-spacing:.13em;text-transform:uppercase;font-family:var(--sans)}
 @media(max-width:720px){.links a,.links a:nth-child(3n+1),.links a:nth-child(3n+2),.links a:nth-child(3n+3){grid-column:1 / 13;margin-top:0}}
+
+/* REDUCED MOTION. STYLE.md already required this ("Respect `prefers-reduced-motion` for
+   any new non-essential animation") and `Explainer.astro` obeyed it; this stylesheet never
+   did, so the ten hover transitions here had no escape.
+   The eight looping screen recordings on `luthier` and `powerpoint` are NOT handled here,
+   and can't be: `animation-play-state` governs CSS animations, not a playing <video>. CSS
+   cannot pause one. That is done in `Layout.astro`, which pauses each clip and gives it
+   `controls` so the reader can start it — the evidence stays on the page, it just holds
+   still until asked. This comment exists so the next person doesn't add a CSS rule here and
+   believe it worked. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important}
+  .topbar .brand:hover .mark{transform:none}
+}
