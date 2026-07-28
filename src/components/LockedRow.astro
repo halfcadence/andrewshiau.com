@@ -1,0 +1,113 @@
+---
+// THE LOCKED INDEX ROW — the gate IS the row (chooser: andrewshiau-gate-options, option 05,
+// "the index row, opened in place"). Clicking the row doesn't leave the index: the row opens
+// under itself and the ask happens inside the object that was clicked.
+//
+// Two call sites, one device, which is why this is a component and not markup in two pages:
+// - `src/pages/index.astro` — the row in the Work list, closed until clicked.
+// - `src/pages/gate.astro` — the same row, already open. nginx serves that page AT
+//   /work/stores-designer/ (error_page 401), so a reader who lands on the URL directly, or
+//   comes back with a stale cookie, meets the row they would have clicked rather than a
+//   different page wearing different clothes.
+//
+// It emits TWO siblings of `.matrix`, not one nested element, and that is forced: `.entry` is
+// an `<a>`, and a `<form>` inside an anchor is invalid HTML that browsers un-nest — the form
+// would be lifted out of the row at parse time. So the gate is the row's next sibling, and it
+// takes the row's own grid tracks (see `.egaterow` in global.css) so its content still starts
+// on the title's left edge in all four of the row's breakpoints.
+//
+// Keeping the row a real `<a href>` is also the no-JS answer: without JavaScript the click
+// navigates, nginx answers 401, and the reader gets the gate page — the same row, open. What
+// no-JS cannot do is submit the gate; `<noscript>` on that page says so plainly.
+import type { Entry } from '../data/experiments';
+import SideDot from './SideDot.astro';
+import GateForm from './GateForm.astro';
+interface Props { x: Entry; open?: boolean }
+const { x, open = false } = Astro.props;
+const id = 'gate-' + x.n;
+// The row is a LINK on the index (it goes somewhere) and a heading-shaped div on the gate
+// page (you are already there — a link to the page you are on is a link that does nothing,
+// the same reason `Mark home={false}` exists on the index).
+const Row = open ? 'div' : 'a';
+---
+
+<Row class:list={['entry', { accent: x.accent, open }]}
+     href={open ? undefined : x.href}
+     aria-controls={open ? undefined : id}>
+  <span class="en">{x.n}</span>
+  <p class="eh">{x.title}
+    {/* THE LOCK, where every other row carries its arrow. This is the indicator the row was
+        missing: `Password` in the marker cell is the far-right column, read fourth, so the
+        row's first impression was identical to a row that just opens. A drawn mark in the
+        glyph's own slot says "this one is shut" at the title, before the click — and it is
+        drawn, in `currentColor` and the accent, like the two-dot mark and the arrow, rather
+        than an emoji padlock that would render as someone else's artwork on every platform.
+        `aria-hidden`, because the marker cell already says the word: colour and icon are
+        never the only signal (STYLE.md), and a screen reader should hear the fact once. */}
+    <span class="lockc" aria-hidden="true">
+      <svg viewBox="0 0 12 15" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 6V4a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="0.75" y="6" width="10.5" height="8.25" fill="currentColor"/>
+      </svg>
+    </span>
+  </p>
+  <p class="ed">{x.blurb}</p>
+  <span class="em">
+    <SideDot side={x.side} />
+    <span class="smeta">{x.meta}</span>
+    {/* Still the word, still in the marker cell — it is a fact about the artifact, and it
+        belongs with the other two. What changed is that it is no longer carrying the signal
+        alone; the lock at the title arrives first and this confirms it. */}
+    <span class="lock">Password</span>
+  </span>
+</Row>
+
+<div class:list={['egaterow', { open }]} id={id} hidden={!open}>
+  <div class="egate">
+    <GateForm href={x.href} />
+  </div>
+</div>
+
+<script>
+  // The row opens in place. One listener per locked row, bound to the anchor, and the default
+  // navigation is prevented ONLY once this script has run — so if it never runs, the link is
+  // still a link (see the note at the top of this file).
+  // Unconditional, not wrapped in `{!open && …}`: Astro hoists <script> at build time whether
+  // the expression around it is truthy or not, so a conditional would be a lie about when it
+  // ships. The selector is the condition instead — on the gate page the row is a `div` with no
+  // `aria-controls`, so this matches nothing there.
+  document.querySelectorAll('a.entry[aria-controls]').forEach((row) => {
+    const cell = document.getElementById(row.getAttribute('aria-controls'));
+    if (!cell) return;
+    const field = cell.querySelector('input');
+    // Set here, not in the markup: an `aria-expanded="false"` that shipped without this
+    // script would promise a disclosure to a screen reader and then navigate instead.
+    row.setAttribute('aria-expanded', 'false');
+
+    const set = (isOpen) => {
+      row.setAttribute('aria-expanded', String(isOpen));
+      row.classList.toggle('open', isOpen);
+      cell.classList.toggle('open', isOpen);
+      cell.hidden = !isOpen;
+      // Focus goes to the field, because the click WAS the request to open it — asking the
+      // reader to then find the one input on a page of eight rows is the friction the whole
+      // option exists to remove.
+      if (isOpen && field instanceof HTMLInputElement) field.focus();
+    };
+
+    row.addEventListener('click', (e) => {
+      // A modified click is the reader asking for a new tab; let the browser have it.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      set(row.getAttribute('aria-expanded') !== 'true');
+    });
+
+    // Escape closes and hands focus back to the row, so a keyboard reader who opened it by
+    // mistake isn't left inside a field with no way out but Tab.
+    cell.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      set(false);
+      row.focus();
+    });
+  });
+</script>

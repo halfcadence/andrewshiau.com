@@ -1,0 +1,94 @@
+---
+// THE GATE — the site's first and only form control (chooser: andrewshiau-gate-options,
+// option 05, "the index row, opened in place").
+//
+// What it replaced: nginx `auth_basic`, which drew the BROWSER's credential dialog. That
+// dialog is browser chrome — unstylable by definition, no explanation of what's behind it,
+// and it arrives on top of the page rather than in it. The complaint was "its so ugly", and
+// the only honest fix is to change the mechanism, not the styling: this page now asks, and
+// nginx compares a cookie (see the runbook in README.md).
+//
+// THE PASSWORD IS NOT HERE, and must never be. It lives in one place — the `map` in
+// /etc/nginx/conf.d/gate.conf on the droplet — so the built site can be published, read, and
+// crawled without leaking it. The check below is a real request to the real gated URL: the
+// server is the only thing that knows the answer, and a 401 back is the wrong-password
+// signal. So there is nothing to guess at in the bundle and nothing to keep in sync.
+//
+// `href` is where the reader is going. Two callers, one behaviour:
+// - the index row, where the destination is a different URL → navigate to it.
+// - the gate page, which nginx serves AT the gated URL through `error_page`, so the address
+//   bar already says /work/stores-designer/ → reload, and the second request carries the
+//   cookie. The runtime check below picks, so neither caller has to pass a mode.
+interface Props { href: string }
+const { href } = Astro.props;
+---
+
+<p class="gsm">Kept out of search engines and behind a shared password, because the subject
+  is internal work. Ask me for it — <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>.</p>
+
+<form class="f gatef" data-dest={href}>
+  <!-- No `name`, and `autocomplete="off"`: this is one shared password for one page, not an
+       account, so offering to save it under the site's name would file it as a credential the
+       reader owns. 16px on the input is not a taste call — anything smaller and iOS Safari
+       zooms the page on focus, which on a phone throws the row out of view mid-typing. -->
+  <input type="password" class="gi" placeholder="Password" aria-label="Password"
+         autocomplete="off" spellcheck="false" autocapitalize="off" required />
+  <button type="submit">Open</button>
+</form>
+
+<!-- The answer comes back here rather than in an alert. `aria-live` so a screen reader hears
+     "that password is not right" without moving focus; `role="status"` keeps it polite. -->
+<p class="gmsg" role="status" aria-live="polite"></p>
+
+<script>
+  // One handler for every gate form on the page (there is exactly one, but querying the
+  // class means the gate page and the index row share this file rather than each carrying a
+  // copy that can drift).
+  document.querySelectorAll('form.gatef').forEach((form) => {
+    const dest = form.getAttribute('data-dest');
+    const input = form.querySelector('input');
+    const msg = form.parentElement?.querySelector('.gmsg');
+    const say = (t) => { if (msg) msg.textContent = t; };
+
+    // `path=/` so the cookie is sent for the page AND anything under it. `Secure` only on
+    // https — on a local dev server over http the browser would silently drop a Secure
+    // cookie, and a gate that can never pass is worse than one that isn't there. 7 days:
+    // long enough that a reader who closes the tab and comes back tomorrow isn't asked
+    // again, short enough that a borrowed laptop forgets. SameSite=Lax because the only
+    // navigation that needs it is the reader's own click.
+    const cookie = (v, age) =>
+      document.cookie = 'asc_gate=' + encodeURIComponent(v) + '; path=/; max-age=' + age +
+        '; samesite=lax' + (location.protocol === 'https:' ? '; secure' : '');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pw = input instanceof HTMLInputElement ? input.value.trim() : '';
+      if (!pw) return;
+      say('Checking…');
+      cookie(pw, 604800);
+      let status = 0;
+      try {
+        // HEAD, not GET: the only thing wanted is the status code, and the gated page is a
+        // full document. `cache:'no-store'` so a previous 401 in the HTTP cache can't answer
+        // for a request whose whole point is that the cookie changed.
+        const r = await fetch(dest, { method: 'HEAD', credentials: 'same-origin', cache: 'no-store' });
+        status = r.status;
+      } catch {
+        status = -1;
+      }
+      if (status >= 200 && status < 400) {
+        say('Opening…');
+        // nginx serves the gate page AT the gated URL, so "go there" and "try again" are the
+        // same act — reload if we're already on it, navigate if we aren't.
+        if (dest && location.pathname.indexOf(dest) === 0) location.reload();
+        else if (dest) location.assign(dest);
+        return;
+      }
+      cookie('', 0);
+      if (input instanceof HTMLInputElement) { input.value = ''; input.focus(); }
+      say(status === -1
+        ? 'Could not check that just now — the network dropped. Try again.'
+        : 'That password is not right.');
+    });
+  });
+</script>

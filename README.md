@@ -44,7 +44,7 @@ To add an experiment: append to `src/data/experiments.ts`; add a page under
 
 ---
 
-## Password-protecting a case study (nginx Basic Auth)
+## The password gate (nginx cookie gate, not Basic Auth)
 
 **What runs in production is nginx, not Caddy.** `systemctl is-active nginx caddy` on the
 droplet returns `active` / `inactive`; the live vhost is
@@ -52,83 +52,112 @@ droplet returns `active` / `inactive`; the live vhost is
 The `Caddyfile` in this repo was never installed — the "One-time droplet setup" section
 below describes a migration that didn't happen. Edit nginx, not the Caddyfile.
 
-**Read this first: Basic Auth is a speed bump, not a safety guarantee.** It keeps a page
-out of Google and off a casual visitor's screen. It does **not** make the page safe for
-material that shouldn't leave Amazon: the credential is shared, it can be forwarded in one
-paste, it lands in browser history and password managers, and the page still sits
-unencrypted on a public webroot where any config slip serves it plain. `/work/stores-designer/`
-is written to be publishable — no screenshot, no component name, no metric, no architecture
-(see the comment in the page). If a change to it would need auth to be safe, the change
-doesn't belong on this site.
+**Read this first: this is a speed bump, not a safety guarantee.** It keeps a page out of
+Google and off a casual visitor's screen. It does **not** make the page safe for material
+that shouldn't leave Amazon: the password is shared, it can be forwarded in one paste, and
+the page still sits unencrypted on a public webroot where any config slip serves it plain.
+`/work/stores-designer/` is written to be publishable — no screenshot, no component name,
+no metric, no architecture (see the comment in the page). If a change to it would need auth
+to be safe, the change doesn't belong on this site.
+
+**This replaced Basic Auth**, which worked but asked in the browser's own credential
+dialog: unstylable browser chrome, drawn only because nginx sends `WWW-Authenticate`. So
+the mechanism had to change, not the styling. What replaced it is a cookie nginx compares
+plus **our** page as the 401 body — a real 401 (crawlers still turned away), no dialog.
+The gate the reader sees is `src/components/GateForm.astro` inside the index row itself
+(chooser `andrewshiau-gate-options`, option 05).
 
 ### The recipe
 
-Do these in order; step 3 fails silently-ish (HTTP 500) if step 2's ownership is wrong.
-
-**1. Make the credential.** `htpasswd` is NOT installed on the droplet — use openssl,
-locally, so the plaintext never lands in the droplet's shell history:
-
-```bash
-PW=$(openssl rand -base64 12 | tr -d '/+=' | cut -c1-14)   # keep this; it's the password
-printf '%s' "$PW" | openssl passwd -apr1 -stdin            # → $apr1$…  paste in step 2
-```
-
-**2. Install the hash file as `root:www-data 640`.** The worker runs as `www-data`
-(`grep ^user /etc/nginx/nginx.conf`), so a `root:root 640` file gives **HTTP 500 on every
-authenticated request** — `open() "/etc/nginx/.htpasswd" failed (13: Permission denied)` in
-`/var/log/nginx/error.log`. Measured: with 640 root:root the no-creds case still returns a
-correct 401, so a test that only checks "does it prompt" passes on a broken config. Test
-with real credentials.
+**1. The map, in `conf.d`, not the vhost.** `/etc/nginx/nginx.conf` includes `conf.d/*.conf`
+on line 61 and `sites-enabled/*` on line 62 — in that order, which is why the map is defined
+by the time the vhost tests it. It must be at `http` level; `map` inside a `server` block is
+a config error. Send the password over **stdin** so the plaintext never reaches the droplet's
+shell history or its process list:
 
 ```bash
-ssh droplet "cat > /etc/nginx/.htpasswd <<'EOF'
-andrew:\$apr1\$…the hash…
-EOF
-chown root:www-data /etc/nginx/.htpasswd && chmod 640 /etc/nginx/.htpasswd"
+printf '%s' 'thepassword' | ssh droplet "umask 077; cat > /tmp/pw && \
+  { printf 'map \$cookie_asc_gate \$asc_gate_ok {\n  default 0;\n  \"%s\" 1;\n}\n' \
+    \"\$(cat /tmp/pw)\" > /etc/nginx/conf.d/gate.conf; }; shred -u /tmp/pw; \
+  chmod 600 /etc/nginx/conf.d/gate.conf"
 ```
 
-Quote the heredoc (`<<'EOF'`) or the remote shell eats `$apr1` as a variable and writes a
-truncated file.
+**`default 0` is load-bearing.** Without it a miss yields the empty string, which is falsy
+in `if` but is not the `"0"` the vhost compares — the gate then opens for everyone.
 
-**3. Add one `location` per protected path, above `location /`.** Back the vhost up first:
+**2. The vhost: return 401, and serve our page as its body.** Back it up first
+(`cp … /root/andrewshiau.nginx.bak.$(date +%s)`). Above `location /`:
 
 ```nginx
 location ^~ /work/stores-designer/ {
-  auth_basic "andrewshiau.com";
-  auth_basic_user_file /etc/nginx/.htpasswd;
+  if ($asc_gate_ok = 0) { return 401; }
   try_files $uri $uri/ $uri/index.html =404;
 }
+
+error_page 401 /gate/index.html;
+
+location ^~ /gate/ {
+  internal;                 # reachable by error_page's internal redirect, 404 from outside
+}
+
+location / { try_files $uri $uri/ $uri/index.html /index.html; }
 ```
 
-`^~` so the prefix wins over regex locations, and a **`=404` fallback, not `/index.html`** —
-the site-wide `try_files … /index.html` would otherwise serve the public homepage for any
-miss under the protected prefix, which reads like the auth silently failed.
+Three things here are not interchangeable:
+
+- **`^~`** so the prefix beats any regex location, and a **`=404` fallback, not
+  `/index.html`** — the site-wide `try_files … /index.html` would otherwise serve the public
+  homepage for a miss under the protected prefix, which reads like the gate failed open.
+- **`error_page`, not a redirect.** The address bar keeps reading `/work/stores-designer/`
+  and the status stays 401, so the reader gets a page where the dialog used to be while a
+  crawler gets exactly the refusal Basic Auth gave it.
+- **`location ^~ /gate/ { internal; }`, not `location = /gate/index.html`.** The exact-match
+  version was too narrow: a request for `/gate/` fell through to `try_files` → `index` and
+  served the gate as a URL of its own. Prefix + `internal` 404s both `/gate/` and
+  `/gate/index.html` from outside while the internal redirect still reaches the file.
 
 ```bash
-ssh droplet 'cp /etc/nginx/sites-enabled/andrewshiau /root/andrewshiau.nginx.bak.$(date +%s)'
-# edit, then:
 ssh droplet 'nginx -t && systemctl reload nginx'
 ```
 
-**4. Verify all four cases.** Anything less doesn't prove it works:
+**3. Verify. Ten cases, measured — anything less doesn't prove it works:**
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" https://andrewshiau.com/work/stores-designer/            # 401
-curl -s -o /dev/null -w "%{http_code}\n" -u andrew:wrong https://andrewshiau.com/work/stores-designer/  # 401
-curl -s -o /dev/null -w "%{http_code}\n" -u andrew:"$PW" https://andrewshiau.com/work/stores-designer/  # 200
-curl -s -o /dev/null -w "%{http_code}\n" https://andrewshiau.com/                                 # 200 — public page unaffected
+U=https://andrewshiau.com/work/stores-designer/
+C() { curl -s -o /dev/null -w "%{http_code}\n" "$@"; }
+C $U                                            # 401  no cookie
+C --cookie 'asc_gate=wrong' $U                  # 401  wrong password
+C --cookie "asc_gate=$PW" $U                    # 200  correct
+C --cookie "asc_gate=$PW" ${U}nope/             # 404  the =404 fallback, not the homepage
+curl -sI $U | grep -i www-authenticate          # NOTHING — the whole point: no dialog
+curl -s $U | grep -c 'Not open yet'             # 1    the 401 body is our page
+C https://andrewshiau.com/gate/                 # 404  internal only
+C https://andrewshiau.com/gate/index.html       # 404  internal only
+C https://andrewshiau.com/                      # 200  public pages unaffected
+C https://andrewshiau.com/work/luthier/         # 200
 ```
 
-**5. The index still links to it.** Basic Auth protects the page, not the link — a hiring
-manager clicking `01 Stores Designer` gets a browser credential prompt with no explanation.
-So a protected page needs three more edits, all of them done for `/work/stores-designer/`:
+**To change the password:** rewrite `conf.d/gate.conf` (step 1) and reload. Nothing else —
+the password is never in the bundle. The client sets the cookie and asks the *server*
+whether it worked (`fetch(dest, {method:'HEAD'})`, a 401 back = wrong), so there is no copy
+in the JS to keep in sync and nothing to leak. Grep `dist/` for the password after a build:
+zero hits is the invariant.
 
-- `src/data/experiments.ts` → `locked: true` on the entry, which renders the `PASSWORD`
-  line in the index row's marker cell.
-- `public/robots.txt` → a `Disallow:` for the path. Auth turns a crawler away with a 401,
-  but without this the URL is still indexed and surfaces as a result that opens a prompt.
-- `astro.config.mjs` → add it to the sitemap `filter`. A sitemap is a request to index;
-  asking a crawler to index a URL that answers 401 is a contradiction.
+**4. The index still links to it,** and the link has to say so before the click. Four edits,
+all done for `/work/stores-designer/`:
+
+- `src/data/experiments.ts` → `locked: true`, which renders the row as
+  `LockedRow.astro` (lock mark at the title + `Password` in the marker cell) and is what
+  `src/pages/gate.astro` looks up.
+- `public/robots.txt` → `Disallow:` the gated path. The 401 turns a crawler away, but
+  without this the URL is still indexed and surfaces as a result that asks for a password.
+  **Do not Disallow `/gate/`** — a Disallow'd URL can still be indexed as a bare link,
+  because the crawler is then forbidden from fetching the `noindex` that would stop it.
+- `astro.config.mjs` → add both the gated path **and** `/gate/` to the sitemap `filter`. A
+  sitemap is a request to index; asking a crawler to index a URL that answers 401 is a
+  contradiction.
+- `src/pages/gate.astro` → `noindex={true}`, for a crawler that reaches `/gate/` some other
+  way.
 
 ---
 
@@ -164,7 +193,7 @@ Then check the result: 1200×630, under ~100KB, and legible at thumbnail size (t
 
 > **Historical — not what production runs.** This describes a planned nginx→Caddy
 > migration that was never carried out; the droplet still serves the site with nginx +
-> certbot. See the Basic Auth section above for the live layout.
+> certbot. See "The password gate" above for the live layout.
 
 The droplet (`104.236.237.122`, Ubuntu) currently runs nginx serving the old
 React site. These steps put **Caddy** in front for HTTPS, archive the old site

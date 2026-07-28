@@ -562,6 +562,23 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   the long ones overflowed. The side marker already says which half; the noun says what.
 - **The one filled form:** `.block` (`--accent` field, `--on-accent` text) — used once
   per page for the key statement. Everything else is type + rule. No filled cards.
+- **The locked row + its gate** (`.entry .lockc`, `.egaterow` / `.egate`, `.f`): the site's
+  only form, and the only row that opens. A gated entry keeps the index row exactly as it is
+  and adds **two** signals, because neither an icon nor a colour is ever allowed to be the
+  only one: a small lock in the arrow's slot at the title (`.lockc`, ink → accent when open,
+  `aria-hidden`) and the word `Password` as a third line in the marker cell. Clicking the row
+  expands the gate **in place** — a sibling cell on the row's own tracks, starting on the
+  title's left edge, no page transition (chooser `andrewshiau-gate-options`, option 05). The
+  gate cannot be a child of the row: `.entry` is an `<a>`, and a `<form>` inside an anchor is
+  invalid HTML the parser un-nests. `LockedRow.astro` emits the pair, and `/gate/` renders the
+  same pair already open, so the two states cannot drift.
+  - **Form controls** (`.f`): the field is a **2px ink underline, not a box** — same weight
+    that opens a `.frow` ledger, and a 1px box round an input is the same un-Swiss tell as a
+    card round a list row. The button is `.block`'s field and type at control scale (12px
+    tracked caps). `border-radius:0` on both, explicitly. **16px on the input** or iOS Safari
+    zooms the page on focus; **`min-height:44px` on BOTH**, not just the button — at 390px the
+    row wraps and a field that borrowed its height from a sibling loses it (measured: 42px,
+    failing WCAG 2.5.5 on the phone only).
 - **Structure is rules, not boxes.** A wrap-around hairline border to make a "card" is
   the un-Swiss tell — use a top rule + gutter + whitespace instead.
 

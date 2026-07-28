@@ -9,10 +9,15 @@
 # needed: the filter only stops us advertising the URL, the Disallow stops a crawler that
 # found it through the iframe.
 #
-# The second is the Stores Designer case study, which sits behind nginx Basic
-# Auth (the recipe is in README.md). Auth already turns a crawler away with a 401, but
-# without the Disallow the URL still gets indexed and surfaces as a search result that
-# opens a password prompt. It is excluded from the sitemap for the same reason.
+# The second is the Stores Designer case study, which sits behind the password gate — nginx
+# compares a cookie and answers 401 without it (the recipe is in README.md). The 401 already
+# turns a crawler away, but without the Disallow the URL still gets indexed and surfaces as a
+# search result that asks for a password. It is excluded from the sitemap for the same reason.
+#
+# /gate/ is deliberately NOT Disallow'd. It is the page nginx serves as that 401's body, and it
+# carries `noindex` instead: a Disallow'd URL can still be indexed as a bare link, because the
+# crawler is forbidden from fetching the page and reading the `noindex` that would stop it.
+# Nothing links to /gate/ and it isn't in the sitemap, so `noindex` is the whole defence.
 User-agent: *
 Allow: /
 Disallow: /demo/

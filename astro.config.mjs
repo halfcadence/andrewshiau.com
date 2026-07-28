@@ -28,13 +28,21 @@ export default defineConfig({
       // dead-ended fragment. Also Disallow'd in robots.txt; the filter keeps them out of
       // the sitemap, the Disallow keeps them out of the index.
       //
-      // /work/stores-designer/ — behind nginx Basic Auth. A sitemap is a request to
-      // index, and asking a crawler to index a URL that answers 401 is a contradiction:
-      // it lands as a search result that opens a password prompt.
+      // /work/stores-designer/ — behind the password gate, so it answers 401 without the
+      // cookie. A sitemap is a request to index, and asking a crawler to index a URL that
+      // answers 401 is a contradiction: it lands as a search result that asks for a password.
+      //
+      // /gate/ — the 401 body nginx serves AT that URL (error_page). It is not a page anyone
+      // should land on by choice: on its own, out of context, it is a password box with no
+      // explanation of which page it opens. It also carries `noindex` for a crawler that finds
+      // it another way, since a sitemap filter only stops us advertising it.
       //
       // NOT excluded: the /writing/ explainers embedded on /work/aping/ and
       // /work/explain/. Those are full pages that stand alone and should be indexed.
-      filter: (page) => !page.includes('/demo/') && !page.includes('/work/stores-designer/'),
+      filter: (page) =>
+        !page.includes('/demo/') &&
+        !page.includes('/work/stores-designer/') &&
+        !page.includes('/gate/'),
     }),
   ],
 });

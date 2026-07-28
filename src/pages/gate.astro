@@ -1,0 +1,91 @@
+---
+// THE GATE PAGE — what nginx serves, at the gated URL, to a request without the cookie.
+//
+// It is `error_page 401 /gate/index.html` in the vhost, so the address bar still reads
+// /work/stores-designer/ and the response is a real 401: a crawler is turned away exactly as
+// it was under Basic Auth, and a reader gets a page instead of the browser's dialog. That is
+// the whole trade this design makes — see README.md for the recipe and the four cases.
+//
+// It renders the SAME index row, already open (chooser: andrewshiau-gate-options, option 05).
+// The alternative was a bespoke gate page, and the reason against it is the reason the option
+// was picked: a reader who clicked `01 Stores Designer` should meet the object they clicked,
+// not a different page wearing different clothes. One component, `LockedRow.astro`, so the two
+// states of that row cannot drift.
+//
+// It is deliberately NOT in the sitemap or the index — it is not a page anyone should land on
+// by choice. `noindex` below says so to a crawler that finds it another way, and robots.txt
+// Disallows the path it is served at.
+import Layout from '../layouts/Layout.astro';
+import Mark from '../components/Mark.astro';
+import LockedRow from '../components/LockedRow.astro';
+import { work } from '../data/experiments';
+
+// Read from the data, not retyped: the row on this page and the row on the index are the same
+// entry, and `find` throws below rather than rendering a gate for nothing if the flag ever
+// moves — the same loud-failure rule `sideOf` / `metaOf` follow.
+const locked = work.find((x) => x.locked);
+if (!locked) {
+  throw new Error(
+    'gate.astro renders the locked Work entry, and no entry in src/data/experiments.ts has ' +
+    '`locked: true`. Either restore the flag or delete this page and its nginx error_page.'
+  );
+}
+---
+
+<!-- noindex as well as the 401 and the robots.txt Disallow. Three layers for one URL, and
+     none of them is redundant: the 401 turns a crawler away, the Disallow stops the gated URL
+     being indexed from a link elsewhere, and `noindex` covers the case this page is fetched at
+     /gate/ directly, where neither of the other two applies. -->
+<Layout
+  title="Stores Designer — password required"
+  description="This case study is behind a shared password. Ask me for it — hi@andrewshiau.com."
+  noindex={true}
+>
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+    <div class="pin">
+      <Mark />
+      <p class="smark">Password required</p>
+      <h1>Not open yet</h1>
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">Why</div>
+          <div class="ftx">
+            The subject is <b>internal work</b>. The page is written to be publishable — no
+            screenshot, no component name, no metric — and the password is the second lock.
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fm">How</div>
+          <div class="ftx">One shared password. <b>Ask me and I'll send it.</b></div>
+        </div>
+      </div>
+      <p class="pfoot">Contact
+        <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+      </p>
+    </div>
+
+    <div class="splitrule" aria-hidden="true"></div>
+
+    <div class="feed">
+      <!-- The row, open. `.matrix` so it takes the index's own lattice and its 2px opening
+           rule — this is the list, one row of it. -->
+      <h2>Work</h2>
+      <div class="matrix">
+        <LockedRow x={locked} open={true} />
+      </div>
+
+      <!-- Said here, not in the form: without JavaScript the field cannot be checked (the
+           check is a fetch), so a reader with it off needs to know that rather than typing
+           into a control that will never answer. It is the honest fallback, and it is the
+           same one Basic Auth had — mail me. -->
+      <noscript>
+        <p class="fine" style="margin-top:var(--unit)">The password box needs JavaScript to
+          check the password. With it off, email me and I'll send the page itself.</p>
+      </noscript>
+
+      <p class="fine" style="margin-top:calc(var(--unit)*1.5)">
+        <a href="/">← Back to the index</a>
+      </p>
+    </div>
+  </div>
+</Layout>

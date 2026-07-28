@@ -687,13 +687,14 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 /* the `·` separator is for an inline marker (a case-study header). Stacked, the line break
    already separates, and the dot hangs off the left of the second line as a stray mark. */
 .entry .em .side + .smeta::before{content:none}
-/* LOCKED — a third line in the marker cell for a page behind Basic Auth. It inherits the
-   cell's 11px tracked caps, so it reads as one more fact in the same column rather than a
+/* LOCKED — a third line in the marker cell for a page behind the password gate. It inherits
+   the cell's 11px tracked caps, so it reads as one more fact in the same column rather than a
    badge: the row's job is still to say what the artifact is.
    A hairline above it and the ink colour are the whole distinction. Ink, not the accent —
-   the accent is structure on this site, and a padlock isn't structure. The word does the
-   work with no icon and no colour dependency, so it holds in greyscale and reads correctly
-   aloud. No `align-self`: the cell's own `align-items` already places it, so it follows the
+   the accent is structure on this site, and a padlock isn't structure. It stays even now that
+   `.lockc` draws a lock at the title: the glyph is `aria-hidden`, so this WORD is what a
+   screen reader and a greyscale render have, and neither the icon nor a colour is ever the
+   only signal. No `align-self`: the cell's own `align-items` already places it, so it follows the
    cell from right-aligned at full width to left at ≤900px with no second rule. The hairline
    is the width of the word, not the cell — it marks this fact, not the column. */
 .entry .em .lock{margin-top:4px;padding-top:4px;border-top:1px solid var(--line);
@@ -789,6 +790,116 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   .feed .espec .proc{grid-template-columns:1fr}
   .feed .espec .proc .pk,.feed .espec .proc .pt,.feed .espec .proc .pd{grid-column:1}
 }
+
+/* ─── THE GATE ROW ───────────────────────────────────────────────────────────────────────
+   The locked row opens under itself and the ask happens inside it (chooser:
+   andrewshiau-gate-options, option 05). What it replaced: `auth_basic`, which handed the
+   reader the BROWSER's credential dialog — a box the site cannot style, drawn over the page,
+   with no sentence explaining what is behind it. The mechanism had to change for the design
+   to be possible at all; the runbook is in README.md.
+   It is a SIBLING of the row, not a child, and that is forced rather than chosen: `.entry` is
+   an `<a>`, and a `<form>` inside an anchor is invalid — the parser lifts the form out of the
+   link, so a nested version would render outside the row it belongs to. As a sibling of the
+   `.matrix` grid it takes the row's own tracks, so the ask starts on the title's left edge in
+   every one of the row's four cuts (12-track page, 3-track feed, ≤1100 stack, ≤900 collapse)
+   without a single new breakpoint: each rule below just mirrors what `.entry .eh` does there.
+   No top rule of its own. Every rule on this site owns the thing it touches, and this cell is
+   part of the row above it — a hairline between them would divide one object into two. The
+   open row's tint is what joins them, and it is the SAME hover tint the row already has, held
+   on: nothing new is introduced to say "open". */
+.egaterow{grid-column:1 / 13;display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
+.egaterow[hidden]{display:none}
+.egaterow .egate{grid-column:2 / 10;padding:0 0 18px}
+/* The tint spans the row AND its gate, so the pair reads as one open object. `4%` is the
+   hover tint's own value — an open row is a row being interacted with, so it holds the state
+   it already had rather than inventing a second one. */
+.entry.open,.egaterow.open{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+/* An open row keeps its bottom edge: the hairline that opens the NEXT row is the next row's,
+   so without this the gate and the following entry share one line and the tint bleeds into a
+   row that isn't open. */
+.egaterow.open{border-bottom:1px solid var(--line);margin-bottom:-1px}
+.egate .gsm{color:var(--dim);font-size:14px;line-height:21px;margin:0 0 14px;max-width:34em}
+.egate .gsm a{color:var(--accent)}
+/* The answer line. It replaces an `alert()`, and it is 13px faint by default because most of
+   the time it says nothing; `.bad` is ink, not red — the site has no red, and "that password
+   is not right" is a fact, not an alarm. */
+.egate .gmsg{font-size:13px;line-height:20px;color:var(--faint);margin:10px 0 0;min-height:20px}
+.egate .gmsg:not(:empty){color:var(--ink)}
+.egaterow .egate .f{max-width:24em}
+@media(max-width:1100px){
+  /* the feed is the full measure again, so the gate follows the page-level row's title track */
+  .egaterow .egate{grid-column:2 / 10}
+}
+@media(max-width:900px){
+  /* 44px numeral track + content, exactly as `.entry` collapses — two tracks, gate in the
+     second, so it stays on the title's edge instead of jumping to the page margin. */
+  .egaterow{grid-template-columns:44px 1fr}
+  .egaterow .egate{grid-column:2}
+  /* THE TINT BLEEDS TO THE PAGE EDGE at phone width, and only when open. Measured at 390px:
+     the tinted band's right edge and the copy's right edge were the same 362px, so the open
+     state had no interior air on the side it needed most — text flush against a filled edge.
+     Negative margin + equal padding is the one fix that buys that air without moving a glyph:
+     the band grows outward by exactly `.wrap`'s own padding, and every line of type stays on
+     its track. `--gutter`, not `--unit` — `.wrap` sets `padding:0 var(--gutter)`, so this is
+     the page margin it has to cancel, not a number that happens to look close.
+     Open-state only. The same tint appears on hover on every row, where it is transient and
+     flush reads as nothing; held open it is what the reader types into. */
+  .entry.open,.egaterow.open{margin-left:calc(var(--gutter)*-1);margin-right:calc(var(--gutter)*-1);
+    padding-left:var(--gutter);padding-right:var(--gutter)}
+}
+/* In the feed the row is three tracks (44px · content · 156px marker); the gate takes the
+   middle one. Same rule shape as `.feed .entry .eh`, for the same reason. */
+.feed .egaterow{grid-template-columns:44px 1fr 156px}
+.feed .egaterow .egate{grid-column:2}
+@media(max-width:1100px){
+  .feed .egaterow{grid-template-columns:repeat(12,minmax(0,1fr))}
+  .feed .egaterow .egate{grid-column:2 / 10}
+}
+@media(max-width:900px){
+  .feed .egaterow{grid-template-columns:44px 1fr}
+  .feed .egaterow .egate{grid-column:2}
+}
+
+/* ─── THE FIELD AND THE BUTTON ───────────────────────────────────────────────────────────
+   The site's FIRST form control, and for now its only one. There was no `input` and no
+   `button` anywhere before this, so the two rules below are a small addition to the system
+   rather than a component: a field is a rule you type on, and the button is `.block` — the
+   one filled accent form STYLE.md already sanctions, one per page, which is exactly what a
+   gate has room for.
+   The field is an underline, not a box: "structure is rules, not boxes" is the house rule,
+   and a 1px box round an input is the same un-Swiss tell as a card round a list row. 2px ink
+   matches the weight that opens a `.frow` ledger — the reader has seen this line all over the
+   site; here it is the one you write on.
+   16px on the input is not a taste call: below 16px, iOS Safari zooms the page on focus, which
+   on a phone scrolls the row out of view mid-typing.
+   `border-radius:0` on both, explicitly. Every browser rounds these by default and the site
+   has no rounded corner anywhere else. */
+.f{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+/* `min-height:44px` on the INPUT too, not just the button, and it is a fix not a belt-and-
+   braces: `align-items:stretch` only makes the field as tall as the button while the two share
+   a line. At 390px the row wraps, each line sizes itself, and the field fell back to its own
+   content box — 42px, measured, so WCAG 2.5.5 failed on the phone and nowhere else. A control's
+   tap target can't depend on a sibling staying beside it. */
+.f input{font:inherit;font-size:16px;line-height:24px;letter-spacing:-0.004em;
+  color:var(--ink);background:transparent;border:0;border-bottom:2px solid var(--ink);
+  padding:8px 2px;min-height:44px;min-width:0;flex:1 1 15em;border-radius:0;
+  transition:border-color var(--dur-fast) var(--ease)}
+.f input::placeholder{color:var(--faint)}
+/* Focus is the accent on the line itself — the same "link interaction" role the accent has
+   everywhere else. `outline:0` is only acceptable BECAUSE the line changes colour and weight
+   with it; a bare `outline:0` would delete the only focus signal a keyboard reader gets. */
+.f input:focus{outline:0;border-bottom-color:var(--accent)}
+/* The button is `.block`'s field and type at control scale: 12px tracked caps, so it reads as
+   a control rather than as prose in a box, and 44px minimum height so it satisfies WCAG 2.5.5
+   at every width without a pointer query (unlike the site's other controls, this one is a
+   button — 44px is its natural size, not padding bolted onto a 12px line). */
+.f button{font:inherit;font-size:12px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;line-height:1;padding:0 18px;min-height:44px;border:0;
+  background:var(--ink);color:var(--paper);cursor:var(--cursor) 9 9,pointer;border-radius:0;
+  transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.f button:hover{background:var(--accent);color:var(--on-accent)}
+.f button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* THE SPEC ROW — the Method row, the one entry in the list that is a spec and not a
    project (chooser: method-row round 2, option 04). It is an `.entry` with two changes,

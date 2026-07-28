@@ -4,9 +4,18 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  // One page sets this: /gate/, which nginx serves as the 401 body for the locked case study.
+  // A prop rather than a `<slot name="head">` because there is exactly one thing any page has
+  // ever needed to add to the head, and a named slot would invite the next person to put a
+  // second stylesheet or a tracking tag through it.
+  noindex?: boolean;
 }
 
-const { title, description = 'Andrew Shiau — designer and builder.' } = Astro.props;
+const {
+  title,
+  description = 'Andrew Shiau — designer and builder.',
+  noindex = false,
+} = Astro.props;
 const year = 2026;
 
 // THE MARK IS NOT HERE ANY MORE (chooser: andrewshiau-panel-shape, Q1/02). This layout used
@@ -37,6 +46,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
 
     <!-- SOCIAL UNFURL. Before this, a link to the site pasted into Slack or a DM showed
          the title and nothing else — the first impression of a site whose whole argument

@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import { methodSpec, work, experiments } from '../data/experiments';
 import SideDot from '../components/SideDot.astro';
 import Mark from '../components/Mark.astro';
+import LockedRow from '../components/LockedRow.astro';
 import spec from '../../method/method.md?raw';
 
 // The thesis below is also the second sentence of method/method.md. Two copies of one
@@ -133,22 +134,28 @@ const ENTRY_COUNT = work.length + experiments.length;
       <h2>Work</h2>
       <div class="matrix">
         {work.map((x) => (
-          <a class:list={['entry', { accent: x.accent }]} href={x.href}
-             target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
-            <span class="en">{x.n}</span>
-            <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
-            <p class="ed">{x.blurb}</p>
-            <span class="em">
-              <SideDot side={x.side} />
-              <span class="smeta">{x.meta}</span>
-              {/* A locked page announces itself in the marker cell, which already holds
-                  this row's facts and is read before the click — not as a badge beside the
-                  title, which would make one of eight rows shout. The word "Password" is
-                  the whole signal: no icon, no colour, so it survives greyscale and a
-                  screen reader alike. */}
-              {x.locked && <span class="lock">Password</span>}
-            </span>
-          </a>
+          x.locked ? (
+            /* THE LOCKED ROW opens in place: the gate is this row, expanded under itself, so
+               the click and the ask happen in the same object and the reader never leaves the
+               index (chooser: andrewshiau-gate-options, option 05). It renders two siblings —
+               the row and its gate cell — which is why it is a component rather than a branch
+               inside the markup here: a `<form>` cannot live inside the `<a>`, so the pair has
+               to be emitted together, and `/gate/` renders the same pair already open.
+               The lock mark it adds at the title is the "clearer than a word in the marker
+               cell" indicator — see `.entry .lockc` in global.css. */
+            <LockedRow x={x} />
+          ) : (
+            <a class:list={['entry', { accent: x.accent }]} href={x.href}
+               target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
+              <span class="en">{x.n}</span>
+              <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
+              <p class="ed">{x.blurb}</p>
+              <span class="em">
+                <SideDot side={x.side} />
+                <span class="smeta">{x.meta}</span>
+              </span>
+            </a>
+          )
         ))}
       </div>
 

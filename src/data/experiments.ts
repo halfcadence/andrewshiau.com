@@ -16,11 +16,14 @@ export interface Entry {
   side: Side;         // which half of the practice — renders the dot + word marker
   accent?: boolean;   // accent (design-hue) top-rule instead of ink
   external?: boolean; // opens in a new tab
-  // The page is behind nginx Basic Auth, so the row says so BEFORE the click. Without it,
-  // the first row of Work opens a browser credential dialog with no explanation, and a
-  // hiring manager reads that as a broken link rather than a deliberate gate. The flag is
-  // here rather than hardcoded in index.astro so the row and the vhost have one shared
-  // source of truth, next to the href it protects.
+  // The page is behind the password gate, so the row says so BEFORE the click — a lock at the
+  // title and the word in the marker cell. Without it a hiring manager reads the first row of
+  // Work as a broken link rather than a deliberate gate.
+  // The flag does three things, which is why it is here rather than hardcoded in a page: it
+  // renders the row as `LockedRow.astro` (the gate opens under it in place), it is what
+  // `gate.astro` looks up to know which row to render open, and it sits next to the href the
+  // vhost protects so the two can't drift. Setting it is not what protects the page — nginx is
+  // (README.md, "the password gate"). Both, or neither is true.
   locked?: boolean;
 }
 
