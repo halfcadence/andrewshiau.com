@@ -121,8 +121,42 @@ curl -s -o /dev/null -w "%{http_code}\n" https://andrewshiau.com/               
 
 **5. The index still links to it.** Basic Auth protects the page, not the link — a hiring
 manager clicking `01 Stores Designer` gets a browser credential prompt with no explanation.
-If a page goes behind auth, its index row needs to say so, and `robots.txt` should
-`Disallow:` the path (there is no `public/robots.txt` yet; add one if you protect anything).
+So a protected page needs three more edits, all of them done for `/work/stores-designer/`:
+
+- `src/data/experiments.ts` → `locked: true` on the entry, which renders the `PASSWORD`
+  line in the index row's marker cell.
+- `public/robots.txt` → a `Disallow:` for the path. Auth turns a crawler away with a 401,
+  but without this the URL is still indexed and surfaces as a result that opens a prompt.
+- `astro.config.mjs` → add it to the sitemap `filter`. A sitemap is a request to index;
+  asking a crawler to index a URL that answers 401 is a contradiction.
+
+---
+
+## Regenerating the social card (`public/og.png`)
+
+`tools/og-card.html` is the source. Do this when the claim, the palette, or the mark
+changes — the PNG is a fixed raster and can't track the site on its own.
+
+It has to be **served**, not opened as `file://`: the card is set in Graphik and the
+woff2 files only load same-origin, so a `file://` copy falls back to Helvetica and the
+card stops being cut from the real system. Run it on the **Mac** — never a server on the
+devbox (see the top of this file).
+
+```bash
+# on the Mac, in the repo
+cp tools/og-card.html public/og-card.html   # temporary — it must be under the served root
+npm run dev
+# then, in the browser at http://127.0.0.1:4321/og-card.html, capture the .card element
+# at exactly 1200×630 (deviceScaleFactor 1 — the meta says 1200×630, so don't ship @2x).
+rm public/og-card.html                      # do NOT leave it in public/: it would deploy
+```
+
+The copy is deliberately temporary. `tools/` is outside `src/pages/`, so the card is not a
+route and not in the sitemap — a bare card page is not something a reader should land on.
+
+Then check the result: 1200×630, under ~100KB, and legible at thumbnail size (the ledger's
+15px caps are the first thing to go). `Layout.astro` hardcodes the dimensions and the
+`og:image:alt` text — if the card's wording changes, change the alt with it.
 
 ---
 

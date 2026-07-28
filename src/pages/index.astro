@@ -122,6 +122,12 @@ const ENTRY_COUNT = work.length + experiments.length;
             <span class="em">
               <SideDot side={x.side} />
               <span class="smeta">{x.meta}</span>
+              {/* A locked page announces itself in the marker cell, which already holds
+                  this row's facts and is read before the click — not as a badge beside the
+                  title, which would make one of eight rows shout. The word "Password" is
+                  the whole signal: no icon, no colour, so it survives greyscale and a
+                  screen reader alike. */}
+              {x.locked && <span class="lock">Password</span>}
             </span>
           </a>
         ))}

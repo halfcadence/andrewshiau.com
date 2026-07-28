@@ -604,6 +604,17 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 /* the `·` separator is for an inline marker (a case-study header). Stacked, the line break
    already separates, and the dot hangs off the left of the second line as a stray mark. */
 .entry .em .side + .smeta::before{content:none}
+/* LOCKED — a third line in the marker cell for a page behind Basic Auth. It inherits the
+   cell's 11px tracked caps, so it reads as one more fact in the same column rather than a
+   badge: the row's job is still to say what the artifact is.
+   A hairline above it and the ink colour are the whole distinction. Ink, not the accent —
+   the accent is structure on this site, and a padlock isn't structure. The word does the
+   work with no icon and no colour dependency, so it holds in greyscale and reads correctly
+   aloud. No `align-self`: the cell's own `align-items` already places it, so it follows the
+   cell from right-aligned at full width to left at ≤900px with no second rule. The hairline
+   is the width of the word, not the cell — it marks this fact, not the column. */
+.entry .em .lock{margin-top:4px;padding-top:4px;border-top:1px solid var(--line);
+  color:var(--ink)}
 .entry .arrowc{color:var(--accent);font-weight:700;display:inline-block;
   transition:transform var(--dur-fast) var(--ease)}
 .entry:hover .arrowc{transform:translateX(6px)}

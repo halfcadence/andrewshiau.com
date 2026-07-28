@@ -21,12 +21,20 @@ export default defineConfig({
     // The failure is at the END of the build, after all 13 pages report success, so the
     // log reads green until the last two lines. Bump this only with Astro itself.
     sitemap({
-      // The three /demo/ pages are the iframe payloads for the embeds on /work/proofs/:
-      // no mast, no nav, no way back to the site. A crawler that indexes one hands a
-      // reader a dead-ended fragment, so they're filtered here AND Disallow'd in
-      // robots.txt — the filter keeps them out of the sitemap, the Disallow keeps them
-      // out of the index.
-      filter: (page) => !page.includes('/demo/'),
+      // Two exclusions, both because the URL isn't a page a reader can land on.
+      //
+      // /demo/ — the three iframe payloads for the embeds on /work/proofs/: no mast, no
+      // nav, no way back to the site. A crawler that indexes one hands a reader a
+      // dead-ended fragment. Also Disallow'd in robots.txt; the filter keeps them out of
+      // the sitemap, the Disallow keeps them out of the index.
+      //
+      // /work/stores-designer/ — behind nginx Basic Auth. A sitemap is a request to
+      // index, and asking a crawler to index a URL that answers 401 is a contradiction:
+      // it lands as a search result that opens a password prompt.
+      //
+      // NOT excluded: the /writing/ explainers embedded on /work/aping/ and
+      // /work/explain/. Those are full pages that stand alone and should be indexed.
+      filter: (page) => !page.includes('/demo/') && !page.includes('/work/stores-designer/'),
     }),
   ],
 });

@@ -8,6 +8,12 @@ interface Props {
 
 const { title, description = 'Andrew Shiau — designer and builder.' } = Astro.props;
 const year = 2026;
+
+// Unfurl cards need ABSOLUTE urls — Slack and Twitter fetch the image from their own
+// servers, so a root-relative `/og.png` resolves against slack.com and 404s. `Astro.site`
+// is the `site` in astro.config.mjs, so these can't drift from the canonical domain.
+const ogImage = new URL('/og.png', Astro.site).href;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
 ---
 
 <!DOCTYPE html>
@@ -18,9 +24,32 @@ const year = 2026;
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href={canonical} />
+
+    <!-- SOCIAL UNFURL. Before this, a link to the site pasted into Slack or a DM showed
+         the title and nothing else — the first impression of a site whose whole argument
+         is that it was designed was a bare grey rectangle.
+         og.png is a real raster, not the favicon SVG: no unfurl renderer draws SVG. It is
+         generated from tools/og-card.html so the card is set in the site's own Graphik and
+         hexes rather than approximated — recipe in README.md. -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="andrewshiau.com" />
+    <meta property="og:image" content={ogImage} />
+    <!-- Dimensions let a client reserve the right box before the image arrives, so the
+         card doesn't reflow from square to wide as it loads. -->
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <!-- The alt is read aloud in place of the card. It describes the card, not the site. -->
+    <meta property="og:image:alt" content="andrewshiau.com — Andrew Shiau is a frontend engineer who designs and builds. Taste finds the simplest form, engineering proves the simplest solution." />
+    <!-- `summary_large_image` is what makes the 1200×630 render wide instead of being
+         cropped to a small square thumbnail beside the text. -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
   </head>
   <body>
     <div class="wrap">

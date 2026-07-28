@@ -16,6 +16,12 @@ export interface Entry {
   side: Side;         // which half of the practice — renders the dot + word marker
   accent?: boolean;   // accent (design-hue) top-rule instead of ink
   external?: boolean; // opens in a new tab
+  // The page is behind nginx Basic Auth, so the row says so BEFORE the click. Without it,
+  // the first row of Work opens a browser credential dialog with no explanation, and a
+  // hiring manager reads that as a broken link rather than a deliberate gate. The flag is
+  // here rather than hardcoded in index.astro so the row and the vhost have one shared
+  // source of truth, next to the href it protects.
+  locked?: boolean;
 }
 
 // Which half of the practice an entry belongs to. Drives the side marker (a dot in
@@ -110,6 +116,7 @@ export const work: Entry[] = [
     href: '/work/stores-designer/',
     side: 'both',
     accent: true,
+    locked: true,
   },
   {
     n: '02',
