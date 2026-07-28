@@ -14,11 +14,18 @@
 // title floating over 300px of nothing.
 import { metaOf } from '../data/experiments';
 import SideMark from './SideMark.astro';
+import Mark from './Mark.astro';
 interface Props { href: string; title: string }
 const { href, title } = Astro.props;
 ---
 <div class="pin">
-  <div class="back"><a href="/">← Index</a></div>
+  <!-- The mark, which used to be centred in a bar above the whole page (chooser:
+       andrewshiau-panel-shape, Q1/02). It is a link to the index on every one of these
+       pages, which is what the "← Index" line under it used to be for — so that line is
+       gone rather than sitting directly beneath a second control doing the same job. The
+       mark keeps the accessible name ("andrewshiau — home"), so the way back is still
+       announced; `.pmark` gets the phone-width tap target in global.css. -->
+  <Mark />
   <SideMark href={href} />
   <h1>{title}</h1>
 

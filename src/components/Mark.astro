@@ -1,0 +1,27 @@
+---
+// The mark, at the head of the pinned panel — mark, name, facts, address, in reading order.
+//
+// It used to live in a centred `nav.topbar` in Layout.astro (chooser:
+// andrewshiau-panel-shape, Q1/02, moved it here). One component rather than ten copies for
+// the same reason PanelHead.astro exists: the last time a shape was repeated by hand across
+// these pages, the shapes drifted.
+//
+// `home` is false on the index, because a link to the page you are already on is a link that
+// does nothing — there the mark is the masthead, not navigation. Everywhere else it is the
+// way back, which is why the case-study panels can drop their own "← Index" line.
+interface Props { home?: boolean }
+const { home = true } = Astro.props;
+
+// The mark: two dots joined by a rule. Design and build — two things, one line. The rule is
+// the relationship.
+const svg = `<svg class="mark" viewBox="0 0 32 32" role="img" aria-label="andrewshiau" xmlns="http://www.w3.org/2000/svg">
+  <line x1="10" y1="10" x2="22" y2="22" stroke="currentColor" stroke-width="1.5"/>
+  <circle cx="10" cy="10" r="5" fill="var(--design)"/>
+  <circle cx="22" cy="22" r="5" fill="var(--build)"/>
+</svg>`;
+---
+{home ? (
+  <a class="pmark" href="/" aria-label="andrewshiau — home"><Fragment set:html={svg} /></a>
+) : (
+  <div class="pmark" aria-hidden="true"><Fragment set:html={svg} /></div>
+)}

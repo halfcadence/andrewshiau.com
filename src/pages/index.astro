@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { methodSpec, work, experiments } from '../data/experiments';
 import SideDot from '../components/SideDot.astro';
+import Mark from '../components/Mark.astro';
 import spec from '../../method/method.md?raw';
 
 // The thesis below is also the second sentence of method/method.md. Two copies of one
@@ -36,6 +37,11 @@ const ENTRY_COUNT = work.length + experiments.length;
        sibling of the feed or it has nothing to stick inside. -->
   <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
     <div class="pin">
+      <!-- The mark, moved here from the centred bar above the page (chooser:
+           andrewshiau-panel-shape, Q1/02). `home={false}`: this IS the index, and a link
+           to the page you are on is a link that does nothing. -->
+      <Mark home={false} />
+
       <!-- Same single-element statement as before, at the panel's measure: the name
            sentence with the two thesis clauses inline, each in its own hue. Still the only
            place colour enters body copy, because here the two halves of the practice ARE
@@ -64,10 +70,17 @@ const ENTRY_COUNT = work.length + experiments.length;
         </div>
       </div>
 
-      <!-- The one call to action, at the foot of the column that never leaves the screen.
-           The colophon no longer repeats it — see the note above the colophon. -->
-      <p class="pfoot">Contact
+      <!-- WHERE TO REACH ME, at the foot of the column that never leaves the screen
+           (chooser: andrewshiau-panel-shape, Q2/03 — "the colophon moves in", resolved as a
+           split rather than a move; the reasoning is in the note above the closing band).
+           Three links, one label. They were previously in the colophon at the very bottom of
+           the page, which meant the only way to reach me was to finish reading: the panel is
+           permanently on screen, so this is the half of the old colophon that earns its
+           place here. The address stays first — it's the one worth acting on. -->
+      <p class="pfoot">Elsewhere
         <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+        <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github ↗</a>
+        <a href="https://www.instagram.com/half_cadence" target="_blank" rel="noopener">instagram ↗</a>
       </p>
     </div>
 
@@ -151,26 +164,35 @@ const ENTRY_COUNT = work.length + experiments.length;
     </div>
   </div>
 
-  <!-- Colophon — placed on the grid, not stacked full-width. Label column at the
-       left, facts as aligned satellites; the right columns stay empty.
-       It stays FULL WIDTH under the split rather than moving into the panel: the panel
-       carries what's true while you read the work, and where to find me afterwards is the
-       page's closing fact. `.colo-rule`'s 2px line is what closes the page.
-       Contact used to be the first of three columns here, and now is not: the panel's foot
-       already carries the address, permanently on screen, and printing the same mailto
-       twice on one page makes the reader check whether they differ. The panel is the better
-       of the two places to keep it — it's the one that's visible while you're deciding. -->
+  <!-- THE CLOSING BAND — placed on the grid, not stacked full-width. Label column at the
+       left, facts as aligned satellites; the right columns stay empty. `.colo-rule`'s 2px
+       line is what closes the page. It is also what the snap brings up: chooser Q3/04 snaps
+       the closing sequence into place, and the align sits on `.foot` so the colophon and the
+       copyright arrive together — measured, they're 219px, one screen. See `.wrap` /
+       `.foot{scroll-snap-align}` in global.css.
+       It is SPLIT with the panel rather than moved into it (chooser Q2/03, "the colophon
+       moves in", plus the ask to promote the contact links). Both picks were right about a
+       different half, and moving all of it either way lost something:
+       - Reaching me shouldn't require finishing the page, so github / instagram / the
+         address went UP into the panel, where they're permanently on screen.
+       - The page still has to end. Take the whole colophon into the panel and the feed just
+         stops: no 2px rule, nothing for Q3/04 to snap to, and the last row of Experiments
+         runs into the footer.
+       What's left here is what a colophon is actually for — facts about the page and its
+       lineage, read after the work, not links you need while deciding. Which also fixes a
+       mislabel: this block called itself "Colophon" while its first column was contact
+       details, and now the label is true.
+       Nothing is printed twice. github and instagram are in the panel and only there. -->
   <div class="grid" style="margin-top:calc(var(--unit)*3)">
     <div class="colo-rule"></div>
     <div class="colo-lab">Colophon</div>
     <div class="colo c1">
-      <span class="ck">Elsewhere</span>
-      <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a><br />
-      <a href="https://www.instagram.com/half_cadence" target="_blank" rel="noopener">instagram</a>
-    </div>
-    <div class="colo c2">
       <span class="ck">Before AI</span>
       <a href="https://2018.andrewshiau.com" target="_blank" rel="noopener">portfolio2018</a>
+    </div>
+    <div class="colo c2">
+      <span class="ck">Set in</span>
+      Graphik, self-hosted — the one typeface, from the 2018 portfolio.
     </div>
   </div>
 </Layout>

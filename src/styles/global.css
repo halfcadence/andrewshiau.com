@@ -409,10 +409,26 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .pin .pv b{color:var(--ink);font-weight:700}
 .pin .pfoot{margin-top:calc(var(--unit)*1.25);font-size:11px;line-height:20px;
   letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--faint)}
+/* Three stacked links under one label now (the address, github, instagram — chooser
+   andrewshiau-panel-shape Q2/03 promoted the last two out of the colophon). `display:block`
+   already stacks them; the only thing the third link needed was air between the rows, and
+   1.6 line-heights of it so the block reads as a list rather than a wrapped paragraph. */
 .pin .pfoot a{display:block;color:var(--accent);text-decoration:none;
-  border-bottom:1px solid transparent;width:fit-content;
+  border-bottom:1px solid transparent;width:fit-content;margin-top:3px;
   transition:border-color var(--dur-fast) var(--ease)}
 .pin .pfoot a:hover{border-bottom-color:var(--accent)}
+
+/* THE MARK, at the head of the panel — moved out of a centred full-width `nav.topbar`
+   (chooser Q1/02). 26px, the size it was in the bar; `line-height:0` so the anchor is the
+   glyph's box and nothing more. The --unit below it is the same air the `.back` link used to
+   have, so the panel's internal rhythm is unchanged.
+   The 90° hover rotation comes with it: the mark is two dots joined by a rule, and turning
+   it swaps which dot leads without changing what it is. Same duration and curve as before. */
+.pin .pmark{display:block;width:26px;height:26px;line-height:0;color:var(--ink);
+  margin-bottom:var(--unit)}
+.pin .pmark .mark{width:26px;height:26px;display:block;
+  transition:transform var(--dur-big) var(--ease)}
+.pin a.pmark:hover .mark{transform:rotate(90deg)}
 .feed{grid-column:5 / 13;grid-row:1}
 /* The feed's own section heads. The page previously opened each list with an h2 in its own
    `.grid.sect`; inside the feed column that `.grid` would re-divide the 8 columns into 12
@@ -780,13 +796,11 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   .colo-lab{margin-top:0}
 }
 
-/* NAV / footer — thin ruled bars */
-.topbar{display:flex;justify-content:center;align-items:center;padding:var(--unit) 0 calc(var(--unit)*0.9);
-  border-bottom:2px solid var(--ink);margin-bottom:calc(var(--unit)*1.5)}
-.topbar .brand{display:inline-flex;color:var(--ink);text-decoration:none;line-height:0}
-.topbar .brand .mark{width:26px;height:26px;display:block;flex:none;
-  transition:transform .5s cubic-bezier(.2,.8,.2,1)}
-.topbar .brand:hover .mark{transform:rotate(90deg)}
+/* Footer — a thin ruled bar. `.topbar` used to sit here: a centred 26px mark with a 2px
+   rule under it, above every page. The mark moved into the panel (chooser
+   andrewshiau-panel-shape, Q1/02 — see `.pin .pmark`) and the bar went with it, so those
+   five rules are deleted rather than left to rot. The page's top edge is now the panel's
+   own hairline. */
 .foot{border-top:2px solid var(--ink);margin-top:calc(var(--unit)*3);padding-top:var(--unit);
   display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
 .foot .fl{grid-column:1 / 9;color:var(--dim);font-size:13px;line-height:22px}
@@ -822,10 +836,13 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    Verified with `hasTouch` emulation: every rect below is ≥44 tall and none of the
    surrounding geometry moved. */
 @media(hover:none),(pointer:coarse){
-  /* The mark: 26px of ink, 44px of reach, still optically centred in the bar. */
-  .topbar .brand{padding:9px;margin:-9px}
+  /* The mark: 26px of ink, 44px of reach. The negative margin is asymmetric on the left —
+     the mark now heads the panel, so its left edge IS the page's left edge and padding that
+     shifted it right would break the one left edge the whole page aligns to. */
+  .pin a.pmark{padding:9px;margin:-9px -9px -9px 0}
   /* `← Index`: inline-block so vertical padding applies at all. The negative margin is
-     only vertical — the left edge is the page's left edge and must not move. */
+     only vertical — the left edge is the page's left edge and must not move.
+     Still here for /method, which has a `.back` line and no PanelHead. */
   .back a{display:inline-block;padding:16px 8px;margin:-16px -8px}
   /* Contact in the panel. Already `display:block; width:fit-content`, so it only needs
      the vertical run; the hover underline stays on the text, not the padding. */
@@ -833,6 +850,38 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   /* Colophon: two or three of these stack in one cell, so they need row spacing between
      them as well as height, or the 44px boxes overlap and you tap the wrong one. */
   .colo a{display:inline-block;padding:12px 6px;margin:-5px -6px}
+}
+
+/* THE CLOSING BAND SNAPS (chooser: andrewshiau-panel-shape, Q3/04).
+   The problem it solves, measured on the running page: the panel is sticky inside the split,
+   and a sticky box can only travel inside its own grid area — so in the last 94px of scroll
+   everything below the split pushes the panel up and its top two lines clip off the screen
+   while the colophon slides past beside it. The page let go instead of handing off.
+   `proximity`, NOT `mandatory`. Mandatory is the version of this that takes scroll away from
+   the reader: it captures every gesture near the end, including one meant to stop halfway.
+   Proximity only completes a scroll that was already arriving, so the colophon lands as one
+   composed screen and a reader who wanted to stop mid-band still can.
+   The snap container is `.wrap`, not `html` — one declaration, and the only element with a
+   snap-align inside it is the closing band, so nothing else on the page can be captured.
+   `align:END`, on the FOOTER, and both halves of that were measured rather than assumed:
+   - END, not start. The colophon band sits 1663px down a 2002px page, so aligning its TOP to
+     the viewport top needs a scroll offset of 1639 while the page's maximum scroll is 1102 at
+     900px tall (922 at 1080, 1242 at 760). A snap position past the end of the scroll range
+     is never reached, so `align:start` would have shipped as a rule that silently did nothing
+     on every screen.
+   - The footer, not the colophon. The ask was the colophon AND the copyright, and the whole
+     closing sequence is only 219px (169 band + 50 footer), so both fit on one screen with
+     room to spare. Aligning the band's own end stops with the copyright still below the fold;
+     aligning the footer's end brings the sequence up together. Needs 1006 at 900px tall —
+     inside the scroll range at every height.
+   `scroll-margin-bottom` keeps the copyright off the viewport's very edge when it lands. */
+.wrap{scroll-snap-type:y proximity}
+.foot{scroll-snap-align:end;scroll-margin-bottom:var(--unit)}
+/* Below 1100px the split unwinds to a stacked block and the panel stops being sticky, so
+   there is no clipping panel to hand off FROM — the snap would be motion with no defect to
+   fix. Off, along with the sticky behaviour that motivated it. */
+@media(max-width:1100px){
+  .wrap{scroll-snap-type:none}
 }
 
 /* Back-link on case-study pages */
@@ -912,5 +961,12 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent);text-decorati
     animation-iteration-count:1 !important;
     transition-duration:0.01ms !important;
     scroll-behavior:auto !important}
-  .topbar .brand:hover .mark{transform:none}
+  /* The panel mark's 90° hover turn (was `.topbar .brand` before the mark moved into the
+     panel — chooser Q1/02). */
+  .pin a.pmark:hover .mark{transform:none}
+  /* The closing band's snap. `scroll-behavior:auto` above does NOT cover this: that governs
+     whether a programmatic scroll is smooth, while snapping is the viewport being moved to a
+     position the reader didn't choose — which is the thing this query is for. It has to be
+     turned off by name. */
+  .wrap{scroll-snap-type:none}
 }
