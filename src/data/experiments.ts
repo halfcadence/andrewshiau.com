@@ -1,7 +1,8 @@
-// Two indexes the landing page renders as separate sections:
+// Three indexes the landing page renders as separate sections, in this order:
+//   method      — the operating spec the other two came out of (one entry)
 //   work        — professional projects (pre-AI + shipped-at-work), each a case study
 //   experiments — the AI-forward experiments
-// Each entry with an internal `href` (/work/…) has its own case-study page.
+// Each entry with an internal `href` (/work/…, /method/) has its own page.
 export interface Entry {
   n: string;          // set number, e.g. "01"
   title: string;
@@ -32,10 +33,57 @@ export const SIDE_LABEL: Record<Side, string> = {
 // the marker in the index can never drift apart. Throws loudly on a typo'd href
 // rather than silently rendering the wrong half.
 export function sideOf(href: string): Side {
-  const entry = [...work, ...experiments].find((x) => x.href === href);
+  const entry = [methodSpec, ...work, ...experiments].find((x) => x.href === href);
   if (!entry) throw new Error(`sideOf: no entry with href "${href}" in experiments.ts`);
   return entry.side;
 }
+
+// THE METHOD — the operating spec, not a project, and deliberately NOT an `Entry`. It gets
+// the index's row device (see `.espec`) with two differences the data has to carry:
+//   no `n` — there is exactly one of it, and a set "01" promises an "02" that never comes;
+//   two procedures instead of one blurb — the duality is the row's content, so it is two
+//   sub-rows in the two hues rather than a sentence describing them.
+// Its own one-row section at the top of the index: the two sentences under the masthead are
+// this spec's opening claim, so the thing that states them belongs above the evidence.
+export interface Procedure {
+  side: 'design' | 'build'; // which hue opens the sub-row
+  label: string;            // the kicker, in that hue
+  title: string;
+  blurb: string;
+}
+
+export interface SpecRow {
+  title: string;
+  meta: string;
+  href: string;
+  side: Side;
+  procedures: Procedure[];
+}
+
+export const methodSpec: SpecRow = {
+  title: 'The operating spec',
+  meta: 'Agent spec',
+  href: '/method/',
+  side: 'both',
+  procedures: [
+    {
+      side: 'design',
+      label: 'Design',
+      title: 'How a decision gets made',
+      blurb:
+        "Render every option in the real system, option 1 is what's live, pick by " +
+        'looking — then state the reason.',
+    },
+    {
+      side: 'build',
+      label: 'Build',
+      title: 'How a change gets proven',
+      blurb:
+        'On the real deployment, verified in the live artifact, always paired with a ' +
+        'control.',
+    },
+  ],
+};
 
 // PROFESSIONAL WORK — real projects, engineering + design. Pre-AI and at-work.
 export const work: Entry[] = [

@@ -1,7 +1,21 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { work, experiments } from '../data/experiments';
+import { methodSpec, work, experiments } from '../data/experiments';
 import SideDot from '../components/SideDot.astro';
+import spec from '../../method/method.md?raw';
+
+// The thesis below is also the second sentence of method/method.md. Two copies of one
+// claim drift, and README.md saying "these must match" is a comment, not a check —
+// config that can drift from code will drift, so assert it. This fails the build at the
+// only moment a human is looking, and it fails loudly rather than letting the site
+// quietly stop quoting its own spec. Whitespace-collapsed because the markdown wraps
+// the sentence across two lines.
+const THESIS = 'Taste finds the simplest form; engineering proves the simplest solution.';
+if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
+  throw new Error(
+    'method/method.md no longer contains the thesis sentence index.astro quotes:\n  ' + THESIS
+  );
+}
 ---
 
 <Layout title="Andrew Shiau">
@@ -16,6 +30,40 @@ import SideDot from '../components/SideDot.astro';
     <h1 class="statement c1-10">Andrew Shiau is a frontend engineer who designs and builds,
       chasing simplicity. <span class="t-design">Taste finds the simplest form</span>,
       <span class="t-build">engineering proves the simplest solution</span>.</h1>
+  </div>
+
+  <!-- Method FIRST, above the evidence (placement pick 04). The statement above IS this
+       spec's opening claim, so the thing that states it sits next to it; a reader who
+       wants the artifacts scrolls one row. One row, not a section of prose — the cost of
+       putting a claim before the evidence is a manifesto, and one list row can't be one.
+       Label only, no dek (copy pick 01): Work and Experiments carry no dek either, and a
+       dek here would be the only one on the page.
+       The row itself is `.espec` (round-2 pick 04): the same ruled row as the two lists
+       below, minus the numeral — one entry doesn't get a set "01" that promises an "02" —
+       with the duality carried as two nested sub-rows in the two hues instead of a blurb
+       that describes them. A `.duo` here would have been /method/'s device visiting the
+       index; rows are the index's unit. -->
+  <div class="grid sect">
+    <div style="grid-column:1 / 5"><h2>Method</h2></div>
+  </div>
+
+  <div class="matrix">
+    <a class="espec" href={methodSpec.href}>
+      <div class="eth">
+        <p class="eh">{methodSpec.title} <span class="arrowc">→</span></p>
+        <span class="em">
+          <SideDot side={methodSpec.side} />
+          <span class="smeta">{methodSpec.meta}</span>
+        </span>
+      </div>
+      {methodSpec.procedures.map((p) => (
+        <div class:list={['proc', p.side === 'design' ? 'd' : 'b']}>
+          <span class="pk">{p.label}</span>
+          <p class="pt">{p.title}</p>
+          <p class="pd">{p.blurb}</p>
+        </div>
+      ))}
+    </a>
   </div>
 
   <!-- Work + Experiments — ONE reference list, the same ruled table twice: number ·

@@ -342,6 +342,61 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
      right-aligned under a flush-left title. */
   .entry .em{grid-column:2;align-items:flex-start;text-align:left;margin-top:10px}
 }
+/* THE SPEC ROW — the Method row, the one entry in the list that is a spec and not a
+   project (chooser: method-row round 2, option 04). It is an `.entry` with two changes,
+   both forced by content:
+   1. NO NUMBER. There is exactly one of it, and a set "01" in the accent promises an "02"
+      that never comes — a list of one that looks like a list of many. So the title starts
+      at column 1 and the row loses the numeral column; the 2px ink rule still opens it,
+      which is what makes it a row of this list rather than a block dropped above it.
+   2. The duality is the row's CONTENT, as two sub-rows — not two columns. Columns would be
+      a `.duo`, which is /method/'s device and reads as a foreign block here; rows are this
+      page's unit, so the two procedures are two hairline rows nested under the title. The
+      hue lands in the number track (c1), which is exactly where colour already lives on
+      every other row (`.entry .en`) — so nothing new is introduced, only re-used.
+   The cost, stated: three stacked rules make this the tallest row on the page, and stacked
+   rows imply sequence where the two procedures are peers. Accepted, because fitting the list
+   mattered more than the equality a side-by-side asserts — /method/ makes the side-by-side
+   argument at full size one click away. */
+.espec{grid-column:1 / 13;display:block;text-decoration:none;color:var(--ink);
+  border-top:2px solid var(--ink);padding:14px 0 0;
+  transition:background var(--dur-fast) var(--ease)}
+.espec:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.espec .eth{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
+/* c1–6, not c2–6: with no numeral there is nothing to indent past. */
+.espec .eth .eh{grid-column:1 / 6;font-weight:700;font-size:clamp(20px,2vw,25px);
+  line-height:1.15;letter-spacing:-0.014em;margin:0}
+/* same c10–13 stacked marker as every other row, for the same measured reason */
+.espec .eth .em{grid-column:10 / 13;display:flex;flex-direction:column;align-items:flex-end;
+  gap:2px;color:var(--faint);font-size:11px;line-height:18px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:700;margin:0;text-align:right}
+.espec .eth .em .side + .smeta::before{content:none}
+/* The sub-rows use the row grammar one level down: hairline, kicker in c1, title in the
+   title track, blurb in the blurb track — so they align with the rows BELOW the section. */
+.espec .proc{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+  column-gap:var(--gutter);border-top:1px solid var(--line);margin-top:12px;padding:10px 0}
+.espec .proc .pk{grid-column:1 / 2;font-size:11px;line-height:20px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:700}
+.espec .proc.d .pk{color:var(--design)}
+.espec .proc.b .pk{color:var(--build)}
+.espec .proc .pt{grid-column:2 / 6;font-weight:700;font-size:17px;line-height:24px;
+  letter-spacing:-0.008em;margin:0}
+/* c6–13, not c6–10: the sub-row has no marker column of its own to leave clear. */
+.espec .proc .pd{grid-column:6 / 13;color:var(--dim);font-size:15px;line-height:22px;margin:0}
+.espec .arrowc{color:var(--accent);font-weight:700;display:inline-block;
+  transition:transform var(--dur-fast) var(--ease)}
+.espec:hover .arrowc{transform:translateX(6px)}
+/* ≤900px: every track collapses to full measure. The explicit grid-template-columns resets
+   are required — without them the 12 tracks survive and a `grid-column:1` child gets a
+   1/12 sliver. */
+@media(max-width:900px){
+  .espec .eth{grid-template-columns:1fr}
+  .espec .eth .eh,.espec .eth .em{grid-column:1}
+  .espec .eth .em{align-items:flex-start;text-align:left;margin-top:10px}
+  .espec .proc{grid-template-columns:1fr}
+  .espec .proc .pk,.espec .proc .pt,.espec .proc .pd{grid-column:1}
+  .espec .proc .pd{margin-top:4px}
+}
 /* SIDE MARKER — which half of the practice an entry belongs to. A dot in the
    duality hue plus the WORD: colour alone is never the signal (navy and olive are
    only 2.14:1 apart in greyscale, so a colourblind reader reads the word).

@@ -202,8 +202,34 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
     wants artifacts scrolls one row. It is one row and not a section of prose on purpose:
     the cost of putting a claim before the evidence is a manifesto, and a single list row
     can't be one. Section heads carry **no dek** (`Work` and `Experiments` have none, and
-    one dek would be the only one on the page); the row's own blurb does that job.
+    one dek would be the only one on the page); the row's own sub-rows do that job.
     All three use the identical device — one mechanism, used everywhere.
+- **The spec row** (`.espec` + `.proc.d` / `.proc.b`): the Method row — the one entry in the
+  index that is a **spec, not a project**. It is an `.entry` with exactly two changes, both
+  forced by content, and nothing else:
+  - **No numeral.** There is one of it, and a set `01` in the accent promises an `02` that
+    never comes — a list of one dressed as a list of many. The title starts at **column 1**
+    (nothing to indent past) and the 2px ink rule still opens the row, which is what keeps
+    it a row *of this list* rather than a block parked above it.
+  - **The duality is the row's content, as two sub-rows** — not two columns. Columns would
+    be a `.duo`, which is `/method/`'s device and reads as a foreign object on an index of
+    rows; **rows are this page's unit**. Each `.proc` is the row grammar one level down:
+    hairline, hue-coloured kicker in **c1**, title in **c2–5**, blurb in **c6–13** — so the
+    sub-rows land on the same verticals as the `.en` / `.eh` / `.ed` of every row below
+    (measured at 1440: 188 / 279 / 643 / 1007 px, identical to a `.entry`).
+  - The hue lands in the **numeral track**, which is where colour already lives on every
+    other row (`.entry .en` is the accent). Nothing new is introduced — the existing accent
+    slot is re-used, in the two duality hues.
+  - **The cost, accepted:** three stacked rules make this the tallest row on the page, and
+    stacked rows imply sequence where the two procedures are peers. Fitting the list won over
+    the equality a side-by-side asserts; `/method/` makes the side-by-side argument at full
+    size, one click away.
+  - There is **no CTA**. Round 1 of the chooser had a right-aligned "Read the spec →" and it
+    read as a button dropped on the grid: nothing else on this site is a call to action, the
+    arrow always rides the **title** of the thing being clicked. The whole row is the link.
+  - The `≤900px` block MUST reset `grid-template-columns` on both `.eth` and `.proc` before
+    moving children to `grid-column:1` — the 12 tracks otherwise survive and each child gets
+    a 1/12 sliver (this bit twice, once in the chooser and once here).
 - **Section break — air, not a rule** (`.grid.sect`): a section is opened by `3.5 × --unit`
   of space plus its head, with **no** divider. A 1px ink line across all 12 columns was
   the heaviest mark on the page and never touched the thing it opened, so it read as a

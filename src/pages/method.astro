@@ -1,0 +1,187 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SideMark from '../components/SideMark.astro';
+import spec from '../../method/method.md?raw';
+
+// Hand-written copy for a reader, ASSERTED against the spec (chooser pick 04-03). The
+// alternative was rendering method.md through a markdown renderer: zero drift, but it
+// publishes an agent-facing document — install instructions and "load the side the task
+// needs" — to a human, and adds a dependency to a site that has none. So the page is
+// edited, and the sentences it shares with the spec are checked at build time. A typo in
+// the spec breaks the build; that is the intended behaviour.
+//
+// Boundary of what this checks: the two shared sentences, not the tone of the paragraphs
+// around them. Whitespace is collapsed because the markdown wraps mid-sentence.
+const SHARED = [
+  'Taste finds the simplest form; engineering proves the simplest solution.',
+  'Not a biography, not a résumé, not a decision log, and not a stand-in for a person.',
+];
+const flat = spec.replace(/\s+/g, ' ');
+for (const s of SHARED) {
+  if (!flat.includes(s)) {
+    throw new Error('method/method.md no longer contains a sentence /method/ quotes:\n  ' + s);
+  }
+}
+---
+
+<Layout
+  title="Method — Andrew Shiau"
+  description="One principle, two instruments: how a design decision gets made, and how a change gets proven."
+>
+  <div class="grid">
+    <div class="back"><a href="/">← Index</a></div>
+  </div>
+
+  <div class="grid">
+    <div class="c1-10">
+      <SideMark href="/method/" />
+      <h1>Method</h1>
+    </div>
+  </div>
+  <div class="grid">
+    <p class="dek c1-8" style="margin-top:var(--unit)">
+      Both sides chase the same thing: the simplest thing that works. Taste finds the
+      simplest form; engineering proves the simplest solution. One looks, the other
+      measures.
+    </p>
+  </div>
+
+  <!-- The unified statement, before the split. The two columns below only make sense as
+       two halves of one thing, and a reader who meets them cold reads them as two
+       unrelated lists — so the shared claim runs full-measure first. -->
+  <div class="grid">
+    <div class="c1-8" style="margin-top:calc(var(--unit)*1.5)">
+      <p>
+        That is not two philosophies. It is one principle with two instruments, and the
+        two sides check each other. Neither gets to skip its proof: a form nobody looked
+        at isn't designed, a solution nobody measured isn't done. When they conflict,
+        evidence wins and the loss gets recorded.
+      </p>
+      <p>
+        Below is what that actually means as procedure — written down so an agent can run
+        it, which is also the only way I know to check whether I still do.
+      </p>
+    </div>
+  </div>
+
+  <!-- The duality as the page's shape (chooser pick 02): two procedures side by side,
+       each under its own hue. The composition states the argument before a word is read. -->
+  <div class="grid sect">
+    <div class="c1-12"><h2>Two instruments</h2></div>
+  </div>
+  <div class="grid" style="margin-top:var(--unit)">
+    <div class="duo">
+      <div class="dcol d">
+        <span class="dk">Design — the instrument is the eye</span>
+        <h3>How a design decision gets made</h3>
+        <ol>
+          <li><b>Render every option, in the real system</b> — the actual typeface,
+            tokens, grid, and breakpoints it ships in.</li>
+          <li><b>Option 1 is always what's live today.</b> Without the baseline,
+            "better" has no referent.</li>
+          <li>A few distinct options beat a dozen near-duplicates. If two differ by
+            2px, they are one option.</li>
+          <li><b>Pick by looking.</b> Then state the one-line reason — after the
+            choice, not before.</li>
+          <li>Check both colorways and phone width before calling it done.</li>
+        </ol>
+      </div>
+      <div class="dcol b">
+        <span class="dk">Build — the instrument is measurement</span>
+        <h3>How a change gets proven</h3>
+        <ol>
+          <li><b>Prove it on the real deployment.</b> A unit test and a mockup are
+            both hypotheses.</li>
+          <li><b>Verify the change is in the live artifact</b> before trusting a
+            result. A failure against a stale bundle is a false negative.</li>
+          <li><b>Pair every change with a control.</b> A/B proves the change took;
+            A/A proves nothing else moved.</li>
+          <li>A visual signal when it renders, a trace when it doesn't — the cheapest
+            observation that can actually fail.</li>
+          <li><b>Report the boundary</b> of what was tested, and what wasn't.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- The one filled form on the page, for the sentence that joins the two columns. -->
+  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+    <div class="block c1-6">
+      <span class="st">The rule both sides share</span>
+      <span class="sd">A candidate is only readable against a baseline. In design that
+        baseline is what's live today, rendered beside the alternatives. In engineering
+        it's the control arm of an A/B. Same rule, different instrument.</span>
+    </div>
+  </div>
+
+  <!-- The five rules that apply to both sides (chooser pick 03), as .step rows: three
+       then two, so the last row's empty module reads as the composition rather than as a
+       list that ran out. Rule 01 takes the accent rule — it's the one the rest follow
+       from, and it's the one this site had to obey to earn the page. -->
+  <div class="grid sect">
+    <div class="c1-12"><h2>Rules for both</h2></div>
+  </div>
+  <div class="grid" style="margin-top:var(--unit)">
+    <div class="step accent" style="grid-column:1 / 5">
+      <span class="sl">Rule 01</span>
+      <span class="st">Simplify by removal, not by hiding</span>
+      <span class="sd">The win is the thing that's gone — a step, a file, a person in the
+        loop — not a thing tucked behind a disclosure triangle.</span>
+    </div>
+    <div class="step" style="grid-column:5 / 9">
+      <span class="sl">Rule 02</span>
+      <span class="st">Decide by looking or by measuring</span>
+      <span class="sd">Never by arguing. If a decision is being settled in prose, the
+        wrong instrument is in use. Render it, or run it.</span>
+    </div>
+    <div class="step" style="grid-column:9 / 13">
+      <span class="sl">Rule 03</span>
+      <span class="st">Real conditions or it doesn't count</span>
+      <span class="sd">The actual tokens and grid; the actual deployment, not a fixture.
+        A mockup and a unit test are both hypotheses.</span>
+    </div>
+  </div>
+  <div class="grid" style="margin-top:var(--unit)">
+    <div class="step" style="grid-column:1 / 5">
+      <span class="sl">Rule 04</span>
+      <span class="st">Name the mechanism</span>
+      <span class="sd">"Probably a race" is not a diagnosis. Either state the causal chain
+        or say plainly that you don't have it yet.</span>
+    </div>
+    <div class="step" style="grid-column:5 / 9">
+      <span class="sl">Rule 05</span>
+      <span class="st">State what was <i>not</i> tested</span>
+      <span class="sd">Partial verification reported as complete is the failure mode that
+        costs the most.</span>
+    </div>
+  </div>
+
+  <div class="grid sect">
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Form</div>
+        <div class="ftx">
+          Three markdown files in this site's repo — <b>method.md</b> and one per side.
+          A pointer file loads the root into every agent session I run; the side gets
+          loaded when the task needs it.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">What it isn't</div>
+        <div class="ftx">
+          Not a biography, not a résumé, not a decision log, and not a stand-in for a
+          person. It encodes <b>how to decide</b>, so a fresh agent can run the procedures
+          rather than recite the facts.
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fm">Source</div>
+        <div class="ftx">
+          <a href="https://github.com/halfcadence/andrewshiau.com/tree/main/method"
+             target="_blank" rel="noopener">the three files on GitHub</a> — the same text
+          this page is checked against at build time.
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
