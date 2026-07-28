@@ -1,13 +1,15 @@
 # andrewshiau.com
 #
-# The only Disallow is /demo/. Those three files are the iframe payloads for the embeds
+# Two Disallows, both for a URL that isn't a page a reader should land on.
+#
+# The first is /demo/. Those three files are the iframe payloads for the embeds
 # on /work/proofs/ — a proof sheet with no mast, no nav, and no way back to the site. A
 # crawler that indexes one hands a reader a dead-ended fragment, so they are kept out of
 # the sitemap (the `filter` in astro.config.mjs) AND out of the index (here). Both are
 # needed: the filter only stops us advertising the URL, the Disallow stops a crawler that
 # found it through the iframe.
 #
-# The second Disallow is the Stores Designer case study, which sits behind nginx Basic
+# The second is the Stores Designer case study, which sits behind nginx Basic
 # Auth (the recipe is in README.md). Auth already turns a crawler away with a 401, but
 # without the Disallow the URL still gets indexed and surfaces as a search result that
 # opens a password prompt. It is excluded from the sitemap for the same reason.
