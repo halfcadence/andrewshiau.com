@@ -264,10 +264,14 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
          steering with contrast measurements in it, and rendering that as a site page would make
          it look like content. On GitHub it looks like what it is, which is the honest version of
          working in public. -->
+    <!-- Now an internal page, not a GitHub link (annotation: "can style be hosted as a real site
+         page instead of just md in github"). /style/ renders STYLE.md itself at build time, so the
+         page and the file cannot drift — and it is set by the rules it states, which is the only
+         demonstration of a design system that costs nothing to check. The repo link lives on that
+         page for anyone who wants the raw file. -->
     <div class="colo c4">
       <span class="ck">Steered by</span>
-      <a href="https://github.com/halfcadence/andrewshiau.com/blob/main/STYLE.md"
-        target="_blank" rel="noopener">STYLE.md</a>
+      <a href="/style/">STYLE.md</a>
     </div>
   </div>
 </Layout>

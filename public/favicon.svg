@@ -19,18 +19,26 @@
        device pixels at 16px, so the ring is drawn at sub-pixel weight and a browser will
        antialias it grey. It reads as a lighter dot beside a solid one, which is still the right
        distinction — and at 32px (bookmark bar, tab hover, history) it is exactly the page's
-       figure. -->
+       figure.
+       NO BACKGROUND, EITHER MODE. Annotation: "can the light mode favicon not have bg (doesn't
+       need it) — actually if the dark mode one is inverse maybe it doesn't need either."
+       Right on both counts, and the second is the reason: the ink hex and the paper hex swap
+       between the two schemes, so the `<rect>` was always painting the same colour the tab strip
+       was already painting behind it. It drew nothing in either mode and cost a 32×32 fill.
+       Transparent is also strictly better than matching: a browser tab strip is not `--paper`
+       (Chrome's inactive tab is #dee1e6, its dark tab #35363a), so the rect was a rectangle of
+       *nearly* the right colour — which is visible as a faint square when it is a hair off, and
+       is exactly what "doesn't need it" catches. On transparency the figure sits on whatever the
+       browser draws, which is what every well-made favicon does.
+       `.bg` is deleted rather than set to `fill:none`: a rect that paints nothing is still a rect. -->
   <style>
-    .bg{fill:#f4f3ef}
     .fg{fill:#141412}
     .st{stroke:#141412}
     @media (prefers-color-scheme: dark){
-      .bg{fill:#141413}
       .fg{fill:#f0efe8}
       .st{stroke:#f0efe8}
     }
   </style>
-  <rect class="bg" width="32" height="32"/>
   <line class="st" x1="14.17" y1="14.17" x2="17.83" y2="17.83" stroke-width="1.5"/>
   <circle class="st" cx="10" cy="10" r="5" fill="none" stroke-width="1.8"/>
   <circle class="fg st" cx="22" cy="22" r="5" stroke-width="1.8"/>

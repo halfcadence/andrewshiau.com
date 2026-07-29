@@ -280,6 +280,13 @@ h1{font-weight:500;font-size:inherit;line-height:inherit;margin:0;overflow-wrap:
    emphasis inside a sentence may not change colour (see `b,strong`). One mechanism, one job, in
    both directions. */
 h2{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
+/* h3–h6 had NO base rule, because until `/style/` the site had no heading below h2 — `.duo h3`
+   was the only one and it set its own size. So a rendered markdown file's `h3` fell through to the
+   browser default of `1.17em` and measured 17.55px: a FOURTH font size, on the page whose whole
+   subject is that there is one. Caught by measuring the rendered sizes rather than reading it.
+   Reset here rather than in `.mdoc`, because the bug is that the base was missing — scoping the
+   fix would leave the next `h3` anyone writes to fall through again. */
+h3,h4,h5,h6{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
 .dek{color:var(--dim);margin:0;font-weight:400;max-width:62ch}
 /* THE STATEMENT — one continuous sentence, one element, the two thesis clauses inline.
    Still a single element for the same reason as before (block elements can't share a line,
@@ -345,7 +352,15 @@ p a:hover{color:var(--accent);text-decoration-color:var(--ink)}
    old `font-family:var(--mono);font-size:.86em` said nothing and shrank the one thing on
    the page that most needs to be read character by character. What's left is the tint,
    which is the only part that was doing work. */
+/* NO TINT INSIDE A RENDERED DOCUMENT. The 6% wash marks a code span as "this is code" on a page
+   of prose — but STYLE.md is 520 inline code spans in 856 lines, and at that density the tint
+   stops marking anything and turns the page into highlighter. On `/style/` a code span is already
+   distinguishable by what it says (`--group`, `.frow`, `font-weight:500`), and the whole site is
+   set in the mono, so the tint was carrying no information at all.
+   Kept everywhere else: on a case study there are two or three spans per page and the wash is the
+   only thing that separates a token from the sentence around it. */
 code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em}
+.mdoc code{background:none;padding:0;color:var(--ink)}
 /* fine print — faint, not small. It was 13px/20; there is one size now, so the aside
    recedes by VALUE alone. That is the ramp's whole replacement, stated in one rule. */
 .fine{color:var(--faint)}
@@ -1196,21 +1211,103 @@ figure.demo.hang video{width:100%}
   text-decoration-thickness:1px;text-underline-offset:4px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .colo a:hover{color:var(--accent);text-decoration-color:var(--ink)}
-/* label 1-3 · empty 3-5 · items each 2 cols from 5. There was a `.colo.c3{grid-column:9 / 11}`
-   here, kept on the argument that the empty slot is the pattern rather than the content. It's
-   gone: the third fact moved into the pinned panel with Contact, and a reserved slot and a dead
-   rule are the same thing to anyone reading this file — the pattern is legible from c1 and c2
-   plus this line, and a third column is `9 / 11` when it's needed. */
-.colo.c1{grid-column:5 / 7}
-.colo.c2{grid-column:7 / 9}
-/* The third and fourth facts take the two slots the old note below said were reserved. Four
-   facts now fill c5–13 exactly: 5-7 · 7-9 · 9-11 · 11-13, so the colophon runs to the page's
-   right edge instead of stopping two thirds across. */
-.colo.c3{grid-column:9 / 11}
-.colo.c4{grid-column:11 / 13}
+/* ── TWO ROWS OF TWO, not four across (annotation: "colophon should maybe be two rows now").
+   It was four facts each spanning 2 of the 12 fields — 154px, or 17 characters. Measured on the
+   built page: every one of the four rendered FOUR LINES TALL, because
+   "IBM Plex Mono at 15/28, one size, 62 characters." is 48 characters trying to fit 17 per line.
+   Four columns of four-line ribbons is what "should maybe be two rows" is looking at.
+   At 4 fields each (336px = 37ch) the longest value takes two lines and the shortest takes one,
+   so the block is two rows of two instead of one row of four — and no fact is a ribbon.
+   `row-gap:--group`, because the two rows are two groups: without it the second row's labels sit
+   one lead under the first row's values and the four pairs read as a single stack of eight lines.
+   Facts 1 and 3 open a row, so they start at column 5 where the old single row started; 2 and 4
+   sit beside them at column 9. The label stays at c1–3 in the margin, which is unchanged. */
+.colo.c1,.colo.c3{grid-column:5 / 9}
+.colo.c2,.colo.c4{grid-column:9 / 13}
+.colo.c3,.colo.c4{margin-top:var(--group)}
 @media(max-width:720px){
   .colo-lab,.colo.c1,.colo.c2,.colo.c3,.colo.c4{grid-column:1 / 13;margin-top:var(--lead)}
   .colo-lab{margin-top:0}
+}
+
+/* ── THE MARKDOWN DOCUMENT (`/style/`). One block, and it is the only place on the site where a
+   heading hierarchy arrives already nested — a rendered markdown file brings its own h2/h3, its
+   own lists and tables, and no `.shead` to hang a head from.
+   It obeys the site's rules rather than getting an exception: 62ch measure, the space scale for
+   every interval, no rules, ink/dim/faint doing the hierarchy, and the two axes wherever the
+   content has a label. What it adds is the ONE thing a document needs that the site had no device
+   for: a heading that is subordinate to another heading. `h3` gets `--faint` where `h2` gets
+   `--ink`, which is the same value pair a label/value uses one level down.
+   `.mdoc` bleeds right like every other annotated block, so its headings hang at column 1 in the
+   16ch column and its body starts at 172px — the same two axes as a case study. */
+.mdoc{grid-column:1 / 13;width:calc(100% + 16ch + var(--gutter));
+  display:grid;grid-template-columns:16ch 1fr;column-gap:var(--gutter)}
+/* Headings hang. `h2` opens a section of the document and takes `--sect`; `h3` is a subsection
+   and takes `--group`. That 4:2 ratio is the space scale doing what a type ramp would have. */
+.mdoc > h2{grid-column:1;margin-top:var(--sect)}
+.mdoc > h3{grid-column:1;margin-top:var(--group);color:var(--faint)}
+.mdoc > h2:first-child,.mdoc > h3:first-child{margin-top:0}
+/* Everything else is body, on the second axis. `--lead` between blocks, which is the document's
+   ordinary line-to-line interval — a rendered file is prose, so its paragraphs sit one line
+   apart rather than one group apart. */
+.mdoc > :not(h2):not(h3){grid-column:2;margin-top:var(--lead)}
+.mdoc > :first-child{margin-top:0}
+.mdoc p{color:var(--dim);max-width:62ch;margin:0}
+.mdoc ul,.mdoc ol{color:var(--dim);max-width:62ch;margin:0;padding-left:2ch}
+.mdoc li{margin:0}
+.mdoc li + li{margin-top:var(--tight)}
+/* A code block is the one place the 62ch cap is wrong: these are CSS declarations and token
+   lists, and wrapping one mid-selector makes it unreadable. `overflow-x:auto` so a long line
+   scrolls rather than widening the page — measured at 390px, where the longest fence is 74
+   characters. No frame and no fill: the mono is already the page's voice, so a code block is
+   marked by its indent and its own line breaks. */
+/* `min-width:0` is the fix, and it is the same flex/grid trap as `min-height:0` on the deleted
+   scrollport: a grid item's default `min-width:auto` refuses to shrink below its content, so
+   `overflow-x:auto` had nothing to clip and the longest fence ran straight out of the column and
+   off the page. Measured before: the ASCII beat diagram is 74 characters and was cut mid-arrow.
+   With it, a long fence scrolls inside its own box and the page stays 1512 wide. */
+/* A SCROLLING BOX MUST SAY SO. With `overflow-x:auto` alone the three long fences ended
+   mid-character at the column edge and looked like a rendering bug rather than a scrollport —
+   measured: 810px of content in a 609px box, cut at "→ a". A `mask-image` fades the last 3ch to
+   transparent, so the line visibly runs out rather than being chopped, and the fade disappears
+   when there is nothing to scroll (`scrollW == clientW` → the gradient's stop lands past the
+   content). No scrollbar: on a page with no rules a persistent grey bar under three of five code
+   blocks is the loudest thing in the section.
+   Also `overscroll-behavior-x:contain`, so a trackpad swipe that reaches the end of a fence
+   doesn't hand the gesture to the browser and trigger a back-navigation. */
+.mdoc pre{margin:0;overflow-x:auto;color:var(--dim);min-width:0;
+  white-space:pre;font:inherit;padding-left:2ch;
+  overscroll-behavior-x:contain;scrollbar-width:none;
+  mask-image:linear-gradient(to right,#000 calc(100% - 3ch),transparent)}
+.mdoc pre::-webkit-scrollbar{display:none}
+/* A table is a ledger with more than two columns — the one shape `.frow` can't take. Ink keys,
+   dim values, air for structure, no rules: the same grammar as every other pair on the site. */
+/* A TABLE SCROLLS INSIDE A WRAPPER, and the wrapper is load-bearing. Caught by the 390px sweep:
+   the token table's four columns need ~52 characters and a phone gives 37, so `width:100%` was a
+   lie and the table reported 428px inside a 390px window.
+   The first fix made it worse (428 → 586): putting `display:block; width:max-content;
+   overflow-x:auto` on the TABLE lets it size to its own content, and a block that sizes to
+   content cannot be constrained by `max-width` — it just drags the page. So the scrollport is a
+   `div` around it, which is a plain block that fills its column, and the table inside keeps
+   `display:table` so its columns still align.
+   Same fade as `.mdoc pre` so a clipped column reads as "there is more" rather than as a bug. */
+.mdoc .tw{min-width:0;max-width:62ch;overflow-x:auto;
+  overscroll-behavior-x:contain;scrollbar-width:none;
+  mask-image:linear-gradient(to right,#000 calc(100% - 3ch),transparent)}
+.mdoc .tw::-webkit-scrollbar{display:none}
+.mdoc table{border-collapse:collapse;margin:0;width:max-content;text-align:left}
+.mdoc th{color:var(--ink);font-weight:400;padding:0 var(--gutter) var(--tight) 0;
+  vertical-align:top}
+.mdoc td{color:var(--dim);padding:0 var(--gutter) var(--tight) 0;vertical-align:top}
+.mdoc tr:last-child td{padding-bottom:0}
+/* A blockquote is the document quoting a rule at itself. Indented `2ch` — the same indent a list
+   and a code block get — and in ink, because the four in STYLE.md are the statements of the rules
+   the file exists to state. */
+.mdoc blockquote{margin:0;padding-left:2ch;color:var(--ink);max-width:62ch}
+@media(max-width:1100px){
+  .mdoc{display:block;width:auto}
+  .mdoc > h2,.mdoc > h3{margin-bottom:var(--lead)}
+  .mdoc > :not(h2):not(h3){margin-top:var(--lead)}
 }
 
 /* THE FOOTER IS DELETED — markup and rules together (annotation: the grid line "can be in

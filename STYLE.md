@@ -746,6 +746,26 @@ Kept because they're subtle and on-system. Don't add more without reason.
 
 ---
 
+## `/style/` — this file, as a page
+
+This document is rendered at **andrewshiau.com/style/**, from this file, at build time. It is set
+by the rules it states, so every claim on the page can be checked against the page itself.
+
+- **No markdown dependency.** `src/pages/style.astro` carries a ~90-line renderer for the
+  thirteen constructs this file actually uses. It is not a markdown parser and MUST NOT become
+  one — if this file needs a construct the renderer lacks, add the construct or change the prose.
+- **It escapes HTML first.** This file is full of tag names and selectors; without escaping, the
+  page would execute its own examples.
+- **Two build-time assertions:** ≥24 headings, and the literal presence of `One mechanism per job`,
+  `THERE IS NO TYPE RAMP` and `The two axes`. A renderer that silently stops understanding this
+  file fails the build instead of shipping a blank steering page.
+- **`.mdoc` is the one block it adds**, because a rendered document is the only content with its
+  own nested heading hierarchy. `h2` is ink on the 16ch axis with `--sect` above; `h3` is faint
+  with `--group`. Long code fences and wide tables scroll inside their own box with a `mask-image`
+  fade, so a clipped line reads as "there is more" rather than as a bug.
+
+---
+
 ## Explainers (the /swiss + /explain artifacts)
 
 Standalone pages under `src/pages/writing/` (`10x-is-a-loop`, `canele`) and
