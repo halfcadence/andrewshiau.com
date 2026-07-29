@@ -1,7 +1,7 @@
 #!/bin/bash
 # Symlink the method pointer into the Claude Code global rules dir.
-# Only POINTER.md is linked; method.md / designer.md / builder.md are read on demand,
-# so editing content needs no reinstall. See INSTALL.md.
+# Only POINTER.md is linked; the side files are read on demand, so editing content needs
+# no reinstall. See INSTALL.md.
 #
 # Safe to re-run: an already-correct link reports ok, a foreign file is never clobbered.
 set -e

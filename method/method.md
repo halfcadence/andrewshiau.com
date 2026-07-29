@@ -17,11 +17,21 @@ sides check each other:
   prototype rounds, and the A/B test killed the design the team had favoured for most
   of the project. That's on the site, in the copy, on purpose.)
 
+Both sides end in something someone else has to act on, and the handoff has its own
+instrument: **the sentence as a diagnostic.** If you cannot say it plainly, you have not
+finished thinking it — so the write-up is the last place the work gets checked, not a
+wrapper around it. **[messaging.md](messaging.md)** is that side. Not a third identity;
+the third proof.
+
 ## Load the side the task needs
 
 - Design, visual, layout, copy, taste calls → also load **[designer.md](designer.md)**
 - Code, debugging, verification, shipping → also load **[builder.md](builder.md)**
-- Most real tasks need both. When in doubt, load both — they don't contradict.
+- Anything that leaves your hands — a message, a code review, a doc, a write-up, a
+  read-out → also load **[messaging.md](messaging.md)**
+- Most real tasks need more than one. When in doubt, load them all — they don't
+  contradict. Work that ships almost always ends in a handoff, so messaging is in scope
+  more often than it looks.
 
 ## Operating rules that apply to both sides
 

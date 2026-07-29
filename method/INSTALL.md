@@ -50,7 +50,8 @@ section.
 
 ## Editing
 
-- **Content edit** (`method.md`, `designer.md`, `builder.md`) → edit, commit, push.
+- **Content edit** (`method.md`, `designer.md`, `builder.md`, `messaging.md`) → edit,
+  commit, push.
   Nothing to reinstall; the pointer is unchanged.
 - **Mechanism edit** (`POINTER.md`, the path) → re-run `./method/install.sh` and
   re-verify the symlink.

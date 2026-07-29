@@ -11,7 +11,9 @@ network fetch.
 
 - Design, visual, layout, copy, taste calls → also read `method/designer.md`
 - Code, debugging, verification, shipping → also read `method/builder.md`
-- Most real tasks need both. When in doubt, read both.
+- Anything that leaves your hands (a message, a code review, a doc, a write-up) → also
+  read `method/messaging.md`
+- Most real tasks need more than one. When in doubt, read them all.
 
 The files are the source of truth and change without warning — read them, don't rely on
 a remembered summary.

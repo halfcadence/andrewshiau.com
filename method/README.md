@@ -11,6 +11,7 @@ so they get edited together. If one changes, check the other.
 | `method.md` | The root, always applies. *Both sides chase the same thing: the simplest thing that works. Taste finds the simplest form; engineering proves the simplest solution.* Names which side to load next. |
 | `designer.md` | The eye as instrument — render every option in the real system, option 1 is what's live, taste as constraints. |
 | `builder.md` | Measurement as instrument — prove it on the real deployment, pair every change with a control, name the mechanism, report the boundary of what was tested. |
+| `messaging.md` | The reader's attention as instrument — name the ask and cut the rest, the artifact carries the detail, keep the judgments and cut the explanations, blamelessness is mechanical. Applies whenever work leaves your hands. |
 | `POINTER.md` | The thin pointer — the only file linked into `~/.claude/rules/`; the rest are read on demand. |
 | `INSTALL.md` | Install, the off-machine raw-URL option, and why a local path beats a URL here. |
 | `install.sh` | `./method/install.sh` → links the pointer. Safe to re-run. |
