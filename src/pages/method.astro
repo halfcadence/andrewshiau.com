@@ -32,7 +32,7 @@ for (const s of SHARED) {
 
 <Layout
   title="Method — Andrew Shiau"
-  description="One principle, two instruments: how a design decision gets made, and how a change gets proven."
+  description="One principle, two instruments: how a design decision gets made, how a change gets proven, and how the result leaves my hands."
 >
   <!-- THE SPLIT (chooser round 2: concept 02, scope 03). This page was the tenth and it
        was missed: the index's feed opens with "Method → The operating spec", so the first
@@ -51,9 +51,10 @@ for (const s of SHARED) {
            the dek's own 32em cap is narrower than 8 of the feed's 700px. -->
       <div class="grid">
         <p class="dek c1-12">
-          How I make a design decision and how I prove a change works, written down as
-          procedure. Both halves ask the same question: is this the simplest thing that works?
-          One answers it by looking, the other by measuring.
+          How I make a design decision, how I prove a change works, and how either one
+          leaves my hands — written down as procedure. Both halves ask the same question: is
+          this the simplest thing that works? One answers it by looking, the other by
+          measuring.
         </p>
       </div>
 
@@ -130,13 +131,56 @@ for (const s of SHARED) {
         </div>
       </div>
 
-      <!-- The one filled form on the page, for the sentence that joins the two columns. -->
-      <div class="grid" style="margin-top:var(--group)">
+      <!-- The one filled form on the page, for the sentence that joins the two columns.
+           NO INLINE MARGIN. It carried `margin-top:var(--group)`, which an inline style put
+           ahead of `.grid:has(> .block)`'s `--sect` — and since the block's own 112 could not
+           collapse with it (grid items don't), the two stacked to 168px above and 224px below.
+           See `.block` in global.css for the measurement. The interval is the shared rule's now. -->
+      <div class="grid">
         <div class="block c1-6">
           <span class="st">Both sides need a baseline</span>
           <span class="sd">In design the baseline is what’s live today, rendered beside the
             alternatives. In engineering it’s the control arm of an A/B. Without one I can’t
             tell whether a candidate is better or just different.</span>
+        </div>
+      </div>
+
+      <!-- THE THIRD SIDE (chooser: shape 02, framing 02). Deliberately NOT a third column
+           in the `.duo` above: design and build are the two ways of DECIDING, and this is
+           what happens to whatever they produce, so it reads after the pair rather than
+           beside it. A 4/4/4 duo would also have cut each column to ~1/3 measure, and the
+           CSS comment on `.duo` already notes the 2-up tightens badly in the 700px feed.
+           Type + rule, no filled `.block` — the one filled form on this page is the
+           baseline statement above (STYLE.md: once per page). Same `<ol>` as the two
+           columns, so the procedure reads as a peer of the other two procedures even
+           though the framing says it comes after them. -->
+      <div class="grid sect">
+        <div class="c1-12"><h2>Then the handoff</h2></div>
+      </div>
+      <!-- Inside a `.duo` with ONE column, not a bare `.grid` child: `.dk`, `h3` and `ol`
+           are all scoped to `.duo` in global.css, so a copy of this markup outside it
+           renders an unstyled kicker and a default-leading heading. One column at span 8
+           reuses the three rules verbatim and adds no selector. -->
+      <div class="grid">
+        <div class="duo">
+          <div class="dcol" style="grid-column:span 8">
+          <span class="dk">Messaging — the instrument is the sentence</span>
+          <h3>How the work leaves my hands</h3>
+          <ol>
+            <li><b>Answer first.</b> A reader builds a hierarchy out of whatever order I
+              hand them, so I hand them the true one. The order I found something in is
+              almost never the order to explain it.</li>
+            <li><b>If I can’t say it plainly, I haven’t finished thinking it.</b> The
+              write-up is the last place the work gets checked, not a wrapper round it.</li>
+            <li><b>Say the strong thing, then say how sure I am.</b> Confidence and accuracy
+              are separate dials. Naming what I don’t know usually buys more trust than the
+              finding it qualifies.</li>
+            <li>The artifact carries the detail; the message carries the ask. If it’s
+              linked, I don’t summarise it.</li>
+            <li><b>Cut the part I’m proud of.</b> The detail hardest to remove is the one
+              that cost the most to find, and that cost isn’t the reader’s.</li>
+          </ol>
+          </div>
         </div>
       </div>
 
@@ -193,7 +237,7 @@ for (const s of SHARED) {
           <div class="frow">
             <div class="fm">Form</div>
             <div class="ftx">
-              Three markdown files in this site’s repo — <b>method.md</b> and one per side.
+              Four markdown files in this site’s repo — <b>method.md</b> and one per side.
               A pointer file loads the root into every agent session I run; the side gets
               loaded when the task needs it.
             </div>
@@ -210,7 +254,7 @@ for (const s of SHARED) {
             <div class="fm">Source</div>
             <div class="ftx">
               <a href="https://github.com/halfcadence/andrewshiau.com/tree/main/method"
-                 target="_blank" rel="noopener">the three files on GitHub</a> — the same text
+                 target="_blank" rel="noopener">the four files on GitHub</a> — the same text
               this page is checked against at build time.
             </div>
           </div>
