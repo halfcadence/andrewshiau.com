@@ -91,14 +91,23 @@ import PanelHead from '../../components/PanelHead.astro';
             <a href="/writing/canele/">open the canelé explainer full-screen</a>
           </div>
           <div class="embed-frame">
-            <iframe src="/writing/canele/" title="A canelé explainer set by the /swiss skill, live"
+            <!-- The title said "set by the /swiss skill" and that stopped being true when the
+                 explainers folded into the document (chooser: andrewshiau-grid-options, Q5/02):
+                 this page is now set by global.css like every other page. The skill produced the
+                 PROSE and the original HTML, not the type it is set in today — and on the page
+                 whose whole subject is honest attribution, the one attribution claim has to hold.
+                 It matters more than a caption would, because a title is the frame's accessible
+                 name: a screen-reader user heard the false version. -->
+            <iframe src="/writing/canele/" title="A canelé explainer written with the skill, live"
               loading="lazy"></iframe>
           </div>
-          <!-- The caption is a LABEL, not a second link (annotation: "still have double links, on
-               top here and then on bottom, on most of these like embed links — should only have 1
-               i think"). The `.esrc` above the frame keeps the link, because an embed is tall and
-               the one actionable thing must not sit a screenful below it. Same fix as recipes. -->
-          <figcaption>What makes a canelé custardy — set by the skill, live in the frame</figcaption>
+          <!-- NO CAPTION (annotation: "delete."). It read "What makes a canelé custardy — set by
+               the skill, live in the frame", and every clause was already on screen: the `.esrc`
+               link above the frame names the explainer, and the frame is visibly live. An earlier
+               pass had already demoted it from a second link to a label; the label was the last
+               thing left, and a label for a thing the reader is looking at is not a fact.
+               The `.esrc` above keeps the link — an embed is tall, so the action must not sit a
+               screenful down. Same deletion on `recipes`. -->
         </figure>
       </div>
 

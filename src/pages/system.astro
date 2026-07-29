@@ -127,13 +127,18 @@ for (const [decl, name] of mustNot) {
              /style/'s own ledger, which links the repo). -->
         <div class="frow">
           <div class="fm">Written down</div>
-          <div class="ftx"><a href="/style/">/style/</a> is the steering file, rendered.
+          <!-- `{' '}` is load-bearing, not decoration. Astro collapses the newline between a
+               text node and an inline tag to nothing, so this rendered as "rendered./method/" —
+               one token to find-in-page and to a screen reader. The same class of defect was on
+               the index h1 and on /style/'s word count; an explicit space is the only fix that
+               survives someone re-wrapping the line later. -->
+          <div class="ftx"><a href="/style/">/style/</a> is the steering file, rendered.{' '}
             <a href="/method/">/method/</a> is how a decision gets made.</div>
         </div>
       </div>
-      <p class="pfoot">Contact
-        <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
-      </p>
+      <!-- No Contact row, the same as the case studies (annotation: "remove from every page
+           (execpt home obv)"). This page hand-rolls its panel rather than using PanelHead, so
+           the deletion had to happen here too. -->
     </div>
 
     <div class="splitrule" aria-hidden="true"></div>
@@ -351,7 +356,8 @@ for (const [decl, name] of mustNot) {
               practice a row belongs to. <b>Outline vs. fill</b> is the signal, not colour — the two
               old duality hues were 2.14:1 apart in greyscale, so a screenshot or a colourblind
               reader saw two identical dots. Both circles are <code>r="5"</code> with the same 1.8
-              stroke, so the ring and the disc are the same 11.8 units across.</p>
+              stroke, so the ring and the disc are the same 11.8 units across — and the two
+              one-sided marks are the same 16.2 as each other.</p>
           </div>
         </div>
       </div>
@@ -432,8 +438,19 @@ for (const [decl, name] of mustNot) {
               dialog, dropdown, menu, tabs, table of data, toast, popover, sidebar, chart, or
               command palette — not because they'd be hard, but because nothing on this site needs
               one, and a system that documents unused components is a catalogue.</p>
-            <p>Also absent: a type ramp, a second typeface, a filled surface, a rounded corner, a
-              second hue, and a single line of JavaScript in the bundle.</p>
+            <!-- THIS SENTENCE USED TO END "…and a single line of JavaScript in the bundle," and
+                 it was false on the page that opens "Nothing here is a mock-up." Two script
+                 blocks ship on /system/ itself, /gate/ says out loud that the password box needs
+                 JavaScript, and four lines above this the page says "The gate checks as you
+                 type." The one claim a reader could falsify from the next tab was the one closing
+                 the page.
+                 It was also a six-item list where the pattern is five, which is how it got
+                 written: the rhythm wanted one more clause and the clause wasn't true. Stating
+                 what the JS actually is costs a sentence and can be checked. -->
+            <p>Also absent: a type ramp, a second typeface, a filled surface, a rounded corner,
+              and a second hue.</p>
+            <p>The JavaScript is three things: the <code>⌥G</code> toggle, a reduced-motion pass
+              that pauses the clips, and the quiz engine on three pages. Nothing else ships.</p>
           </div>
         </div>
       </div>
