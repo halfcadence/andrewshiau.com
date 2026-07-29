@@ -1784,10 +1784,24 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
    1ch hover shift `.entry` uses. Right and wrong are stated in words (`✓` / `✕`) and by colour
    going to `--ink` vs staying `--dim`, because colour here means "you acted on this", which is
    the accent's one job. */
-.quiz .q{margin-top:var(--group)}
+/* THE QUESTION IS A TWO-AXIS PAIR, like every other annotated block on the site. It rendered as
+   a flat stack — `Question 1`, the question text and all three options every one at x=0, the label
+   axis — which made the quiz the only block on the page with no content axis. Measured against its
+   own neighbours on /writing/canele/: `.shead` and `.facts` both put their label at 0 and their
+   content at 182, and the quiz put everything at 0.
+   `Question 1` IS the annotation and the question IS the content, so the pair takes `--label` and
+   the axis. Stacks at 1060 with everything else. */
+.quiz .q{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter);
+  margin-top:var(--group)}
 .quiz .q:first-child{margin-top:0}
-.quiz .qn{color:var(--faint);display:block;line-height:1.2}
-.quiz .qt{color:var(--ink);margin:0 0 var(--tight);max-width:62ch}
+.quiz .qn{grid-column:1;color:var(--faint);display:block;line-height:1.2}
+.quiz .qt{grid-column:2;color:var(--ink);margin:0 0 var(--tight);max-width:62ch}
+/* The options and the answer are content, so they sit on the content axis with the question. */
+.quiz .opt,.quiz .exp{grid-column:2}
+@media(max-width:1060px){
+  .quiz .q{display:block}
+  .quiz .qn{color:var(--ink);margin-bottom:var(--tight)}
+}
 .quiz .opt{display:block;width:100%;text-align:left;font:inherit;color:var(--dim);
   background:none;border:0;padding:0 0 0 3ch;margin:0;cursor:inherit;
   transition:padding-left var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
