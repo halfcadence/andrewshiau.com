@@ -359,6 +359,45 @@ The duality did not go away — it stopped being a hue.
   negative tracking is a correction for large sans display type, and in a monospace face the
   advance width IS the cell `1ch` is measured against. Tracking the body would make `1ch` and
   the character disagree, and the hover shift would stop landing on a cell.
+#### One mechanism per job
+
+The rule that governs every hierarchy decision, and it **overrides a literal pick where the two
+collide** (chooser: `andrewshiau-hierarchy-options`; the instruction was *"prioritize overall
+consistency over my individual choices — if one thing adds the hierarchy needed, like hanging
+label in col, it might not also need the color change in the same place"*).
+
+> **A label earns its hierarchy from POSITION if it has a position; otherwise from VALUE.**
+> Hung in its own column → stays `--faint`. The column is the hierarchy.
+> Stacked above its value → goes to `--ink`. There is no column, so value is.
+> Either way the **pair is the unit**, with `--group` between pairs.
+
+So `.frow .fm` is faint and `.colo .ck` is ink. That reads as an inconsistency in the stylesheet
+and is the opposite on the page: every label is exactly as loud as it needs to be to separate
+from its value, and **no label is loud twice**. Adding the second treatment to a label that
+already has one is a slop finding.
+
+**Colour and space are the only two mechanisms.** Not size, not case, not rules, not a third
+weight. The three greys keep their jobs — `--ink` is the fact, `--dim` is support, `--faint` is
+annotation.
+
+#### The two axes
+
+Every case study has exactly **two** vertical axes, and one number sets both: `16ch`.
+
+| x = 0 | x = 16ch + `--gutter` (172px at the measure) |
+|---|---|
+| the side marker, the `h1`, every field label, every section head | every field value, every paragraph, the dek, media |
+
+`16ch` is measured, not chosen: the longest field label on the site is 16 characters
+(`Dropdown refresh`, `Remove "add pen"`), so every label on all ten pages sits on one line. The
+section head hangs in the same column (`.shead`, and bare `<div class="c1-12"><h2>` heads via
+`:has()`), which is why a head and a ledger label share an edge.
+
+The hung blocks **bleed RIGHT**, never left: `width:calc(100% + 16ch + var(--gutter))`. Bleeding
+left put the head at x = −172, off the page — caught by measuring the head's left edge against
+the grid's, which is the only way to catch it. Below 1100px everything stacks and a stacked label
+takes the ink treatment, per the rule above.
+
 - **THERE IS NO TYPE RAMP.** One size, for everything (chooser Ramp 04). `h1`, `h2`, `.dek`,
   `.statement`, a paragraph, a blurb and a meta line are all 15/28. Hierarchy comes from:
   - **weight** — 500 for a title or a `<b>`, 400 for everything else. (600 is loaded and held

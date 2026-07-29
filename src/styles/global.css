@@ -183,6 +183,27 @@ main > .grid:first-child{margin-top:var(--group)}
 :is(html,body).showgrid .guide{display:grid}
 .content{position:relative;z-index:1}
 
+/* ══ ONE MECHANISM PER JOB ═══════════════════════════════════════════════════════════════
+   The instruction that governs everything below, and it overrides the literal picks where they
+   collide: "in general i like the idea of mostly using color and spacing / grouping for
+   hierarchy. and prioritize overall consistency over my individual choices — i think in some
+   cases if one thing adds the hierarchy needed, like hanging label in col, it might not also
+   need the color change in the same place."
+   So the sheet's Q1 picks (02 labels in ink + 03 hang the label + 06 a pair is a group) are NOT
+   applied as three stacked treatments. They are applied as ONE rule with a condition:
+
+     A LABEL EARNS ITS HIERARCHY FROM POSITION IF IT HAS A POSITION; OTHERWISE FROM VALUE.
+       hung in its own column  → stays `--faint`. The column IS the hierarchy (pick 03).
+       stacked above its value → goes to `--ink`.  There is no column, so value is (pick 02).
+     And in both cases the PAIR is the unit, with `--group` between pairs (pick 06).
+
+   That is why `.frow` labels are faint and `.colo .ck` labels are ink, which looks inconsistent
+   in the stylesheet and is the opposite on the page: every label is exactly as loud as it needs
+   to be to separate from its value, and no label is loud twice.
+   The three greys keep their jobs — `--ink` is the fact, `--dim` is support, `--faint` is
+   annotation — and colour + space are still the only two mechanisms in play. No new size, no
+   caps, no rules, no third weight. ═══════════════════════════════════════════════════════ */
+
 /* ── THE LABEL — the one device, and now genuinely ONE SIZE.
    Annotation: "i dont love the small caps treatment, it might be cool if all text was Camel,
    but we should use space as hierarchy to differentiate headers and content" — and, on the
@@ -210,6 +231,17 @@ figure.embed .esrc,
 .colo .ck,
 .links a .lu{font-size:inherit;letter-spacing:normal;
   text-transform:none;font-weight:400;color:var(--faint);line-height:1.2}
+/* STACKED labels go to ink (pick 02). These are the ones with no column of their own, so value
+   is the only thing that can separate them from the value beneath — and at `--faint` above
+   `--dim` the two lines were 1.4:1 apart, which is why the panel read as one grey paragraph.
+   `--ink` above `--dim` is 2.6:1 and the label becomes a scannable column of entry points.
+   The hung labels (`.frow .fm`, `.specblock .sk`) are deliberately NOT in this list — see the
+   ONE MECHANISM PER JOB note. */
+.pin .pk,
+.colo .ck,
+.step .sl,
+.duo .dk,
+.links a .lu{color:var(--ink)}
 /* `line-height:1.2` (18px), not the 28px body leading, and this is the fix for a bug I could see
    in the render: with a 28px line box PLUS 14px of margin, a label sat ~42px from its own value
    and read as floating above the pair rather than belonging to it. The label is one short line
@@ -228,16 +260,16 @@ figure.embed .esrc,
    `overflow-wrap:anywhere` stays on the h1 — a long unbroken title at 390px in a fixed
    advance-width face has no other way out. */
 h1{font-weight:500;font-size:inherit;line-height:inherit;margin:0;overflow-wrap:anywhere}
-/* SECTION HEADS ARE NOT CAPS EITHER. This was the last uppercase rule and the argument for
-   keeping it ("the one place case is structural") is the same argument the label rule just lost:
-   if space is the hierarchy, case is a second mechanism doing the same job less well. In a
-   monospace face caps are also literally wider — `EXPERIMENTS` at .14em tracking is 15
-   character cells against `Experiments`' 11, so the head was the widest line in a section it
-   only labels.
-   What tells a head from its rows now: it is `--faint` where the rows are `--ink`, and it has
-   `--sect` above it against the rows' `--lead`. Value and space, the two mechanisms the whole
-   page uses. See `.feed > h2`. */
-h2{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--faint)}
+/* SECTION HEADS: INK AT 500 (pick Q2/02), and not caps. The caps went for the reason the labels'
+   did — if space is the hierarchy, case is a second mechanism doing the same job worse, and in a
+   monospace face caps are literally wider (`EXPERIMENTS` at .14em tracking is 15 cells against
+   `Experiments`' 11, so the head was the widest line in the section it only labels).
+   Then `--faint` was wrong in the other direction: a head that opens a section is the strongest
+   thing in it, and at faint it was the weakest — the same inversion the `/method/` columns had.
+   Ink at weight 500 makes it a title. That is the ONE place on the site weight 500 appears on a
+   heading, and it is enough because the head also owns the largest interval on the page
+   (`--sect` above it, `--lead` below — see `.feed > h2` and `.shead > h2`). */
+h2{font-weight:500;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
 .dek{color:var(--dim);margin:0;font-weight:400;max-width:62ch}
 /* THE STATEMENT — one continuous sentence, one element, the two thesis clauses inline.
    Still a single element for the same reason as before (block elements can't share a line,
@@ -296,8 +328,24 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    recedes by VALUE alone. That is the ramp's whole replacement, stated in one rule. */
 .fine{color:var(--faint)}
 
-/* SECTION HEAD — the head above its prose, both flush to column 1. It keeps that (it is the
-   one left edge everything on the page shares) and loses its grid.
+/* ── SECTION HEAD — HUNG IN THE MARGIN (pick Q3/03). The head moves OUT of the reading column
+   into the field the 62ch text doesn't use, so it sits beside its prose rather than above it.
+   Two things this buys, and they are the two the instruction asked for:
+   - The measure is untouched. 62ch stays 62ch — the pick was explicitly "keep 62ch, use the
+     margin for annotation", not "go wider". The prose column does not move at all; the head
+     moves left out of it.
+   - It is the SAME DEVICE as the ledger, one level up. `.frow` hangs a label at 16ch and this
+     hangs a head at 16ch, off the same left edge, so a case study has ONE annotation axis
+     running its whole length: the marker, the h1, every field label, and every section head all
+     start at column 1, and every value and every paragraph starts at 16ch + gutter. That is the
+     consistency the instruction prioritised over any single page.
+   `16ch` and NOT the 14ch the sheet rendered: the ledger needs 16 for "Dropdown refresh", and one
+   axis means one number. The head strings are longer than that ("What else was on the table" is
+   26), so they wrap to two or three short lines in the margin — which is what a hung head does in
+   a book, and why `overflow-wrap:anywhere` stays on.
+   It was a 12-track sub-grid at `grid-column:1 / 10` before the mono pass, and that was a phantom
+   measure inside the document column (502px of 609). The fix then was to delete the grid; the fix
+   now is a grid stated in `ch`, which cannot drift when the column moves.
    IT HAD `grid-column:1 / 10` ON A TWELVE-TRACK SUB-GRID, and that is a phantom measure now:
    inside the document column, ten of its own twelve tracks is 502px of a 609px column, so the
    prose stopped 107px short of where the clips and the ledger stop. Measured on the built page
@@ -309,9 +357,53 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    type is actually set in, rather than a track count that has to be re-derived every time the
    column moves. That is the document's whole argument about measure.
    `--group` under the head, not `--unit`: the head opens a group. */
-.shead{grid-column:1 / 13;display:block}
-.shead > h2{overflow-wrap:anywhere;margin-bottom:var(--lead)}
-.shead > .sbody{max-width:62ch}
+.shead{grid-column:1 / 13;display:grid;grid-template-columns:16ch 1fr;
+  column-gap:var(--gutter)}
+.shead > h2{grid-column:1;overflow-wrap:anywhere;margin-bottom:0}
+.shead > .sbody{grid-column:2;max-width:62ch}
+/* ── IT BLEEDS RIGHT, NOT LEFT, and getting that wrong was a real bug: bleeding the box left put
+   the head at x = −172, outside the page. Caught by measuring the head's own left edge against
+   the grid's, which is the only way to catch it — the page looked plausible and the head was
+   simply off-screen to the left.
+   The correct shape is the LEDGER's shape: the annotation stays at column 1 (where the marker,
+   the h1 and every field label are) and the CONTENT steps right to a second axis. So the box
+   grows right, into the five fields the document doesn't use, by exactly the label column plus a
+   gutter.
+   `16ch + --gutter` = 172px at the measure, and 172 + 558 (62ch) = 730 against the 1064px page —
+   so the prose still fits inside the grid with 334px to spare. Derived, not measured.
+   THE RESULT IS TWO AXES FOR THE WHOLE SITE: x=0 carries the marker, the h1, every field label
+   and every section head; x=172 carries every value and every paragraph. One number, `16ch`,
+   stated in the label rule and re-used here. */
+.shead{width:calc(100% + 16ch + var(--gutter))}
+/* ── AND A BARE HEAD HANGS TOO. Seven of the site's twenty-five section heads are written
+   `<div class="c1-12"><h2>…</h2></div>` rather than inside a `.shead` — they are the ones that
+   open a ledger, a staircase or a clip instead of a paragraph, so there was no prose to pair
+   with. Left alone, `The problem` would hang at column 1 while `How it works` and
+   `Two instruments` sat flush above their content: two treatments for one element, which is
+   exactly the drift the instruction says to prioritise fixing over any single page's look.
+   They get the same 16ch column, with the content that follows stepping right to the same axis.
+   `:has()` rather than a new class, because that is the whole point — nothing in the markup has
+   to change, so no page can be missed.
+   The FEED's own bare heads (`Work`, `Experiments`, `Method` on the index) are excluded: they
+   label a list whose rows already start at column 1, and hanging them would put the head in a
+   margin beside a row that has no second axis. See `.feed > h2`. */
+/* The head takes the 16ch column and NOTHING ELSE. It does not need the bleed or a grid: its
+   wrapper is a `.grid` of its own with the content in the NEXT `.grid` (measured on the built
+   page), so there is no sibling here to step right — the content aligns because `.frow`,
+   `.shead > .sbody` and the media all independently start at the same 172px axis.
+   Just the width, so the head occupies one column instead of the whole seven. Measured before
+   this: `How it works` reported 609px against `The problem`'s 144. */
+.feed .grid > .c1-12:has(> h2:only-child) > h2{width:16ch}
+@media(max-width:1100px){
+  .feed .grid > .c1-12:has(> h2:only-child) > h2{width:auto}
+}
+@media(max-width:1100px){
+  /* Below the measure the page is narrow enough that a 16ch column is a third of the line and the
+     bleed would overrun the viewport. Stacked, with the head taking a lead of air — which is what
+     it looked like before this rule, and matches what `.frow` does at its own breakpoint. */
+  .shead{display:block;width:auto}
+  .shead > h2{margin-bottom:var(--lead)}
+}
 /* SECTION BREAK — air, no rule. A 1px ink line across all 12 columns was the heaviest
    mark on a page whose section heads occupy two columns: the line and the thing it
    opened never touched, so it read as a divider dropped between sections rather than as
@@ -573,17 +665,36 @@ figure.demo.hang video{width:100%}
    Stacked rather than two columns because at one size a 22ch key column beside a 62ch value
    pushes the value past the seven fields the document places — and a label above its value is
    how a document annotates, where side-by-side is how a table does. */
-/* THE PAIR IS THE UNIT. `--tight` under the label binds it to its value; `--lead` between
-   rows separates one pair from the next. That 2:1 is the whole reason a label reads as a label
-   with no caps and no size change — it is closer to its value than to anything else. */
-.frow{display:block;margin-top:var(--lead)}
+/* ── THE LEDGER HANGS ITS LABEL (pick 03) and its pairs are groups (pick 06).
+   `16ch` for the label column, measured against the real strings rather than guessed: the longest
+   field label on the site is "Remove “add pen”" / "Dropdown refresh" at 16 characters, and
+   "Layout by Figma" is 15. At 16ch every label on all ten pages sits on one line, and the value
+   axis is identical on every page — which is the consistency the instruction asked to prioritise
+   over any single page looking best.
+   `--group` (56px) between pairs, not `--lead` (28px): the label and its value are now on the
+   SAME line, so the only thing separating one fact from the next is the space between rows. At
+   28px with no rule they ran together; at 56 each pair is an object.
+   The label stays `--faint`. It has a column, so it does not also need a colour change — that is
+   the whole point of the rule at the top of this file. */
+.frow{display:grid;grid-template-columns:16ch 1fr;column-gap:var(--gutter);
+  margin-top:var(--group)}
 .frow:first-child{margin-top:0}
-.frow .fm{margin-bottom:var(--tight)}
 
 /* `.facts.claim` was an accent top-rule marking one ledger as the page's argument. It has no
    call site and there are no rules to give it, so it stays deleted. */
-.frow .fm{display:block}
-.frow .ftx{color:var(--dim);max-width:62ch}
+.frow .fm{grid-column:1;line-height:inherit}
+/* The value keeps `--ink` for its `<b>` emphasis and `--dim` for the rest. It is `--dim` rather
+   than ink because there is now an ink LABEL column on the other devices and a hung faint label
+   here — in both cases the value is the support text, and one of the two has to recede or the
+   pair has no internal hierarchy at all. */
+.frow .ftx{grid-column:2;color:var(--dim);max-width:62ch}
+@media(max-width:720px){
+  /* 16ch of a 390px screen is 40% of the line. Stacked, and the label takes the ink treatment
+     it would have had if it never had a column — the condition in the rule at the top of this
+     file, applied at a breakpoint. */
+  .frow{display:block}
+  .frow .fm{color:var(--ink);margin-bottom:var(--tight)}
+}
 .frow .ftx b{color:var(--ink);font-weight:500}
 
 /* ── TEXT MEASURE ≠ FIGURE MEASURE ────────────────────────────────────────────────────
