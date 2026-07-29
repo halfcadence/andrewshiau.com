@@ -94,7 +94,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
                a phone reader sees "Set on a 12-column grid" instead of an instruction it
                can't follow. Same line, same place, no layout change — see `.foot .fl`. -->
           <div class="fl">
-            <span class="kb">Press <code>g</code> to see the grid.</span>
+            <span class="kb">Press <code>⌥G</code> to see the grid.</span>
             <span class="tou">Set on a 12-column grid.</span>
           </div>
           <div class="fr">© {year} Andrew Shiau</div>
@@ -102,10 +102,20 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       </div>
     </div>
     <script is:inline>
-      // hidden hotkey: press `g` to flash the column grid on/off
+      // hidden hotkey: ⌥G flashes the column grid on/off.
+      //
+      // It was a bare `g`, which fires on any keypress outside a field — so it tripped
+      // constantly while editing this site with the page open beside the editor, and the grid
+      // would be left on. A modifier fixes that, and ⌥ specifically because ⌘G is Find Again
+      // in every browser: taking it would mean preventDefault-ing a shortcut the reader owns.
+      // ⌥G is bound to nothing, by the browser or by macOS.
+      //
+      // `e.code`, NOT `e.key`. With Option held, macOS composes the character — ⌥G arrives as
+      // `©`, so an `e.key === 'g'` test never matches and the hotkey silently does nothing.
+      // `code` is the physical key and is layout- and modifier-independent.
       document.addEventListener('keydown', (e) => {
         if (
-          e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey &&
+          e.code === 'KeyG' && e.altKey && !e.metaKey && !e.ctrlKey && !e.shiftKey &&
           !/^(input|textarea|select)$/i.test(e.target.tagName)
         ) {
           document.body.classList.toggle('showgrid');

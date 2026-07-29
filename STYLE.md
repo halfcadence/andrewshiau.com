@@ -312,10 +312,26 @@ else. Keep the two jobs separate:
   on the homepage. That's the whole list.
 - **Colour is never the only signal.** Navy and olive are just **2.14:1 apart in
   greyscale** — a colourblind or greyscale reader can't tell the dots apart. So the side
-  marker always sets the **word** beside the dot ("Design" / "Build" / "Design + Build"),
-  and the marker's data lives in one place: `side` on each `Entry` in
+  marker always **emits** the word ("Design" / "Build" / "Design + Build"), and the
+  marker's data lives in one place: `side` on each `Entry` in
   `src/data/experiments.ts`. Case-study pages read it via `sideOf(href)` (the
   `SideMark.astro` component) so the page and the index can't disagree.
+  On an **index row** the word is emitted and visually clipped (`.sw`, plus `title` on
+  the wrapper) — eight rows repeating "Design + Build" made the constant fact the loudest
+  thing in a column that exists to annotate them (chooser: `andrewshiau-panel-marks`,
+  Q1/05). Clipped, not `display:none`: the label stays in the accessibility tree, which
+  is the entire point of the rule. On a **case-study panel head** the word is visible —
+  one marker per page costs nothing, and there it is the greyscale fallback.
+  This is the one sanctioned exception, and it is bounded: a marker may hide the word
+  only where the same page shows the word for the same fact elsewhere, or where the word
+  is one keystroke of hover away. **A marker that emits no word at all is still a slop
+  finding.**
+- **The figure is side-aware, and the constant is the ink.** `MarkFigure.astro` draws the
+  diagonal pair where a page sat on both halves of the practice and a single dot where it
+  sat on one — a rule joining two things is only drawn where there are two things. The
+  single dot is **r=7.2, not r=5**: measured by ink coverage at 4×, r=5 paints 47% of the
+  pair's ink and r=9 paints 151%, so a radius picked by arithmetic makes a one-sided
+  panel head read lighter or heavier than a two-sided one. Match coverage, not radius.
 - **A third hue, or either hue used decoratively, is a slop finding — reject it.**
   Colour in body copy is allowed in the thesis sentence ONLY, because there the two
   halves *are* the subject.

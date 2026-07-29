@@ -202,7 +202,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         <br /><br /><a href={backHref}>{backLabel}</a> &nbsp;
         <!-- Same swap as the site footer: `g` is a keydown handler, so stating it as a
              fact to a touch device describes something that can't be done there. -->
-        <span class="kb">Press <b>g</b> for the grid</span>
+        <span class="kb">Press <b>⌥G</b> for the grid</span>
         <span class="tou">Set on a 12-column grid</span>
       </div></div>
     </main>
@@ -238,8 +238,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       q.appendChild(exp); root.appendChild(q);
     });
   }
+  // ⌥G, matching Layout.astro — see the note on the handler there for why the modifier and
+  // why `e.code` rather than `e.key` (Option composes the character; ⌥G arrives as `©`).
+  // Two copies of one hotkey, so a change to one that missed the other would leave the site
+  // contradicting its own footer.
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey && !/^(input|textarea|select)$/i.test(e.target.tagName))
+    if (e.code === 'KeyG' && e.altKey && !e.metaKey && !e.ctrlKey && !e.shiftKey &&
+        !/^(input|textarea|select)$/i.test(e.target.tagName))
       document.body.classList.toggle('showgrid');
   });
 

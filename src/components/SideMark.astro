@@ -1,12 +1,32 @@
 ---
-// The side marker for a case-study header: which half of the practice this project
-// sat on. Looks its own side up by href in experiments.ts, so the marker here and
-// the marker in the index matrix can never disagree.
+// The side marker for a case-study header: which half of the practice this project sat on,
+// and — since chooser andrewshiau-panel-marks Q5/06 — the way back to the index.
 //
-// The marker itself is SideDot — shared with the index so the two can't drift.
-import { sideOf } from '../data/experiments';
-import SideDot from './SideDot.astro';
+// The panel head used to open with the logo and then this line, so the figure was drawn
+// TWICE, stacked, ~30px apart, at two sizes. The logo was there to be the link home; this
+// line was there to name the side. One of them had to go, and the marker is the one that
+// carries a fact, so it took the link as well.
+//
+// It draws the LOGO's figure, not the flat 22×8 glyph the index uses, and it is side-aware
+// (MarkFigure.astro): the diagonal pair where the page sat on both halves of the practice, a
+// single dot in the one hue where it sat on one. A pairing is only drawn where there is one —
+// the diagonal's whole subject is two things joined, and on `/work/luthier/` there is no
+// second thing for the rule to reach.
+//
+// The WORD stays here, visible. The index hides it now (Q1/05) because eight rows repeating
+// "Design + Build" was the loudest thing in that column; a panel head prints one marker, so
+// the word costs nothing and it is what keeps the marker legible in greyscale — navy and olive
+// are 2.14:1 apart (STYLE.md). SideDot is not used because its glyph is the flat one built for
+// a meta line's baseline; only the geometry differs, and both read their side from the same
+// `sideOf`, so the fact still can't drift from the index.
+import { sideOf, SIDE_LABEL } from '../data/experiments';
+import MarkFigure from './MarkFigure.astro';
 interface Props { href: string }
 const { href } = Astro.props;
+const side = sideOf(href);
 ---
-<p class="smark"><SideDot side={sideOf(href)} /></p>
+<p class="smark">
+  <a class="smark-home" href="/" aria-label="andrewshiau — home"
+    ><MarkFigure side={side} />{SIDE_LABEL[side]}</a
+  >
+</p>

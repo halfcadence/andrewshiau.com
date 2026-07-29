@@ -19,9 +19,10 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
   );
 }
 
-// The panel's Index row counts the page's own contents, so it can't fall out of date the
-// way a hand-written "8 case studies" would. methodSpec is the +1.
-const ENTRY_COUNT = work.length + experiments.length;
+// `ENTRY_COUNT` was here, deriving the panel's Index row from the lists so a hand-written
+// "8 case studies" couldn't go stale. The row is gone — it counted what was already on screen
+// beside it — and the constant went with it rather than sitting unused as a live-looking
+// reference to a row that no longer exists.
 ---
 
 <Layout title="Andrew Shiau">
@@ -54,27 +55,24 @@ const ENTRY_COUNT = work.length + experiments.length;
         chasing simplicity. <span class="t-design">Taste finds the simplest form</span>,
         <span class="t-build">engineering proves the simplest solution</span>.</h1>
 
-      <!-- The ledger — the "instrument" half of the pick. Every fact here is already true
-           elsewhere on the site: Currently restates the Stores Designer masthead, Index
-           counts the lists below. No invented metric, and no magnitude bars: a bar whose
-           length encodes "8 case studies" against another encoding "124 recipes" compares
-           nothing.
+      <!-- The ledger — the "instrument" half of the pick. ONE row, and the one fact here that
+           a reader can't get by looking at the page: what I am doing now. No invented metric,
+           and no magnitude bars: a bar whose length encodes "8 case studies" against another
+           encoding "124 recipes" compares nothing.
            `Currently`, not `Role`: the label was the category of the fact and the row read
            like a form field. What a reader deciding whether to work with me wants from this
            row is what I am doing NOW, and the label may as well say so.
-           There were two rows here, Role and Where, and Where held only "At Amazon ·
-           2023–present". Once the sentence names the employer itself the second row was the
-           same fact twice with a date attached, and the tenure is on the Stores Designer
-           page where the work it belongs to is. So one row states the whole thing. -->
+           Two rows have come out of here. `Where` held only "At Amazon · 2023–present", which
+           once the sentence names the employer is the same fact twice with a date attached.
+           And `Index` counted the lists that are ON SCREEN to its right — it told a reader
+           something they could see, in the panel that is permanently visible, at the cost of
+           ~30px of the height THE BOX spends to stay pinned. Counting the page is what the
+           page is for. -->
       <div class="pled">
         <div class="prow">
           <span class="pk">Currently</span>
           <span class="pv">Design systems engineer at Amazon, building a vibe design tool for
             the Amazon store.</span>
-        </div>
-        <div class="prow">
-          <span class="pk">Index</span>
-          <span class="pv"><b>{ENTRY_COUNT}</b> case studies · <b>1</b> operating spec</span>
         </div>
       </div>
 

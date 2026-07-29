@@ -1,18 +1,28 @@
 ---
-// The side marker itself: the dot(s) plus the word. One component, three call sites
-// (the two index matrices and the case-study header), so the marker can't drift.
+// The side marker on an index row: the dot(s) plus the word. Three call sites (the two index
+// matrices and LockedRow), so the marker can't drift between them.
 //
-// `both` renders the MARK — two dots joined by a rule, the logo's own figure, laid
-// horizontal so it sits on the meta line's baseline rather than climbing out of it.
-// `design` / `build` render a single dot via `.side::before` in CSS.
+// `both` renders the mark's figure laid HORIZONTAL — two dots joined by a rule, 22×8 — so it
+// sits on the meta line's baseline instead of climbing out of it. `design` / `build` render a
+// single dot via `.side::before` in CSS. The case-study panel head draws the diagonal figure
+// instead (SideMark.astro): a kicker on its own line has the height for it, a meta line
+// doesn't.
 //
-// The word is always present: navy and olive are only 2.14:1 apart in greyscale, so
-// colour is never the only signal. See STYLE.md.
+// THE WORD IS ALWAYS EMITTED, and on the index it is clipped rather than absent — `.sw` is
+// sized to nothing by `.entry .em .side .sw` in global.css, which keeps it in the
+// accessibility tree and in the `title` below. Eight rows repeating "Design + Build" was the
+// loudest thing in a column meant to annotate them (chooser: andrewshiau-panel-marks, Q1/05),
+// but colour is never the only signal — navy and olive are 2.14:1 apart in greyscale
+// (STYLE.md) — so the word is hidden from the eye and from nothing else. A `span`, not a bare
+// text node, because you cannot address a text node from CSS.
+//
+// `title` on the wrapper, so a sighted reader who wants the word can hover for it. It is the
+// one affordance replacing what the visible word did.
 import { SIDE_LABEL, type Side } from '../data/experiments';
 interface Props { side: Side }
 const { side } = Astro.props;
 ---
-<span class={`side side-${side}`}>
+<span class={`side side-${side}`} title={SIDE_LABEL[side]}>
   {side === 'both' && (
     <svg class="mk" viewBox="0 0 22 8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <line x1="4" y1="4" x2="18" y2="4" stroke="currentColor" stroke-width="1.25"/>
@@ -20,5 +30,5 @@ const { side } = Astro.props;
       <circle cx="18" cy="4" r="4" fill="var(--build)"/>
     </svg>
   )}
-  {SIDE_LABEL[side]}
+  <span class="sw">{SIDE_LABEL[side]}</span>
 </span>

@@ -14,18 +14,19 @@
 // title floating over 300px of nothing.
 import { metaOf } from '../data/experiments';
 import SideMark from './SideMark.astro';
-import Mark from './Mark.astro';
 interface Props { href: string; title: string }
 const { href, title } = Astro.props;
 ---
 <div class="pin">
-  <!-- The mark, which used to be centred in a bar above the whole page (chooser:
-       andrewshiau-panel-shape, Q1/02). It is a link to the index on every one of these
-       pages, which is what the "← Index" line under it used to be for — so that line is
-       gone rather than sitting directly beneath a second control doing the same job. The
-       mark keeps the accessible name ("andrewshiau — home"), so the way back is still
-       announced; `.pmark` gets the phone-width tap target in global.css. -->
-  <Mark />
+  <!-- ONE mark, doing both jobs (chooser: andrewshiau-panel-marks, Q5/06). This opened with
+       `<Mark />` — the logo, 26px, a link home — and then the side marker, which draws the
+       same two-dot figure again ~30px lower at a different size. Two drawings of one figure,
+       stacked, in the first 60px of the panel: the reader's question is "what is this page",
+       and the answer arrived twice in the same shape before the title.
+       The marker is the one that carries a fact, so it took the link as well — see
+       SideMark.astro. The accessible name ("andrewshiau — home") moved with it, so the way
+       back is still announced, and its figure is now side-aware: the diagonal pair on the
+       pages that sat on both halves of the practice, a single dot on the ones that didn't. -->
   <SideMark href={href} />
   <h1>{title}</h1>
 

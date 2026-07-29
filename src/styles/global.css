@@ -178,9 +178,32 @@ code{font-family:var(--mono);font-size:.86em;
    measure, so it read as decoration that arrived with the template. The marker replaces it
    and does more: the two-dot mark plus the word says which half of the practice the page
    belongs to before you read the title. Its 20px line + 4px gap keeps the header on the
-   baseline. */
+   baseline.
+   It is also the link home now (chooser: andrewshiau-panel-marks, Q5/06) — the logo above it
+   is gone, so this line carries both jobs. /gate/ still prints a plain-text `.smark`
+   ("Password required"), which is why everything below is scoped to `.smark-home` rather
+   than to `.smark a` or to the `<p>`: the type ramp belongs to the line, the mark and the
+   hover belong to the link. */
 .smark{font-size:11px;line-height:20px;letter-spacing:.14em;text-transform:uppercase;
   font-weight:700;color:var(--faint);margin:0 0 4px}
+/* 26px of figure, the size the logo was, above an 11px line — so the marker reads as the
+   panel's masthead the way the logo did, and the case-study panels lose no top presence by
+   dropping it. `inline-flex` + `align-items:center` sets the word against the figure's
+   middle rather than its baseline: the glyph is a drawing, and a 26px box on a 20px baseline
+   sits low by 6px.
+   The margin is negative-top so the figure grows UP out of the 20px line instead of pushing
+   the h1 down — the header's baseline rhythm was measured with a 20px kicker and every
+   `.pin h1` on eight pages sits on it. */
+.smark-home{display:inline-flex;align-items:center;gap:8px;color:inherit;
+  text-decoration:none;margin-top:-3px}
+.smark-home .mark{width:26px;height:26px;display:block;flex:none;
+  transition:transform var(--dur-big) var(--ease)}
+/* The same 90° turn the logo had: two dots joined by a rule, and turning it swaps which dot
+   leads without changing what it is. Scoped to the DIAGONAL figure only — rotating a single
+   centred dot animates nothing, so a one-sided page would advertise a control that appears
+   dead. Those get the word's colour lift instead, which is the site's ordinary link hover. */
+.smark-home:hover .mark:not(.mark-one){transform:rotate(90deg)}
+.smark-home:hover{color:var(--ink)}
 
 /* STEP / entry — top rule + type, no box */
 .step{padding-top:12px;border-top:2px solid var(--ink)}
@@ -447,14 +470,20 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .pin .pfoot a:hover{border-bottom-color:var(--accent)}
 
 /* THE MARK, at the head of the panel — moved out of a centred full-width `nav.topbar`
-   (chooser Q1/02). 26px, the size it was in the bar; `line-height:0` so the anchor is the
-   glyph's box and nothing more. The --unit below it is the same air the `.back` link used to
-   have, so the panel's internal rhythm is unchanged.
+   (chooser Q1/02). `line-height:0` so the anchor is the glyph's box and nothing more. The
+   --unit below it is the same air the `.back` link used to have, so the panel's internal
+   rhythm is unchanged.
+   44px, up from the 26px it was in the bar (chooser: andrewshiau-panel-marks, Q2/02). At 26
+   the figure read as a bullet: the 1.5px diagonal between the two dots was ~10px long and
+   the dots nearly touched, so what you saw was a smudge with two colours in it. The whole
+   idea of the mark is two things joined by a line, and the line has to be long enough to be
+   a line. 44px also happens to be the tap target the phone rule below was faking with
+   negative margins — see the note there.
    The 90° hover rotation comes with it: the mark is two dots joined by a rule, and turning
    it swaps which dot leads without changing what it is. Same duration and curve as before. */
-.pin .pmark{display:block;width:26px;height:26px;line-height:0;color:var(--ink);
+.pin .pmark{display:block;width:44px;height:44px;line-height:0;color:var(--ink);
   margin-bottom:var(--unit)}
-.pin .pmark .mark{width:26px;height:26px;display:block;
+.pin .pmark .mark{width:44px;height:44px;display:block;
   transition:transform var(--dur-big) var(--ease)}
 .pin a.pmark:hover .mark{transform:rotate(90deg)}
 .feed{grid-column:5 / 13;grid-row:1}
@@ -748,18 +777,31 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   letter-spacing:-0.014em;margin:0}
 .entry .ed{grid-column:6 / 10;color:var(--dim);font-size:15px;line-height:22px;margin:0}
 /* The marker column, right-aligned at the far edge, so the eight markers form their own
-   readable column down the page instead of trailing each blurb at a ragged x.
-   STACKED, and c10–13 not c11–13, because it was measured: "Design + Build · Design system
-   tool" is ~310px on one line and a 2-col track is 154px — it would have overflowed left
-   into the blurb. Two lines in a 245px track fit the longest of each (154px and 162px)
-   with room, and the split is honest: the side is one fact, the artifact type is another.
-   Stacked means the `·` separator is redundant — the line break already separates. */
-.entry .em{grid-column:10 / 13;display:flex;flex-direction:column;align-items:flex-end;
-  gap:2px;color:var(--faint);font-size:11px;line-height:18px;
+   readable column down the page instead of trailing each blurb at a ragged x. c10–13 not
+   c11–13 because it was measured: a 2-col track is 154px and the content needs more.
+   TYPE FIRST, SIDE TRAILING, ONE LINE (chooser: andrewshiau-panel-marks, Q1/05). It was
+   two stacked lines — the side word above the artifact type — which meant the fact that is
+   THE SAME on six of eight rows ("Design + Build") led the cell, and the fact that actually
+   differs per row sat under it. Read down the column, the repetition was the first thing
+   you saw eight times. Swapped and joined: the artifact type leads, the mark trails it as a
+   22px glyph, and the marker cell loses a row.
+   `row-reverse`, not source order: the DOM keeps SideDot FIRST so the marker's word is read
+   before the type by a screen reader and the `.side + .smeta` sibling selector still has
+   something to select. The visual order is a layout concern; the reading order isn't. */
+.entry .em{grid-column:10 / 13;display:flex;flex-direction:row-reverse;align-items:center;
+  justify-content:flex-start;gap:8px;color:var(--faint);font-size:11px;line-height:18px;
   letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin:0;text-align:right}
-/* the `·` separator is for an inline marker (a case-study header). Stacked, the line break
-   already separates, and the dot hangs off the left of the second line as a stray mark. */
+/* No `·`. The separator earns its place between two words; here the glyph IS the boundary,
+   and `row-reverse` would in any case put the dot on the wrong side of the pair. */
 .entry .em .side + .smeta::before{content:none}
+/* The word, hidden from the eye and kept for everything else. This is the one place the
+   side is not spelled out, so it is NOT deleted: it stays in the DOM for screen readers and
+   in `title` for a hover. Clipped rather than `display:none` — a display-none label is
+   dropped from the accessibility tree, which is the whole thing being preserved.
+   Sized 0 with the SVG excluded, so the flex row measures the glyph and nothing else. */
+.entry .em .side{gap:0}
+.entry .em .side .sw{position:absolute;width:1px;height:1px;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap}
 .entry .arrowc{color:var(--accent);font-weight:700;display:inline-block;
   transition:transform var(--dur-fast) var(--ease)}
 .entry:hover .arrowc{transform:translateX(6px)}
@@ -779,10 +821,12 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   .entry .en{grid-column:1;font-size:21px}
   .entry .eh{grid-column:2;font-size:20px}
   .entry .ed{grid-column:2;margin-top:6px}
-  /* align-items, not justify-content: .em is a COLUMN flex, so the cross axis is what
-     aligns the two lines horizontally. Overriding justify-content alone left the marker
-     right-aligned under a flush-left title. */
-  .entry .em{grid-column:2;align-items:flex-start;text-align:left;margin-top:10px}
+  /* justify-content, and `flex-end` to mean LEFT. `.em` is a `row-reverse` flex since
+     Q1/05, so its main axis runs right-to-left and main-end is the left edge — the marker
+     has to be packed to flex-END to sit flush under a flush-left title. (While it was a
+     column flex this was `align-items:flex-start`; that now controls the vertical, and
+     setting it here would un-centre the glyph against the type beside it.) */
+  .entry .em{grid-column:2;justify-content:flex-end;text-align:left;margin-top:10px}
 }
 /* The row, re-cut for the feed column. The 12-track row (numeral · title · blurb · marker)
    was measured for the full 1064px measure; inside the 8-column feed it has ~700px, where
@@ -793,12 +837,17 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    The set numeral, the hairline per row, the 2px rule opening the list, the accent flagship
    rule, the hover tint and the arrow slide are all unchanged: this is the same device at a
    different measure, not a second one.
-   156px on the marker, measured, not guessed: the widest side is "Design + Build" at 138px
-   and the widest type is "Design system tool" at 151px. At 132 the flagship row's marker
-   wrapped to FOUR lines (two per part) beside a one-line title — the marker column then read
-   as the loudest thing in the row it was supposed to annotate. 156 fits both on one line
-   each, so the column is two lines everywhere and stays subordinate. */
-.feed .entry{grid-template-columns:44px 1fr 156px}
+   184px on the marker, measured, not guessed. It was 156, which was right for the STACKED
+   marker it was measured against: the widest side ("Design + Build", 138px) and the widest
+   type ("Design system tool", 151px) each on their own line. Q1/05 put them on ONE line, so
+   the requirement became type + gap + glyph = 152 + 8 + 22 = 182px, and at 156 the widest
+   rows wrapped to three and four lines — the marker column became the loudest thing in the
+   row it exists to annotate, which is the exact failure 156 was chosen to avoid.
+   184, not 182: 2px of slack, because the 152 is Graphik's advance width at 11px/.14em and a
+   track sized to the glyph's exact sum has no room for a hinting difference. Re-measure this
+   if a `meta` string in experiments.ts gets longer — /tmp is not a test suite, so the value
+   that protects it is this comment. */
+.feed .entry{grid-template-columns:44px 1fr 184px}
 /* 21px, matching what the ≤900px collapse already does: the numeral steps down with the
    title it labels. Left at its 25px it was BIGGER than the 20px title, which inverts the
    row — the numeral is an address, not the headline. */
@@ -808,7 +857,7 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .feed .entry .em{grid-column:3}
 /* The spec row's sub-grids get the same treatment — its own kicker/title/blurb tracks are
    the row's tracks one level down, so they have to follow the row. */
-.feed .espec .eth{grid-template-columns:1fr 156px}
+.feed .espec .eth{grid-template-columns:1fr 184px}
 .feed .espec .eth .eh{grid-column:1;font-size:20px}
 .feed .espec .eth .em{grid-column:2}
 .feed .espec .proc{grid-template-columns:88px 1fr}
@@ -974,11 +1023,15 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 /* c1–6, not c2–6: with no numeral there is nothing to indent past. */
 .espec .eth .eh{grid-column:1 / 6;font-weight:700;font-size:clamp(20px,2vw,25px);
   line-height:1.15;letter-spacing:-0.014em;margin:0}
-/* same c10–13 stacked marker as every other row, for the same measured reason */
-.espec .eth .em{grid-column:10 / 13;display:flex;flex-direction:column;align-items:flex-end;
-  gap:2px;color:var(--faint);font-size:11px;line-height:18px;letter-spacing:.14em;
+/* same c10–13 one-line marker as every other row, type first and mark trailing (Q1/05) */
+.espec .eth .em{grid-column:10 / 13;display:flex;flex-direction:row-reverse;
+  align-items:center;justify-content:flex-start;gap:8px;color:var(--faint);font-size:11px;
+  line-height:18px;letter-spacing:.14em;
   text-transform:uppercase;font-weight:700;margin:0;text-align:right}
 .espec .eth .em .side + .smeta::before{content:none}
+.espec .eth .em .side{gap:0}
+.espec .eth .em .side .sw{position:absolute;width:1px;height:1px;overflow:hidden;
+  clip-path:inset(50%);white-space:nowrap}
 /* The sub-rows use the row grammar one level down: hairline, kicker in c1, title in the
    title track, blurb in the blurb track — so they align with the rows BELOW the section. */
 .espec .proc{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
@@ -1000,7 +1053,9 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 @media(max-width:900px){
   .espec .eth{grid-template-columns:1fr}
   .espec .eth .eh,.espec .eth .em{grid-column:1}
-  .espec .eth .em{align-items:flex-start;text-align:left;margin-top:10px}
+  /* flex-END is the left edge — `.em` is row-reverse. See the note in the ≤900 block for
+     `.entry .em`, which is the same override for the same reason. */
+  .espec .eth .em{justify-content:flex-end;text-align:left;margin-top:10px}
   .espec .proc{grid-template-columns:1fr}
   .espec .proc .pk,.espec .proc .pt,.espec .proc .pd{grid-column:1}
   .espec .proc .pd{margin-top:4px}
@@ -1084,10 +1139,12 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    Verified with `hasTouch` emulation: every rect below is ≥44 tall and none of the
    surrounding geometry moved. */
 @media(hover:none),(pointer:coarse){
-  /* The mark: 26px of ink, 44px of reach. The negative margin is asymmetric on the left —
-     the mark now heads the panel, so its left edge IS the page's left edge and padding that
-     shifted it right would break the one left edge the whole page aligns to. */
-  .pin a.pmark{padding:9px;margin:-9px -9px -9px 0}
+  /* The mark needs nothing here any more. It was 26px of ink padded out to 44px of reach by
+     `padding:9px` with a negative margin giving the space back; the mark is now 44px of ink
+     (chooser Q2/02), so the target is the glyph. Padding it further would make a 62px hit
+     area that overlaps the statement's first line — a tap meant for the h1 landing on the
+     link home. The rule is deleted rather than zeroed: `padding:0` here would look like a
+     correction to something, when in fact there is no longer anything to correct. */
   /* `← Index`: inline-block so vertical padding applies at all. The negative margin is
      only vertical — the left edge is the page's left edge and must not move.
      Still here for /method, which has a `.back` line and no PanelHead. */
@@ -1204,7 +1261,11 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent);text-decorati
     animation-iteration-count:1 !important;
     transition-duration:0.01ms !important;
     scroll-behavior:auto !important}
-  /* The panel mark's 90° hover turn (was `.topbar .brand` before the mark moved into the
-     panel — chooser Q1/02). */
+  /* The mark's 90° hover turn, in both places it now happens: the panel masthead on the
+     index and /gate/ (was `.topbar .brand` before the mark moved into the panel — chooser
+     Q1/02), and the case-study side marker, which became the link home in Q5/06. The
+     blanket rule above kills the TRANSITION; these kill the end state, so the glyph doesn't
+     snap to 90° instantly. */
   .pin a.pmark:hover .mark{transform:none}
+  .smark-home:hover .mark:not(.mark-one){transform:none}
 }
