@@ -18,15 +18,17 @@ interface Props { href: string; title: string }
 const { href, title } = Astro.props;
 ---
 <div class="pin">
-  <!-- ONE mark, doing both jobs (chooser: andrewshiau-panel-marks, Q5/06). This opened with
-       `<Mark />` — the logo, 26px, a link home — and then the side marker, which draws the
-       same two-dot figure again ~30px lower at a different size. Two drawings of one figure,
-       stacked, in the first 60px of the panel: the reader's question is "what is this page",
-       and the answer arrived twice in the same shape before the title.
+  <!-- ONE mark, doing both jobs (chooser: andrewshiau-panel-marks, Q5/06). This opened with a
+       44px logo — a link home — and then the side marker, which draws the same figure again
+       ~30px lower at a different size. Two drawings of one figure, stacked, in the first 60px of
+       the panel: the reader's question is "what is this page", and the answer arrived twice in
+       the same shape before the title.
        The marker is the one that carries a fact, so it took the link as well — see
        SideMark.astro. The accessible name ("andrewshiau — home") moved with it, so the way
-       back is still announced, and its figure is now side-aware: the diagonal pair on the
-       pages that sat on both halves of the practice, a single dot on the ones that didn't. -->
+       back is still announced, and its figure is side-aware: the whole figure on the pages that
+       sat on both halves of the practice, one object on the ones that didn't. The logo component
+       that used to sit here is now deleted site-wide (andrewshiau-mark-options, Q3/05), so these
+       eight pages were simply the first to make the call. -->
   <SideMark href={href} />
   <h1>{title}</h1>
 

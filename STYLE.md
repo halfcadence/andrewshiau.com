@@ -307,13 +307,19 @@ else. Keep the two jobs separate:
   the flagship `.entry.accent` rule on each index list, the one filled `.block`, the
   correct-answer quiz state, and link interaction (see Link system). Because `--accent: var(--design)`, changing
   the design hue moves every structural role in one line — never find-and-replace it.
-- **`--build` appears in exactly three places.** The mark (`.mark`, `favicon.svg`), the
-  side marker (`.side-build` / `.side-both`), and the thesis clause (`.thesis .t-build`)
-  on the homepage. That's the whole list.
+- **`--build` appears in exactly ONE place now: the thesis clause** (`.statement .t-build`)
+  on the homepage. It used to have three, and the other two were the mark and the side
+  marker — both of which have stopped using hue entirely (chooser:
+  `andrewshiau-mono-redesign` Q7/02 + `andrewshiau-mark-options`). The figure is
+  `currentColor` throughout and distinguishes its halves by **outline vs. fill**; the
+  favicon is ink on paper. The reason is the next bullet: a signal that only colour carries
+  is not a signal, and the mark was the site's most-repeated instance of exactly that.
 - **Colour is never the only signal.** Navy and olive are just **2.14:1 apart in
-  greyscale** — a colourblind or greyscale reader can't tell the dots apart. So the side
-  marker always **emits** the word ("Design" / "Build" / "Design + Build"), and the
-  marker's data lives in one place: `side` on each `Entry` in
+  greyscale** — a colourblind or greyscale reader could not tell the old two dots apart.
+  Two things follow. The figure carries its distinction in SHAPE (hollow ring = design,
+  solid disc = build, the whole figure = both), and the side marker still **emits** the
+  word ("Design" / "Build" / "Design + Build"). The marker's data lives in one place:
+  `side` on each `Entry` in
   `src/data/experiments.ts`. Case-study pages read it via `sideOf(href)` (the
   `SideMark.astro` component) so the page and the index can't disagree.
   On an **index row** the word is emitted and visually clipped (`.sw`, plus `title` on
@@ -327,11 +333,28 @@ else. Keep the two jobs separate:
   is one keystroke of hover away. **A marker that emits no word at all is still a slop
   finding.**
 - **The figure is side-aware, and the constant is the ink.** `MarkFigure.astro` draws the
-  diagonal pair where a page sat on both halves of the practice and a single dot where it
-  sat on one — a rule joining two things is only drawn where there are two things. The
-  single dot is **r=7.2, not r=5**: measured by ink coverage at 4×, r=5 paints 47% of the
-  pair's ink and r=9 paints 151%, so a radius picked by arithmetic makes a one-sided
-  panel head read lighter or heavier than a two-sided one. Match coverage, not radius.
+  diagonal pair where a page or row sits on both halves of the practice and a single object
+  where it sits on one — a rule joining two things is only drawn where there are two
+  things. The single object is **r=7.2, not r=5**: measured by ink coverage at 4×, r=5
+  paints 47% of the pair's ink and r=9 paints 151%, so a radius picked by arithmetic makes a
+  one-sided marker read lighter or heavier than a two-sided one. Match coverage, not radius.
+- **The join is trimmed at both ends, and the numbers are geometry** (chooser:
+  `andrewshiau-mark-options`, Q1/04). `x1,y1 = 14.17` is the ring's outer edge and
+  `x2,y2 = 18.46` the disc's near edge, both projected along the 45° join from r=5 circles
+  with a 1.8 stroke. The rule touches neither object, so it reads as a dimension line
+  between two things rather than a stick through them — and a centre-to-centre line, which
+  is what shipped while both dots were solid, pokes a visible stub into a hollow ring.
+  Change r or the stroke and **both numbers move**; the arithmetic is in `MarkFigure.astro`.
+- **The mark's only job on the page is the index's row marker** (chooser:
+  `andrewshiau-mark-options`, Q3/05). There is no logo above the name: `Mark.astro` and
+  `.pin .pmark` are deleted. The figure ships in exactly two wrappers, and both carry a
+  fact — `SideDot.astro` (18px, index row, word clipped) and `SideMark.astro` (26px,
+  case-study kicker, word visible, and the link home). A new drawing of the figure that
+  states identity rather than information is a slop finding.
+  **18px is the floor.** The 1.8 ring stroke is 0.056em, so below 18 it falls under one
+  device pixel and the ring antialiases into a soft blob — the shape distinction, which is
+  now the whole signal, quietly dies. The favicon is the one place it renders smaller, and
+  that cost was picked with eyes open (Q4/02).
 - **A third hue, or either hue used decoratively, is a slop finding — reject it.**
   Colour in body copy is allowed in the thesis sentence ONLY, because there the two
   halves *are* the subject.
@@ -405,9 +428,9 @@ Tokens in `:root`:
 - Every transition/animation MUST use `--ease` and one of the three durations. A stray
   `ease-in-out` or `0.3s` is off-system.
 - Motion is **rationed and subtle** — a few deliberate delights, not scattered gimmicks.
-  Currently shipped: link interactions (below), logo 90° rotate on hover
-  (`.mark`, 0.5s), `.entry` hover tint, `.arrowc` slide. Reduce, don't add, unless it
-  earns its place.
+  Currently shipped: link interactions (below), the case-study marker's 90° rotate on hover
+  (`.smark-home .mark`, 0.5s — the one drawing of the figure that is still a link),
+  `.entry` hover tint, `.arrowc` slide. Reduce, don't add, unless it earns its place.
 - Respect `prefers-reduced-motion` for any new non-essential animation.
 
 ---
@@ -583,10 +606,13 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
 - **Colophon** (`.colo`): grid-placed facts (label column + satellites 5–13), not a
   stacked list. Right columns stay intentionally empty.
 - **Side marker** (`.side` + `.smeta` in the index list; `.smark` on a case-study header):
-  an 8px dot in the duality hue plus the word. In the list it sits in the `.em` marker
-  column (c11–12, right-aligned) before the artifact noun, separated by a `·`; on a
-  case-study page it is the **first thing on the page**, above the `h1`. Both read `side`
-  from `experiments.ts` — never hardcode one. One component, `SideDot.astro`.
+  the mark's own figure plus the word — 18px in the list, 26px on a case-study head, in
+  `currentColor`. Hollow ring = design, solid disc = build, the whole figure = both; this
+  is the only mark on the page, and it is the marker (see the duality section). In the list
+  it sits in the `.em` marker column (c10–13, right-aligned) after the artifact noun with no
+  `·`; on a case-study page it is the **first thing on the page**, above the `h1`. Both read
+  `side` from `experiments.ts` — never hardcode one. Two wrappers, one drawing:
+  `SideDot.astro` and `SideMark.astro` over `MarkFigure.astro`.
 - **Meta line = artifact nouns.** The `meta` field on each `Entry` names **what the thing
   is** — "Design system tool", "Figma widget", "Static site", "Agent skill",
   "Photographs". One consistent category across the whole index, so the column reads as a
@@ -622,12 +648,17 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
 Kept because they're subtle and on-system. Don't add more without reason.
 
 - `::selection` → pure invert (`--ink` bg, `--paper` text).
-- Cursor → a dot SVG data-URI in `--design` (the mark's design dot as the pointer);
-  it's the `--cursor` token, so it flips with the scheme.
-- Logo (`.mark`) → 90° rotate on hover. The mark itself is the duality: two dots on the
-  descending diagonal (design then build) joined by a 1.5px `currentColor` hairline —
-  two things, one line; the rule is the relationship. `public/favicon.svg` is the same
-  drawing and carries its own `prefers-color-scheme` block; change both together.
+- Cursor → a filled dot SVG data-URI in `--design`; it's the `--cursor` token, so it flips
+  with the scheme. It is deliberately **not** kept in sync with the mark: the design half of
+  the figure is a hollow ring now, and an 18px ring drawn at cursor weight reads as a smudge
+  or disappears over busy ground. The cursor's job is to be visible, not to be the logo.
+- The case-study marker (`.smark-home .mark`) → 90° rotate on hover. It is the one drawing
+  of the figure that is still a link; the index's row marker states a fact and doesn't move.
+  The mark itself is the duality: a hollow ring and a solid disc on the descending diagonal
+  (design then build) with a 1.5px `currentColor` rule trimmed to the gap between them —
+  two things, one line; the rule is the relationship, and outline-vs-fill is which half.
+  `public/favicon.svg` is the same drawing and carries its own `prefers-color-scheme` block;
+  change both together.
 - `g` → flash the column grid.
 
 ---

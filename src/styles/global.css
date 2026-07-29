@@ -486,23 +486,16 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   transition:border-color var(--dur-fast) var(--ease)}
 .pin .pfoot a:hover{border-bottom-color:var(--accent)}
 
-/* THE MARK, at the head of the panel — moved out of a centred full-width `nav.topbar`
-   (chooser Q1/02). `line-height:0` so the anchor is the glyph's box and nothing more. The
-   --unit below it is the same air the `.back` link used to have, so the panel's internal
-   rhythm is unchanged.
-   44px, up from the 26px it was in the bar (chooser: andrewshiau-panel-marks, Q2/02). At 26
-   the figure read as a bullet: the 1.5px diagonal between the two dots was ~10px long and
-   the dots nearly touched, so what you saw was a smudge with two colours in it. The whole
-   idea of the mark is two things joined by a line, and the line has to be long enough to be
-   a line. 44px also happens to be the tap target the phone rule below was faking with
-   negative margins — see the note there.
-   The 90° hover rotation comes with it: the mark is two dots joined by a rule, and turning
-   it swaps which dot leads without changing what it is. Same duration and curve as before. */
-.pin .pmark{display:block;width:44px;height:44px;line-height:0;color:var(--ink);
-  margin-bottom:var(--unit)}
-.pin .pmark .mark{width:44px;height:44px;display:block;
-  transition:transform var(--dur-big) var(--ease)}
-.pin a.pmark:hover .mark{transform:rotate(90deg)}
+/* THE MARK WAS HERE — a 44px figure at the head of the panel, with the 90° hover turn, on the
+   index and /gate/. Five rules, and they are deleted rather than left unused (chooser:
+   andrewshiau-mark-options, Q3/05 — "as the row marker: it does a job"). The mark's whole
+   presence on the page is the index's marker column now: at that size the figure states which
+   half of the practice a row belongs to, where up here it stated whose site this is to a reader
+   who already knew. The panel opens on the statement, and the top edge is the panel's own
+   hairline — the same edge it had when the `nav.topbar` above it went away.
+   Going with it: `Mark.astro` (deleted, its two call sites were these two pages) and the
+   reduced-motion override for its hover. The turn survives on the case-study marker, which is
+   the one drawing of the figure that is still a link — see `.smark-home`. */
 .feed{grid-column:5 / 13;grid-row:1}
 /* The feed's own section heads. The page previously opened each list with an h2 in its own
    `.grid.sect`; inside the feed column that `.grid` would re-divide the 8 columns into 12
@@ -1076,21 +1069,25 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   .espec .proc .pk,.espec .proc .pt,.espec .proc .pd{grid-column:1}
   .espec .proc .pd{margin-top:4px}
 }
-/* SIDE MARKER — which half of the practice an entry belongs to. A dot in the
-   duality hue plus the WORD: colour alone is never the signal (navy and olive are
-   only 2.14:1 apart in greyscale, so a colourblind reader reads the word).
-   "Design + Build" is the MARK itself — two dots joined by a rule, the same figure as
-   the logo, laid horizontal instead of diagonal so it sits on the meta line's baseline.
-   The old half-and-half gradient dot said "two colours"; this says "two things, one
-   line", which is what the logo means and what the label means. */
+/* SIDE MARKER — which half of the practice an entry belongs to, and THE ONLY PLACE THE MARK
+   APPEARS ON THE PAGE (chooser: andrewshiau-mark-options, Q3/05). The figure isn't a masthead
+   any more; it's this column's glyph, so every drawing of it that ships carries a fact. The
+   44px `.pin .pmark` logo above the name is deleted — see the note where it used to be.
+   The mark's own vocabulary does the distinguishing: the whole figure for both, the ring alone
+   for design, the disc alone for build (see MarkFigure.astro). Outline vs. fill is the signal,
+   which is the point — it survives greyscale, where the two duality hues do not (navy and olive
+   are only 2.14:1 apart). The WORD is still emitted regardless: a shape a reader has to learn
+   is not a label, and it costs nothing to keep.
+   `currentColor`, so the glyph takes `.em`'s `--faint` on an index row and the marker column
+   stays annotation rather than becoming eight small logos. It was the two hues; the hues are
+   what the ring/disc replaced. */
 .side{display:inline-flex;align-items:center;gap:6px;flex:none}
-.side::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--design)}
-.side-build::before{background:var(--build)}
-/* 8px dot + 6px rule + 8px dot = 22px, drawn as one inline SVG so the rule truly joins
-   the two dots (a gradient can't, and two separate dots with a border between them
-   misaligns at fractional zoom). currentColor is not used: each dot keeps its own hue. */
-.side-both::before{display:none}
-.side-both .mk{width:22px;height:8px;flex:none;display:block;overflow:visible}
+/* 18px, and it is a floor rather than a preference. The figure's ring is stroked 1.8 in a
+   32-unit box — 0.056em — so at 16px the stroke lands at 0.9 device pixels, the ring greys out
+   to a soft blob and the trimmed rule (4.29 units) falls under 2.2px. At 18 the stroke clears
+   one pixel and the rule is ~2.4px: small, and still a line. 18 also happens to be the meta
+   line's own leading, so the glyph sits inside the row's rhythm instead of growing it. */
+.side .mark{width:18px;height:18px;flex:none;display:block;overflow:visible}
 .smeta{color:var(--faint)}
 .side + .smeta::before{content:"·";margin-right:6px;opacity:.55}
 /* COLOPHON — grid-placed facts, not a stacked list. Ink rule spans full width;
@@ -1118,9 +1115,10 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 
 /* Footer — a thin ruled bar. `.topbar` used to sit here: a centred 26px mark with a 2px
    rule under it, above every page. The mark moved into the panel (chooser
-   andrewshiau-panel-shape, Q1/02 — see `.pin .pmark`) and the bar went with it, so those
-   five rules are deleted rather than left to rot. The page's top edge is now the panel's
-   own hairline. */
+   andrewshiau-panel-shape, Q1/02) and the bar went with it, so those five rules are deleted
+   rather than left to rot. It has since left the panel too — the figure's only job on the page
+   is the index's row marker (`.side .mark`, chooser andrewshiau-mark-options Q3/05). The page's
+   top edge is the panel's own hairline. */
 .foot{border-top:2px solid var(--ink);margin-top:calc(var(--unit)*3);padding-top:var(--unit);
   display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
 .foot .fl{grid-column:1 / 9;color:var(--dim);font-size:13px;line-height:22px}
@@ -1276,11 +1274,11 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent);text-decorati
     animation-iteration-count:1 !important;
     transition-duration:0.01ms !important;
     scroll-behavior:auto !important}
-  /* The mark's 90° hover turn, in both places it now happens: the panel masthead on the
-     index and /gate/ (was `.topbar .brand` before the mark moved into the panel — chooser
-     Q1/02), and the case-study side marker, which became the link home in Q5/06. The
-     blanket rule above kills the TRANSITION; these kill the end state, so the glyph doesn't
-     snap to 90° instantly. */
-  .pin a.pmark:hover .mark{transform:none}
+  /* The mark's 90° hover turn, in the ONE place it now happens: the case-study side marker,
+     which became the link home in Q5/06. The panel masthead's copy of this override went with
+     the masthead (chooser: andrewshiau-mark-options, Q3/05 — see where `.pin .pmark` used to
+     be). The index row marker never had a turn: it isn't a link, and it draws a fact.
+     The blanket rule above kills the TRANSITION; this kills the end state, so the glyph
+     doesn't snap to 90° instantly. */
   .smark-home:hover .mark:not(.mark-one){transform:none}
 }

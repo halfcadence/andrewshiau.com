@@ -2,7 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import { methodSpec, work, experiments } from '../data/experiments';
 import SideDot from '../components/SideDot.astro';
-import Mark from '../components/Mark.astro';
 import LockedRow from '../components/LockedRow.astro';
 import spec from '../../method/method.md?raw';
 
@@ -45,10 +44,14 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
        inline copy and opened flush against the top of the window. -->
   <div class="grid split">
     <div class="pin">
-      <!-- The mark, moved here from the centred bar above the page (chooser:
-           andrewshiau-panel-shape, Q1/02). `home={false}`: this IS the index, and a link
-           to the page you are on is a link that does nothing. -->
-      <Mark home={false} />
+      <!-- NO MARK ABOVE THE NAME (chooser: andrewshiau-mark-options, Q3/05 — "as the row
+           marker: it does a job"). A 44px figure sat here as the panel's masthead, and
+           `Mark.astro` is deleted with it. The question the chooser asked was how little of the
+           mark the page wants: a masthead asserts identity to a reader who already knows whose
+           site they are on, while the same figure in the marker column tells them which half of
+           the practice each row belongs to. So the mark moved to where it carries a fact — see
+           SideDot.astro — and the panel opens on the sentence, which is the thing a hiring
+           manager came for. Nothing replaced it: the panel's own hairline is the top edge. -->
 
       <!-- Same single-element statement as before, at the panel's measure: the name
            sentence with the two thesis clauses inline, each in its own hue. Still the only

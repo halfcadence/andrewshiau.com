@@ -1,34 +1,45 @@
 ---
-// The side marker on an index row: the dot(s) plus the word. Three call sites (the two index
+// THE SIDE MARKER on an index row: the figure plus the word. Three call sites (the two index
 // matrices and LockedRow), so the marker can't drift between them.
 //
-// `both` renders the mark's figure laid HORIZONTAL — two dots joined by a rule, 22×8 — so it
-// sits on the meta line's baseline instead of climbing out of it. `design` / `build` render a
-// single dot via `.side::before` in CSS. The case-study panel head draws the diagonal figure
-// instead (SideMark.astro): a kicker on its own line has the height for it, a meta line
-// doesn't.
+// IT IS THE MARK'S ONE JOB ON THE PAGE NOW (chooser: andrewshiau-mark-options, Q3/05 — "as the
+// row marker: it does a job"). The 44px figure that used to sit above the name in the pinned
+// panel is gone, and `Mark.astro` went with it. The reasoning was the ask: how little of the
+// mark do you want on the page? A masthead asserts identity to a reader who already knows whose
+// site they are on; the same figure in the marker column tells them which half of the practice
+// each of eight rows belongs to. So the mark appears where it carries information, and the
+// panel opens on the name.
+//
+// ONE FIGURE, THREE STATES, and they are the mark's own vocabulary rather than three drawings:
+//   both  — the whole figure: hollow ring, rule, solid disc.
+//   design — the ring alone.
+//   build  — the disc alone.
+// Which is why this now draws `MarkFigure` instead of its own glyph. It used to render a FLAT
+// 22×8 version of the figure for `both` and a CSS `::before` dot for the other two, hue being
+// the only thing separating them — three hand-drawn marks for one idea, and the two that
+// mattered most were distinguishable only by colour. The ring/disc pair replaces the hue
+// (see MarkFigure.astro), and once the figure had a state per side there was nothing left for a
+// second drawing to do. The flat glyph existed because a 22×8 lozenge sits on a meta line's
+// baseline where a 26px square doesn't; at 18px — see `.side .mark` in global.css — the square
+// fits inside the meta line's own 18px leading, so the reason is spent.
 //
 // THE WORD IS ALWAYS EMITTED, and on the index it is clipped rather than absent — `.sw` is
-// sized to nothing by `.entry .em .side .sw` in global.css, which keeps it in the
-// accessibility tree and in the `title` below. Eight rows repeating "Design + Build" was the
-// loudest thing in a column meant to annotate them (chooser: andrewshiau-panel-marks, Q1/05),
-// but colour is never the only signal — navy and olive are 2.14:1 apart in greyscale
-// (STYLE.md) — so the word is hidden from the eye and from nothing else. A `span`, not a bare
-// text node, because you cannot address a text node from CSS.
+// sized to nothing by `.entry .em .side .sw` in global.css, which keeps it in the accessibility
+// tree and in the `title` below. Eight rows repeating "Design + Build" was the loudest thing in
+// a column meant to annotate them (chooser: andrewshiau-panel-marks, Q1/05). The ring/disc
+// distinction survives greyscale where the old two hues did not (navy and olive are 2.14:1
+// apart — STYLE.md), so the glyph is now a real signal rather than decoration over a hidden
+// one; the word stays anyway, because a shape a reader has to learn is not a label. A `span`,
+// not a bare text node, because you cannot address a text node from CSS.
 //
 // `title` on the wrapper, so a sighted reader who wants the word can hover for it. It is the
 // one affordance replacing what the visible word did.
 import { SIDE_LABEL, type Side } from '../data/experiments';
+import MarkFigure from './MarkFigure.astro';
 interface Props { side: Side }
 const { side } = Astro.props;
 ---
 <span class={`side side-${side}`} title={SIDE_LABEL[side]}>
-  {side === 'both' && (
-    <svg class="mk" viewBox="0 0 22 8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-      <line x1="4" y1="4" x2="18" y2="4" stroke="currentColor" stroke-width="1.25"/>
-      <circle cx="4" cy="4" r="4" fill="var(--design)"/>
-      <circle cx="18" cy="4" r="4" fill="var(--build)"/>
-    </svg>
-  )}
+  <MarkFigure side={side} />
   <span class="sw">{SIDE_LABEL[side]}</span>
 </span>

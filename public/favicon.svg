@@ -1,18 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- THE FAVICON — the same drawing as the page, in ink on paper (chooser:
+       andrewshiau-mark-options, Q4/02 — "the greyscale figure, join fixed").
+       This is a SECOND HAND COPY of src/components/MarkFigure.astro. It cannot import, so it
+       carries its own hexes; the geometry below must match that file exactly. Change one,
+       change both.
+       Hollow ring, solid disc, and the rule trimmed at both ends so it touches neither object:
+       14.17 is the ring's outer edge (5 + half the 1.8 stroke, projected along the 45° join)
+       and 18.46 is the disc's near edge. The arithmetic is in MarkFigure.astro.
+       NO HUES. The page's mark is currentColor throughout — outline vs. fill is the signal now,
+       not navy vs. olive — so the tab is the same figure in one colour, and `.design` / `.build`
+       are gone from this file. The two-hue version was legible at 16px only because the hues
+       differed; a reader in greyscale, or in a dark tab strip, got two identical dots.
+       The known cost, accepted when this option was picked: 1.8 units of a 32-unit box is 0.9
+       device pixels at 16px, so the ring is drawn at sub-pixel weight and a browser will
+       antialias it grey. It reads as a lighter dot beside a solid one, which is still the right
+       distinction — and at 32px (bookmark bar, tab hover, history) it is exactly the page's
+       figure. -->
   <style>
     .bg{fill:#f4f3ef}
-    .rule{stroke:#141412}
-    .design{fill:#14306b}
-    .build{fill:#5c6b12}
+    .fg{fill:#141412}
+    .st{stroke:#141412}
     @media (prefers-color-scheme: dark){
       .bg{fill:#141413}
-      .rule{stroke:#f0efe8}
-      .design{fill:#6ea8ff}
-      .build{fill:#b9cc4a}
+      .fg{fill:#f0efe8}
+      .st{stroke:#f0efe8}
     }
   </style>
   <rect class="bg" width="32" height="32"/>
-  <line class="rule" x1="10" y1="10" x2="22" y2="22" stroke-width="1.5"/>
-  <circle class="design" cx="10" cy="10" r="5"/>
-  <circle class="build" cx="22" cy="22" r="5"/>
+  <line class="st" x1="14.17" y1="14.17" x2="18.46" y2="18.46" stroke-width="1.5"/>
+  <circle class="st" cx="10" cy="10" r="5" fill="none" stroke-width="1.8"/>
+  <circle class="fg" cx="22" cy="22" r="5"/>
 </svg>

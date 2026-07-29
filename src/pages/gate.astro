@@ -16,7 +16,6 @@
 // by choice. `noindex` below says so to a crawler that finds it another way, and robots.txt
 // Disallows the path it is served at.
 import Layout from '../layouts/Layout.astro';
-import Mark from '../components/Mark.astro';
 import LockedRow from '../components/LockedRow.astro';
 import { work } from '../data/experiments';
 
@@ -44,7 +43,11 @@ if (!locked) {
   <!-- The inline top margin came off here too — see `main > .grid:first-child` in global.css. -->
   <div class="grid">
     <div class="pin">
-      <Mark />
+      <!-- No mark above the kicker, the same as the index (chooser: andrewshiau-mark-options,
+           Q3/05). This page and the index were the last two call sites of `Mark.astro`, and it
+           is deleted: the mark's job is the row marker now, and the row this page renders
+           carries it. The way home is the `← Back to the index` link under the row — a page
+           that exists to say "not yet" should offer the way out in words. -->
       <p class="smark">Password required</p>
       <h1>Not open yet</h1>
       <div class="facts">

@@ -24,11 +24,13 @@ const year = 2026;
 // place that never touched the panel saying the same thing six lines lower, so the identity
 // was split across two blocks that didn't meet. And it was centred over a layout whose
 // subject starts at column 5, so the mark pointed at the gutter between the panel and the
-// feed. Now the column that never leaves the screen carries mark, name, facts and address in
+// feed. Now the column that never leaves the screen carries name, facts and address in
 // reading order, and the page's top edge is the panel's own hairline.
-// The mark is emitted by `Mark.astro` inside `.pin`: on the index directly, on the other nine
-// pages through `PanelHead.astro`. This note is frontmatter rather than an HTML comment
-// because an HTML comment here would ship to every reader on all 13 pages.
+// NO MARK IS EMITTED AT PAGE LEVEL AT ALL now. `Mark.astro` — the 44px masthead inside `.pin`
+// — is deleted (chooser: andrewshiau-mark-options, Q3/05): the figure appears where it carries
+// a fact, which is the index's marker column (`SideDot.astro`) and the case-study kicker
+// (`SideMark.astro`, which is also the link home). This note is frontmatter rather than an HTML
+// comment because an HTML comment here would ship to every reader on all 13 pages.
 
 // Unfurl cards need ABSOLUTE urls — Slack and Twitter fetch the image from their own
 // servers, so a root-relative `/og.png` resolves against slack.com and 404s. `Astro.site`

@@ -7,18 +7,23 @@
 // line was there to name the side. One of them had to go, and the marker is the one that
 // carries a fact, so it took the link as well.
 //
-// It draws the LOGO's figure, not the flat 22×8 glyph the index uses, and it is side-aware
-// (MarkFigure.astro): the diagonal pair where the page sat on both halves of the practice, a
-// single dot in the one hue where it sat on one. A pairing is only drawn where there is one —
-// the diagonal's whole subject is two things joined, and on `/work/luthier/` there is no
-// second thing for the rule to reach.
+// It draws `MarkFigure` side-aware: the whole figure where the page sat on both halves of the
+// practice, the ring alone for design, the disc alone for build. A pairing is only drawn where
+// there is one — the diagonal's whole subject is two things joined, and on `/work/luthier/`
+// there is no second thing for the rule to reach.
+//
+// SAME GLYPH AS THE INDEX ROW NOW, at 26px instead of 18. The index used to draw a flat 22×8
+// version, so this file's note read "the logo's figure, not the flat glyph the index uses";
+// that glyph is gone (chooser: andrewshiau-mark-options, Q3/05 — see SideDot.astro). The two
+// wrappers now differ only in size, hover and whether the word shows, which is what they should
+// have differed in all along. It is not SideDot itself because that one clips its word and is
+// not a link; both read their side from the same `sideOf`, so the fact can't drift.
 //
 // The WORD stays here, visible. The index hides it now (Q1/05) because eight rows repeating
-// "Design + Build" was the loudest thing in that column; a panel head prints one marker, so
-// the word costs nothing and it is what keeps the marker legible in greyscale — navy and olive
-// are 2.14:1 apart (STYLE.md). SideDot is not used because its glyph is the flat one built for
-// a meta line's baseline; only the geometry differs, and both read their side from the same
-// `sideOf`, so the fact still can't drift from the index.
+// "Design + Build" was the loudest thing in that column; a panel head prints one marker, so the
+// word costs nothing. It is no longer the ONLY non-colour signal — the ring/disc pair carries
+// into greyscale where the two hues could not (navy and olive are 2.14:1 apart — STYLE.md) —
+// but a shape a reader has to learn is not a label, so the word is not up for deletion.
 import { sideOf, SIDE_LABEL } from '../data/experiments';
 import MarkFigure from './MarkFigure.astro';
 interface Props { href: string }
