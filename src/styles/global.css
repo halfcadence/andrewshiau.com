@@ -679,7 +679,17 @@ figure.demo.hang video{width:100%}
    this a stack of rows rather than three cells across the grid in the first place (a cell
    version wrapped luthier's Role fact to five lines and left holes when a fourth fact
    arrived). Markup unchanged: .facts > .frow > .fm + .ftx. */
-.facts{grid-column:1 / 8}
+/* `1 / -1`, NOT `1 / 8`. Caught by looking at /work/luthier/: the four "How it works" values
+   measured 344px against the panel ledger's 558. `.facts` in the FEED sits inside a nested
+   `.grid`, so `1 / 8` means seven of THAT grid's twelve tracks — 7 × 25.08 + 6 × 28 = 343.6px,
+   which is the number on screen. The panel's `.facts` is a direct child of `.pin` and has no
+   nested grid, so it was right all along, and the two disagreed by 214px.
+   Same phantom-measure class as the section head and the hung caption before it: a track count
+   written for the page's twelve fields, evaluated inside a seven-field column. `-1` means "the
+   last track" whatever the parent has, so the block fills its container in both places and the
+   62ch cap on `.ftx` is what actually sets the measure — which is the rule this file keeps
+   arriving at: state an inner measure in `ch`, never in tracks. */
+.facts{grid-column:1 / -1}
 /* THE LEDGER ROW, without its rules. It was a 12-track grid with a hairline per row under a
    2px ink opener, a 13px caps key and a 16px value — three ramp steps and two rule weights to
    say "label, value". Now: the key is the 11px micro-label ABOVE its value, the same device
