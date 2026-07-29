@@ -1,4 +1,10 @@
 ---
+// ORDER MATTERS, and this is the only order that works: `system.css` brings Tailwind and
+// Basecoat and binds their 149 tokens to ours; `global.css` states the site's own rules. The
+// system loads FIRST so that where the two disagree, this site's measured rule wins on cascade
+// order rather than on `!important`. Reversing these two lines would let a Basecoat default
+// silently outrank a decision that has four passes of reasoning behind it.
+import '../styles/system.css';
 import '../styles/global.css';
 
 interface Props {

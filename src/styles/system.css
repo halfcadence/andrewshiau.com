@@ -1,0 +1,185 @@
+/*
+  system.css — THE DESIGN SYSTEM LAYER.
+
+  What this file is for: the site's own rules are in `global.css`, measured over four passes and
+  commented with the reasoning. This file connects that system to `basecoat-css`, which is the
+  base picked for the design system — shadcn/ui's components and visual patterns as plain HTML
+  classes, with no React (verified: basecoatui.com requires Tailwind v4, not React).
+
+  ── THE ONE DECISION THIS FILE MAKES ────────────────────────────────────────────────────────
+  BASECOAT'S TOKENS ARE BOUND TO OURS, not the other way round. Basecoat ships 149 variables in
+  shadcn's vocabulary (`--background`, `--foreground`, `--primary`, `--muted-foreground`, `--radius`
+  …). Every one of them is re-pointed below at a token this site already measured. So:
+
+    - A Basecoat component dropped on any page inherits Plex Mono at 15/28, the warm paper, the
+      three greys, the one hue, and square corners — without being restyled at the call site.
+    - There is still ONE source of truth. `--step` and `--group` are defined once, in global.css,
+      and `--radius` and `--foreground` are aliases of what is already there.
+    - Dark mode needs no second binding: the tokens on the right-hand side already flip.
+
+  The alternative was letting Basecoat's defaults win and overriding per component, which is how a
+  design system becomes a pile of `!important` — and would have put a rounded, sans-serif, blue
+  button on a site whose whole argument is one typeface, one size, no rules.
+
+  ── WHAT IS IMPORTED, AND WHAT IS NOT ───────────────────────────────────────────────────────
+  Basecoat's full bundle is 234 kB of CSS for 38 components. This site has ONE form control and no
+  dialog, dropdown, menu, tabs, table, toast, popover, sidebar, chart, or command palette. Loading
+  38 components to use two is the same mistake as installing React to style zero buttons, so the
+  imports below are explicit and per-component.
+
+  To add a component later: add its `@import` here, check it against `/system/`, and if it needs
+  Basecoat's JS import that too (`import "basecoat-css/dropdown-menu"` — most are CSS-only).
+*/
+
+/* Tailwind first — Basecoat is built on its v4 source and cannot resolve without it. The
+   `@astrojs/tailwind` integration is NOT used; the v4 Vite plugin reads this import directly, so
+   there is no config file and no content globbing to keep in sync. */
+@import "tailwindcss";
+
+/* Basecoat's base layer: the token declarations, the resets, and the utility bindings its
+   components rely on. Imported whole because it is the contract the components are written
+   against — cherry-picking it is how you get a component that silently references a variable
+   that was never defined. */
+@import "basecoat-css/base/base.css";
+
+/* THE COMPONENTS, one line each, and only the ones this site actually has.
+   The path is `basecoat-css/components/<name>.css`, NOT `basecoat-css/<name>`. The short form
+   fails the build with `Missing "./input" specifier` — the bare subpaths in this package's
+   `exports` map are its JAVASCRIPT modules (`./select` → dist/js/select.js), and the CSS lives
+   under `./components/*`. Worth stating because the short form is what the docs' CDN examples
+   look like and it resolves to nothing here. */
+@import "basecoat-css/components/input.css";   /* the gate's password field — the only control */
+@import "basecoat-css/components/label.css";   /* the ledger / field label device */
+@import "basecoat-css/components/table.css";   /* the two tables in STYLE.md, on /style/ */
+@import "basecoat-css/components/kbd.css";     /* the ⌥G key in the colophon */
+
+/* ── THE BINDING ─────────────────────────────────────────────────────────────────────────────
+   Basecoat's variables, re-pointed at this site's. Read the right-hand side as the answer to
+   "what does this site already call that?".
+
+   `@theme` rather than `:root`, because Tailwind v4 reads `@theme` to generate its utility
+   classes — binding here means `bg-background` and `text-foreground` also resolve to our tokens,
+   so a Tailwind utility written by hand can't introduce an off-system colour either. */
+@theme {
+  /* GROUND AND TYPE. Every value is a var() into global.css, so dark mode flips for free. */
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-card: var(--paper);              /* no card surface on this site — see below */
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--paper);
+  --color-popover-foreground: var(--ink);
+
+  /* THE ONE HUE. `--primary` is the accent, and the accent means "you can act on this" —
+     so a Basecoat primary button is the same navy a link is, not a brand blue. */
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--on-accent);
+
+  /* SUPPORT AND ANNOTATION — the three greys, in their existing jobs. */
+  --color-secondary: var(--paper);
+  --color-secondary-foreground: var(--dim);
+  --color-muted: var(--paper);
+  --color-muted-foreground: var(--faint);
+  --color-accent: var(--paper);            /* Basecoat's "accent" is a HOVER SURFACE, not a hue */
+  --color-accent-foreground: var(--ink);
+
+  /* THE ONLY BORDER COLOUR. There are no rules on this site; where Basecoat draws a border it
+     gets `--line`, which is the hairline the field's writing line uses. */
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--accent);             /* focus ring = the interaction hue, as everywhere */
+
+  /* DESTRUCTIVE. The site has no red and nothing to destroy, so this points at ink: if a
+     Basecoat component ever renders a destructive state it will be legible and colourless
+     rather than importing a red the palette doesn't contain. */
+  --color-destructive: var(--ink);
+  --color-destructive-foreground: var(--paper);
+
+  /* TYPE. One family, and it is the mono — `--font-sans` is deliberately the same value, because
+     a component that asks for the sans must not get a different typeface. */
+  --font-sans: var(--mono);
+  --font-mono: var(--mono);
+  --default-font-family: var(--mono);
+  --default-mono-font-family: var(--mono);
+  --text-base: var(--step);
+  --text-sm: var(--step);                  /* THERE IS NO RAMP — sm, base and lg are one size */
+  --text-lg: var(--step);
+  --leading-normal: var(--lead);
+  --leading-snug: var(--lead);
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;               /* the one emphasis weight, reserved for <b> */
+
+  /* SQUARE CORNERS, stated as zero four times because Basecoat reads all four. `border-radius:0`
+     is explicit in global.css for the same reason: every browser rounds controls by default and
+     this site has no rounded corner anywhere. */
+  --radius: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+
+  /* MOTION. One easing and three durations, already defined; Basecoat's transitions adopt them
+     so a component can't animate on a curve nothing else uses. */
+  --default-transition-duration: var(--dur-fast);
+  --default-transition-timing-function: var(--ease);
+
+  /* THE SPACE SCALE. Tailwind's spacing unit is 4px by default, which would put a component's
+     padding off the 28px baseline every element on this site sits on. `--spacing` is the unit
+     every `p-*` / `m-*` utility multiplies, so setting it to a quarter-leading (7px) means
+     `p-2` = 14px = `--tight` and `p-4` = 28px = `--lead`. The scale stays reachable from a
+     utility class without inventing a second rhythm. */
+  --spacing: calc(var(--lead) / 4);
+}
+
+/* ── THE FOUR RULES, ENFORCED ON BASECOAT'S OWN COMPONENTS ───────────────────────────────────
+   The bindings above make a Basecoat component take our tokens. These four make it obey the
+   rules those tokens exist to serve — the things that are decisions rather than values, and the
+   ones that would otherwise be reintroduced by a component's defaults.
+   Each is scoped to Basecoat's classes only, so nothing here can reach the site's own devices. */
+
+/* 1. NO FILLED SURFACES. `.card` and friends paint a surface and draw a border to separate it
+      from the page; the mono pass deleted every box on this site, including the one filled
+      `.block`. A Basecoat card is a bordered rectangle by construction, so if one is ever used it
+      renders as what the rest of the site uses instead: air. */
+.card,
+.alert,
+.popover,
+.dialog { background: none; border: 0; box-shadow: none; padding: 0; }
+
+/* 2. NO CAPS, ANYWHERE. Basecoat's labels and buttons track and uppercase their type. The label
+      treatment on this site lost its caps for a measured reason: at 15px in a monospace face,
+      caps are wider than the title they label (`EXPERIMENTS` at .14em is 15 cells against
+      `Experiments`' 11), and case is a second mechanism doing a job space already does. */
+.label,
+.btn,
+.badge,
+.kbd { text-transform: none; letter-spacing: normal; }
+
+/* 3. ONE SIZE. Every Basecoat size modifier collapses to `--step`. A component that offers
+      `-sm` and `-lg` is offering a ramp, and there isn't one — the site has exactly three sizes
+      and two of them are forced (16px on the input by iOS Safari's focus zoom, and `.82em` on one
+      arrow glyph). */
+.btn-sm, .btn-lg, .input-sm, .input-lg,
+.badge-sm, .badge-lg { font-size: var(--step); line-height: var(--lead); }
+
+/* 4. THE FIELD IS A LINE YOU TYPE ON. This is the one Basecoat component the site actually uses,
+      and its default is a bordered box with rounded corners — the exact shape `global.css`
+      argues against. Bound to the shipped `.f input` treatment instead: one hairline under the
+      text, the accent on focus, and 16px because anything smaller makes iOS Safari zoom the page
+      and throw the row out of view mid-typing. */
+.input {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ink);
+}
+.input:focus,
+.input:focus-visible {
+  outline: 0;
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+.input::placeholder { color: var(--faint); }
