@@ -82,10 +82,11 @@ import PanelHead from '../../components/PanelHead.astro';
             <iframe src="/writing/10x-is-a-loop/" title="An explainer with a diagram and a scored quiz, live"
               loading="lazy"></iframe>
           </div>
-          <figcaption>
-            <a href="/writing/10x-is-a-loop/">10x is a loop, not a prompt</a>
-            — the diagram and the quiz, live in the frame
-          </figcaption>
+          <!-- The caption is a LABEL, not a second link (annotation: "still have double links, on
+               top here and then on bottom, on most of these like embed links — should only have 1
+               i think"). The `.esrc` above the frame keeps the link, because an embed is tall and
+               the one actionable thing must not sit a screenful below it. Same fix as recipes. -->
+          <figcaption>10x is a loop, not a prompt — the diagram and the quiz, live in the frame</figcaption>
         </figure>
       </div>
 

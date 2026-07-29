@@ -26,19 +26,28 @@ const { href } = Astro.props;
 <p class="gsm">Kept out of search engines and behind a shared password, because the subject
   is internal work. Ask me for it — <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>.</p>
 
+<!-- NO SUBMIT BUTTON. Annotation: "can this check for the right pw and just go instead of having
+     a submit btn." The field checks as you type and navigates the moment the password is right,
+     so the button was a second step for something the page can already tell.
+     Enter still works — a form with a single text input submits implicitly — and that path is
+     kept deliberately rather than removed, because it is the one that reports failure. See the
+     two-path note in the script: typing is silent, Enter answers. -->
 <form class="f gatef" data-dest={href}>
   <!-- No `name`, and `autocomplete="off"`: this is one shared password for one page, not an
        account, so offering to save it under the site's name would file it as a credential the
        reader owns. 16px on the input is not a taste call — anything smaller and iOS Safari
-       zooms the page on focus, which on a phone throws the row out of view mid-typing. -->
+       zooms the page on focus, which on a phone throws the row out of view mid-typing.
+       `aria-describedby` points at the answer line, so a screen reader hears "Checking…" and
+       "that password is not right" as a description OF THE FIELD rather than as a stray live
+       region — which matters more now that there is no button to announce a state on. -->
   <input type="password" class="gi" placeholder="Password" aria-label="Password"
+         aria-describedby="gate-msg"
          autocomplete="off" spellcheck="false" autocapitalize="off" required />
-  <button type="submit">Open</button>
 </form>
 
 <!-- The answer comes back here rather than in an alert. `aria-live` so a screen reader hears
      "that password is not right" without moving focus; `role="status"` keeps it polite. -->
-<p class="gmsg" role="status" aria-live="polite"></p>
+<p class="gmsg" id="gate-msg" role="status" aria-live="polite"></p>
 
 <script>
   // One handler for every gate form on the page (there is exactly one, but querying the
@@ -60,11 +69,26 @@ const { href } = Astro.props;
       document.cookie = 'asc_gate=' + encodeURIComponent(v) + '; path=/; max-age=' + age +
         '; samesite=lax' + (location.protocol === 'https:' ? '; secure' : '');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // TWO PATHS INTO ONE CHECK, and the difference between them is only what a FAILURE does:
+    //   typing → silent. A wrong answer mid-word is not an error, it is an unfinished word, so
+    //            nothing is said and nothing is cleared. Saying "that password is not right"
+    //            after four characters of an eighteen-character password would be the page
+    //            arguing with someone who is still typing.
+    //   Enter  → answers. The reader has asserted they are done, so a failure is reported and
+    //            the field is cleared for another go.
+    // `seq` discards stale responses: type fast and several checks are in flight at once, and
+    // without it an earlier 401 can land after a later 200 and undo a correct password.
+    let seq = 0;
+    let timer;
+
+    const check = async (loud) => {
       const pw = input instanceof HTMLInputElement ? input.value.trim() : '';
-      if (!pw) return;
-      say('Checking…');
+      if (!pw) { say(''); return; }
+      // Four characters before the first request. Not a security measure — the server is the
+      // only thing that knows the answer — just a floor so a single keystroke doesn't fetch.
+      if (!loud && pw.length < 4) { say(''); return; }
+      const mine = ++seq;
+      if (loud) say('Checking…');
       cookie(pw, 604800);
       let status = 0;
       try {
@@ -76,6 +100,7 @@ const { href } = Astro.props;
       } catch {
         status = -1;
       }
+      if (mine !== seq) return;               // a later keystroke has superseded this one
       if (status >= 200 && status < 400) {
         say('Opening…');
         // nginx serves the gate page AT the gated URL, so "go there" and "try again" are the
@@ -85,10 +110,25 @@ const { href } = Astro.props;
         return;
       }
       cookie('', 0);
+      if (!loud) return;                       // still typing: say nothing, keep what they typed
       if (input instanceof HTMLInputElement) { input.value = ''; input.focus(); }
       say(status === -1
         ? 'Could not check that just now — the network dropped. Try again.'
         : 'That password is not right.');
+    };
+
+    // 450ms after the last keystroke. Long enough that typing a word is one or two requests
+    // rather than one per character; short enough that pasting the password feels immediate.
+    input?.addEventListener('input', () => {
+      clearTimeout(timer);
+      say('');
+      timer = setTimeout(() => check(false), 450);
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearTimeout(timer);
+      check(true);
     });
   });
 </script>

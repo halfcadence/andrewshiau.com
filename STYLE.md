@@ -380,6 +380,19 @@ already has one is a slop finding.
 weight. The three greys keep their jobs — `--ink` is the fact, `--dim` is support, `--faint` is
 annotation.
 
+**Emphasis inside a sentence is WEIGHT, never colour.** `b,strong` is `font-weight:500` +
+`color:inherit`. Body copy is `--dim` and a `<b>` promoted to `--ink` is a **2.83:1 → 16.61:1
+jump — a 2.8× contrast step inside one sentence** (2.31× in dark), which made three words in a
+paragraph higher contrast than the head above them. Weight 500 against 400 is ~7% more stem
+width, and in a monospace face — where every glyph is the same width — that is the only variable
+a word has. Weight 500 is **reserved** for this; a heading may not also use it (see below).
+
+**Applying the rule to a heading, worked example.** The section head hangs in the 16ch column
+(POSITION) *and* is `--ink` (VALUE) — two mechanisms, defensible because they say different
+things: the column says "this annotates the section", the ink says "and it is the strongest thing
+in it". It was **also** weight 500, which was a third mechanism that earned nothing — invisible
+next to the colour it sat on. Dropped. `h2` is `font-weight:400`.
+
 #### The two axes
 
 Every case study has exactly **two** vertical axes, and one number sets both: `16ch`.

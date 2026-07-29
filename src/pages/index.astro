@@ -241,5 +241,33 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
       <span class="ck">Set in</span>
       IBM Plex Mono at 15/28, one size, 62 characters.
     </div>
+    <!-- THE GRID FACT, moved here out of the footer (annotation: "maybe this can be in colophon
+         and be like 'grid // 12 columns. press cmd+g'"). It belongs with the other two: a
+         colophon states what the page is made of, and "12 columns" is exactly that — where it
+         was, it sat alone in a footer bar whose only other content had already been deleted.
+         The keypress is stated only where a keyboard exists. On a touch device `.kb` is hidden
+         and `.tou` shows the fact without the instruction, which is the rule the footer already
+         had — an affordance the device can't reach shouldn't be told to the reader as a fact. -->
+    <div class="colo c3">
+      <span class="ck">Grid</span>
+      <span class="kb">12 columns. Press <code>⌥G</code> to see it.</span>
+      <span class="tou">12 columns.</span>
+    </div>
+    <!-- THE STEERING FILE, linked (annotation: "we should encode this in site steering, and maybe
+         promote site steering to the colophon — i think the working in public thing is rly cool").
+         STYLE.md is the file that decides everything the other three colophon facts state: it is
+         where the typeface, the 12 columns and the one-mechanism-per-job rule are written down,
+         and it is what an agent reads before touching this site. Linking it is the same move
+         /method/ already makes with its own three markdown files — the page shows its source
+         rather than describing it.
+         It is a `blob` link to the repo, not a rendered page: the file is 800 lines of RFC-2119
+         steering with contrast measurements in it, and rendering that as a site page would make
+         it look like content. On GitHub it looks like what it is, which is the honest version of
+         working in public. -->
+    <div class="colo c4">
+      <span class="ck">Steered by</span>
+      <a href="https://github.com/halfcadence/andrewshiau.com/blob/main/STYLE.md"
+        target="_blank" rel="noopener">STYLE.md</a>
+    </div>
   </div>
 </Layout>

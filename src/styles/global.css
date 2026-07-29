@@ -266,10 +266,20 @@ h1{font-weight:500;font-size:inherit;line-height:inherit;margin:0;overflow-wrap:
    `Experiments`' 11, so the head was the widest line in the section it only labels).
    Then `--faint` was wrong in the other direction: a head that opens a section is the strongest
    thing in it, and at faint it was the weakest — the same inversion the `/method/` columns had.
-   Ink at weight 500 makes it a title. That is the ONE place on the site weight 500 appears on a
-   heading, and it is enough because the head also owns the largest interval on the page
-   (`--sect` above it, `--lead` below — see `.feed > h2` and `.shead > h2`). */
-h2{font-weight:500;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
+   INK AT WEIGHT 400, and dropping the 500 is the annotation's own finding: "some of these don't
+   follow the rule of — a label earns its hierarchy from position if it has a position; otherwise
+   from value." The section head was the violation, and it was mine: it hangs in the 16ch column
+   (POSITION), it is `--ink` (VALUE), and it was weight 500 (WEIGHT) — three mechanisms where the
+   rule allows one, on the element that states the rule most visibly.
+   Position plus value is already two, and the pair is defensible because they do different jobs
+   here: the column says "this is an annotation of the section", the ink says "and it is the
+   strongest thing in it". The weight was the third and it earned nothing — at 15px in a monospace
+   face, ink-vs-dim is a 2.8× contrast step and 500-vs-400 is 7% more stem width, so the weight was
+   invisible next to the colour it sat on top of.
+   Weight 500 is now reserved for `<b>` inside body copy — where it is the ONLY mechanism, because
+   emphasis inside a sentence may not change colour (see `b,strong`). One mechanism, one job, in
+   both directions. */
+h2{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
 .dek{color:var(--dim);margin:0;font-weight:400;max-width:62ch}
 /* THE STATEMENT — one continuous sentence, one element, the two thesis clauses inline.
    Still a single element for the same reason as before (block elements can't share a line,
@@ -285,10 +295,22 @@ h2{font-weight:500;font-size:inherit;line-height:inherit;margin:0;color:var(--in
    losing the line, and here it's literal rather than an approximation. */
 p{margin:0 0 var(--lead);max-width:62ch}
 p:last-child{margin-bottom:0}
-/* 500, not 700. Plex Mono's SemiBold is loaded for the two places that need real weight;
-   inside a 15px line, Medium is the difference the eye reads as bold without the line
-   going lumpy. */
-b,strong{font-weight:500}
+/* ── EMPHASIS IS WEIGHT, NEVER A COLOUR JUMP. Annotation: "again really don't like using color
+   for emphasis here, it pops out too much — maybe find another way if u want to emphasize body
+   text."
+   Measured, and the complaint is exact: body copy is `--dim` and every `<b>` inside it was
+   promoted to `--ink`, which on paper is a jump from 5.86:1 to 16.61:1 — a 2.83× contrast step
+   inside one sentence (2.31× in dark). Three words in the middle of a paragraph were higher
+   contrast than the section head above them. That is not emphasis, it is a different colour of
+   text, and it broke the site's own rule that value carries hierarchy BETWEEN elements while
+   nothing carries it inside a sentence.
+   So `<b>` inherits its parent's colour and says what it has to say with WEIGHT: 500 against
+   400 is about 7% more stem width at 15px, which in a monospace face — where every glyph is the
+   same width, so weight is the only thing that can vary — reads clearly without changing the
+   colour of the line.
+   The four `… b{color:var(--ink)}` overrides are deleted with it (`.frow .ftx`, `.pin .pv`,
+   `.specblock .sv`, `.duo li`), so this is one rule instead of five. */
+b,strong{font-weight:500;color:inherit}
 em,i{font-style:italic}
 a{color:var(--accent);text-underline-offset:4px}
 /* O7 — any link that opens in a new tab gets a ↗ marker; opacity lifts on hover.
@@ -495,7 +517,7 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
 /* The numerals hang in the margin and are the procedure's spine. `2ch` of indent, not
    1.4em: in a monospace face the list marker plus its space is exactly two cells. */
 .duo ol{margin:var(--lead) 0 0;padding-left:2ch;color:var(--dim)}
-.duo li b{color:var(--ink);font-weight:500}
+
 @media(max-width:900px){ .duo .dcol{grid-column:1 / 13} }
 
 /* RULES — the five numbered rules on /method/, as a lattice of `.step` cells rather than
@@ -642,7 +664,7 @@ figure.demo.hang video{width:100%}
 .specblock .sv{grid-column:2;max-width:62ch}
 .specblock .sk{color:var(--faint)}
 .specblock .sv{color:var(--dim)}
-.specblock .sv b{color:var(--ink);font-weight:500}
+
 /* the one accent inside the block: the value that is the page's own claim. Accent on a
    MONO value is still the sanctioned "lead member of a group" role — nothing new. */
 .specblock .sv i{color:var(--accent);font-style:normal}
@@ -688,6 +710,24 @@ figure.demo.hang video{width:100%}
    here — in both cases the value is the support text, and one of the two has to recede or the
    pair has no internal hierarchy at all. */
 .frow .ftx{grid-column:2;color:var(--dim);max-width:62ch}
+/* ── THE LEDGER BLEEDS RIGHT so its value reaches the full measure. Four annotations, one cause:
+   "this should probably take up more cols bc its longish" / "mor cols too" / "more cols too" /
+   "more cols. apply to all case studies."
+   Measured: the document column is 609px and the hung label takes 16ch + a gutter = 172, so the
+   value had 437px = 49 characters — it could never reach the 62ch cap every other text element on
+   the site gets. The longest ledger values are the /method/ ones ("Three markdown files in this
+   site's repo — method.md and one per side…"), so they wrapped two lines earlier than the same
+   sentence would as a paragraph.
+   The fix is the same bleed the section head uses, for the same reason and by the same
+   expression: grow right by the label column plus a gutter, so the VALUE axis stays at 172 and
+   the value's own right edge moves out to 730 — exactly where a 62ch paragraph ends.
+   `.facts` is the wrapper that carries it, not `.frow`, because a `.frow` is a grid item and
+   widening the item would break the parent's own track. One block, every row inside it. */
+.facts{width:calc(100% + 16ch + var(--gutter))}
+@media(max-width:1100px){
+  /* Below the measure there is no margin to bleed into, and `.frow` stacks anyway. */
+  .facts{width:auto}
+}
 @media(max-width:720px){
   /* 16ch of a 390px screen is 40% of the line. Stacked, and the label takes the ink treatment
      it would have had if it never had a column — the condition in the rule at the top of this
@@ -695,7 +735,7 @@ figure.demo.hang video{width:100%}
   .frow{display:block}
   .frow .fm{color:var(--ink);margin-bottom:var(--tight)}
 }
-.frow .ftx b{color:var(--ink);font-weight:500}
+
 
 /* ── TEXT MEASURE ≠ FIGURE MEASURE ────────────────────────────────────────────────────
    Annotation, on the two clips paired inside the document column: "these are too small in this
@@ -803,7 +843,7 @@ figure.demo.hang video{width:100%}
 /* THE LABEL, one device: `Currently`, `Contact`, `Elsewhere` — 11px tracked caps, faint. */
 .pin .pk,.pin .pfoot{display:block;margin-bottom:var(--tight)}
 .pin .pv{color:var(--dim)}
-.pin .pv b{color:var(--ink);font-weight:500}
+
 .pin .pfoot{margin-top:var(--group)}
 /* Contact and Elsewhere, side by side — two groups of alternatives, which is what the pair
    is. They no longer travel to the foot of a full-height column (there is no full-height
@@ -1083,16 +1123,14 @@ figure.demo.hang video{width:100%}
    everywhere else. `outline:0` is only acceptable BECAUSE the line changes colour and weight
    with it; a bare `outline:0` would delete the only focus signal a keyboard reader gets. */
 .f input:focus{outline:0;border-bottom-color:var(--accent)}
-/* The button: body type on a filled ink field. It was 11px tracked caps, which is the label
-   treatment this pass deleted — and a button is the one thing on the page that is NOT a label.
-   The filled field is what marks it, and the field is allowed here for the same reason it left
-   `.block`: you press this. 44px minimum height so it satisfies WCAG 2.5.5 without a pointer
-   query. */
-.f button{font:inherit;line-height:1;padding:0 2ch;min-height:44px;border:0;
-  background:var(--ink);color:var(--paper);cursor:var(--cursor) 9 9,pointer;border-radius:0;
-  transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
-.f button:hover{background:var(--accent);color:var(--on-accent)}
-.f button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* THE BUTTON IS DELETED with the markup that used it (annotation: "can this check for the right
+   pw and just go instead of having a submit btn"). The field checks as you type and navigates on
+   the first correct answer, so there is nothing left to press — and the filled ink field it used
+   was the last filled rectangle on the site after `.block` gave its up.
+   Five rules gone rather than left as CSS for markup that doesn't exist. The site now has ZERO
+   buttons: `.f input` is the only form control, and it is a line you type on.
+   `.f` keeps `display:flex` for one reason — the input's `flex:1 1 24ch` still needs a flex
+   parent to grow against, and the wrap rule below still applies at 390px. */
 
 /* THE METHOD ROW is now literally `.entry` — the whole spec-row device is deleted (annotation:
    "cut the design / build sections here and just put title"). That removed ~25 rules: its own
@@ -1155,29 +1193,29 @@ figure.demo.hang video{width:100%}
    plus this line, and a third column is `9 / 11` when it's needed. */
 .colo.c1{grid-column:5 / 7}
 .colo.c2{grid-column:7 / 9}
+/* The third and fourth facts take the two slots the old note below said were reserved. Four
+   facts now fill c5–13 exactly: 5-7 · 7-9 · 9-11 · 11-13, so the colophon runs to the page's
+   right edge instead of stopping two thirds across. */
+.colo.c3{grid-column:9 / 11}
+.colo.c4{grid-column:11 / 13}
 @media(max-width:720px){
-  .colo-lab,.colo.c1,.colo.c2{grid-column:1 / 13;margin-top:var(--lead)}
+  .colo-lab,.colo.c1,.colo.c2,.colo.c3,.colo.c4{grid-column:1 / 13;margin-top:var(--lead)}
   .colo-lab{margin-top:0}
 }
 
-/* Footer — the last line, opened by air rather than by the 2px ink rule it used to carry. The
-   page's end is the end of the text, which is how a document ends. */
-/* ONE LINE, no grid. The right-hand cell held `© 2026 Andrew Shiau` and is deleted with it
-   (annotation: "if its just name it seems meaningless ... or delete"), so the footer has one
-   child and a 12-track grid to place it in was scaffolding for a column that no longer exists.
-   `.foot .fr` went with the markup rather than being left to rot — CSS for markup that doesn't
-   exist is a trap for whoever greps this file next, which is a rule this file states twice. */
-.foot{margin-top:var(--sect)}
-.foot .fl{color:var(--faint)}
-/* One of the two footer lines, never both. `Press g` is a keyboard instruction and it was
-   printed on every phone screen on the site, where there is no `g` to press — an affordance
-   the device can't reach, told to the reader as a fact. A pointer query, not a width one:
-   the thing that decides is whether there's a keyboard, and a 500px window on a laptop has
-   one. `.tou` is the touch fallback, and it says what the keypress would have revealed. */
-.foot .tou{display:none}
+/* THE FOOTER IS DELETED — markup and rules together (annotation: the grid line "can be in
+   colophon"). It held a copyright name (deleted last pass) and the grid hotkey, which moved to
+   `.colo.c3` because it is a fact about how the page is made. What remained was a `<footer>`
+   landmark holding one sentence, `--sect` below the colophon that already ends the page: a second
+   ending after the real one. `.foot`, `.foot .fl` and `.foot .fr` are gone rather than left as
+   CSS for markup that doesn't exist.
+   The `.kb` / `.tou` pointer pair SURVIVES and is now scoped to the colophon: `Press ⌥G` is a
+   keyboard instruction, and printing it on a phone tells the reader a fact they cannot act on. */
+.colo .kb{display:inline}
+.colo .tou{display:none}
 @media(hover:none),(pointer:coarse){
-  .foot .kb{display:none}
-  .foot .tou{display:inline}
+  .colo .kb{display:none}
+  .colo .tou{display:inline}
 }
 @media(max-width:720px){
   /* nothing to re-cut: one line at every width */

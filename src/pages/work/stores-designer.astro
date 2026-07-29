@@ -22,7 +22,11 @@ import PanelHead from '../../components/PanelHead.astro';
       </div>
       <div class="frow">
         <div class="fm">Where</div>
-        <div class="ftx">At Amazon · <b>2023–present</b></div>
+        <!-- No `<b>`. Annotation: "dont think this needs to be stronger than 'at amazon'" — the
+             employer is the fact worth reading here and the date range was the emphasised half,
+             which inverted the row. Neither is emphasised now; the label above them says what the
+             pair is. -->
+        <div class="ftx">At Amazon · 2023–present</div>
       </div>
     </PanelHead>
 
@@ -48,18 +52,27 @@ import PanelHead from '../../components/PanelHead.astro';
            ledger opens with "Role — the tooling, and the design system underneath it," and
            printing the same sentence twice on one screen makes a reader stop to check whether
            the two differ. The ledger is the row that has to be there (Type A), so this block
-           is the one that gives it up. -->
+           is the one that gives it up.
+           THE "No clip: production work at Amazon" CAPTION IS DELETED. It was a `figcaption` on a
+           block with no figure — a label for an absent thing, which made the page open by naming
+           what it doesn't have. The fact it stated is already the block's own last row
+           ("visibility — internal"), so it was also the same fact twice.
+           A CLIP IS COMING and the plan is decided: a capture of the real UI driven by an invented
+           dataset — fake brand names, placeholder copy, no component names, no metrics, no real
+           campaign — so the tool can be shown working with nothing disclosable on screen. When
+           `public/media/sd-fakeset.mp4` exists, it goes in a `figure.demo.hang` immediately above
+           this block, and `.mscatter`'s 1000/626 crop applies so it matches every other clip on
+           the site. Until then the page says nothing about it, which is better than apologising. -->
       <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
         <div class="specblock">
           <div class="srow"><span class="sk">surface</span>
-            <span class="sv">one shopping surface, <b>many teams</b></span></div>
+            <span class="sv">one shopping surface, many teams</span></div>
           <div class="srow"><span class="sk">constraint</span>
             <span class="sv">a wrong component ships to a lot of pages at once</span></div>
           <div class="srow"><span class="sk">approach</span>
             <span class="sv"><i>the consistent way to ship a page is also the fastest way</i></span></div>
           <div class="srow"><span class="sk">visibility</span>
             <span class="sv">internal — the public version of this problem is Luthier</span></div>
-          <figcaption>No clip: production work at Amazon</figcaption>
         </div>
       </div>
 

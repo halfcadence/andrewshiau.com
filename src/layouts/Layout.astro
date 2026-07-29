@@ -105,25 +105,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
           <slot />
         </main>
 
-        <footer class="foot">
-          <!-- The grid hotkey is keyboard-only, so it is stated only where a keyboard is:
-               a phone reader sees "Set on a 12-column grid" instead of an instruction it
-               can't follow. Same line, same place, no layout change — see `.foot .fl`. -->
-          <div class="fl">
-            <span class="kb">Press <code>⌥G</code> to see the grid.</span>
-            <span class="tou">Set on a 12-column grid.</span>
-          </div>
-          <!-- DELETED, which is the second half of the annotation. First: "do these copyright
-               things need a year?" — no, so the hardcoded `2026` came off (it only ever
-               communicated staleness, and notice isn't required: Berne, US since 1989). Then:
-               "wait if its just name it seems meaningless, can it either still say © andrew
-               shiau or delete" — and it is right that a bare name in the footer's right corner
-               says nothing. The page's own masthead is the name, three screens up.
-               Deleted rather than restored to `© Andrew Shiau`: with the year gone the notice
-               asserts a right the law grants anyway, and the site's rule is that a mark has to
-               do a job. `.foot .fr` keeps its rules — /method/ and the explainers still place
-               something there. -->
-        </footer>
+        <!-- THE FOOTER IS GONE. It held two things and both have now moved or been deleted: the
+             copyright line (a bare name, deleted last pass) and the grid hotkey, which is a fact
+             about how the page is made and so belongs in the colophon with the typeface and the
+             measure. What was left was a `<footer>` landmark wrapping one sentence, 112px below
+             the colophon that already ends the page — a second ending after the real one.
+             `.foot` and `.foot .fl` are deleted from global.css rather than left to rot. The `.kb`
+             / `.tou` pair moved with the sentence and still does its job there.
+             The nine case-study pages and the three explainers emitted the same footer, so this
+             removes a trailing empty bar from every page on the site. -->
       </div>
     </div>
     <script is:inline>
