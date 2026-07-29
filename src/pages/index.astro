@@ -125,7 +125,8 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
       <div class="matrix">
         <a class="espec" href={methodSpec.href}>
           <div class="eth">
-            <p class="eh">{methodSpec.title} <span class="arrowc">→</span></p>
+            <span class="eh">{methodSpec.title}</span>
+            <span class="ends"></span>
             <span class="em">
               <SideDot side={methodSpec.side} />
               <span class="smeta">{methodSpec.meta}</span>
@@ -166,8 +167,10 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
             <a class:list={['entry', { accent: x.accent }]} href={x.href}
                target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
               <span class="en">{x.n}</span>
-              <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
-              <p class="ed">{x.blurb}</p>
+              <span class="eh">{x.title}</span>
+              {/* The leader. An empty span because the space between the title and the meta
+                  IS the device — see `.entry .ends` in global.css. */}
+              <span class="ends"></span>
               <span class="em">
                 <SideDot side={x.side} />
                 <span class="smeta">{x.meta}</span>
@@ -183,8 +186,8 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
           <a class:list={['entry', { accent: x.accent }]} href={x.href}
              target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>
             <span class="en">{x.n}</span>
-            <p class="eh">{x.title} <span class="arrowc">{x.external ? '↗' : '→'}</span></p>
-            <p class="ed">{x.blurb}</p>
+            <span class="eh">{x.title}</span>
+            <span class="ends"></span>
             <span class="em">
               <SideDot side={x.side} />
               <span class="smeta">{x.meta}</span>

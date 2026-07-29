@@ -68,9 +68,10 @@ The positive rule, from Orwell: **prefer the concrete**. "Feedback was positive"
 
 ## Case-study page types
 
-Every one of these pages is laid out in **the split** (above): the beats below describe
-the order of the *content*, and the split decides which column each beat lands in — the
-facts block goes to the panel on Type A and C, stays in the feed on Type B.
+Every one of these pages is laid out as **the document** (above): one column, read top to
+bottom. The beats below describe the order of the *content*. The panel/feed distinction is now
+a matter of reading order rather than of columns — the facts block comes early on Type A and C
+(metadata read before the story) and last on Type B (a colophon read after it).
 
 Eight case-study pages, three shapes. The shapes already existed by accident, and the
 drift between them was the whole reason the set read as arbitrary — the facts block was
@@ -148,130 +149,100 @@ that an embed followed them directly; prose did, and they're now `.shead`.
 
 ---
 
-## The split — the site's shape
+## The document — the site's shape
 
-Every page of this site — the index and all eight case studies — is one **pinned identity
-column beside one scrolling reading column**, divided by the site's only vertical rule.
-There is no second page shape.
-(Chooser: `work/understand/andrewshiau-redesign-directions/`, round 1 picks 12 + 10 +
-hover-only motion + warm paper; round 2 picks concept 02 · spec block · scope 03.)
+Every page of this site is **ONE COLUMN of seven fields**, read top to bottom. There is no
+second page shape and no second column.
+(Chooser: `work/understand/andrewshiau-mono-redesign/` — Direction 02 "the document",
+Typeface 01 IBM Plex Mono, Ramp 04 one size, Ground 05 ink plus one hue, Grid 01 invisible,
+Motion 01 hover only + 05 the one-character shift.)
 
-Why it exists: the complaint was that the landing page read *pedestrian* to someone
-deciding whether to work with me, and the cause was that the largest thing on it was a
-sentence **about** me with the evidence below the fold. Pinning the sentence puts the
-evidence at the top of the reading column without deleting the claim.
+Why it exists: the brief was explicit that this was **not** a subtraction from the previous
+design — *"a ground-up redesign, the visual style should completely change… minimal monospace
+typography, not too much type ramp, text and lines and whitespace, interest through animation,
+grid, white space, content, restraint."* Four things inverted at once: one typeface became a
+mono, seven ramp steps became one size, rules-as-structure became whitespace-as-structure, and
+two hues became one hue with one job.
 
-### The three children, at one ratio, on every page
+### The four rules
 
-`.pin` (c1–5) · `.splitrule` (c5) · `.feed` (c5–13) — **4:8, never 6:6**, no modifier
-class and no second ratio. The reading column is the page's subject, and a half split
-would rank the two equally. Measured at 1440: panel 336px, rule at x=524, feed 700px —
-identical on the index and on all eight case studies, so clicking into a case study
-doesn't move the one division the site has.
+1. **ONE SIZE.** 15px / 28px leading for everything — prose, titles, labels, meta. Hierarchy
+   comes from **case, colour value, and whitespace only**. `--step` and `--lead` are the tokens.
+   A new font-size is a bug, not a decision. Two exceptions, both earned:
+   - `11px` tracked caps — the micro-label (`.lb`, `.fm`, `.pk`, `.ck`, `.sl`, `.dk`, `.proc
+     .pk`, captions, `.foot .fr`, the gate button). This is the ONE below-ramp step, kept
+     because caps at 15px in a monospace face are as wide as the title they label.
+   - `16px` on `.f input` — below 16px iOS Safari zooms the page on focus. A size forced by a
+     platform is not a ramp step.
+2. **WHITESPACE IS THE STRUCTURE.** There are no rules. No 2px group openers, no per-row
+   hairlines, no vertical split rule, no frames on clips or photographs. Groups are separated
+   by `--group` (52px). **Exactly two borders survive site-wide**, and each is a fact rather
+   than decoration: `.f input`'s writing line (a horizontal rule under text means "type here",
+   and now means nothing else), and `.embed-frame`'s 1px boundary (inside it is somebody
+   else's live page — the border says where this site stops).
+3. **ONE COLUMN, SEVEN FIELDS.** The grid is still 12 and still invisible (press `g`), but the
+   page places `1 / 8`. At the 1120px measure that is ~620px, close to the `62ch` the prose
+   caps at, so the column the grid draws and the column the type occupies are the same column.
+   The five empty fields to the right are the page's margin — putting type in them would make
+   the margin a column, and the document would be two columns again.
+4. **INK, PLUS ONE HUE FOR ONE JOB.** Colour means "you can act on this" — a link, and the
+   hovered row's title. Nothing else is coloured. See Colour tokens.
 
-- **`.pin` is `position:sticky`, NOT a fixed panel with an independently scrolled list.**
-  The page keeps ONE scrollbar, so scroll position, find-in-page, and deep links all still
-  work; a nested scroller breaks all three. And it degrades to a stacked block the moment
-  the viewport can't hold it, so there is no state where content is trapped in a box too
-  short to show it.
-- **`.splitrule` is its own grid child, not a border on the panel.** The panel is 560px
-  tall against a 1550px feed, so a border on the panel's own edge stopped a third of the
-  way down and the rest of the page had a wide empty left third with nothing dividing it.
-  A rule that spans something is its own element — same principle as `.colo-rule`. It is
-  `width:0` + `justify-self:start` with a negative `margin-left`, so it draws at the end of
-  column 4 and occupies no area; a stretched 1-column box would overlap the feed's numeral
-  column and eat its hover and clicks.
-- **It is the only rule on the site that runs vertically**, which is affordable because it
-  is the one division the page actually has. Do not add a second.
-- **Measured in both schemes:** the hairline reads at the same weight either way — dark
-  `#2b2b27` on `#141413` = **1.30:1**, light `#d5d4cd` on `#f4f3ef` = **1.34:1**, same x
-  and same height. "Structure by rules" fails if the rule is loud in one mode.
+### Measure is stated in `ch`, not in tracks
+
+`62ch` for prose, `22ch` for the spec block's key column, `38ch` for the `.rules` floor, `3ch`
+for the gate's indent, `1ch` for the hover shift. In a monospace face every glyph has the same
+advance, so `ch` is exact rather than approximate — and a measure in `ch` cannot drift when a
+column moves, which a track count does.
+
+**This is the rule that replaced "scope the split's CSS to min-width:1101px".** The old file
+had four separate cuts of the index row (12-track page, 3-track feed, ≤1100 stack, ≤900
+collapse) plus a hung-caption device and a section head, all sized in track counts against a
+page width. When the split was deleted, three of those silently pointed at columns that no
+longer existed — measured on the built page, the section head's prose stopped 107px short of
+the clip beside it, and the hung caption's clip stopped 265px short of the prose. **A track
+count is a measurement against a layout; a `ch` value is a measurement against the type.**
+
+### No breakpoints for the row
+
+The index row is one flex line — numeral · title · leader · meta — and it reflows because a
+flex line reflows. `flex-wrap` plus `min-width:0` on the title is the whole responsive story;
+below 560px the meta drops to its own line, indented `3ch` to the title's edge. Roughly 55
+lines of re-cut CSS were deleted, not ported.
+
+`.pin` and `.feed` keep their class names (ten pages and `PanelHead.astro` emit them) and are
+now simply two stacked blocks of the one column. `.splitrule` still ships in that markup and is
+`display:none` — a known slop finding, cleared in the design-system pass.
+
+### What the deletion bought
+
+~350 lines: the sticky panel, THE BOX (a one-screen-tall grid with an internally scrolled feed,
+its 693px height gate, its bleeding scrollport and styled scrollbar), the ≤1100px unwind, the
+≤603px short-viewport unstick, and the case-study feed re-cut. **One scrollbar** — so
+find-in-page, deep links and the browser's own scroll position all work with no mechanism at
+all, which is what the box worked hardest to preserve.
 
 ### `PanelHead.astro` — the panel is a component, not eight copies
 
-The case-study panel is one component: back link, `SideMark`, `h1`, a `.facts` ledger whose
-**first row is always `Type`**, then a `<slot>`, then the contact address. The `Type` value
-comes from `metaOf(href)` — the same artifact noun `experiments.ts` prints in the index's
-marker column, so the page and the index can't drift.
+Unchanged and still required. The case-study head is one component: `SideMark`, `h1`, a
+`.facts` ledger whose **first row is always `Type`** (from `metaOf(href)`, the same artifact
+noun the index prints), then a `<slot>`, then the contact address. The ledger is left **open**
+so each page adds its own rows.
 
-The ledger is left **open** on purpose: the component emits the block and the `Type` row and
-the page adds its own rows. That is what lets one component serve all three page types, and
-it is why a Type B panel isn't a title floating over 300px of nothing.
-
-`src/layouts/Layout.astro` was **not** changed. Putting the panel in the layout would have
-forced every page's ledger through a prop, and the ledgers are page content.
-
-### Where each type's ledger goes
-
-The ledger moves into the panel **only where it is metadata read before the work**:
-
-| type | ledger | where it goes |
-|---|---|---|
-| A — case study | masthead (role, stack, span) | **into the panel** |
-| B — skill | colophon (what it's made of) | **stays last in the feed** |
-| C — collection | contents (a count, the cameras) | **into the panel** |
-
-Type B's facts block is read *after* the work, so moving it up would invert the one thing
-the page types were declared to fix. On `aping` / `explain` / `proofs` the panel is title +
-marker + `Type` + contact, and the air under it is the same condition the index's own panel
-is already in.
-
-### Two breakpoints, two different failures
-
-- **≤1100px — the split unwinds to a stacked block.** At 4 columns the panel is 300px,
-  where "Design system tool" in the marker column starts wrapping to three lines. The panel
-  stops being sticky, loses the vertical rule, and takes a **horizontal** 2px ink rule
-  instead — a rule must own the edge it draws, and the edge is now horizontal.
-- **`max-height:760px` — the panel unsticks.** A sticky panel taller than the viewport
-  scrolls its own bottom out of reach and never comes back.
-
-### The rule that MUST NOT be broken: scope the split's CSS to `min-width:1101px`
-
-**Every** rule that exists because the feed is 700px and the panel 308px lives inside
-`@media(min-width:1101px)` in `global.css` (one block, ending in a labelled comment). Below
-1101px the panel *is* the page's full measure and the feed is 1064px, so the correct values
-there are the page's own defaults, already written once at the top of the file.
-
-This is not tidiness. The first version declared those rules globally and un-declared them
-in the ≤1100px unwind, and it shipped a real bug: the split's block sits **later in the
-file at equal specificity**, so `.pin h1{39px}` and `.pin .frow{88px 1fr}` beat the unwind's
-overrides, and at 1099px a stacked full-measure panel rendered a 35px title over an 88px
-ledger key with 941px of value beside it. Scoping the cause means the stacked page can't be
-broken by adding a rule to the split. The same cascade trap bit a second time on
-`.matrix.mscatter` at ≤900px, which needed **two classes** to outrank a later
-`.matrix{display:grid}`.
-
-### What the feed re-cuts, and the cost of each
-
-The feed is 700px where the page was 1064px, so a block on the feed's own 12 sub-tracks is
-~34% narrower. Five blocks were re-measured rather than left to shrink:
-
-1. `figure.demo.hang` → `display:block`, caption under. The hung caption put the video at
-   9 of 12 sub-tracks = 518px; as a block it takes the full 700px (an 11.5% loss against
-   791px, not 35%). There is no margin left to hang a caption in — the split spent it.
-2. `.shead > h2` / `.sbody` → `1 / 13`. c1–10 of the feed is 518px against a 528px prose
-   measure, so the track had stopped framing the paragraph and started cropping it.
-3. `.feed .mscatter` → a stack. The four powerpoint clips rendered 336/275/275/275px from
-   1000px recordings (0.28–0.34), and three of those captions point at a detail that is a
-   few pixels at 0.28. Costs ~800px of scroll; scroll is the cheaper thing to spend.
-4. `.feed .g-rag` → one flow. Two ragged columns inside the feed give 336px per photograph
-   from a 1400px file (0.24) — and the page has no lightbox, so 336px isn't a thumbnail of
-   the work, it *is* the work. One flow gives each frame 700px, the same 0.50 the two-column
-   version gave on the old page.
-5. `.feed .specblock .sk` → c1–3. The 154px key was measured against a masthead that is in
-   the panel now.
-
----
 
 ## Design system — Müller-Brockmann grid
 
-International Typographic Style: one typeface, a visible 12-column modular grid every
-element snaps to, baseline rhythm, structure drawn by **rules and alignment — not
-boxes**, and **one rationed structural accent** (`--design`, navy). Hierarchy is size +
-weight + position, never colour. The second hue (`--build`, olive) is **not** a second
-accent — it is a piece of content: it says *which half of the practice* something is,
-and it appears in exactly three places (below). Light is default; dark follows
-`prefers-color-scheme`.
+International Typographic Style, taken to its quiet end: one typeface, a 12-column modular
+grid every element snaps to (invisible — press `g`), structure drawn by **whitespace and
+alignment**, and **one hue with one job**. Hierarchy is weight + value + case + whitespace,
+never size and never colour. Light is default; dark follows `prefers-color-scheme`.
+
+**Rules and boxes are both gone.** The old system drew structure with rules (2px ink openers,
+hairlines per row) on the Müller-Brockmann principle that a rule is not a box. The document
+direction goes one step further and deletes the rules too — the same file already argued *"a
+rule that repeats has stopped being structure"*, and at six per page they repeated. Two borders
+survive site-wide and both are facts, not decoration: the field's writing line and the embed's
+boundary. See The document.
 
 All tokens live in `src/styles/global.css` `:root` (light) and one
 `@media (prefers-color-scheme: dark)` block. Every colour MUST be a `var(--…)` — a
@@ -287,34 +258,44 @@ hardcoded hex in an element won't flip in dark and is a bug.
 | `--dim` | `#5f5e57` | `#a09f96` | secondary text, deks, blurbs |
 | `--faint` | `#6e6d64` | `#8f8e85` | meta labels (kickers, `.lu`, `.em`) — **darkened to pass WCAG AA 4.5:1**; do not lighten |
 | `--line` | `#d5d4cd` | `#2b2b27` | hairline rules |
-| `--design` | `#14306b` navy | `#6ea8ff` | the design half — **and** the structural accent |
-| `--build` | `#5c6b12` olive | `#b9cc4a` | the build half — **content only**, 3 places |
+| `--design` | `#14306b` navy | `#6ea8ff` | **the one hue** — interaction, and nothing else |
+| `--build` | `var(--design)` | `var(--design)` | kept as a NAME, not a colour — see below |
 | `--accent` | `var(--design)` | `var(--design)` | indirection: every structural role reads this |
 | `--on-accent` | `#ffffff` | `#141413` | text on a filled `--accent` field |
 
-**Measured** (WCAG contrast on the mode's own `--paper`): navy 11.36:1 light, 7.64:1
-dark; olive 5.30:1 light, 10.36:1 dark; `--on-accent` on the field 12.61:1 light,
-7.64:1 dark. Note the dark flip — **white on `#6ea8ff` is only 2.6:1**, so
-`--on-accent` MUST be near-black in dark. Don't "simplify" it back to white.
+**Measured** (WCAG contrast on the mode's own `--paper`): navy 11.36:1 light, 7.64:1 dark;
+`--on-accent` on the field 12.61:1 light, 7.64:1 dark. Note the dark flip — **white on
+`#6ea8ff` is only 2.6:1**, so `--on-accent` MUST be near-black in dark. Don't "simplify" it
+back to white.
 
-#### The duality — why there are two hues
+The old olive (`#5c6b12` light / `#b9cc4a` dark) is **deleted**. It was 5.30:1 against navy's
+11.36:1, and the two were only **2.14:1 apart in greyscale** — the pair could not carry a
+distinction a colourblind or greyscale reader could read, which is why the mark now carries it
+in shape instead (ring vs. disc).
 
-The site's subject is a practice with two halves. The two hues carry that, and nothing
-else. Keep the two jobs separate:
+#### The duality — why the two hues became one
 
-- **`--accent` is structural, and it IS `--design`.** It appears in ~6 sanctioned roles
-  and nowhere else: the first/lead top-rule of a group, a big set number (`.sn`/`.en`),
-  the flagship `.entry.accent` rule on each index list, the one filled `.block`, the
-  correct-answer quiz state, and link interaction (see Link system). Because `--accent: var(--design)`, changing
-  the design hue moves every structural role in one line — never find-and-replace it.
-- **`--build` appears in exactly ONE place now: the thesis clause** (`.statement .t-build`)
-  on the homepage. It used to have three, and the other two were the mark and the side
-  marker — both of which have stopped using hue entirely (chooser:
-  `andrewshiau-mono-redesign` Q7/02 + `andrewshiau-mark-options`). The figure is
-  `currentColor` throughout and distinguishes its halves by **outline vs. fill**; the
-  favicon is ink on paper. The reason is the next bullet: a signal that only colour carries
-  is not a signal, and the mark was the site's most-repeated instance of exactly that.
-- **Colour is never the only signal.** Navy and olive are just **2.14:1 apart in
+The site's subject is a practice with two halves, and **it is no longer colour that says so.**
+The duality did not go away — it stopped being a hue.
+
+- **`--accent` is INTERACTION, and it IS `--design`.** Its sanctioned roles collapsed from six
+  to three when structure stopped being drawn in colour: **link interaction** (see Link
+  system), **the one filled `.block`** (a statement you act on — the same job), and the
+  correct-answer quiz state in the explainers. The three that are gone with the rules: the
+  lead top-rule of a group, the big set number, and the flagship `.entry.accent` rule.
+  A coloured mark that is not interactive is now a **slop finding** — on a page where colour
+  appears only under the cursor, anything else in the hue reads as a link that won't click.
+  Because `--accent: var(--design)`, changing the hue moves every interactive role in one
+  line — never find-and-replace it.
+- **`--build` is a NAME with no colour of its own.** It is `var(--design)`, so the two tokens
+  render identically, and it is kept rather than deleted for one reason: `side` in
+  `experiments.ts` is still `design | build | both` and the marker still reads that fact. What
+  changed is that the fact is carried by SHAPE (ring vs. disc — see `MarkFigure.astro`) instead
+  of by hue. Two names, one value, so nothing has to pretend the duality disappeared.
+  Its three old sites are all resolved: the mark and the side marker are `currentColor`, the
+  favicon is ink on paper, and the thesis clause is now **italic in `--dim`** rather than two
+  coloured spans — a coloured clause mid-paragraph reads as a link that won't click.
+- **Colour is never the only signal.** The old navy and olive were just **2.14:1 apart in
   greyscale** — a colourblind or greyscale reader could not tell the old two dots apart.
   Two things follow. The figure carries its distinction in SHAPE (hollow ring = design,
   solid disc = build, the whole figure = both), and the side marker still **emits** the
@@ -363,45 +344,63 @@ else. Keep the two jobs separate:
 
 ### Type
 
-- **Typeface:** Graphik, self-hosted from the 2018 portfolio (`public/fonts/*.woff2`,
-  weights 400 / 400-italic / 600 / 700), with `"Helvetica Neue", Helvetica,
-  "Akzidenz-Grotesk", Arial, system-ui, sans-serif` fallback. One family. No serif,
-  no mono body (mono only for inline `code`). `--sans` is the token.
-- Body: **16px / 24px line** (`--unit` = 24px is the baseline), weight 400, tracking
-  `-0.004em`. Heads are 700. Large type gets tighter negative tracking.
-- **Type ramp — Ramp B (major third, ×1.25, base 16):**
-  `10 · 13 · 16 · 20 · 25 · 31 · 39`. This is the reference scale; new sizes MUST
-  snap to a ramp step (display sizes MAY use a `clamp()` whose max lands on a step).
-  Current mapping:
-  - `11` → kickers, `.lu`, `.em`, `.ck`, section meta (below-ramp micro-label; the one
-    intentional exception, tracked `.13–.16em` uppercase)
-  - `13` → small facts / footer text
-  - `15` → blurbs, step detail, colophon
-  - `16` → body (base)
-  - `20 / 25` → `.dek`, project links (`clamp(18–24)`)
-  - `25 / 31` → `h2`, entry headings (`clamp(20–28)`) — one size everywhere, including
-    inside `.shead`; the old 25px cap existed only to fit a 2-column margin that is gone
-  - `31 / 39+` → section numbers `.sn` (`clamp(26–42)`), entry numbers `.en`
-  - **display** → `h1` hero `clamp(42px, 7.5vw, 88px)`, line-height 0.97, tracking
-    `-0.03em` (above the ramp; the one type-as-event moment)
-- **Case:** sentence/lower case for content. `text-transform: uppercase` +
-  letter-spacing is used ONLY on the small micro-labels (kickers, `.em`, `.ck`, `.smark`,
-  `.fm`, `.pk`, mast captions). Never uppercase a headline or body.
-- Flush-left, ragged-right. **Never justify** — it wrecks word spacing.
+- **Typeface:** IBM Plex Mono, self-hosted (`public/fonts/IBMPlexMono-*.woff2`, weights
+  400 / 400-italic / 500 / 600), with `ui-monospace, "SF Mono", SFMono-Regular, Menlo,
+  Consolas, "Liberation Mono", monospace` fallback. One family, and it is the BODY family —
+  `--mono` is the only type token. **`--sans` is deleted**; nothing in `src/` sets Graphik.
+  (Graphik's four woff2 files remain in `public/fonts/` because the three explainers under
+  `src/pages/writing/` and `public/writing/` carry their own inline `<style>` and still ask
+  for them. They are not referenced by `global.css`.)
+  Plex over JetBrains because its italic is a **true italic**, not a slanted roman — and the
+  site's one emphasis device is the italic thesis clause. Plex over system-mono because a
+  portfolio that can't specify its own typeface renders as Menlo on one machine and Consolas
+  on the next.
+- Body: **15px / 28px line** — `--step` and `--lead`. Weight 400. **No `letter-spacing`**:
+  negative tracking is a correction for large sans display type, and in a monospace face the
+  advance width IS the cell `1ch` is measured against. Tracking the body would make `1ch` and
+  the character disagree, and the hover shift would stop landing on a cell.
+- **THERE IS NO TYPE RAMP.** One size, for everything (chooser Ramp 04). `h1`, `h2`, `.dek`,
+  `.statement`, a paragraph, a blurb and a meta line are all 15/28. Hierarchy comes from:
+  - **weight** — 500 for a title or a `<b>`, 400 for everything else. (600 is loaded and held
+    for the design-system pass; nothing in `global.css` uses it yet.)
+  - **value** — `--ink` → `--dim` → `--faint`, which is how an aside recedes now that it
+    cannot get smaller. `.fine` is a single `color` declaration.
+  - **case** — 11px tracked caps for labels, and section heads (`h2`) which are the one place
+    case is structural at full size.
+  - **whitespace** — `--group` (52px) between groups, `--lead` (28px) inside one.
+  A new `font-size` anywhere is a **slop finding**. The two sanctioned values are `11px`
+  (micro-label, tracked `.14em` uppercase — ONE tracking value site-wide now; it used to be
+  `.13em`/`.14em`/`.16em` in three places for one device) and `16px` on `.f input`.
+- **Case:** sentence/lower case for content, except `h2` section heads and micro-labels.
+  Never uppercase a body paragraph. **Never nest a value inside a label without resetting**
+  `font-size` / `letter-spacing` / `text-transform` — with one size, a label's styling is the
+  only thing that makes it a label, so anything inside one silently becomes one. This shipped
+  as a real bug: the email address in `.pin .pfoot a` rendered as 11px tracked caps until the
+  reset was added.
+- Flush-left, ragged-right. **Never justify** — it wrecks word spacing, and in a monospace
+  face it is catastrophic.
 
 ### The grid
 
 - 12 columns, `--gutter` 28px, via `.grid` / `.c1-6` / `.c7-12` / `.c1-12`. Every block
   MUST span a **named whole-column range**, never a stray width. Reuse column starts
   down the page so alignments recur — that recurrence *is* the design.
-- **Those three spans are all that exist**, and adding a fourth means placing it. Five more
-  were declared (`.c1-2`, `.c3-12`, `.c1-8`, `.c1-10`, `.c4-12`) and selected nothing —
-  leftovers from the full-width stack the split replaced. Inside the feed they're wrong by
-  construction: the feed re-divides its 8 columns into 12 of its own, so a block sits on the
-  FEED's tracks, and a span carried over from the page's grid lands somewhere else.
-  Declare a span when a page uses it, never in advance.
-- Vertical space is **`--unit` × n** (section gaps 2.5×, paragraph 1×, tight 0.5×).
-  No off-grid margins like `17px`.
+- **Those three spans are all that exist**, and adding a fourth means placing it. Declare a
+  span when a page uses it, never in advance.
+- **The page places ONE column: `1 / 8`.** Seven of the twelve fields, on `.pin` and `.feed`.
+  The five to its right are margin, deliberately empty.
+- **A track count inside the document column is a phantom measure.** `.pin` / `.feed` are
+  themselves grid children, so a nested 12-track sub-grid divides 609px, not the page — and
+  `grid-column:1 / 10` written in one means 502px, which lines up with nothing. Three devices
+  had exactly this bug after the split came out (the section head, the hung caption, `.mscatter`
+  inheriting a `display` it no longer got). **State an inner measure in `ch`.** See The
+  document.
+- Vertical space is one of three values, and each has a job: **`--lead` (28px)** inside a group,
+  **`--group` (52px)** between groups, **`--unit` (24px)** for the grid's own increments (the
+  page's top edge, the guide). `--group` is deliberately NOT a clean multiple of `--unit`: at
+  48px a group break measured the same as the gap inside a group and the page read as one
+  undifferentiated list. Whitespace can only be structure if the structural gap is
+  unmistakably larger than the incidental one. No off-grid margins like `17px`.
 - **The page's top edge is 1.5 units**, set once as `main > .grid:first-child` — not per page.
   It was two inline `style="margin-top:…"` attributes on the index and `/gate/`, and the nine
   case studies never got a copy: marker, title and dek opened flush at y=0. That is what an
@@ -427,30 +426,46 @@ Tokens in `:root`:
 
 - Every transition/animation MUST use `--ease` and one of the three durations. A stray
   `ease-in-out` or `0.3s` is off-system.
-- Motion is **rationed and subtle** — a few deliberate delights, not scattered gimmicks.
-  Currently shipped: link interactions (below), the case-study marker's 90° rotate on hover
-  (`.smark-home .mark`, 0.5s — the one drawing of the figure that is still a link),
-  `.entry` hover tint, `.arrowc` slide. Reduce, don't add, unless it earns its place.
+- Motion is **rationed and subtle** — hover only, and it moves by the grid's own unit.
+- **THE ONE-CHARACTER SHIFT** (chooser Motion 01 + 05). On hover an index row's title steps
+  right by exactly **`1ch`** — one character cell — its underline goes to ink, and its numeral
+  darkens from `--faint` to `--ink`. Nothing fades, nothing scales, nothing tints.
+  `1ch` and not `8px` because on this site `1ch` is a real unit: every glyph has the same
+  advance, so the row moves by the grid's smallest increment and lands back **on** the grid.
+  (Measured on the built page: `padding-left` computes to 9px at 15px Plex.) This is why the
+  body sets no `letter-spacing`, and it is the motion vocabulary everywhere — `.links a
+  .arrowc` slides `1ch` too, where it used to slide 6 arbitrary pixels.
+  It MUST be mirrored on `:focus-visible`. A shift and a colour that only a mouse can trigger
+  are a mouse-only affordance.
+- **The row's hover tint is gone.** A 4% background wash is a box, and this is the document —
+  it moves the type instead of painting behind it. The gate's "open" state went with it: an
+  open row is disclosed by its content **being there**, not by a held-on tint.
+  Currently shipped, the whole list: the one-character shift, link interactions (below), and
+  the case-study marker's 90° rotate (`.smark-home .mark` — the one drawing of the figure that
+  is still a link). Reduce, don't add.
 - Respect `prefers-reduced-motion` for any new non-essential animation.
 
 ---
 
 ## Link system
 
-Three kinds of link, three treatments. This is deliberate — do not collapse them.
+**ONE IDIOM, and one exception.** The three treatments collapsed into one when there was one
+type size and one hue: a link is **ink type with a `--line` underline at 4px offset**, and on
+hover the **underline goes to `--ink` and the text goes to `--accent`**. That is `.entry .eh`,
+`.espec .eth .eh`, `.pin .pfoot a`, `.colo a`, and `.links a` — five places that each had their
+own mechanism (a `border-bottom` that filled in, a `text-decoration-color` that darkened, an
+arrow that slid 6px) doing the same job three ways.
 
-1. **Inline prose links** (`p a`): ink text + accent underline by default →
-   **invert-fill** on hover (accent field, `--on-accent` text) via a simple
-   `background-color`/`color` fade on `--dur`. **No wipe.** Scoped to `p a` so it does
-   NOT leak into nav, colophon, or project links.
-2. **Project / gallery links** (`.links a`): accent arrow (`.arrowc`) **slides right
-   6px** on hover (`--dur-fast`); the invert-fill is explicitly reset here. Markup
-   includes `<span class="arrowc">→</span>` (or `↗` for external).
-3. **Utility / colophon links** (`.colo a`): accent text, a **hairline underline
-   appears** on hover (`border-bottom` transparent → accent, `--dur-fast`). Quiet.
+The one exception, kept on purpose:
 
-The bare `a` default is accent text + underline-offset — a fallback for links that are
-none of the above (e.g. figcaption, back-links have their own rules).
+- **Inline prose links** (`p a`): ink text + accent underline → **invert-fill** on hover
+  (accent field, `--on-accent` text), a `background-color`/`color` fade on `--dur`. **No
+  wipe.** Scoped to `p a` so it does not leak. It survives because a link *inside a sentence*
+  has to be findable without being read first, and a filled field is the one treatment that
+  reads at a glance in a page of one type size.
+
+External links still get the `↗` from `a[target]::after`. The bare `a` default is accent text +
+underline-offset.
 
 ---
 
@@ -458,12 +473,24 @@ none of the above (e.g. figcaption, back-links have their own rules).
 
 The composition primitives, chosen from the base-blocks + link-style choosers:
 
-- **The index list** (`.matrix` / `.entry`): **one ruled reference list**, used for both
-  homepage sections — number (c1) · title (c2–5) · blurb (c6–10) · marker (c11–12), each
-  row opened by a hairline, the list opened by a 2px ink rule. Never a card. The flagship
-  row of each list takes `.entry.accent` (accent rule) — the only per-row differentiator.
-  At `≤900px` the five columns collapse to `44px 1fr`: number + title on the first line,
-  blurb and marker stacked under them.
+- **The index list** (`.matrix` / `.entry`): **one link line**, used for both homepage
+  sections — `numeral · title · leader · meta`, on one 28px line, **no rule and no tracks**.
+  A flex line, not a grid cell. `.ends` is the leader: an empty span that absorbs the slack,
+  which is how a printed index or a table of contents sets a row.
+  - **The BLURB is not displayed** (`.entry .ed{display:none}`). This is the largest deletion
+    in the mono pass and the one that makes a single type size scannable: with the blurb in the
+    row, a size distinction was needed to separate title from description, and the ramp came
+    back in through the door. Eight blurbs is eight sentences you must read to find the one you
+    want — the title plus the artifact noun is what an index is *for*. The data still carries
+    `blurb` because the case-study pages use it as their dek, so this is a CSS rule rather than
+    an edit to eight entries.
+  - **No `.entry.accent`.** The flagship row was marked by an accent top-rule; there are no
+    rules, and a coloured mark that isn't interactive is a slop finding. Position is the
+    emphasis — the flagship is first. `accent` is still emitted by two data entries and
+    selects nothing.
+  - **No breakpoint.** `flex-wrap` + `min-width:0` on the title is the whole responsive story;
+    ≤560px the meta drops to its own line, indented `3ch` to the title's edge. Four separate
+    cuts of this row (~55 lines) were deleted, not ported.
   - This replaced a **calendar-scatter** (`.pos-01…05`, both sections). The scatter
     composed better in isolation and indexed worse: both sections used the same device, so
     only the heading told them apart, and the page ran ~2.5 screens with neither list ever
@@ -482,84 +509,75 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
 - **The spec row** (`.espec` + `.proc.d` / `.proc.b`): the Method row — the one entry in the
   index that is a **spec, not a project**. It is an `.entry` with exactly two changes, both
   forced by content, and nothing else:
-  - **No numeral.** There is one of it, and a set `01` in the accent promises an `02` that
-    never comes — a list of one dressed as a list of many. The title starts at **column 1**
-    (nothing to indent past) and the 2px ink rule still opens the row, which is what keeps
-    it a row *of this list* rather than a block parked above it.
-  - **The duality is the row's content, as two sub-rows** — not two columns. Columns would
-    be a `.duo`, which is `/method/`'s device and reads as a foreign object on an index of
-    rows; **rows are this page's unit**. Each `.proc` is the row grammar one level down:
-    hairline, hue-coloured kicker in **c1**, title in **c2–5**, blurb in **c6–13** — so the
-    sub-rows land on the same verticals as the `.en` / `.eh` / `.ed` of every row below
-    (measured at 1440: 188 / 279 / 643 / 1007 px, identical to a `.entry`).
-  - The hue lands in the **numeral track**, which is where colour already lives on every
-    other row (`.entry .en` is the accent). Nothing new is introduced — the existing accent
-    slot is re-used, in the two duality hues.
-  - **The cost, accepted:** three stacked rules make this the tallest row on the page, and
-    stacked rows imply sequence where the two procedures are peers. Fitting the list won over
-    the equality a side-by-side asserts; `/method/` makes the side-by-side argument at full
-    size, one click away.
+  - **No numeral.** There is one of it, and a set `01` promises an `02` that never comes — a
+    list of one dressed as a list of many.
+  - **The duality is the row's content, as two sub-rows** — not two columns. Columns would be
+    a `.duo`, which is `/method/`'s device and reads as a foreign object on an index of rows;
+    **rows are this page's unit**. Each `.proc` is now a **kicker above its title and blurb**,
+    indented `1ch` — the same character cell the hover shift uses, so the nesting is measured
+    in the grid's own unit. Its hairline and its 12 tracks are gone with every other rule.
+  - **The hue is gone from the kickers.** `.proc.d` and `.proc.b` printed navy and olive;
+    DESIGN and BUILD are two faint labels now, and the words do the work they always actually
+    did. The two class hooks still ship and select nothing — cleared in the system pass.
   - There is **no CTA**. Round 1 of the chooser had a right-aligned "Read the spec →" and it
     read as a button dropped on the grid: nothing else on this site is a call to action, the
     arrow always rides the **title** of the thing being clicked. The whole row is the link.
-  - The `≤900px` block MUST reset `grid-template-columns` on both `.eth` and `.proc` before
+  - (Historical, kept because the trap is generic.) The `≤900px` block MUST reset
+    `grid-template-columns` on both `.eth` and `.proc` before
     moving children to `grid-column:1` — the 12 tracks otherwise survive and each child gets
     a 1/12 sliver (this bit twice, once in the chooser and once here).
-- **Section break — air, not a rule** (`.grid.sect`): a section is opened by `3.5 × --unit`
-  of space plus its head, with **no** divider. A 1px ink line across all 12 columns was
+- **Section break — air, not a rule** (`.grid.sect`): a section is opened by space plus its
+  head, with **no** divider. A 1px ink line across all 12 columns was
   the heaviest mark on the page and never touched the thing it opened, so it read as a
   divider dropped between sections; six per page also flattened the hierarchy. Whitespace
   is structural — a rule that repeats has stopped being structure. It is a class on the
   section's **own first `.grid`**, never a spacer div, and it must be written `.grid.sect`
   to outrank `.grid + .grid`'s one-unit gap.
-  - Rules that **survive** are the ones that own something they touch: a `.frow` top rule
-    opens its fact, an `.entry`'s opens its row, `.colo-rule` closes the page. The
-    full-width `.rule` survives for `writing/*` only, where it pairs with a numbered
-    section's set figure — **and it lives in `Explainer.astro`, not `global.css`.** The
-    declaration sat in both for a while, and the `global.css` copy selected nothing: the
-    explainers never load that file. Edit the one in `Explainer.astro`.
+  - **NO RULES SURVIVE on the 14 pages that load `global.css`.** The earlier version of this
+    file said rules survive "where they own something they touch" — a `.frow` opener, an
+    `.entry`'s hairline, `.colo-rule` closing the page. All three are deleted. The two
+    remaining borders are the field's writing line and the embed's boundary, and both are
+    stated as facts rather than as structure (see The document, rule 2).
+    The full-width `.rule` still exists for `writing/*`, and **it lives in `Explainer.astro`,
+    not `global.css`** — the explainers never load that file. Edit it there.
   - There is **no rule above a case-study `h1`**. The old 32px `.shrule` accent stub was
     not a column, not the word's width, not the measure — it read as template decoration.
     The `.smark` side marker opens the page instead and says more.
-- **Homepage statement** (`.statement` + `.thesis`): the `h1` and the two-clause thesis
-  are **one continuous block** in a single `.grid` — the name-sentence in `--ink`, then
-  the design clause (`.t-design`) and build clause (`.t-build`) running on as the same
-  paragraph. They MUST stay in one `.grid`: `.grid + .grid` adds a `--unit` gap, which
-  breaks the block into two statements. This is the only place colour enters body copy.
-- **Section head — the stacked head** (`.shead` + `.sbody`): the `h2` sits **above** its
-  prose and **both start at column 1**, spanning `1–9` (791px). Two vertical lines then run
-  the length of the page: **column 1** (head, prose, ledger label, clip left edge, `h1`,
-  `.smark`) and the **right edge of column 9** at x=959 (prose column, ledger value, clip
-  right edge, where the hung caption starts). Measured on the live page at 1400px.
-  - This replaced a *paired* head (`h2` at c1–2, prose beside it at c4–12). The pairing
-    aligned nicely and wasted the page: `.sbody` measured 791px while `p{max-width:33em}`
-    is 528px, so every prose section on all eight pages carried **263px of dead space** on
-    the right, next to a near-empty 154px head margin. Proof sheet §1, option 04.
-  - The 25px size cap that protected the 154px margin is gone with the margin — `h2` uses
-    the full ramp step 31 (`clamp(21px,2.4vw,28px)`) with `overflow-wrap:anywhere`.
-  - Prose stops at **c1–9, not c1–10 or c1–12**: 791px is the same edge a hung-caption clip
-    stops at, so the two devices share a line instead of each ending somewhere private.
-  - `.shead` is still only for a head **with a paragraph**. Over a `.facts` ledger, a
-    `.links` staircase, a `.step` row, or a full-width embed, put the `h2` in a flush-left
-    `.c1-12` — it lands on the same column 1 either way.
+- **Homepage statement** (`.statement`): the name-sentence and the two thesis clauses are
+  **one continuous block** — one element, because block elements can't share a line and an
+  `h1` + `p` version always broke before the thesis and read as two stacked statements.
+  The clauses are **italic in `--dim`**, not coloured. Colour left this sentence when colour's
+  only job became interaction: a coloured clause mid-paragraph reads as a link that won't
+  click. Plex's true italic is why Plex was chosen. **No place colour enters body copy.**
+- **Section head — the stacked head** (`.shead` + `.sbody`): the `h2` sits **above** its prose
+  and both start at **column 1**. `h2` is 11px-style tracked caps at the body size, in
+  `--faint` — the one place case is structural at full size.
+  - **It has no sub-grid.** It used to be a 12-track grid with `grid-column:1 / 10`, and inside
+    the document column that is 502px of 609 — the prose stopped **107px short** of the clip
+    beside it (measured: prose right edge x=638, clip x=797). The fix is no tracks at all: the
+    prose's own `62ch` cap sets the measure. Every text right edge on a case study now agrees
+    at x=746.
+  - Two vertical lines run the page: **column 1** (marker, `h1`, `h2`, prose, ledger label,
+    clip left edge — all measured at x=188) and the `62ch` right edge of the prose.
+  - `.shead` is still only for a head **with a paragraph**. Over a `.facts` ledger, a `.links`
+    staircase, a `.step` row, or a full-width embed, put the `h2` in a flush-left `.c1-12` — it
+    lands on the same column 1 either way.
   - `writing/*` pages are exempt: their `.c1-2` holds a real `<span class="sn">` section
     number, not an empty spacer.
-- **Two-column duality** (`.duo` + `.dcol.d` / `.dcol.b`): the **only** block that splits
-  the measure into two equal halves (span 6 each), each opened by a 3px rule in its
-  duality hue and a `.dk` kicker in the same hue. Used on `/method/` for the two
-  procedures, and only where **the two instruments are literally the subject** — this is
-  the second sanctioned place colour carries meaning in body copy (the homepage
-  `.statement` is the first). The composition states the argument before a word is read.
-  - It MUST be preceded by a **full-measure unified statement**. Two lists side by side
-    read as two unrelated lists to anyone meeting them cold; the shared claim runs
-    `.c1-12` above the split, so the columns arrive as halves of one thing. (It was `.c1-8`
-    before the split; inside a 700px feed the two are the same edge, and `.c1-12` is one of
-    the three spans that still exist.)
-  - Do **not** reach for it to put any two things next to each other. Two arbitrary
-    columns are a layout convenience; the hued rules assert a relationship, and a `.duo`
-    that isn't about design-vs-build makes the hues decorative.
-  - Stacks to one column `≤900px` (same breakpoint as `.matrix`), where the two hued top
-    rules do the separating that the gutter did.
+- **Two-column duality** (`.duo` + `.dcol.d` / `.dcol.b`): the **only** block that splits the
+  measure into two equal halves (span 6 each), each with a `.dk` kicker. Used on `/method/` for
+  the two procedures, and only where **the two instruments are literally the subject** — the
+  composition states the argument before a word is read, which is now the entire argument: the
+  two 3px hue rules are gone, and side-by-side plus two kickers is what tells the halves apart.
+  It is the ONE block that still splits the column, and it earns it because the split IS the
+  content.
+  - It MUST be preceded by a **full-measure unified statement**. Two lists side by side read as
+    two unrelated lists to anyone meeting them cold; the shared claim runs `.c1-12` above it, so
+    the columns arrive as halves of one thing.
+  - Do **not** reach for it to put any two things next to each other. Two arbitrary columns are
+    a layout convenience; here the split asserts a relationship, and a `.duo` that isn't about
+    design-vs-build is two columns for their own sake.
+  - Stacks to one column `≤900px`, where the two kickers do the separating the gutter did.
 - **Clip scatter** (`.matrix.mscatter` + `.m-a…d`): case-study video clips dropped into
   non-adjacent modules of a 12-col × `--unit`-row lattice (`.mscatter` supplies the
   `grid-auto-rows`). Recordings are not all the
@@ -567,39 +585,52 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   difference reads as a cropped bottom edge. Scattered, no two clips share a baseline.
   Collapses to a stack `≤900px` — written `.matrix.mscatter`, **two classes**, because a
   later `.matrix{display:grid}` outranks a one-class rule at equal specificity (this is the
-  cascade trap from the split; it shipped four clips at 153/123/123/123px on a phone).
+  cascade trap; it shipped four clips at 153/123/123/123px on a phone).
+  **It declares its own `display:grid` and its own 12 tracks.** It used to inherit both from
+  `.matrix`, and `.matrix` is `display:block` since the index's rows became document lines — left
+  alone, the four clips on `powerpoint` would have stacked at full width with their `grid-row`
+  spans doing nothing. Same class of defect as the cascade trap above: a device that borrows its
+  display mode from a neighbour breaks when the neighbour changes.
   `.mscatter` is **not** a `.grid`, so the block after it needs an explicit top margin — the
-  `.grid + .grid` rule won't reach it. Inside the feed it stacks at every width (see The
-  split).
+  `.grid + .grid` rule won't reach it.
 - **Photo gallery** (`.g-rag`): **two ragged column-flows** (`.col-l` c1–6, `.col-r`
   c7–12 dropped `3 × --unit`), not a 2-up grid. Independent flows mean each photograph is
   just the next one down, rather than half of a forced comparison pair. One column
-  `≤720px`, with the drop removed (it would leave a 72px hole at the top of the stack) —
-  by spanning both children `1 / 13`, so it stays `display:grid` there. Inside the feed it
-  is one flow at every width (see The split).
+  `≤720px`, with the drop removed (it would leave a hole at the top of the stack) — by spanning
+  both children `1 / 13`, so it stays `display:grid` there. **No 1px frame on the images**: a
+  photograph has its own edge, and a hairline round one is a mat — the card tell in a gallery's
+  clothing.
 - **Live embed** (`figure.embed`): **one proportion for every embed** — `16/10` on
   desktop, `3/4` (portrait) `≤720px`, so the embedded page gets a phone-shaped viewport
   instead of a letterbox scaled to unreadable. There is no tall variant. The link out
   appears **twice**: `.esrc` above the frame (an embed is tall, so the one actionable
-  thing must not sit a screenful below) and the `figcaption` below. Mirrored hairlines —
-  rule under the top label, rule over the caption — so the frame sits between two rules.
+  thing must not sit a screenful below) and the `figcaption` below. **The two mirrored hairlines
+  are gone** — the frame has its own edge, so a rule above and below it was three lines doing one
+  line's job. The frame itself STAYS, and it is the one sanctioned box on the site: inside it is
+  somebody else's live page, and the border is what tells the reader where this site stops.
   Never write a literal `↗`: the O7 rule appends one to every `target="_blank"` link.
-- **Facts — the ledger** (`.facts` / `.frow`): one row per fact, full width — label in
-  **c1–3**, value in **c4–12**, separated by a single hairline; only the first row gets the
-  2px ink rule. The most Müller-Brockmann device on the site (caption column + text column),
-  and a real table rather than a grid of tiles.
+- **Facts — the ledger** (`.facts` / `.frow`): one row per fact — the 11px label **above** its
+  value, rows separated by `--lead`, no rules. It was a 12-track grid (label c1–3, value c4–12)
+  with a hairline per row under a 2px ink opener: three ramp steps and two rule weights to say
+  "label, value". A label above its value is how a document annotates; side by side is how a
+  table does.
   - It replaced three-across cells (`3n+1`→1–4, `3n+2`→5–8, `3n+3`→9–12). Three across only
     composed when the count was a multiple of three: luthier's 4-row table left **two empty
     cells** hanging off the last row, and every value was squeezed to a 245px measure that
     made four-line paragraphs out of one-line facts.
-  - Values are body ramp (16/24) in `--dim`, `<b>` promotes to `--ink`. Labels are 13px
-    uppercase bold — a caption, not a heading.
-  - Stacks (`display:block`, label above value) `≤720px`.
-- **Clip with a hung caption** (`figure.demo.hang`): a full-measure clip stops at **c1–9**
-  and its `figcaption` sits in **c10–13**, beside the video rather than under it — the same
-  791px edge the prose stops at, so one line governs the page.
-  - Only for full-measure clips. A half-width clip (`.c1-6` / `.c7-12`) and the `.mscatter`
-    frames have no margin to hang anything in and keep the caption below.
+  - Values are the body size in `--dim`, capped `62ch`; `<b>` promotes to `--ink` at weight 500.
+    Labels are the 11px micro-label — a caption, not a heading.
+  - No breakpoint: it is already stacked at every width.
+- **Clips** (`figure.demo`, `.hang`): a clip takes the **full document column**, caption under
+  it. **No frame** — `border:1px solid var(--ink)` round a 1000px video is a card, whatever the
+  old comment called it.
+  - **The hung caption is deleted as a device.** It hung a `figcaption` beside the clip so the
+    clip's right edge would land on the prose's. It cannot: the figure sits inside the document
+    column and re-divides *that*, so its `c1-8` meant 8/12 of 609px — measured, the clip stopped
+    at x=532 while the prose ran to x=638. There is also no margin left to hang a caption in;
+    the five empty fields are the page's margin, and type in them would make it a column.
+  - `.hang` is kept as a selector (six pages emit it) and now means "a clip at the full column
+    width", which every clip is. It becomes redundant in the design-system pass.
 - **Links — L2** (`.links a`): a **diagonal staircase** — each link steps down-and-right
   (`3n+1`→1–6, `3n+2`→5–10 + 1 unit down, `3n+3`→8–13 + 2 units down). A gallery you
   navigate; echoes the clip scatter.

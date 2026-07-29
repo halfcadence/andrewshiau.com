@@ -41,8 +41,8 @@ const Row = open ? 'div' : 'a';
       whole device is one arrow per row. The gate itself is the disclosure: clicking opens the
       ask in place, immediately, under the row that was clicked, so nothing is hidden and no
       promise is broken. The row keeps the arrow every other row has. */}
-  <p class="eh">{x.title} <span class="arrowc">→</span></p>
-  <p class="ed">{x.blurb}</p>
+  <span class="eh">{x.title}</span>
+  <span class="ends"></span>
   <span class="em">
     <SideDot side={x.side} />
     <span class="smeta">{x.meta}</span>
