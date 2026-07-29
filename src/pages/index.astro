@@ -223,9 +223,18 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
   <div class="grid" style="margin-top:calc(var(--unit)*3)">
     <div class="colo-rule"></div>
     <div class="colo-lab">Colophon</div>
+    <!-- THE VALUES ARE WRAPPED IN `.cv` NOW. They were bare text nodes beside the `.ck` label,
+         which was fine while the colophon was four stacked blocks and is not once the block is a
+         two-axis ledger (chooser: andrewshiau-grid-options, Q3/02 — "constrained to the 7"): a
+         grid can only place an ELEMENT on its content axis, and a bare text node isn't one. Left
+         alone it becomes an anonymous flex-like item and lands back in column 1 under the label.
+         So each value gets a span, and the colophon uses the same label-column-plus-content-axis
+         device as every `.frow` on the site. -->
     <div class="colo c1">
       <span class="ck">Before AI</span>
-      <a href="https://2018.andrewshiau.com" target="_blank" rel="noopener">portfolio2018</a>
+      <span class="cv">
+        <a href="https://2018.andrewshiau.com" target="_blank" rel="noopener">portfolio2018</a>
+      </span>
     </div>
     <!-- A colophon states what the page is set in, so it has to be true. It said "Graphik,
          self-hosted" for one deploy after the mono pass shipped, which made the one fact a reader
@@ -236,10 +245,20 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
          the inconsistency the annotation names. The rest of the line is now all one kind of fact:
          the typeface, the size, the measure — what a reader can see and check.
          Kept short deliberately. A colophon that lists everything is a spec sheet; this is the
-         three decisions the page is actually made of. -->
+         three decisions the page is actually made of.
+         "62 characters" IS OUT TOO, and for the same reason self-hosting was: it was the wrong
+         KIND of fact for this row. It described the measure, and the measure is a property of the
+         grid — which is the row directly below. Two rows were answering one question.
+         It had also stopped being simply true. A plain paragraph still caps at 62ch, but after
+         "nothing breaks out" (chooser: andrewshiau-grid-options, Q2/03) a hung block's prose is
+         57 characters, because the label column takes 182px of the document's 700. So the honest
+         version of the claim needed a qualifier, and a colophon fact that needs a qualifier is a
+         fact in the wrong place. `Set in` now names the typeface and the size — the two things a
+         reader can check by looking at this sentence — and the grid row owns everything about
+         width. -->
     <div class="colo c2">
       <span class="ck">Set in</span>
-      IBM Plex Mono at 15/28, one size, 62 characters.
+      <span class="cv">IBM Plex Mono at 15/28, one size.</span>
     </div>
     <!-- THE GRID FACT, moved here out of the footer (annotation: "maybe this can be in colophon
          and be like 'grid // 12 columns. press cmd+g'"). It belongs with the other two: a
@@ -247,11 +266,16 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
          was, it sat alone in a footer bar whose only other content had already been deleted.
          The keypress is stated only where a keyboard exists. On a touch device `.kb` is hidden
          and `.tou` shows the fact without the instruction, which is the rule the footer already
-         had — an affordance the device can't reach shouldn't be told to the reader as a fact. -->
+         had — an affordance the device can't reach shouldn't be told to the reader as a fact.
+         THIS ROW NOW OWNS THE MEASURE. `Set in` used to end "…, 62 characters", which put a fact
+         about width in the row about type while this row — the row actually about the grid — said
+         only how many columns there were. One row per question: type above, width here. -->
     <div class="colo c3">
       <span class="ck">Grid</span>
-      <span class="kb">12 columns. Press <code>⌥G</code> to see it.</span>
-      <span class="tou">12 columns.</span>
+      <span class="cv">
+        <span class="kb">12 columns, 8 of them used. Press <code>⌥G</code> to see it.</span>
+        <span class="tou">12 columns, 8 of them used.</span>
+      </span>
     </div>
     <!-- THE STEERING FILE, linked (annotation: "we should encode this in site steering, and maybe
          promote site steering to the colophon — i think the working in public thing is rly cool").
@@ -283,7 +307,7 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
          rendered. -->
     <div class="colo c4">
       <span class="ck">Steered by</span>
-      <a href="/style/">/style/</a> · <a href="/system/">/system/</a>
+      <span class="cv"><a href="/style/">/style/</a> · <a href="/system/">/system/</a></span>
     </div>
   </div>
 </Layout>

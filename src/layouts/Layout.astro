@@ -7,6 +7,10 @@
 import '../styles/system.css';
 import '../styles/global.css';
 
+// THE QUIZ ITEM SHAPE, moved here with the engine from the deleted `Explainer.astro`
+// (chooser: andrewshiau-grid-options, Q5/02). Three /writing/ pages pass one.
+interface QuizItem { q: string; opts: string[]; a: number }
+
 interface Props {
   title: string;
   description?: string;
@@ -15,12 +19,20 @@ interface Props {
   // ever needed to add to the head, and a named slot would invite the next person to put a
   // second stylesheet or a tracking tag through it.
   noindex?: boolean;
+  // THE QUIZ, and it is the one piece of `Explainer.astro` worth keeping. The three explainers
+  // are the only interactive thing on the site, and being able to check yourself is what makes
+  // an explainer an explainer rather than an essay. Everything else that layout carried was a
+  // duplicate of a decision global.css already makes.
+  // Empty by default, so the thirteen pages that aren't explainers ship no quiz markup and no
+  // extra bytes — `define:vars` emits `[]` and the engine's first `if` returns.
+  quiz?: QuizItem[];
 }
 
 const {
   title,
   description = 'Andrew Shiau — designer and builder.',
   noindex = false,
+  quiz = [],
 } = Astro.props;
 
 // THE MARK IS NOT HERE ANY MORE (chooser: andrewshiau-panel-shape, Q1/02). This layout used
@@ -122,6 +134,53 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
              removes a trailing empty bar from every page on the site. -->
       </div>
     </div>
+    <!-- THE QUIZ ENGINE, moved from the deleted `Explainer.astro` (chooser:
+         andrewshiau-grid-options, Q5/02). Its own script tag rather than folded into the one
+         below, because `define:vars` serializes the quiz data into the tag and the behaviour
+         script has no data to inject — merging them would put a JSON blob in front of the
+         hotkey handler on all sixteen pages.
+         WHAT CAME OUT OF IT in the fold: the score line's inline `style` (uppercase, tracked,
+         weight 700 — three off-system marks written from JS, where no stylesheet check could
+         see them; it is `.qscore` now), the count-up animation on the big number (it existed
+         to make a 120px numeral arrive, and the numeral is 15px), and the scroll-progress bar
+         (a 2px accent line pinned to the top of the viewport — the site has no rules, and a
+         reading indicator on a 900-word page is telling the reader something the scrollbar
+         already says).
+         The engine itself is unchanged: it builds the buttons, marks right and wrong, and keeps
+         a score. `global.css` styles what it generates. -->
+    {quiz.length > 0 && (
+      <script is:inline define:vars={{ quiz }}>
+        const root = document.getElementById('quiz');
+        if (quiz && quiz.length && root) {
+          let score = 0;
+          const scoreEl = document.createElement('div');
+          scoreEl.className = 'qscore';
+          root.appendChild(scoreEl);
+          const render = () => scoreEl.textContent = `Score ${score} / ${quiz.length}`;
+          render();
+          quiz.forEach((item, i) => {
+            const q = document.createElement('div'); q.className = 'q';
+            const qn = document.createElement('div'); qn.className = 'qn'; qn.textContent = 'Question ' + (i + 1);
+            const qt = document.createElement('div'); qt.className = 'qt'; qt.textContent = item.q;
+            q.appendChild(qn); q.appendChild(qt);
+            const exp = document.createElement('div'); exp.className = 'exp';
+            item.opts.forEach((o, j) => {
+              const b = document.createElement('button'); b.className = 'opt'; b.type = 'button'; b.textContent = o;
+              b.onclick = () => {
+                if (b.disabled) return;
+                [...q.querySelectorAll('.opt')].forEach(x => x.disabled = true);
+                if (j === item.a) { b.classList.add('correct'); score++; }
+                else { b.classList.add('wrong'); q.querySelectorAll('.opt')[item.a].classList.add('correct'); }
+                render(); exp.classList.add('show');
+              };
+              q.appendChild(b);
+            });
+            exp.textContent = 'Correct: ' + item.opts[item.a];
+            q.appendChild(exp); root.appendChild(q);
+          });
+        }
+      </script>
+    )}
     <script is:inline>
       // hidden hotkey: ⌥G flashes the column grid on/off.
       //

@@ -53,14 +53,45 @@ const must: [string, string][] = [
   ['--dim:#5f5e57', 'dim'],
   ['--faint:#6e6d64', 'faint'],
   ['--design:#14306b', 'the hue'],
+  // THE DERIVED LABEL COLUMN (chooser: andrewshiau-grid-options, Q4/02). Asserted as the whole
+  // expression rather than as a value, because the POINT of it is that it is derived: a future
+  // edit that quietly puts `--label:154px` back would keep this page's prose true at 1120 and
+  // wrong at every other width, which is the exact defect the token replaced.
+  ['--track:calc((min(100vw,var(--measure))-var(--gutter)*13)/12)', 'the derived track'],
+  ['--label:calc(var(--track)*2+var(--gutter))', 'the label column, two tracks + a gutter'],
+  // THE DOCUMENT'S WIDTH (Q1/02). Eight of twelve. If this goes back to `1 / 8`, the bleed
+  // arithmetic this page describes stops adding up.
+  ['.pin,.feed{grid-column:1 / 9}', 'the document — 8 of 12'],
 ];
-const flat = css.replace(/\s+/g, '');
+
+// AND ONE NEGATIVE ASSERTION, which the nine above could not have caught. "Nothing breaks out"
+// (Q2/03) is a claim about what ISN'T in the stylesheet, so it needs a check that fails when
+// something comes back: no `--bleed` token, and no block growing itself past its column with a
+// `width:calc(100% + …)`. Every phantom-measure bug in this redesign lived in one of those.
+const mustNot: [string, string][] = [
+  ['--bleed', 'the media bleed'],
+  ['width:calc(100%+var(--label)', 'a hung block bleeding right'],
+];
+// Comments are stripped before the check. Without this, every `mustNot` below matches its own
+// explanation in global.css's prose — `--bleed` is named in the paragraph that records why it was
+// deleted, so the negative assertion would fail on the comment that documents the fix.
+const flat = css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, '');
 for (const [decl, name] of must) {
   if (!flat.includes(decl.replace(/\s+/g, ''))) {
     throw new Error(
       `/system/ documents "${decl}" (${name}) and global.css no longer declares it. ` +
       'Update the specimen on /system/ or restore the token — a visualizer that lies is worse ' +
       'than no visualizer.'
+    );
+  }
+}
+for (const [decl, name] of mustNot) {
+  if (flat.includes(decl.replace(/\s+/g, ''))) {
+    throw new Error(
+      `/system/ states that nothing breaks out of the document, and global.css declares ` +
+      `"${decl}" (${name}). Either the bleed came back — in which case the page's arithmetic ` +
+      'and the "one width" claim are both wrong — or this assertion needs to go with a ' +
+      'deliberate decision to reverse chooser Q2/03.'
     );
   }
 }
@@ -173,11 +204,21 @@ for (const [decl, name] of must) {
         <div class="shead">
           <h2>The two axes</h2>
           <div class="sbody">
-            <p>One number sets both: <code>16ch</code>, measured against the longest field label
-              on the site (<code>Dropdown refresh</code>, 16 characters). Everything that annotates
-              starts at column 1; everything that is annotated starts at 16ch + a gutter. The
-              specimen below is a real <code>.facts</code> ledger — the same markup a case study
-              uses, so its label sits on the same vertical as this section's own head.</p>
+            <p>One token sets both: <code>--label</code>, which is <b>two columns of the page's
+              own grid plus the gutter</b> — 154px at the measure, so the content axis is 182px,
+              exactly where column 3 begins. Everything that annotates starts at column 1;
+              everything annotated starts on that axis. The specimen below is a real <code>.facts</code> ledger — the same markup a case study uses, so its label sits on
+              the same vertical as this section's own head.</p>
+            <p>It was <code>16ch</code> — a flat 144px, measured against the longest label on the
+              site. Right about typography, <b>wrong about the grid</b>: the axis landed at 172px
+              while column 3 starts at 182, so every ledger, head and panel put its value 10px
+              inside the gutter. Two grids were running at once and the typographic one was
+              quietly winning. Press <code>⌥G</code> and it is the only thing you can see; without
+              the overlay, four passes missed it.</p>
+            <p>Derived, the two grids agree at every width. The formula also sets the one
+              breakpoint that matters: <code>--label</code> falls to 144px — the width of that
+              16-character label — at exactly <b>1060px</b>, which is where the hung layout stops
+              and every label stacks.</p>
           </div>
         </div>
       </div>
@@ -190,8 +231,83 @@ for (const [decl, name] of must) {
           </div>
           <div class="frow">
             <div class="fm">Content</div>
-            <div class="ftx">16ch + gutter. Every value, every paragraph, the dek, and media.
-              Capped at <b>62 characters</b>, which is the band a reader tracks.</div>
+            <div class="ftx"><code>--label</code> + gutter — <b>182px, column 3's left edge</b>.
+              Every value, every paragraph, the dek, and media.</div>
+          </div>
+          <!-- The measure is its own row now. It used to be a clause on the row above ("capped at
+               62 characters"), which was the same mistake the colophon made: a fact about width
+               riding along on a fact about position. It also needed a qualifier — a plain
+               paragraph is 62ch, but a hung block's prose is 57, because the label column takes
+               182 of the document's 700. Stated as its own row, both numbers fit and neither
+               needs an apology. -->
+          <div class="frow">
+            <div class="fm">Measure</div>
+            <div class="ftx">A paragraph caps at <b>62 characters</b>, the band a reader tracks.
+              Inside a hung block it is 57 — the label column spends the difference, and the
+              column binds before the cap does.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── THE GRID ─────────────────────────────────────────────────────────────────
+           NEW SECTION. The page documented tokens, space, the axes, the marker, states and the
+           field — and never the grid, which is the largest decision in the system and the one the
+           whole proof-sheet round was about. A visualizer that omits the page's own column
+           structure is describing the paint and not the frame. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The grid</h2>
+          <div class="sbody">
+            <p>Twelve columns, a 28px gutter, capped at a 1120px measure — so a track is 63px and
+              the document is 1064px wide on any screen bigger than that. Press <code>⌥G</code> to
+              see it on any page.</p>
+            <p>The page places <b>one column, eight of the twelve</b>. The four to its right are
+              margin and stay empty: putting type in them would make the margin a column, and the
+              document would be two columns again. That left weight is the most recognisable thing
+              about the site, and it is a single declaration.</p>
+            <p><b>Nothing breaks out of it.</b> A figure spans the document, the same as a
+              paragraph. There used to be three widths on one page — 609 for prose, 781 for heads
+              and ledgers, 1064 for media, each derived by its own formula and none of them named —
+              and a reader could see all three at once. It also removed a whole class of defect:
+              every phantom-measure bug in this redesign, four of them, was inside a bleed formula.
+              A block that just spans the document cannot be measured against the wrong grid.</p>
+            <p>What it costs: media is 700px rather than 1064. A screenshot that needs 1064px to
+              read should be its own page, not a reason for fifteen other pages to carry a second
+              measure.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="sysrows">
+          <div class="sysrow">
+            <code>--measure</code>
+            <span class="sysv">1120px</span>
+            <span class="sysj">The page's cap. Above it, every screen gets the same document.</span>
+          </div>
+          <div class="sysrow">
+            <code>--gutter</code>
+            <span class="sysv">28px</span>
+            <span class="sysj">One leading. The gutter is a space-scale value, not its own number.</span>
+          </div>
+          <div class="sysrow">
+            <code>--track</code>
+            <span class="sysv">63px at the measure</span>
+            <span class="sysj">Derived: (min(100vw, measure) − 13 gutters) / 12.</span>
+          </div>
+          <div class="sysrow">
+            <code>--label</code>
+            <span class="sysv">154px at the measure</span>
+            <span class="sysj">Two tracks + a gutter. The annotation column, on a grid line.</span>
+          </div>
+          <div class="sysrow">
+            <code>1 / 9</code>
+            <span class="sysv">700px at the measure</span>
+            <span class="sysj">The document. Eight of twelve, on every page.</span>
+          </div>
+          <div class="sysrow">
+            <code>1060px</code>
+            <span class="sysv">the one breakpoint</span>
+            <span class="sysj">Where --label falls to 144px and every hung label stacks.</span>
           </div>
         </div>
       </div>
@@ -257,8 +373,7 @@ for (const [decl, name] of must) {
           <div class="sbody">
             <p>Hover the row. The title steps right by exactly <code>1ch</code> — one character
               cell of the monospace grid — its underline goes to ink, and the numeral darkens.
-              Nothing fades, nothing scales, nothing tints. It is mirrored on
-              <code>:focus-visible</code>, because a shift only a mouse can trigger is a
+              Nothing fades, nothing scales, nothing tints. It is mirrored on <code>:focus-visible</code>, because a shift only a mouse can trigger is a
               mouse-only affordance.</p>
           </div>
         </div>

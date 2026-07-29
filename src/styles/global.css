@@ -102,6 +102,28 @@
   --group:56px;
   --sect:112px;
   --gutter:28px;
+  /* ── THE LABEL COLUMN, DERIVED FROM THE GRID (chooser: andrewshiau-grid-options, Q4/02).
+     It was `16ch` — 144px, a typographic number — and that was a real defect, found by drawing
+     the ⌥G overlay under a ledger and measuring: the content axis landed at 144 + 28 = 172px,
+     while column 3 starts at 182. Every field label, section head and panel on the site put its
+     value 10px INSIDE the gutter. Two grids were running at once, the typographic one silently
+     winning, and nothing in the CSS said so.
+     So the label column is now stated as what it should always have been: TWO COLUMNS of the
+     page's own grid, plus the gutter between them.
+       track = (grid − 11 gutters) / 12,  and grid = min(100vw, measure) − 2 gutters
+             = (min(100vw, --measure) − 13 gutters) / 12
+     At the 1120px measure that is 63px, so --label is 154px and the content axis is 182px —
+     column 3's exact left edge. Derived, so it stays on the grid at every width instead of
+     being right at one width and wrong everywhere else.
+     WHY THIS ALSO SETS THE BREAKPOINT: the formula says --label is 144px — exactly 16ch, the
+     longest label on the site — when the viewport is 1060. Below that the column can no longer
+     hold its own label, which is why the hung layout stops at 1060 and not at some round number
+     someone liked. The one defect and the one breakpoint come out of the same equation.
+     `100vw` includes the scrollbar, so between ~1060 and ~1135 this can read a couple of pixels
+     wide. Above the measure it clamps and is exact; below 1060 nothing is hung. Stated because
+     an undocumented approximation is how the last one survived four passes. */
+  --track:calc((min(100vw, var(--measure)) - var(--gutter) * 13) / 12);
+  --label:calc(var(--track) * 2 + var(--gutter));
   /* The measure. A token because THE BOX has to bleed its scrollport back out to the viewport
      edge, and a second literal 1120px in that calc would be a number that drifts from this
      one. `.wrap` reads it too, so there is exactly one place the page's width is stated. */
@@ -170,8 +192,13 @@ main > .grid:first-child{margin-top:var(--group)}
    the FEED's tracks), which is why they stopped being used and why adding one back means
    checking it against the feed's width rather than the page's. Add a span when a page places
    it, not in advance. */
-.c1-6{grid-column:1 / 7}   .c7-12{grid-column:7 / 13}   .c1-12{grid-column:1 / 13}
-@media(max-width:720px){ .grid > *{grid-column:1 / 13 !important} }
+/* `.c1-12` is `1 / -1`, not `1 / 13`, and the rename is deliberate: the class NAME says twelve
+   because that is what the page's grid has, but the VALUE says "every track of whatever grid you
+   are in". Almost every use of it is inside the feed's own nested grid, and a literal 13 there is
+   the phantom-measure bug this redesign hit four times — a track count written against one grid
+   and evaluated inside another. `-1` cannot be wrong. */
+.c1-6{grid-column:1 / 7}   .c7-12{grid-column:7 / 13}   .c1-12{grid-column:1 / -1}
+@media(max-width:720px){ .grid > *{grid-column:1 / -1 !important} }
 
 /* THE COLUMN GUIDE — hidden by default; press `g` to flash on */
 .guide{position:absolute;inset:0 var(--gutter);display:none;
@@ -237,8 +264,14 @@ figure.embed .esrc,
    `--ink` above `--dim` is 2.6:1 and the label becomes a scannable column of entry points.
    The hung labels (`.frow .fm`, `.specblock .sk`) are deliberately NOT in this list — see the
    ONE MECHANISM PER JOB note. */
+/* `.colo .ck` CAME OUT OF THIS LIST, and the rule above is exactly why. Constraining the
+   colophon (Q3/02) turned it into a two-axis ledger, so its label now HAS a column — and a label
+   with a column must not also take a colour, or it is using two mechanisms for one job. It stays
+   `--faint` from the shared rule above, identical to `.frow .fm`, which is the device it now is.
+   It goes back to ink below 1060, where the block stacks and the column goes away — the
+   condition, not the element, is what decides. That conditional is stated once, in the media
+   query beside `.colo`, rather than as a second entry here. */
 .pin .pk,
-.colo .ck,
 .step .sl,
 .duo .dk,
 .links a .lu{color:var(--ink)}
@@ -394,7 +427,7 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    type is actually set in, rather than a track count that has to be re-derived every time the
    column moves. That is the document's whole argument about measure.
    `--group` under the head, not `--unit`: the head opens a group. */
-.shead{grid-column:1 / 13;display:grid;grid-template-columns:16ch 1fr;
+.shead{grid-column:1 / -1;display:grid;grid-template-columns:var(--label) 1fr;
   column-gap:var(--gutter)}
 .shead > h2{grid-column:1;overflow-wrap:anywhere;margin-bottom:0}
 .shead > .sbody{grid-column:2;max-width:62ch}
@@ -406,12 +439,18 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    the h1 and every field label are) and the CONTENT steps right to a second axis. So the box
    grows right, into the five fields the document doesn't use, by exactly the label column plus a
    gutter.
-   `16ch + --gutter` = 172px at the measure, and 172 + 558 (62ch) = 730 against the 1064px page —
-   so the prose still fits inside the grid with 334px to spare. Derived, not measured.
-   THE RESULT IS TWO AXES FOR THE WHOLE SITE: x=0 carries the marker, the h1, every field label
-   and every section head; x=172 carries every value and every paragraph. One number, `16ch`,
-   stated in the label rule and re-used here. */
-.shead{width:calc(100% + 16ch + var(--gutter))}
+   THE BLEED IS DELETED (chooser: andrewshiau-grid-options, Q2/03 — "nothing breaks out"). It
+   grew the head's box right by `--label + --gutter` so the prose inside it kept a 62ch measure
+   while the head hung in the margin; that made the head's box 781px on a 609px document, which
+   was the second of the page's three widths. The head now lives inside `.c1-8` like everything
+   else: 700px, of which the label takes 154 and the prose 518.
+   The trade is that `.sbody`'s prose is 518px rather than 558 — 57 characters instead of 62. The
+   62ch cap therefore stops binding inside a section head, and the column binds instead. Worth
+   stating plainly: this is the one place the pick costs measure, and 57 characters is still
+   inside the band a reader tracks.
+   THE TWO AXES SURVIVE, which was the point of the device: x=0 carries the marker, the h1, every
+   field label and every section head; x=182 (`--label + --gutter`, now a real grid line) carries
+   every value and every paragraph. */
 /* ── AND A BARE HEAD HANGS TOO. Seven of the site's twenty-five section heads are written
    `<div class="c1-12"><h2>…</h2></div>` rather than inside a `.shead` — they are the ones that
    open a ledger, a staircase or a clip instead of a paragraph, so there was no prose to pair
@@ -430,15 +469,22 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    `.shead > .sbody` and the media all independently start at the same 172px axis.
    Just the width, so the head occupies one column instead of the whole seven. Measured before
    this: `How it works` reported 609px against `The problem`'s 144. */
-.feed .grid > .c1-12:has(> h2:only-child) > h2{width:16ch}
-@media(max-width:1100px){
+.feed .grid > .c1-12:has(> h2:only-child) > h2{width:var(--label)}
+/* ── THE HUNG LAYOUT STOPS AT 1060 (chooser: andrewshiau-breakpoints, Q1/01 — "stack earlier").
+   1060 is not a preference, it is where `--label` falls to 144px, which is exactly the width of
+   the longest label on the site ("Dropdown refresh" and "Remove “add pen”", both 16 characters at
+   9px per glyph). One pixel narrower and the label wraps to two lines while its value still
+   starts on line one, so the pair stops reading as one object — measured, and visible immediately
+   in the proof sheet's red rungs at 1000 and 900.
+   The old breakpoint was 1100, chosen by eye, which left the 1100→1060 band hung when it didn't
+   need to be and — far worse — implied the problem was the viewport rather than the label.
+   What happens below it is the device that already shipped for phones: the label stacks above its
+   value and takes `--ink`, because it no longer has a column to earn hierarchy from. That is ONE
+   MECHANISM PER JOB doing exactly what it was written for, so the narrow layout needed no new
+   rule — only for the existing one to start 340px earlier. */
+@media(max-width:1060px){
   .feed .grid > .c1-12:has(> h2:only-child) > h2{width:auto}
-}
-@media(max-width:1100px){
-  /* Below the measure the page is narrow enough that a 16ch column is a third of the line and the
-     bleed would overrun the viewport. Stacked, with the head taking a lead of air — which is what
-     it looked like before this rule, and matches what `.frow` does at its own breakpoint. */
-  .shead{display:block;width:auto}
+  .shead{display:block}
   .shead > h2{margin-bottom:var(--lead)}
 }
 /* SECTION BREAK — air, no rule. A 1px ink line across all 12 columns was the heaviest
@@ -453,10 +499,15 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    Rules that SURVIVE are the ones that belong to something: a .frow's top rule opens its
    fact, an .entry's opens its cell, .colo-rule closes the page. Those touch their content.
    `.rule` DID survive here for writing/*, and that was a mistake this file couldn't see: the
-   three explainers are built on Explainer.astro, whose `is:global` block is their only
-   stylesheet — they never load global.css. So the declaration here selected nothing on any of
-   the 14 pages that DO load this file, while the rule the explainers actually draw is their
-   own copy at Explainer.astro's `.rule`. Deleted here; edit it there. */
+   three explainers were built on Explainer.astro, whose `is:global` block was their only
+   stylesheet — they never loaded global.css. So the declaration here selected nothing on any of
+   the 14 pages that DO load this file, while the rule the explainers actually drew was their
+   own copy inside that layout.
+   BOTH ARE GONE NOW. `Explainer.astro` is deleted (chooser: andrewshiau-grid-options, Q5/02) and
+   the explainers use `.grid.sect`'s air like every other page — so `writing/*` no longer has any
+   rules either, and the site's "no rules" claim is finally true of all sixteen pages rather than
+   thirteen. This paragraph is kept as the record of how a dead declaration hid behind a live one
+   in a stylesheet nothing here could see. */
 /* .grid.sect, not .sect — it has to outrank `.grid + .grid`'s one-unit gap, and equal
    specificity later in the file beats it without reaching for !important. */
 .grid.sect{margin-top:var(--sect)}
@@ -501,7 +552,7 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    Six columns each with no gap column: the two procedures are parallel and equal, so an
    asymmetric split would rank one of them. Stacks ≤900px — at 6 columns each the ordered
    lists wrap to one word per line well before the 720px breakpoint. */
-.duo{grid-column:1 / 13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+.duo{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
   column-gap:var(--gutter);row-gap:var(--group)}
 /* The two 3px hue rules are gone. They were the second sanctioned place the two hues carried
    meaning; there is one hue now and its job is interaction, so the two columns are told apart
@@ -533,7 +584,7 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    1.4em: in a monospace face the list marker plus its space is exactly two cells. */
 .duo ol{margin:var(--lead) 0 0;padding-left:2ch;color:var(--dim)}
 
-@media(max-width:900px){ .duo .dcol{grid-column:1 / 13} }
+@media(max-width:900px){ .duo .dcol{grid-column:1 / -1} }
 
 /* RULES — the five numbered rules on /method/, as a lattice of `.step` cells rather than
    two `.grid` rows of hand-written `grid-column` spans. The spans were inline styles, which
@@ -546,7 +597,7 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    characters, so `38ch` holds it on two lines with air. Stated in `ch` because the cell's
    content is monospace and `ch` is the only unit that means anything to it.
    `row-gap` is the group measure, so this device breaks to the same rhythm as everything. */
-.rules{grid-column:1 / 13;display:grid;
+.rules{grid-column:1 / -1;display:grid;
   grid-template-columns:repeat(auto-fit,minmax(38ch,1fr));
   column-gap:var(--gutter);row-gap:var(--group)}
 
@@ -623,7 +674,7 @@ figure.demo figcaption{margin-top:var(--tight)}
    `.hang` is kept as a selector because six pages emit it, and it now means "a clip at the full
    column width", which is what every clip on the site is. The class becomes redundant in the
    design-system pass; it is not lying in the meantime. */
-figure.demo.hang{grid-column:1 / 13;display:block}
+figure.demo.hang{grid-column:1 / -1;display:block}
 figure.demo.hang video{width:100%}
 
 /* ── TWO ALIGNED COLUMNS, cropped to one ratio. The staggered scatter is deleted.
@@ -673,8 +724,26 @@ figure.demo.hang video{width:100%}
    exact, so the block needs no grid tracks and no rules to hold — a fixed key width in `ch`
    does it, because `ch` and the character are the same thing here.
    `22ch` is measured against the longest key the page sets ("Verification") plus air. */
-.specblock{grid-column:1 / 8}
-.specblock .srow{display:grid;grid-template-columns:22ch 1fr;column-gap:2ch}
+/* `1 / 9`, with the document (chooser: andrewshiau-grid-options, Q1/02). It still said `1 / 8`
+   after the document went to eight fields, which made the spec block the one text element on
+   `/work/stores-designer/` that was 609px on a 700px page — an inconsistency of exactly the kind
+   the eighth column was added to remove. Found by grepping every span for the old width, not by
+   looking: 91px on one block of one page is invisible.
+   `--label`, not `22ch`. The key column was measured independently ("Verification" plus air), so
+   the spec block's value axis sat at 22ch + 2ch = 216px while every other value on the site sat at
+   182. It is the ledger's device with different numbers, which is the drift the two axes exist to
+   prevent — one number, one axis, everywhere. */
+/* `1 / -1`, and `1 / 9` here was a PHANTOM MEASURE I introduced while fixing the previous one.
+   The reasoning above is right that the block should be the document's width; the expression was
+   wrong, because `.specblock` sits inside `.feed`'s own nested 12-track grid. Eight of the FEED's
+   twelve tracks is 8 × 32.7 + 7 × 28 = 457px, not 700 — measured, and it is the fifth instance of
+   this exact bug in this redesign.
+   Which is the rule, stated once more because I just re-broke it: a track count is only meaningful
+   in the grid it is evaluated in. `-1` means "all of my parent's tracks" and is the only span
+   expression that cannot be wrong when the parent changes. Write `1 / -1` unless the block is
+   placed directly on the page grid (see `.colo`, which needs the literal `9`). */
+.specblock{grid-column:1 / -1}
+.specblock .srow{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter)}
 .specblock .sk{grid-column:1}
 .specblock .sv{grid-column:2;max-width:62ch}
 .specblock .sk{color:var(--faint)}
@@ -685,9 +754,22 @@ figure.demo.hang video{width:100%}
 .specblock .sv i{color:var(--accent);font-style:normal}
 .specblock figcaption{margin-top:var(--tight)}
 /* ≤720px matches what `.frow` does at the same width: the two columns become two lines. */
-@media(max-width:720px){
+/* 1060, not 720. `.sk` is a hung label in the same column as `.frow .fm`, so it gives at the
+   same width and for the same reason — leaving it at 720 would have made the one page with a
+   spec block the one page whose labels behaved differently (chooser: andrewshiau-breakpoints,
+   Q1/01). */
+@media(max-width:1060px){
   .specblock .srow{display:block}
   .specblock .sk,.specblock .sv{display:block}
+  /* THE STACKED PAIRS NEED THE GROUP INTERVAL, and this was a real defect at 900px: stacked with
+     no space between rows, five key/value pairs rendered as one ten-line list with no visible
+     grouping — the same "one grey paragraph" failure the space scale was written to fix. `.frow`
+     already carries `margin-top:--group` at every width, which is why the ledger beside it looked
+     right and this did not.
+     The label also takes ink here, for the reason the rule at the top of this file states: it no
+     longer has a column, so value is the only mechanism left. */
+  .specblock .srow + .srow{margin-top:var(--group)}
+  .specblock .sk{color:var(--ink);margin-bottom:var(--tight)}
 }
 
 /* FACTS — the ledger. Any number of facts reads the same, which is the property that made
@@ -723,7 +805,7 @@ figure.demo.hang video{width:100%}
    28px with no rule they ran together; at 56 each pair is an object.
    The label stays `--faint`. It has a column, so it does not also need a colour change — that is
    the whole point of the rule at the top of this file. */
-.frow{display:grid;grid-template-columns:16ch 1fr;column-gap:var(--gutter);
+.frow{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter);
   margin-top:var(--group)}
 .frow:first-child{margin-top:0}
 
@@ -743,20 +825,24 @@ figure.demo.hang video{width:100%}
    the site gets. The longest ledger values are the /method/ ones ("Three markdown files in this
    site's repo — method.md and one per side…"), so they wrapped two lines earlier than the same
    sentence would as a paragraph.
-   The fix is the same bleed the section head uses, for the same reason and by the same
-   expression: grow right by the label column plus a gutter, so the VALUE axis stays at 172 and
-   the value's own right edge moves out to 730 — exactly where a 62ch paragraph ends.
-   `.facts` is the wrapper that carries it, not `.frow`, because a `.frow` is a grid item and
-   widening the item would break the parent's own track. One block, every row inside it. */
-.facts{width:calc(100% + 16ch + var(--gutter))}
-@media(max-width:1100px){
-  /* Below the measure there is no margin to bleed into, and `.frow` stacks anyway. */
-  .facts{width:auto}
-}
-@media(max-width:720px){
-  /* 16ch of a 390px screen is 40% of the line. Stacked, and the label takes the ink treatment
-     it would have had if it never had a column — the condition in the rule at the top of this
-     file, applied at a breakpoint. */
+   THAT BLEED IS DELETED TOO (Q2/03), and the eighth column is what pays for it. This was the
+   strongest argument for bleeding — the four annotations above are real, and a 49-character value
+   was a genuine defect. What changed is Q1/02: at 8 fields the document is 700px, so after the
+   154px label and its gutter the value gets 518px = 57 characters. Not the 62 the bleed bought,
+   but 8 characters more than the 49 that prompted the complaint, and inside one width instead of
+   spread across three.
+   So the two picks are load-bearing on each other: "nothing breaks out" is only affordable
+   BECAUSE the document went to 8 columns, and going to 8 columns is only worth it because it
+   removes the bleeds. Neither alone would have been right. */
+@media(max-width:1060px){
+  /* THE STACK NOW STARTS AT 1060, not 720 (chooser: andrewshiau-breakpoints, Q1/01).
+     This is the same rule it always was; only the number moved, and the number is derived —
+     1060 is where `--label` computes to 144px, the width of the site's longest label. Above it
+     the label column can hold its label; below it, it cannot, so the layout stops pretending.
+     The label takes the ink treatment it would have had if it never had a column — the condition
+     in the rule at the top of this file, applied at the width where the condition becomes true.
+     Everything from 1060 down to 390 now renders ONE device instead of a hung layout that
+     degraded for 340px and then flattened. */
   .frow{display:block}
   .frow .fm{color:var(--ink);margin-bottom:var(--tight)}
 }
@@ -788,23 +874,23 @@ figure.demo.hang video{width:100%}
    paired `.c1-6` / `.c7-12` clips to land on 6 fields each.
    Clamped at `min(...)`: below the measure `.wrap` is narrower than 1120 and the bleed has to
    stop at the viewport's own gutter, or a figure would push the page wider than the window. */
-.feed .grid:has(> figure.demo),
-.feed .grid:has(> figure.embed),
-.feed .grid:has(> .g-rag),
-.feed .grid:has(> .matrix.mscatter){
-  --bleed:min(calc(5 * (100% + var(--gutter)) / 7), calc(100vw - 100% - var(--gutter)*2));
-  width:calc(100% + var(--bleed))}
-/* The pair keeps its pairing at the wider measure — 6 of the 12 tracks each, which is now 518px
-   rather than 291px. Side by side is right for two clips showing one idea from two angles; what
-   was wrong was the width they were doing it in. */
-@media(max-width:720px){
-  /* one column on a phone: there is no unused field to bleed into, and two 1000px recordings
-     side by side at 390px is the original complaint with smaller numbers. */
-  .feed .grid:has(> figure.demo),
-  .feed .grid:has(> figure.embed),
-  .feed .grid:has(> .g-rag),
-  .feed .grid:has(> .matrix.mscatter){width:100%}
-}
+/* ── NOTHING BREAKS OUT (chooser: andrewshiau-grid-options, Q2/03).
+   THE FOUR BLEED SELECTORS ABOVE ARE DELETED. What they did: a `.grid` holding a figure grew
+   right by `5 × (100% + gutter) / 7` so media landed on the page's outer tracks at 1064px while
+   the prose beside it stopped at 609.
+   Why they're gone. The page had THREE widths — 609 (prose), 781 (heads and ledgers), 1064
+   (media) — each derived by its own formula, none of them named, and a reader could see all
+   three on one screen. That is the inconsistency the sheet was built to settle, and the pick was
+   the strict answer: ONE width for everything. The document is `.c1-8` and so is a figure.
+   It also removes the defect class that cost the most time in this redesign. Four separate
+   phantom-measure bugs were all the same mistake — a track count or a percentage written against
+   one grid and evaluated inside another — and every one of them was inside a bleed formula. A
+   figure that simply spans the document cannot be measured against the wrong grid, because there
+   is only one grid left to measure against.
+   The trade, stated because it is real: media is now 700px instead of 1064. Two side-by-side
+   clips get 336px each rather than 518. For recordings of a UI that is a genuine loss of detail,
+   and the answer is that a screenshot which needs 1064px to read is a screenshot that should be
+   its own page — not a reason for the other nine pages to carry a second measure. */
 
 /* ─── THE DOCUMENT: ONE COLUMN ────────────────────────────────────────────────────────
    The split is gone (chooser: andrewshiau-mono-redesign, Direction 02 "the document").
@@ -836,7 +922,15 @@ figure.demo.hang video{width:100%}
    the grid draws and the column the type occupies are the same column. The remaining five
    fields are deliberately empty: that air is the page's right margin, and it is the only
    thing on the page doing the job the vertical rule used to do. */
-.pin,.feed{grid-column:1 / 8}
+/* EIGHT of the twelve, not seven (chooser: andrewshiau-grid-options, Q1/02).
+   Measured before the change: the document was 609px and its prose caps at 62ch = 558, so the
+   column was 51px wider than its own contents — too little slack for any rule to use, too much
+   to be invisible. At 8 fields it is 700px, which gives 142px of working room, and that is what
+   makes Q2/03 ("nothing breaks out") affordable: a ledger, a table or a two-up now fits INSIDE
+   the document instead of needing to bleed out of it.
+   The prose does not move. 62ch is still 62ch — the extra field is annotation and structure
+   room, not a wider measure. */
+.pin,.feed{grid-column:1 / 9}
 /* The two blocks are one continuous document, so the panel gets no bottom rule, no bottom
    border, and no extra air beyond the group gap that separates every group from the next. */
 .pin{margin-bottom:var(--group)}
@@ -886,15 +980,25 @@ figure.demo.hang video{width:100%}
    about twice.
    `Contact` at field 1, `Elsewhere` at field 4. Field 4 because the address is 18 characters —
    162px at 9px/char, which overruns field 3's start at 182 by a hair and lands clear at 273. */
-.pin .pfeet{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+/* TWO COLUMNS ON THE SITE'S OWN AXES, not seven private ones. It declared
+   `repeat(7,minmax(0,1fr))` and placed its two blocks at `1 / 4` and `4 / 8` — a track count that
+   made sense when the document was seven fields and now makes none. Computed at the measure: its
+   own tracks are 76px, so `Elsewhere` started at 312px while every other value on the site starts
+   at 182. A THIRD axis on the page whose whole argument is that it has two, and the only page-level
+   block that had one.
+   It is what it always was semantically — a label beside a value — so it uses `--label` and the
+   content axis like `.frow`, `.colo` and `.specblock`. Found by auditing every span for the old
+   width after the document went to eight fields; the block looked fine. */
+.pin .pfeet{display:grid;grid-template-columns:var(--label) 1fr;
   column-gap:var(--gutter);row-gap:var(--lead);margin-top:var(--group)}
-.pin .pfeet > .pfoot:first-child{grid-column:1 / 4}
-.pin .pfeet > .pfoot:nth-child(2){grid-column:4 / 8}
-@media(max-width:720px){
-  /* one column: at 390px the 7 fields are 24px each and a two-column pair is two slivers */
-  .pin .pfeet{grid-template-columns:1fr}
-  .pin .pfeet > .pfoot:first-child,
-  .pin .pfeet > .pfoot:nth-child(2){grid-column:1}
+/* 1060, with every other two-axis block (chooser: andrewshiau-breakpoints, Q1/01). It was 720 —
+   correct for the old private 7-track grid, wrong now that the block uses `--label`: between 1060
+   and 720 the label column would have been narrower than the label it holds, which is the exact
+   condition the site-wide breakpoint is derived from.
+   One column below it, and `--group` between the two pairs rather than `--lead`: stacked, they are
+   two groups rather than two rows of one. */
+@media(max-width:1060px){
+  .pin .pfeet{grid-template-columns:1fr;row-gap:var(--group)}
 }
 .pin .pfeet > .pfoot{margin-top:0}
 /* The document's link idiom, the same one `.entry .eh` uses: underline in `--line`, ink on
@@ -1200,8 +1304,10 @@ figure.demo.hang video{width:100%}
    .13em, two values for one device, neither of which was the .14em the rest of the site uses.
    One tracking now. The label is `--faint` rather than `--accent`, because the accent means
    interaction and a colophon label is not interactive. */
-.colo-rule{grid-column:1 / 13;height:0;margin-bottom:var(--lead)}
-.colo-lab{grid-column:1 / 3}
+/* `.colo-rule` spanned all 12 fields; it is `1 / 9` now, with the document (Q3/02). It has no
+   border — the rules came out with the mono pass — so it is a spacer, and a spacer that is wider
+   than the block it opens was the full-bleed defect in its purest form. */
+.colo-rule{grid-column:1 / 9;height:0;margin-bottom:var(--lead)}
 .colo{color:var(--dim)}
 .colo .ck{display:block;margin-bottom:var(--tight)}
 /* The document's one link idiom, the same as `.entry .eh` and `.pin .pfoot a`. It was a
@@ -1221,13 +1327,47 @@ figure.demo.hang video{width:100%}
    `row-gap:--group`, because the two rows are two groups: without it the second row's labels sit
    one lead under the first row's values and the four pairs read as a single stack of eight lines.
    Facts 1 and 3 open a row, so they start at column 5 where the old single row started; 2 and 4
-   sit beside them at column 9. The label stays at c1–3 in the margin, which is unchanged. */
-.colo.c1,.colo.c3{grid-column:5 / 9}
-.colo.c2,.colo.c4{grid-column:9 / 13}
-.colo.c3,.colo.c4{margin-top:var(--group)}
-@media(max-width:720px){
-  .colo-lab,.colo.c1,.colo.c2,.colo.c3,.colo.c4{grid-column:1 / 13;margin-top:var(--lead)}
-  .colo-lab{margin-top:0}
+   sit beside them at column 9. The label stays at c1–3 in the margin, which is unchanged.
+
+   ── AND NOW IT IS CONSTRAINED TO THE DOCUMENT (chooser: andrewshiau-grid-options, Q3/02).
+   Everything above stays true about why four-across failed; what changed is where the block
+   lives. It was the ONE element on the index that used all 12 fields — a 2px rule across 1064px,
+   the label at c1–3, and facts at c5–9 and c9–13, which are grid lines nothing else on the site
+   touches. Every other block stopped at column 7.
+   Measured, that made the colophon the one inconsistency a reader could see without the overlay:
+   the page's whole argument is a left-weighted document, and its last block was full-bleed.
+   So the colophon is now the LEDGER, which is what it always was semantically — a list of
+   label/value pairs about the page. `.colo` rows use `--label` and the content axis like every
+   `.frow`, inside `.c1-8` like every other block. One left edge, one right edge, one device, for
+   the whole site.
+   The `.c1`–`.c4` classes stay in the markup and stop meaning "which column": they now only
+   carry the row order, so the page's HTML didn't have to change to make the block obey the grid.
+   Stacking at 1060 with everything else (Q6/01) — a colophon label is a hung label and gives at
+   the same width for the same reason. */
+/* `1 / 9`, NOT `1 / -1`, and this one is the exception to the rule stated at `.c1-12`.
+   I wrote `1 / -1` here first and it was wrong in exactly the way the colophon was wrong before:
+   the wrapper is a PAGE-level `.grid` — the colophon is a sibling of `.split`, not a child of
+   `.feed` — so `-1` resolves to all twelve tracks, 1064px, and the block was still full-bleed
+   after being "constrained". Caught by computing the span rather than by looking, because a
+   colophon that spans the page looks perfectly fine.
+   The rule generalises: `-1` means "every track of my parent", which is right for a block inside
+   the document and wrong for a block that IS placed on the document. At page level the document's
+   width has to be stated. */
+.colo-lab,.colo{grid-column:1 / 9;display:grid;
+  grid-template-columns:var(--label) 1fr;column-gap:var(--gutter)}
+/* NO margin under the label — the first `.colo`'s own `--group` is the whole interval.
+   Measured after the constrain: the label carried `margin-bottom:--group` AND the first row
+   carried `margin-top:--group`, so the gap between the block's label and the block's first row
+   was 112px — a SECTION interval — while consecutive rows sat 56 apart. The label read as a
+   heading for something further down rather than as this block's own label, which is the
+   space-scale equivalent of the hierarchy bug the one-mechanism rule exists to catch. */
+.colo-lab{margin-bottom:0}
+.colo{margin-top:var(--group)}
+.colo .ck{grid-column:1;margin-bottom:0}
+.colo .cv{grid-column:2}
+@media(max-width:1060px){
+  .colo-lab,.colo{display:block}
+  .colo .ck{color:var(--ink);margin-bottom:var(--tight)}
 }
 
 /* ── /system/ SPECIMENS. Six rules, and they draw the SPECIMEN CHROME only — the swatch square,
@@ -1247,7 +1387,7 @@ figure.demo.hang video{width:100%}
    structure to a `.frow`, which is the point — a specimen sheet whose own rows disobey the system
    it documents is not evidence. */
 .sysrows{grid-column:1 / -1;margin-top:0}
-.sysrow{display:grid;grid-template-columns:16ch 1fr;column-gap:var(--gutter);
+.sysrow{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter);
   margin-top:var(--group)}
 .sysrow:first-child{margin-top:0}
 /* The specimen cell: swatch/bar and token name together, on one line, in the annotation column. */
@@ -1280,7 +1420,9 @@ figure.demo.hang video{width:100%}
 .sysmarks > div{display:grid;grid-template-columns:3ch 1fr;column-gap:1ch;align-items:baseline}
 .sysmarks .sysj{grid-column:2;color:var(--dim)}
 .sysfield{grid-column:1 / -1;max-width:34ch}
-@media(max-width:900px){
+/* 1060, with every other hung device (Q1/01). `.sysrow` uses `--label`, so if it stacked at 900
+   the page that DOCUMENTS the label column would be the page where it behaved differently. */
+@media(max-width:1060px){
   .syspair,.sysmarks{grid-template-columns:1fr;row-gap:var(--group)}
   .sysrow,.sysrow:has(.bar){grid-template-columns:1fr;row-gap:0}
   .sysrow .bar{grid-column:1}
@@ -1294,10 +1436,16 @@ figure.demo.hang video{width:100%}
    content has a label. What it adds is the ONE thing a document needs that the site had no device
    for: a heading that is subordinate to another heading. `h3` gets `--faint` where `h2` gets
    `--ink`, which is the same value pair a label/value uses one level down.
-   `.mdoc` bleeds right like every other annotated block, so its headings hang at column 1 in the
-   16ch column and its body starts at 172px — the same two axes as a case study. */
-.mdoc{grid-column:1 / 13;width:calc(100% + 16ch + var(--gutter));
-  display:grid;grid-template-columns:16ch 1fr;column-gap:var(--gutter)}
+   IT NO LONGER BLEEDS (chooser: andrewshiau-grid-options, Q2/03). It was `grid-column:1 / 13`
+   plus a `--label + --gutter` bleed, which made /style/ the widest text on the site at 781px —
+   a rendered markdown file was the page least like the rest of it. Now it spans the document like
+   every other block: headings hang at column 1, body starts on the content axis at 182.
+   `1 / -1`, NOT `1 / 9`. `.mdoc` sits inside `.feed`'s own nested 12-track grid, so eight of THOSE
+   tracks is 457px, not 700 — the identical phantom measure `.specblock` had, from the identical
+   cause, both introduced by me while fixing the bleed. Measured on the built page: /style/'s right
+   edge reported 457 against the document's 700. See the note at `.specblock`. */
+.mdoc{grid-column:1 / -1;
+  display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter)}
 /* Headings hang. `h2` opens a section of the document and takes `--sect`; `h3` is a subsection
    and takes `--group`. That 4:2 ratio is the space scale doing what a type ramp would have. */
 .mdoc > h2{grid-column:1;margin-top:var(--sect)}
@@ -1360,7 +1508,9 @@ figure.demo.hang video{width:100%}
    and a code block get — and in ink, because the four in STYLE.md are the statements of the rules
    the file exists to state. */
 .mdoc blockquote{margin:0;padding-left:2ch;color:var(--ink);max-width:62ch}
-@media(max-width:1100px){
+/* 1060, with every other hung device (chooser: andrewshiau-breakpoints, Q1/01). It was 1100,
+   picked by eye; the number is derived now — see `--label`. */
+@media(max-width:1060px){
   .mdoc{display:block;width:auto}
   .mdoc > h2,.mdoc > h3{margin-bottom:var(--lead)}
   .mdoc > :not(h2):not(h3){margin-top:var(--lead)}
@@ -1485,7 +1635,7 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
    the page (`left` / `right`) and a grid with `grid-auto-flow:row` would order them across rather
    than down. Down is right: a reader scrolls one column and then the other, which is how a
    contact sheet is read. */
-.g-rag{grid-column:1 / 13;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+.g-rag{grid-column:1 / -1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   column-gap:var(--gutter)}
 /* EXPLICIT tracks, not `auto`. `auto` was a bug I caught by measuring: with it, both column divs
    landed in track 1 and every photograph rendered at x=224 in a single 518px column — `auto`
@@ -1507,7 +1657,7 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
 
 /* External-link list — L2: diagonal staircase, each link steps down-and-right
    across the grid (echoes the homepage experiment scatter). A gallery you navigate. */
-.links{grid-column:1 / 13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+.links{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
   column-gap:var(--gutter);row-gap:var(--lead)}
 /* The document's link idiom again, at the staircase's scale — which is now every other scale.
    The 2px ink rule over each one is gone, and so is the accent rule on the first: `.links` is a
@@ -1530,7 +1680,7 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
 .links a:hover .arrowc{padding-left:1ch}
 /* `font-family:var(--sans)` was here, on a site that no longer has a sans. */
 .links a .lu{display:block;margin-top:var(--tight)}
-@media(max-width:720px){.links a,.links a:nth-child(3n+1),.links a:nth-child(3n+2),.links a:nth-child(3n+3){grid-column:1 / 13;margin-top:0}}
+@media(max-width:720px){.links a,.links a:nth-child(3n+1),.links a:nth-child(3n+2),.links a:nth-child(3n+3){grid-column:1 / -1;margin-top:0}}
 
 /* REDUCED MOTION. STYLE.md already required this ("Respect `prefers-reduced-motion` for
    any new non-essential animation") and `Explainer.astro` obeyed it; this stylesheet never
@@ -1554,4 +1704,115 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
      The blanket rule above kills the TRANSITION; this kills the end state, so the glyph
      doesn't snap to 90° instantly. */
   .smark-home:hover .mark:not(.mark-one){transform:none}
+}
+
+/* ═══ THE EXPLAINERS, FOLDED IN ══════════════════════════════════════════════════════
+   Chooser: andrewshiau-grid-options, Q5/02 — "fold into the document".
+   WHAT THIS REPLACED: `src/layouts/Explainer.astro` carried its own 307-line copy of an
+   entire design system, and the three /writing/ pages rendered from it. Measured on the built
+   /writing/canele/ before the fold: TWELVE font sizes (12px → 120px), Graphik rather than Plex,
+   weight 700 on 35 elements, uppercase on 11, 2px rules, and a content axis at 182px against the
+   rest of the site's 172 — every one of them a thing the mono pass deleted everywhere else.
+   Two sites under one domain, one click from the index. That is the answer to "is the site
+   consistent?": eight pages were, three weren't, and the three were invisible to every check
+   because they didn't load global.css at all.
+   WHAT THE FOLD COSTS, stated because it is the whole trade: the explainers lose their display
+   type. A 120px accent numeral, a 30px bold claim and an 80px stat were the loudest marks on the
+   site, and they are now 15px like everything else. What replaces them is what replaced the ramp
+   on the other thirteen pages — colour value, the space scale, and the two axes.
+   Only SEVEN rules are needed below, because folding in means the explainers use the site's own
+   devices for everything they share: `.facts`/`.frow` is the ledger, `.dek` is the dek, `.step`
+   and `.block` are already here, `h2` is already the section head. These seven are the devices an
+   explainer has that no other page does. */
+
+/* THE KICKER — an explainer's own `.smark`. It is the same device (a faint label above an h1) so
+   it takes the same treatment, and the shared label rule at the top of this file already gives
+   it colour; this only places it. */
+.kicker{color:var(--faint);margin:0}
+
+/* THE SECTION NUMERAL. `1`, `2`, `3` down the left of an explainer — the numbered spine that
+   makes it a walkthrough rather than an essay. It hangs in the label column with its h2, so an
+   explainer's section head is the site's hung head with a numeral in front of it. `--faint`, not
+   the old accent: colour means interaction, and a section number is not interactive. */
+/* `1ch` of margin is not enough, and the rendered text proves it: the h2's text content is
+   `1The number`. The margin separates the BOXES, so the glyphs are 9px apart while every other
+   word gap on the site is one space — it reads as one token to anyone scanning, and to a screen
+   reader it IS one token. `::after` puts a real space in the text, and the margin then adds the
+   visual step a numeral wants. */
+.sn{color:var(--faint);margin-right:1ch}
+.sn::after{content:" "}
+
+/* THE ONE IDEA — the claim an explainer is built to land. It was a 30px bold paragraph under a
+   3px accent rule; both are gone. It is `--ink` at the body size, on the content axis, with a
+   `--group` of air above and below — the space scale saying "this is the important one" the way
+   a size jump used to. `.k` is its label and takes the ordinary label treatment. */
+/* NO vertical margin of its own. It had `margin:--group 0`, and measured on the built page that
+   stacked with the wrapper's spacing into intervals that are not on the scale: 84px above (the
+   dek's 28 + this 56) and 168px below (this 56 + `.grid.sect`'s 112). The scale is 14/28/56/112,
+   so 84 reads as neither a group nor a section, and 168 is larger than the page's largest break.
+   Every other block on the site — `.facts`, `.block`, `.matrix` — leaves vertical space to its
+   `.grid` wrapper for exactly this reason: two elements both claiming the interval is how a
+   baseline grid comes apart. Put the page's `.idea` in a `.grid.sect` when it should open a
+   section; otherwise `.grid + .grid` gives it one lead. */
+.idea{margin:0}
+.idea .k{color:var(--faint);display:block;margin-bottom:var(--tight);line-height:1.2}
+.idea p{color:var(--ink);max-width:62ch;margin:0}
+
+/* THE BIG NUMBER, no longer big. `9–14%` was 120px in the accent hue; it is now `--ink` at 15px
+   with its label beside it, which is the ledger's shape — the number IS a value and its caption
+   IS a label, so it uses the pair every other fact on the site uses. The count-up animation is
+   deleted with the size: animating a number from 0 to 14 is a device that needs 120px to read.
+   `.num .lab .g` keeps its aside in `--dim`. */
+/* Same as `.idea` above: no vertical margin of its own, or it stacks with the wrapper's and
+   lands off the scale. */
+.num{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter)}
+.num .big{color:var(--ink);grid-column:1;line-height:1.2}
+.num .lab{color:var(--dim);grid-column:2;max-width:62ch}
+.num .lab .g{color:var(--faint)}
+@media(max-width:1060px){
+  .num{display:block}
+  .num .big{display:block;margin-bottom:var(--tight)}
+}
+
+/* THE QUIZ. Its buttons are built by JS at runtime (see Explainer's old script, now in
+   Layout.astro), so these style generated markup. The engine is worth keeping — it is the one
+   interactive thing on the site and the reason an explainer is an explainer — but every mark it
+   drew was off-system: 2px ink rules, uppercase 12px kickers, a 3px accent left border, a filled
+   accent wash, and a ✓ that popped with a keyframe bounce.
+   What it is now: a question is a `--group` apart from the last one, its number is a hung faint
+   label, and an option is A LINE YOU CAN CLICK — the same underline idiom as every link, with the
+   1ch hover shift `.entry` uses. Right and wrong are stated in words (`✓` / `✕`) and by colour
+   going to `--ink` vs staying `--dim`, because colour here means "you acted on this", which is
+   the accent's one job. */
+.quiz .q{margin-top:var(--group)}
+.quiz .q:first-child{margin-top:0}
+.quiz .qn{color:var(--faint);display:block;line-height:1.2}
+.quiz .qt{color:var(--ink);margin:0 0 var(--tight);max-width:62ch}
+.quiz .opt{display:block;width:100%;text-align:left;font:inherit;color:var(--dim);
+  background:none;border:0;padding:0 0 0 3ch;margin:0;cursor:inherit;
+  transition:padding-left var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+.quiz .opt:hover:not(:disabled){color:var(--accent);padding-left:calc(3ch + 1ch)}
+.quiz .opt:disabled{cursor:default}
+/* The marker sits in the 3ch the padding reserves, so choosing an answer does not reflow the
+   line — the same reason `.entry .en` has a fixed 3ch. */
+.quiz .opt::before{content:"";display:inline-block;width:3ch;margin-left:-3ch}
+.quiz .opt.correct{color:var(--ink)}
+.quiz .opt.correct::before{content:"✓ "}
+.quiz .opt.wrong::before{content:"✕ "}
+.quiz .exp{color:var(--faint);margin:var(--tight) 0 0;display:none;padding-left:3ch}
+.quiz .exp.show{display:block}
+.quiz .qscore{color:var(--faint);margin-bottom:var(--group)}
+
+/* THE FOOT — an explainer's source line and its way back. `--sect` of air above it and no rule,
+   like every other section break on the site. It was a 2px ink border with 12px uppercase
+   tracked links. */
+.foot{margin-top:var(--sect);color:var(--faint)}
+.foot a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);
+  text-decoration-thickness:1px;text-underline-offset:4px;
+  transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
+.foot a:hover{color:var(--accent);text-decoration-color:var(--ink)}
+.foot .tou{display:none}
+@media(hover:none),(pointer:coarse){
+  .foot .kb{display:none}
+  .foot .tou{display:inline}
 }

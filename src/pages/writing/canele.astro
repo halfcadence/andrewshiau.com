@@ -1,7 +1,15 @@
 ---
-// A public recipe explainer set in /swiss: what makes a canelé custardy vs cakey,
-// from real ratio analysis. Content only — the system lives in Explainer.astro.
-import Explainer from '../../layouts/Explainer.astro';
+// A public recipe explainer: what makes a canelé custardy vs cakey, from real ratio analysis.
+//
+// IT IS ON THE SITE'S OWN LAYOUT NOW (chooser: andrewshiau-grid-options, Q5/02 — "fold into the
+// document"). It used to render from `Explainer.astro`, which carried a 307-line copy of an
+// entire second design system: Graphik, twelve font sizes, weight-700 headings, uppercase
+// labels, 2px rules, a 120px accent numeral, and a content axis 10px off the one every other
+// page used. None of it loaded global.css, so none of the site's verification could see it.
+// Now it is `Layout.astro` + `.pin`/`.feed` like every case study, and the only things unique to
+// an explainer are the six devices global.css states for them (`.kicker`, `.sn`, `.idea`, `.num`,
+// `.quiz`, `.foot`) plus this page's one diagram.
+import Layout from '../../layouts/Layout.astro';
 
 const quiz = [
   { q: "You want a more custardy, softer interior. Which lever moves it most?",
@@ -14,75 +22,150 @@ const quiz = [
     opts:["Yolks make it sturdier and easier to unmold.","Yolks add fat and emulsification for a silky, rich set.","Whites would make it sweeter."], a:1 },
 ];
 ---
-<Explainer
+
+<Layout
   title="What makes a canelé custardy — Andrew Shiau"
   description="An interactive explainer: the one ratio that decides whether a canelé is custardy or cakey."
-  kicker="A recipe explainer · from six recipes, normalized"
-  heading="What makes a canelé custardy."
-  backHref="/work/explain/"
-  backLabel="← Explain"
   quiz={quiz}
 >
-  <div class="grid"><p class="dek" style="grid-column:1/9">
-    I normalized six popular canelé recipes to percentages of total batter weight
-    to find what decides the interior. One number does most of the work.
-  </p></div>
-
-  <div class="grid"><div class="idea">
-    <p class="k">The one idea</p>
-    <p>Flour, as a percent of batter, is the lever between custardy and cakey. Everything else is richness and colour.</p>
-  </div></div>
-
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">1</span></div><div class="c3-12"><h2>The number</h2></div></div>
-  <div class="grid"><div class="num">
-    <span class="big">9–14%</span>
-    <span class="lab">flour, as a share of total batter, for a custardy interior <span class="g">— above ~15% it turns cakey and bread-like</span></span>
-  </div></div>
-  <div class="grid"><div class="scale">
-    <div class="track">
-      <div class="seg custard">← more custardy · soft, fragile</div>
-      <div class="seg sweet">15%</div>
-      <div class="seg cakey">cakey · firm, bread-like →</div>
+  <div class="grid">
+    <!-- THE PANEL, the same one every case study opens with. The explainer's old masthead — a
+         three-dot mark in a bar with a 2px rule, plus an "Explainer · set in /swiss" caption —
+         is deleted: the site has one identity block and this is it. `.pin` carries the kicker,
+         the h1 and the ledger of what the piece is. -->
+    <div class="pin">
+      <p class="smark">Explainer</p>
+      <h1>What makes a canelé custardy</h1>
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">What</div>
+          <div class="ftx">Six popular canelé recipes, normalized to percentages of total batter
+            weight, to find what actually decides the interior.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Source</div>
+          <div class="ftx">My own ratio analysis —
+            <a href="https://halfcadence.github.io/recipes/a/canele-ratio-analysis"
+              target="_blank" rel="noopener">halfcadence.github.io/recipes</a></div>
+        </div>
+        <div class="frow">
+          <div class="fm">Back to</div>
+          <div class="ftx"><a href="/work/explain/">Explain</a></div>
+        </div>
+      </div>
     </div>
-    <div class="ends"><span>flour 9%</span><span>flour 18%</span></div>
-  </div></div>
-  <div class="grid"><div class="body">
-    <p>
-      Across the six recipes, the ones people call “custardy” sit at 9–14% flour.
-      Push past 15% and the crumb sets up firm. The recipe I use lands at the high
-      end and leans on fat to stay rich rather than dry.
-    </p>
-  </div></div>
 
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">2</span></div><div class="c3-12"><h2>What each part does</h2></div></div>
-  <div class="grid"><div class="facts">
-    <div class="frow"><div class="fm">Flour</div><div class="ftx">Structure. <b>More</b> = cakey and firm; <b>less</b> = custardy but fragile. The main lever.</div></div>
-    <div class="frow"><div class="fm">Sugar</div><div class="ftx">Sweetness and caramelization. More = a darker shell; less = paler, less caramel.</div></div>
-    <div class="frow"><div class="fm">Fat</div><div class="ftx">Butter, cream, yolk fat → richness. The lean recipes taste custardy but hollow. Fat is flavor.</div></div>
-    <div class="frow"><div class="fm">Egg</div><div class="ftx">Yolks bind and emulsify for a rich set; more whole egg makes it sturdier but less silky.</div></div>
-  </div></div>
+    <div class="splitrule" aria-hidden="true"></div>
 
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">3</span></div><div class="c3-12"><h2>Check yourself</h2></div></div>
-  <div class="grid"><div class="quiz" id="quiz"></div></div>
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">I normalized six popular canelé recipes to percentages of total
+          batter weight to find what decides the interior. One number does most of the work.</p>
+      </div>
 
-  <Fragment slot="foot">
-    Source: my own ratio analysis of six canelé recipes —
-    <a href="https://halfcadence.github.io/recipes/a/canele-ratio-analysis" target="_blank" rel="noopener" style="text-transform:none;letter-spacing:0;font-size:13px">halfcadence.github.io/recipes</a>.
-  </Fragment>
-</Explainer>
+      <!-- THE ONE IDEA. It was a 30px bold paragraph under a 3px accent rule; it is the body
+           size in `--ink` with a group of air around it, which is the space scale doing the job
+           the size jump did. -->
+      <div class="grid sect">
+        <div class="idea c1-12">
+          <span class="k">The one idea</span>
+          <p>Flour, as a percent of batter, is the lever between custardy and cakey. Everything
+            else is richness and colour.</p>
+        </div>
+      </div>
+
+      <!-- Section heads are the site's hung head with a numeral in front. The `.rule` divs that
+           used to open each section are gone with every other rule on the site — `--sect` of air
+           is the break. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">1</span>The number</h2>
+          <div class="sbody">
+            <p>Across the six recipes, the ones people call “custardy” sit at 9–14% flour. Push
+              past 15% and the crumb sets up firm. The recipe I use lands at the high end and
+              leans on fat to stay rich rather than dry.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="num c1-12">
+          <span class="big">9–14%</span>
+          <span class="lab">flour, as a share of total batter, for a custardy interior
+            <span class="g">— above ~15% it turns cakey and bread-like</span></span>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="scale c1-12">
+          <div class="track">
+            <div class="seg custard">more custardy · soft, fragile</div>
+            <div class="seg sweet">15%</div>
+            <div class="seg cakey">cakey · firm, bread-like</div>
+          </div>
+          <div class="ends"><span>flour 9%</span><span>flour 18%</span></div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">2</span>What each part does</h2>
+          <div class="sbody">
+            <p>Four levers, and only the first one changes the texture. The other three decide
+              how it tastes.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow"><div class="fm">Flour</div><div class="ftx">Structure. <b>More</b> = cakey and firm; <b>less</b> = custardy but fragile. The main lever.</div></div>
+          <div class="frow"><div class="fm">Sugar</div><div class="ftx">Sweetness and caramelization. More = a darker shell; less = paler, less caramel.</div></div>
+          <div class="frow"><div class="fm">Fat</div><div class="ftx">Butter, cream, yolk fat → richness. The lean recipes taste custardy but hollow. Fat is flavor.</div></div>
+          <div class="frow"><div class="fm">Egg</div><div class="ftx">Yolks bind and emulsify for a rich set; more whole egg makes it sturdier but less silky.</div></div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">3</span>Check yourself</h2>
+          <div class="sbody">
+            <p>Four questions. The answer appears when you pick one.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid"><div class="quiz c1-12" id="quiz"></div></div>
+
+      <div class="grid">
+        <div class="foot c1-12">
+          <a href="/work/explain/">Explain</a> ·
+          <a href="/">andrewshiau.com</a>
+          <span class="kb"> · Press <code>⌥G</code> for the grid</span>
+          <span class="tou"> · Set on a 12-column grid</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
 
 <style is:global>
-  /* the flour-scale diagram — a labeled bar, custardy → cakey (canelé-only) */
-  .scale{grid-column:3 / 11;margin:var(--unit) 0}
-  .scale .track{display:flex;border:1px solid var(--ink);height:56px}
-  .scale .seg{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
-    letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:0 6px}
-  .scale .custard{flex:0 0 46%;color:var(--dim)}
-  .scale .sweet{flex:0 0 8%;background:var(--accent);color:var(--on-accent);border-left:1px solid var(--ink);border-right:1px solid var(--ink)}
-  .scale .cakey{flex:1;color:var(--dim)}
-  .scale .ends{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--faint);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
-  @media(max-width:720px){ .scale{grid-column:1 / 13} }
+  /* THE FLOUR SCALE — this page's one diagram, and the only bespoke CSS left on it.
+     Rebuilt on the system: it was a 56px box with a 1px ink border, three uppercase 12px
+     bold segments and a filled accent block for the 15% threshold. Now it is a row of three
+     labels on one hairline, with the threshold marked by the accent — the one place colour is
+     allowed to carry a fact here, because the threshold IS the point of the diagram.
+     `28px` tall (one lead) so it sits on the page's baseline like everything else. */
+  /* No vertical margin — the `.grid` wrapper owns the interval (see `.idea` in global.css for
+     the measured reason). */
+  .scale{margin:0}
+  .scale .track{display:flex;border-top:1px solid var(--line);padding-top:var(--tight)}
+  .scale .seg{font-size:inherit;line-height:inherit;letter-spacing:normal;text-transform:none;
+    font-weight:400;color:var(--dim)}
+  .scale .custard{flex:0 0 46%}
+  .scale .sweet{flex:0 0 8%;color:var(--accent);text-align:center}
+  .scale .cakey{flex:1;text-align:right}
+  .scale .ends{display:flex;justify-content:space-between;color:var(--faint);
+    margin-top:var(--tight)}
+  @media(max-width:1060px){
+    .scale .track{display:block}
+    .scale .seg{display:block;text-align:left}
+    .scale .sweet{text-align:left}
+  }
 </style>

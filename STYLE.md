@@ -180,11 +180,12 @@ two hues became one hue with one job.
    than decoration: `.f input`'s writing line (a horizontal rule under text means "type here",
    and now means nothing else), and `.embed-frame`'s 1px boundary (inside it is somebody
    else's live page — the border says where this site stops).
-3. **ONE COLUMN, SEVEN FIELDS.** The grid is still 12 and still invisible (press `g`), but the
-   page places `1 / 8`. At the 1120px measure that is ~620px, close to the `62ch` the prose
-   caps at, so the column the grid draws and the column the type occupies are the same column.
-   The five empty fields to the right are the page's margin — putting type in them would make
-   the margin a column, and the document would be two columns again.
+3. **ONE COLUMN, EIGHT FIELDS.** The grid is still 12 and still invisible (press `⌥G`), but the
+   page places `1 / 9` — 700px at the 1120px measure. The prose still caps at `62ch` (558px), and
+   the difference is the working room a hung label needs, which is why nothing has to bleed out of
+   the document to be legible. The four empty fields to the right are the page's margin — putting
+   type in them would make the margin a column, and the document would be two columns again.
+   It was seven fields, and going to eight is what bought **Nothing breaks out**.
 4. **INK, PLUS ONE HUE FOR ONE JOB.** Colour means "you can act on this" — a link, and the
    hovered row's title. Nothing else is coloured. See Colour tokens.
 
@@ -395,21 +396,41 @@ next to the colour it sat on. Dropped. `h2` is `font-weight:400`.
 
 #### The two axes
 
-Every case study has exactly **two** vertical axes, and one number sets both: `16ch`.
+Every page has exactly **two** vertical axes, and one token sets both: `--label`.
 
-| x = 0 | x = 16ch + `--gutter` (172px at the measure) |
+| x = 0 | x = `--label` + `--gutter` (182px at the measure) |
 |---|---|
 | the side marker, the `h1`, every field label, every section head | every field value, every paragraph, the dek, media |
 
-`16ch` is measured, not chosen: the longest field label on the site is 16 characters
-(`Dropdown refresh`, `Remove "add pen"`), so every label on all ten pages sits on one line. The
-section head hangs in the same column (`.shead`, and bare `<div class="c1-12"><h2>` heads via
-`:has()`), which is why a head and a ledger label share an edge.
+**`--label` IS DERIVED FROM THE GRID, and it must stay that way.** It is two columns plus the
+gutter between them:
 
-The hung blocks **bleed RIGHT**, never left: `width:calc(100% + 16ch + var(--gutter))`. Bleeding
-left put the head at x = −172, off the page — caught by measuring the head's left edge against
-the grid's, which is the only way to catch it. Below 1100px everything stacks and a stacked label
-takes the ink treatment, per the rule above.
+```css
+--track: calc((min(100vw, var(--measure)) - var(--gutter) * 13) / 12);
+--label: calc(var(--track) * 2 + var(--gutter));
+```
+
+It was `16ch` — a flat 144px, measured against the longest field label on the site
+(`Dropdown refresh`, `Remove "add pen"`, both 16 characters). That number was right about
+typography and **wrong about the grid**, and the defect was invisible for four passes: the content
+axis landed at 144 + 28 = **172px** while column 3 starts at **182px**, so every ledger row,
+section head and panel put its value **10px inside the gutter**. Two grids were running at once —
+one typographic, one geometric — and the typographic one was silently winning.
+
+Found by drawing the `⌥G` overlay underneath a real `.frow` and measuring the value's left edge
+against the column's. Nothing else finds this. A page whose axis is 10px off the grid looks
+completely fine.
+
+Derived, the two grids agree at **every** width, not just at the measure — verified 2560 → 390.
+
+**`--label` also sets the breakpoint.** The formula returns exactly 144px — the width of that
+16-character label — when the viewport is **1060px**. Above it the label column can hold its own
+label; below it, it cannot, so the hung layout stops and every label stacks. **One equation gives
+both the axis and the breakpoint**, which is why neither is a number anyone chose.
+
+**Nothing bleeds any more.** The hung blocks used to grow right by `--label + --gutter` so their
+prose kept a 62ch measure; `.shead`, `.facts` and `.mdoc` all did it, and media grew further still
+by `5 × (100% + gutter) / 7`. See **Nothing breaks out** below for why all of that is deleted.
 
 - **THERE IS NO TYPE RAMP.** One size, for everything (chooser Ramp 04). `h1`, `h2`, `.dek`,
   `.statement`, a paragraph, a blurb and a meta line are all 15/28. Hierarchy comes from:
@@ -439,8 +460,26 @@ takes the ink treatment, per the rule above.
   down the page so alignments recur — that recurrence *is* the design.
 - **Those three spans are all that exist**, and adding a fourth means placing it. Declare a
   span when a page uses it, never in advance.
-- **The page places ONE column: `1 / 8`.** Seven of the twelve fields, on `.pin` and `.feed`.
-  The five to its right are margin, deliberately empty.
+- **The page places ONE column: `1 / 9`.** **Eight** of the twelve fields, on `.pin` and
+  `.feed`. The four to its right are margin, deliberately empty.
+  It was seven (609px) and the prose caps at `62ch` = 558, so the column was **51px wider than
+  its own contents** — too little slack for any rule to use, too much to be invisible. At eight
+  it is 700px, and those 142px of working room are what pay for **Nothing breaks out** below: a
+  ledger, a table or a two-up now fits *inside* the document instead of bleeding out of it.
+  The prose did not move. `62ch` is still `62ch`; the extra field is structure, not measure.
+- **NOTHING BREAKS OUT.** One width for everything on the page — a figure spans the document,
+  the same as a paragraph.
+  The page used to have **three** widths, each derived by its own formula and none of them named:
+  609 (prose), 781 (section heads and ledgers, bled by `--label + --gutter`), and 1064 (media,
+  bled by `5 × (100% + gutter) / 7`). A reader could see all three on one screen.
+  It also removes the defect class that cost the most time in this redesign: **all four
+  phantom-measure bugs were inside a bleed formula.** A block that simply spans the document
+  cannot be measured against the wrong grid, because there is only one grid left to measure
+  against.
+  **What it costs, stated:** media is 700px rather than 1064, so two side-by-side clips get 336px
+  each instead of 518, and a section head's prose is 57 characters rather than 62. A screenshot
+  that needs 1064px to read should be its own page — not a reason for fifteen other pages to
+  carry a second measure.
 - **A track count inside the document column is a phantom measure.** `.pin` / `.feed` are
   themselves grid children, so a nested 12-track sub-grid divides 609px, not the page — and
   `grid-column:1 / 10` written in one means 502px, which lines up with nothing. Three devices
@@ -459,10 +498,21 @@ takes the ink treatment, per the rule above.
   inline value does — it can't reach a page nobody remembered to edit. The margin belongs on
   the grid rather than on `.wrap`'s padding, because the guide overlay is `inset:0` inside
   `.wrap` and padding there would make the guide stop describing the grid it draws.
-- Mobile (`≤720px`) collapses every block to full width (`1 / 13`).
-- The faint column-guide overlay is hidden; press **`⌥G`** to flash it (wired twice — in
-  `Layout.astro` AND `Explainer.astro`, so a change to one needs the other). The footer
-  invites it: "Press ⌥G to see the grid."
+- **`1 / -1`, never `1 / 13`.** A full-span declaration MUST say `-1`. Almost every use is
+  inside the feed's own nested grid, where a literal `13` is the phantom-measure bug above. `-1`
+  cannot be wrong. `.c1-12` keeps its name (the page's grid has twelve) and ships `1 / -1`.
+- **Two breakpoints, and only one of them is a choice.**
+  - **`≤1060px`** — every hung device stacks: `.frow`, `.shead`, `.colo`, `.specblock`,
+    `.sysrow`, `.mdoc`, `.num`. **Derived, not chosen**: see `--label`. All seven give at the
+    same width because they share the same column; one of them stacking at a different number
+    would make that page the odd one out.
+  - **`≤720px`** — every block collapses to full width (`1 / -1`). This one is a choice, and it
+    is about columns rather than labels.
+  - `900px` and `560px` each carry exactly one rule (`.duo .dcol`, `.entry .em`). Leave them
+    alone or fold them in; don't add a third general breakpoint.
+- The faint column-guide overlay is hidden; press **`⌥G`** to flash it. It is wired **once**, in
+  `Layout.astro` — it used to be wired twice, because `Explainer.astro` had its own copy, and
+  that layout is deleted. The colophon invites it: "Press ⌥G to see it."
 
 ---
 
@@ -826,28 +876,63 @@ by the rules it states, so every claim on the page can be checked against the pa
   `THERE IS NO TYPE RAMP` and `The two axes`. A renderer that silently stops understanding this
   file fails the build instead of shipping a blank steering page.
 - **`.mdoc` is the one block it adds**, because a rendered document is the only content with its
-  own nested heading hierarchy. `h2` is ink on the 16ch axis with `--sect` above; `h3` is faint
-  with `--group`. Long code fences and wide tables scroll inside their own box with a `mask-image`
+  own nested heading hierarchy. `h2` is ink on the `--label` axis with `--sect` above; `h3` is
+  faint with `--group`. It spans `1 / 9` like every other block — it used to bleed to 781px,
+  which made this page the widest text on the site. Long code fences and wide tables scroll inside their own box with a `mask-image`
   fade, so a clipped line reads as "there is more" rather than as a bug.
 
 ---
 
 ## Explainers (the /swiss + /explain artifacts)
 
-Standalone pages under `src/pages/writing/` (`10x-is-a-loop`, `canele`) and
-`public/writing/` (`four-critics`). These carry their **own inline `<style>`** built
-from the `/muller` template — global.css does NOT style them.
+Three pages under `src/pages/writing/` — `10x-is-a-loop`, `canele`, `loops-vs-graphs`. They are
+**on `Layout.astro` and `global.css` like every other page** (chooser:
+`work/understand/andrewshiau-grid-options/`, Q5/02 — "fold into the document").
 
-- Each is a self-contained explainer: masthead + type + a diagram + a scored quiz +
-  a back-link to its parent experiment page.
-- **Quiz gotcha:** quiz option buttons are created by JS (`createElement`), so Astro's
-  scoped `[data-astro-cid]` selectors miss them. Quiz CSS (`.opt`, `.q`, `.exp`) MUST
-  be wrapped in `:global()` or the quiz ships unstyled. This bug shipped live twice —
-  verify the quiz renders styled before calling an explainer done.
-- The correct-answer state MUST have a non-colour signal (`.opt.correct::before{content:"✓ "}`)
-  for accessibility — colour alone isn't enough.
-- **Grid flow gotcha:** `.grid{grid-auto-rows}` without a `.grid + .grid{margin-top}`
-  rule collapses all sections into overlap. Match the 10x essay's grid flow.
+**They used to be a second design system, and that was the site's largest inconsistency.** They
+rendered from `src/layouts/Explainer.astro`, which carried its own 307-line `is:global` copy of an
+entire stylesheet. Measured on the built `/writing/canele/` before the fold:
+
+| | the explainers | the other thirteen pages |
+|---|---|---|
+| font sizes | **12** (12px → 120px) | 1 (15px) |
+| typeface | Graphik | Plex Mono |
+| weight 700 | 35 elements | 0 |
+| uppercase | 11 elements | 0 |
+| rules | 2px ink, several per page | none |
+| content axis | 182px | 172px |
+
+Two sites under one domain, one click from the index — and **invisible to every check the site
+had**, because those pages never loaded `global.css`. The dead-CSS audit below records the same
+trap from the other direction.
+
+- **The panel is the masthead.** An explainer opens with `.pin` — `.smark` kicker, `h1`, a
+  `.facts` ledger of what it is and where it came from — exactly like a case study. The old
+  three-dot mark in a 2px-ruled bar is gone; the site has one identity block.
+- **Six devices are explainer-only**, and they live in `global.css` at the end: `.kicker`, `.sn`
+  (the section numeral), `.idea` (the one claim), `.num` (the one figure), `.quiz`, `.foot`.
+  Everything else an explainer needs — `.dek`, `.facts`/`.frow`, `.step`, `.block`, `h2` — is the
+  site's own device, unmodified.
+- **What the fold cost:** the display type. A 120px accent numeral, a 30px bold claim and an 80px
+  stat were the loudest marks on the site and are now 15px. What replaces them is what replaced
+  the ramp everywhere else — value, the space scale, and the two axes.
+- **The quiz survives, and it is the only interactive thing on the site.** Being able to check
+  yourself is what makes an explainer an explainer. The engine moved to `Layout.astro` behind a
+  `quiz` prop that defaults to `[]`, so the thirteen non-explainer pages ship no quiz markup.
+- **Quiz gotcha, still true:** the option buttons are created by JS (`createElement`), so scoped
+  `[data-astro-cid]` selectors miss them. Their CSS MUST be global — it is now in `global.css`,
+  which sidesteps the problem entirely. This bug shipped live twice under the old layout.
+- The correct-answer state MUST have a non-colour signal (`.opt.correct::before{content:"✓ "}`).
+  Colour alone isn't enough, and here colour means "you can act on this" anyway.
+- **What came out of the engine in the fold:** the score line's inline `style` (uppercase, tracked,
+  weight 700 — three off-system marks written from JS, where no stylesheet audit could see them;
+  it is `.qscore` now), the count-up animation (it existed to make a 120px numeral arrive), and
+  the scroll-progress bar (a 2px accent line pinned to the viewport — the site has no rules, and a
+  reading indicator on a 900-word page tells the reader what the scrollbar already says).
+- **Each page keeps at most one bespoke diagram**, in a page-level `is:global` block, rebuilt on
+  the system: canelé's flour scale and loops-vs-graphs' flow diagram. `10x-is-a-loop` has none.
+  Both diagrams lost their filled panels — an accent-filled box is a static mark in the one hue
+  that means interaction.
 
 ---
 
@@ -867,11 +952,12 @@ de-duplicated ranked fix list. The panel for this site:
    outdated markup; flags anything that shouldn't ship (leaked internal content/config).
    Don't ask a persona to *eyeball* dead CSS — **measure** it: extract every class token from
    `class="…"` across `dist/**/*.html`, extract every class in every selector, and diff.
-   Scope the two stylesheets SEPARATELY: `global.css` is loaded only by `Layout.astro`'s 14
-   pages, and the three `/writing/` explainers carry their own `is:global` block in
-   `Explainer.astro`. Pooling them reports a selector as live because the *other* stylesheet's
-   pages use that class — which is exactly how `.rule` sat dead in `global.css` while the
-   explainers drew their own copy. Allow for the handful of classes JS adds at runtime
+   **This is now one stylesheet for all sixteen pages**, so the audit is a single diff. It used to
+   need scoping into two — `global.css` for `Layout.astro`'s pages, and `Explainer.astro`'s own
+   `is:global` block for the three explainers — and pooling them reported a selector as live
+   because the *other* stylesheet's pages used that class. That is exactly how `.rule` sat dead in
+   `global.css` for four passes while the explainers drew their own copy of it. Deleting the second
+   stylesheet removes the trap, not just the instance. Allow for the handful of classes JS adds at runtime
    (`showgrid`, and the quiz's `.correct` / `.wrong` / `.show`).
    **A "reserved slot" is dead CSS.** `.colo.c3` and five grid spans each carried a comment
    arguing the empty slot was the pattern rather than the content. To anyone reading the file

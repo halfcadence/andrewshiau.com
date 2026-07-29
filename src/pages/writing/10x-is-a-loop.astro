@@ -1,7 +1,10 @@
 ---
-// The "10x is a loop" essay, synthesized from public sources. Set in /swiss.
-// Content only — the system lives in Explainer.astro.
-import Explainer from '../../layouts/Explainer.astro';
+// The "10x is a loop" essay, synthesized from public sources.
+//
+// FOLDED INTO THE DOCUMENT (chooser: andrewshiau-grid-options, Q5/02) — see canele.astro for
+// what that means and what it replaced. This page's own devices are the `.step` pair (which
+// global.css already has) and nothing else, so it needed no bespoke CSS at all.
+import Layout from '../../layouts/Layout.astro';
 
 const quiz = [
   { q: "The METR study: experienced devs were 19% slower with AI on familiar code, yet believed they’d been 20% faster. The takeaway?",
@@ -18,112 +21,175 @@ const quiz = [
     opts:["Immediately — parallelism is the main lever; add process later.","Only on greenfield projects; legacy code can’t be parallelized.","Only after the single-agent loop is closed. Parallelizing an open loop multiplies unverified work that converges on one reviewer: you."], a:2 },
 ];
 ---
-<Explainer
+
+<Layout
   title="10x is a loop, not a prompt — Andrew Shiau"
   description="AI-assisted engineering, evidence first. Synthesized from Anthropic, the METR trial, Willison, Hashimoto, Ronacher, and Osmani."
-  kicker="AI-assisted engineering · evidence first · 2025–26"
-  heading="10x is a loop, not a prompt."
-  backHref="/work/aping/"
-  backLabel="← Aping"
   quiz={quiz}
 >
-  <div class="grid"><p class="dek" style="grid-column:1/9">
-    Read across the people worth reading on this — Anthropic’s agent guidance, the
-    METR trial, Simon Willison, Mitchell Hashimoto, Armin Ronacher, and Addy Osmani’s
-    “70% problem.” The answer is not “prompt better.” It is: build the loop the agent
-    runs in, and stay the one who judges.
-  </p></div>
+  <div class="grid">
+    <div class="pin">
+      <p class="smark">Explainer</p>
+      <h1>10x is a loop, not a prompt</h1>
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">What</div>
+          <div class="ftx">AI-assisted engineering, evidence first. What the people worth reading
+            actually agree on, and what the one measured trial found.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Sources</div>
+          <div class="ftx">Anthropic, Claude Code best practices · METR, RCT on AI &amp;
+            experienced developer productivity (2025) · Simon Willison · Mitchell Hashimoto,
+            “Non-trivial vibing” · Armin Ronacher, “Agentic coding recommendations” · Addy
+            Osmani, “The 70% problem.” <b>Public sources; no proprietary information.</b></div>
+        </div>
+        <div class="frow">
+          <div class="fm">Back to</div>
+          <div class="ftx"><a href="/work/aping/">Aping</a></div>
+        </div>
+      </div>
+    </div>
 
-  <div class="grid"><div class="idea">
-    <p class="k">The one idea</p>
-    <p>The multiplier comes from a verification loop the agent can run without you — while you keep architecture, review, and taste.</p>
-  </div></div>
+    <div class="splitrule" aria-hidden="true"></div>
 
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">1</span></div><div class="c3-12"><h2>The number</h2></div></div>
-  <div class="grid"><div class="num">
-    <span class="big" data-count="−19%">−19%</span>
-    <span class="lab">measured speed with AI, experienced devs on familiar code <span class="g">(METR RCT: 16 devs, 246 real issues)</span></span>
-  </div></div>
-  <div class="grid"><div class="body">
-    <p>
-      They predicted +24%. They experienced −19%. Afterwards they still believed
-      +20% — a 39-point gap between feeling and fact. AI feels fast; the measured
-      cost was waiting on it, evaluating plausible-but-wrong output, and fixing it.
-    </p>
-    <p>
-      Read the scope before despairing: experts, on code they knew intimately —
-      AI’s weakest terrain. Where it measurably shines is the other side of that
-      boundary: unfamiliar code, greenfield, prototypes, and projects that would
-      never have justified the time at all. The lesson isn’t “AI slows you down.”
-      It’s that unverified AI use can slow you down while feeling like acceleration.
-    </p>
-  </div></div>
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">Read across the people worth reading on this — Anthropic’s agent
+          guidance, the METR trial, Simon Willison, Mitchell Hashimoto, Armin Ronacher, and Addy
+          Osmani’s “70% problem.” The answer is not “prompt better.” It is: build the loop the
+          agent runs in, and stay the one who judges.</p>
+      </div>
 
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">2</span></div><div class="c3-12"><h2>Close the loop</h2></div></div>
-  <div class="grid"><div class="body">
-    <p>
-      The single most repeated instruction in every source: give the agent a check
-      it can run itself — tests, a build, a lint pass, a screenshot diff. Anthropic:
-      “the difference between a session you watch and one you walk away from.”
-      Willison: “if you haven’t seen it run, it’s not a working system.”
-    </p>
-  </div></div>
-  <div class="grid" style="margin-top:0">
-    <div class="step c1-6"><span class="sl">Open loop — where the −19% lives</span><span class="st">Agent works → “looks done” → stops.</span><span class="sd">You are the verifier. Every mistake waits for you to notice it. You can’t leave.</span></div>
-    <div class="block c7-12" style="align-self:start"><span class="st">Closed loop</span><span class="sd">Agent works → runs the check → reads the result → iterates until it passes. You review evidence at the end — not every line as it’s typed.</span></div>
+      <div class="grid sect">
+        <div class="idea c1-12">
+          <span class="k">The one idea</span>
+          <p>The multiplier comes from a verification loop the agent can run without you — while
+            you keep architecture, review, and taste.</p>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">1</span>The number</h2>
+          <div class="sbody">
+            <p>They predicted +24%. They experienced −19%. Afterwards they still believed +20% —
+              a 39-point gap between feeling and fact. AI feels fast; the measured cost was
+              waiting on it, evaluating plausible-but-wrong output, and fixing it.</p>
+            <p>Read the scope before despairing: experts, on code they knew intimately — AI’s
+              weakest terrain. Where it measurably shines is the other side of that boundary:
+              unfamiliar code, greenfield, prototypes, and projects that would never have
+              justified the time at all. The lesson isn’t “AI slows you down.” It’s that
+              unverified AI use can slow you down while feeling like acceleration.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <!-- `data-count` is gone with the count-up animation — see the note on the quiz engine in
+             Layout.astro. It existed to make a 120px numeral arrive; the numeral is 15px. -->
+        <div class="num c1-12">
+          <span class="big">−19%</span>
+          <span class="lab">measured speed with AI, experienced devs on familiar code
+            <span class="g">(METR RCT: 16 devs, 246 real issues)</span></span>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">2</span>Close the loop</h2>
+          <div class="sbody">
+            <p>The single most repeated instruction in every source: give the agent a check it
+              can run itself — tests, a build, a lint pass, a screenshot diff. Anthropic: “the
+              difference between a session you watch and one you walk away from.” Willison: “if
+              you haven’t seen it run, it’s not a working system.”</p>
+          </div>
+        </div>
+      </div>
+      <!-- The two-up `.step` pair is the site's own device and needs no page CSS. `.block` was an
+           accent-filled panel in the old system; global.css already unfilled it, so the pair is
+           two steps now and the second one is not shouting. -->
+      <div class="grid">
+        <div class="step c1-6"><span class="sl">Open loop — where the −19% lives</span><span class="st">Agent works → “looks done” → stops.</span><span class="sd">You are the verifier. Every mistake waits for you to notice it. You can’t leave.</span></div>
+        <div class="step c7-12"><span class="sl">Closed loop</span><span class="st">Agent works → runs the check → iterates until it passes.</span><span class="sd">You review evidence at the end — not every line as it’s typed.</span></div>
+      </div>
+      <div class="grid">
+        <div class="block c1-12">
+          <p>Demand evidence, not assertion: “ran the tests” means showing the output.
+            Ronacher’s tooling rules feed the same loop — tools must be fast (a 5-second compile
+            wrecks iteration), loud on misuse, observable via logs the agent reads.</p>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">3</span>Keep vs delegate</h2>
+          <div class="sbody">
+            <p>This is the knowledge paradox: seniors use AI to accelerate what they already
+              understand and can judge; juniors use it to substitute for understanding — and hit
+              the 70% wall, where every fix spawns new bugs in a system nobody in the loop
+              actually knows.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="step c1-6"><span class="sl">You keep</span><span class="sd">Architecture and interface decisions · the plan (interview first, edit by hand) · final review of every line that ships · breaking deadlocks (after ~2 failed corrections, change strategy) · the last 30% of polish and taste.</span></div>
+        <div class="step c7-12"><span class="sl">You delegate</span><span class="sd">First drafts against a scaffold · research and codebase archaeology (in subagents) · test generation, migrations, mechanical refactors · the iteration grind — the agent never tires of “again, but…”.</span></div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">4</span>Context is scarce</h2>
+          <div class="sbody">
+            <p>Four habits, and all four are about spending a finite window on the thing you are
+              building rather than on the conversation about it.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow"><div class="fm">Reset</div><div class="ftx">Clear between unrelated tasks. Two failed corrections → the context is polluted with bad approaches; start clean.</div></div>
+          <div class="frow"><div class="fm">Plan → fresh</div><div class="ftx">Interview and plan in one session, write the spec down, execute in a new session holding only the spec. The chatter is disposable.</div></div>
+          <div class="frow"><div class="fm">Subagents</div><div class="ftx">Research burns context. Delegate exploration to subagents that report summaries; keep the main window for building.</div></div>
+          <div class="frow"><div class="fm">Prune memory</div><div class="ftx"><b>CLAUDE.md</b> holds only what the agent can’t infer. Test each line: “would removing this cause mistakes?” Bloat makes it ignore the rules that matter.</div></div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">5</span>Start Monday</h2>
+          <div class="sbody">
+            <p>One change a day for a week. Each is small enough to do between other work.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow"><div class="fm">Mon</div><div class="ftx"><b>Add a check.</b> Give the agent something runnable that returns pass/fail and tell it to iterate until green. Ask it to show the output.</div></div>
+          <div class="frow"><div class="fm">Tue</div><div class="ftx"><b>Prune memory.</b> For each line of CLAUDE.md: “would removing this cause mistakes?” Delete half. Watch adherence improve.</div></div>
+          <div class="frow"><div class="fm">Wed</div><div class="ftx"><b>The 2-strike rule.</b> Corrected the agent twice on one issue? Stop. Clear the session, write one better prompt.</div></div>
+          <div class="frow"><div class="fm">Thu</div><div class="ftx"><b>Plan, then fresh.</b> Have the agent interview you, write SPEC.md, then execute in a brand-new session that reads only the spec.</div></div>
+          <div class="frow"><div class="fm">Fri</div><div class="ftx"><b>Delegate the reading.</b> “Use a subagent to investigate X and report back.” Keep your context for the build.</div></div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">6</span>Check your model</h2>
+          <div class="sbody">
+            <p>Six questions. The answer appears when you pick one.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid"><div class="quiz c1-12" id="quiz"></div></div>
+
+      <div class="grid">
+        <div class="foot c1-12">
+          <a href="/work/aping/">Aping</a> ·
+          <a href="/">andrewshiau.com</a>
+          <span class="kb"> · Press <code>⌥G</code> for the grid</span>
+          <span class="tou"> · Set on a 12-column grid</span>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="grid"><div class="body" style="margin-top:var(--unit)">
-    <p>
-      Demand evidence, not assertion: “ran the tests” means showing the output.
-      Ronacher’s tooling rules feed the same loop — tools must be fast (a 5-second
-      compile wrecks iteration), loud on misuse, observable via logs the agent reads.
-    </p>
-  </div></div>
-
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">3</span></div><div class="c3-12"><h2>Keep vs delegate</h2></div></div>
-  <div class="grid" style="margin-top:0">
-    <div class="step c1-6"><span class="sl">You keep</span><span class="sd">Architecture and interface decisions · the plan (interview first, edit by hand) · final review of every line that ships · breaking deadlocks (after ~2 failed corrections, change strategy) · the last 30% of polish and taste.</span></div>
-    <div class="step c7-12"><span class="sl">You delegate</span><span class="sd">First drafts against a scaffold · research and codebase archaeology (in subagents) · test generation, migrations, mechanical refactors · the iteration grind — the agent never tires of “again, but…”.</span></div>
-  </div>
-  <div class="grid"><div class="body" style="margin-top:var(--unit)">
-    <p>
-      This is the knowledge paradox: seniors use AI to accelerate what they already
-      understand and can judge; juniors use it to substitute for understanding — and
-      hit the 70% wall, where every fix spawns new bugs in a system nobody in the
-      loop actually knows.
-    </p>
-  </div></div>
-
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">4</span></div><div class="c3-12"><h2>Context is scarce</h2></div></div>
-  <div class="grid"><div class="facts">
-    <div class="frow"><div class="fm">Reset</div><div class="ftx">Clear between unrelated tasks. Two failed corrections → the context is polluted with bad approaches; start clean.</div></div>
-    <div class="frow"><div class="fm">Plan → fresh</div><div class="ftx">Interview and plan in one session, write the spec down, execute in a new session holding only the spec. The chatter is disposable.</div></div>
-    <div class="frow"><div class="fm">Subagents</div><div class="ftx">Research burns context. Delegate exploration to subagents that report summaries; keep the main window for building.</div></div>
-    <div class="frow"><div class="fm">Prune memory</div><div class="ftx"><b>CLAUDE.md</b> holds only what the agent can’t infer. Test each line: “would removing this cause mistakes?” Bloat makes it ignore the rules that matter.</div></div>
-  </div></div>
-
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">5</span></div><div class="c3-12"><h2>Start Monday</h2></div></div>
-  <div class="grid"><div class="facts">
-    <div class="frow"><div class="fm">Mon</div><div class="ftx"><b>Add a check.</b> Give the agent something runnable that returns pass/fail and tell it to iterate until green. Ask it to show the output.</div></div>
-    <div class="frow"><div class="fm">Tue</div><div class="ftx"><b>Prune memory.</b> For each line of CLAUDE.md: “would removing this cause mistakes?” Delete half. Watch adherence improve.</div></div>
-    <div class="frow"><div class="fm">Wed</div><div class="ftx"><b>The 2-strike rule.</b> Corrected the agent twice on one issue? Stop. Clear the session, write one better prompt.</div></div>
-    <div class="frow"><div class="fm">Thu</div><div class="ftx"><b>Plan, then fresh.</b> Have the agent interview you, write SPEC.md, then execute in a brand-new session that reads only the spec.</div></div>
-    <div class="frow"><div class="fm">Fri</div><div class="ftx"><b>Delegate the reading.</b> “Use a subagent to investigate X and report back.” Keep your context for the build.</div></div>
-  </div></div>
-
-  <div class="grid"><div class="rule"></div></div>
-  <div class="grid"><div class="c1-2"><span class="sn">6</span></div><div class="c3-12"><h2>Check your model</h2></div></div>
-  <div class="grid"><div class="quiz" id="quiz"></div></div>
-
-  <Fragment slot="foot">
-    Sources: Anthropic, Claude Code best practices · METR, RCT on AI &amp; experienced
-    developer productivity (2025) · Simon Willison · Mitchell Hashimoto, “Non-trivial
-    vibing” · Armin Ronacher, “Agentic coding recommendations” · Addy Osmani, “The 70%
-    problem.” Public sources; no proprietary information.
-  </Fragment>
-</Explainer>
+</Layout>
