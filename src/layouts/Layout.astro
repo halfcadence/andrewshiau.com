@@ -16,7 +16,6 @@ const {
   description = 'Andrew Shiau — designer and builder.',
   noindex = false,
 } = Astro.props;
-const year = 2026;
 
 // THE MARK IS NOT HERE ANY MORE (chooser: andrewshiau-panel-shape, Q1/02). This layout used
 // to open with `nav.topbar` — the one full-width element on the site, a 26px mark centred in
@@ -102,7 +101,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
             <span class="kb">Press <code>⌥G</code> to see the grid.</span>
             <span class="tou">Set on a 12-column grid.</span>
           </div>
-          <div class="fr">© {year} Andrew Shiau</div>
+          <!-- NO YEAR, and no © glyph. Annotation: "do these copyright things need a year?"
+               They don't, and the year was a liability: it is a hardcoded `2026`, so the only
+               thing it reliably communicates is how long since the site was last touched — and
+               it communicates that wrongly the moment the calendar turns while the work is
+               still current. Copyright doesn't require a notice at all (Berne, and US law since
+               1989), so the glyph and the date were decoration that dated itself.
+               The name alone says whose page it is, which is the only fact this line has. -->
+          <div class="fr">Andrew Shiau</div>
         </footer>
       </div>
     </div>

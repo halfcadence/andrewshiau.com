@@ -118,27 +118,28 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
            reader who wants the artifacts scrolls one row. One row, not a section of prose —
            the cost of putting a claim before the evidence is a manifesto, and one list row
            can't be one. Label only, no dek: Work and Experiments carry none either.
-           The row is `.espec`: the same ruled row as the two lists below, minus the numeral
-           (one entry doesn't get a set "01" that promises an "02"), with the duality as two
-           nested sub-rows in the two hues instead of a blurb describing them. -->
+           IT IS NOW THE SAME ROW AS EVERY OTHER — title, leader, marker, and nothing else.
+           Annotation: "i think we should cut the design / build sections here and just put
+           title." The row used to carry the two procedures as nested sub-rows (a kicker, a
+           title and a blurb each), which made the Method row four times the height of a Work
+           row and put the most prose on the page in the one place a reader hasn't decided to
+           read yet. It was also the last thing on the index that still had a blurb, after the
+           mono pass took blurbs off the eight rows below it — so the index had one row shaped
+           differently from the other nine for no reason a reader could see.
+           The procedures aren't lost; they are what `/method/` is, one click away, where the
+           `.duo` states them side by side at full size. An index says what's there. -->
       <h2>Method</h2>
       <div class="matrix">
-        <a class="espec" href={methodSpec.href}>
-          <div class="eth">
-            <span class="eh">{methodSpec.title}</span>
-            <span class="ends"></span>
-            <span class="em">
-              <SideDot side={methodSpec.side} />
-              <span class="smeta">{methodSpec.meta}</span>
-            </span>
-          </div>
-          {methodSpec.procedures.map((p) => (
-            <div class:list={['proc', p.side === 'design' ? 'd' : 'b']}>
-              <span class="pk">{p.label}</span>
-              <p class="pt">{p.title}</p>
-              <p class="pd">{p.blurb}</p>
-            </div>
-          ))}
+        <a class="entry" href={methodSpec.href}>
+          {/* No numeral: there is one of it, and a set "01" promises an "02" that never comes.
+              The row still opens with the same 3ch offset as its neighbours so the three lists
+              share one title axis — see `.entry.entry-solo` in global.css. */}
+          <span class="eh">{methodSpec.title}</span>
+          <span class="ends"></span>
+          <span class="em">
+            <SideDot side={methodSpec.side} />
+            <span class="smeta">{methodSpec.meta}</span>
+          </span>
         </a>
       </div>
 
