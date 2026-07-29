@@ -198,7 +198,42 @@ main > .grid:first-child{margin-top:var(--group)}
    the phantom-measure bug this redesign hit four times — a track count written against one grid
    and evaluated inside another. `-1` cannot be wrong. */
 .c1-6{grid-column:1 / 7}   .c7-12{grid-column:7 / 13}   .c1-12{grid-column:1 / -1}
-@media(max-width:720px){ .grid > *{grid-column:1 / -1 !important} }
+/* ── THE HALF-AND-HALF PAIR COLLAPSES AT 1060, with every other two-column device.
+   This was the worst measured defect on the site and it is entirely a gap between two rules:
+   the grid pass moved every HUNG device to 1060 (the width where `--label` can no longer hold
+   its own label) and left the half-and-half spans at their own breakpoints, so between 1060
+   and 720 a `.c1-6` was still six of a shrinking twelve.
+   Measured on /work/luthier/ at 760px: `figure.demo.c1-6` rendered 216px — and these are
+   1000px screen recordings of a Figma UI. The note beside `figure.demo` in this file argues
+   that at 291px "the thing the page is evidence FOR is unreadable, which is the one failure a
+   case study cannot have." 216 is 26% worse than the number this stylesheet already calls a
+   failure. Also measured: `.flow` 203px at 721, `.step` 296px at 1000.
+   1060 is the right number rather than a new one, because it is the same condition — below it
+   the document is too narrow for two of anything to hold text. That makes 1060 mean ONE thing
+   site-wide: two-column devices become one column. `.duo`'s 900 rule and `.mscatter`'s 720 rule
+   are now redundant; they are left in place because each is a single harmless line, and folding
+   them in is a separate change with its own verification. */
+@media(max-width:1060px){ .c1-6,.c7-12{grid-column:1 / -1} }
+/* ── THE TRACKS COLLAPSE TOO, not just the children. This is a real overflow fix, measured.
+   The rule below has always put every child on `1 / -1` at ≤720, so the twelve tracks stop
+   placing anything — but they were still DECLARED, and a 12-track grid has an irreducible
+   minimum width of its own gutters: 11 × 28px = 308px, no matter that `minmax(0,1fr)` lets
+   each track reach zero. Plus `.wrap`'s 2 × 28px padding, that is a 364px floor.
+   So every page scrolled sideways below 364px. Measured on the live site before the fix:
+   `.pin` rendered 308px wide inside a 320px viewport, `scrollWidth` 336 against `clientWidth`
+   320, on 15 of 15 pages. It is pre-existing — the 12-track grid and the 28px gutter predate
+   the grid pass — and it was invisible because every sweep tested 390 and up, which straddles it.
+   `minmax(0,1fr)`, NOT a bare `1fr`. `1fr` means `minmax(auto,1fr)`, whose minimum is
+   min-content — and I tried it: /style/ went from 336px to 847px, because the 1165px table
+   inside `.mdoc` forced the single track open to fit it. The zero-minimum clamp is the whole
+   point of the declaration and it has to survive the collapse.
+   `.duo` and `.links` declare their own twelve tracks and carry the same floor, so they
+   collapse here too. `.guide` is the overlay that draws the columns; with one track it draws
+   one field, which is correct — below 720 there is one field. */
+@media(max-width:720px){
+  .grid,.guide,.duo,.links{grid-template-columns:minmax(0,1fr);column-gap:0}
+  .grid > *{grid-column:1 / -1 !important}
+}
 
 /* THE COLUMN GUIDE — hidden by default; press `g` to flash on */
 .guide{position:absolute;inset:0 var(--gutter);display:none;
@@ -321,15 +356,15 @@ h2{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--in
    fix would leave the next `h3` anyone writes to fall through again. */
 h3,h4,h5,h6{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
 .dek{color:var(--dim);margin:0;font-weight:400;max-width:62ch}
-/* THE STATEMENT — one continuous sentence, one element, the two thesis clauses inline.
-   Still a single element for the same reason as before (block elements can't share a line,
-   so an h1 + p always broke before the thesis and read as two stacked statements), but the
-   size is now the body's and the emphasis is ITALIC rather than colour + 39px.
-   Colour left this sentence because colour has one job now and that job is interaction
-   (chooser Q4/05): a coloured clause in the middle of a paragraph reads as a link that
-   won't click. Plex's true italic is why Plex was picked over JetBrains. */
+/* THE STATEMENT — one sentence at body size, and now literally one sentence. It used to
+   carry the two thesis clauses after the name, in italic, which is why this rule had a
+   `.t-design` / `.t-build` pair to set them; the clauses are gone (see index.astro) and the
+   pair went with them rather than staying as a live-looking selector nothing emits.
+   Still body size, not 39px, and still no colour: colour has one job on this site and that
+   job is interaction (chooser Q4/05) — a coloured clause mid-paragraph reads as a link that
+   won't click. Nothing inside the sentence is emphasised at all now, which is the simpler
+   version of the same rule. */
 .statement{font-weight:400;margin:0;max-width:62ch}
-.statement .t-design,.statement .t-build{font-style:italic;color:var(--dim)}
 /* 62ch, not 33em. In a monospace face the measure can be stated in characters exactly,
    because every character is one cell wide — 62 is the band a reader tracks without
    losing the line, and here it's literal rather than an approximation. */
@@ -393,7 +428,16 @@ p a:hover{color:var(--accent);text-decoration-color:var(--ink)}
    Kept everywhere else: on a case study there are two or three spans per page and the wash is the
    only thing that separates a token from the sentence around it. */
 code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em}
-.mdoc code{background:none;padding:0;color:var(--ink)}
+/* `overflow-wrap:anywhere` because a code span is one unbreakable token and this document is
+   full of them. Measured at 320px: the column is 264px (29 characters) and the longest span on
+   /style/ is the 86-character font stack `ui-monospace, "SF Mono", SFMono-Regular, …`, which
+   pushed the page to a 334px scrollWidth. Isolated by hiding every `code` element and watching
+   the overflow disappear — 611 spans on the page, one of them too long for a phone.
+   `anywhere` rather than `break-word`: this is the same declaration `.shead > h2` uses for the
+   same reason, and inside a code span a mid-token break is the honest rendering — the alternative
+   is a horizontal scrollbar on an inline fragment. Prose is unaffected; this is scoped to
+   `.mdoc code`, and the site's own copy has no 29-character words in it. */
+.mdoc code{background:none;padding:0;color:var(--ink);overflow-wrap:anywhere}
 /* fine print — faint, not small. It was 13px/20; there is one size now, so the aside
    recedes by VALUE alone. That is the ramp's whole replacement, stated in one rule. */
 .fine{color:var(--faint)}
@@ -584,7 +628,14 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    1.4em: in a monospace face the list marker plus its space is exactly two cells. */
 .duo ol{margin:var(--lead) 0 0;padding-left:2ch;color:var(--dim)}
 
-@media(max-width:900px){ .duo .dcol{grid-column:1 / -1} }
+/* 1060, not 900 — the same width every other two-column device gives at. AND the grid itself
+   collapses: `.duo` declares its own twelve tracks, so leaving them at 12 keeps the 11 × 28px
+   gutter floor (308px) even when every child is `1 / -1`, which is what still overflowed a 320px
+   viewport after the `.grid` fix. Measured: `.dcol` rendered 308px inside a 264px column. */
+@media(max-width:1060px){
+  .duo{grid-template-columns:minmax(0,1fr);column-gap:0}
+  .duo .dcol{grid-column:1 / -1}
+}
 
 /* RULES — the five numbered rules on /method/, as a lattice of `.step` cells rather than
    two `.grid` rows of hand-written `grid-column` spans. The spans were inline styles, which
@@ -596,9 +647,23 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    floor is the longest title the page sets: "Simplify by removal, not by hiding" is 35
    characters, so `38ch` holds it on two lines with air. Stated in `ch` because the cell's
    content is monospace and `ch` is the only unit that means anything to it.
-   `row-gap` is the group measure, so this device breaks to the same rhythm as everything. */
+   `row-gap` is the group measure, so this device breaks to the same rhythm as everything.
+   ── `min(38ch,100%)`, AND THE 38ch FLOOR WAS UNREACHABLE. Two bugs, one expression.
+   `minmax(38ch,1fr)` sets an absolute 342px floor (38 × 9px). Two of those plus a gutter needs
+   712px — and the document's hard maximum is 700 (8 tracks + 7 gutters at the 1120 measure). So
+   `auto-fit` could never fit two columns at ANY viewport width: measured live at 1512, the
+   computed template was a single `700px` track. The comment above claims "3-up at the full
+   measure, one column on a phone"; both halves were false, and had been since the document went
+   from 12 fields to 8 — the number moved and this floor didn't get re-checked against it.
+   Worse at the bottom end: a floor is a floor, so at 390px the cells still rendered 342px inside
+   a 334px column and broke the document's right edge; below 370 it became real page scroll.
+   `min(38ch,100%)` is the standard auto-fit guard — the track wants 38ch but may not exceed its
+   container, so it shrinks instead of overflowing. That fixes the narrow end. The wide end stays
+   1-up, which is now honest rather than accidental, and the comment above says so. Making it
+   2-up would mean a ~32ch floor, and 32 characters is under the title's own 35 — the reason
+   38 was chosen. One column it is. */
 .rules{grid-column:1 / -1;display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(38ch,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(min(38ch,100%),1fr));
   column-gap:var(--gutter);row-gap:var(--group)}
 
 /* BLOCK — NO LONGER A FILLED FIELD. Annotation: "dont like this block treatment its not in
@@ -643,7 +708,35 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    its narrowest element, wrapping to five lines.
    `grid-column:1 / -1` beats the `.c1-6` span without touching five files. The 62ch cap still
    applies, so the block is exactly as wide as the prose it interrupts. */
-.block{grid-column:1 / -1;align-self:start;max-width:62ch;margin:var(--sect) 0}
+/* THE ISOLATION IS ON THE WRAPPER NOW, NOT ON THE BLOCK — and that is a measured bug fix, not a
+   refactor. Annotation on /method/: "i know we love space but we somehow might have a gotten a
+   little TOO Much space between 'jsut different' and 'rules for both' can u investigate how so
+   much space got in there."
+   Measured on the running page: 224px of white between the block's last line and the `Rules for
+   both` head, and 168px above it. Neither is on the scale (14/28/56/112) and 224 is twice the
+   page's largest interval.
+   The mechanism: this rule asked for `margin:var(--sect) 0`, but `.block` is a GRID ITEM — it is
+   placed on its `.grid` wrapper's tracks. Grid items do not margin-collapse with anything, ever.
+   So the block's 112 could not merge with the wrapper's interval the way a block-flow margin
+   would; it ADDED to it. Above: the wrapper's 56 + this 112 = 168. Below: this 112 + the next
+   `.grid.sect`'s 112 = 224. Two elements each claiming the same interval, which is exactly the
+   failure `.idea` and `.num` in this file already document — both of them zero their own margin
+   for this reason, and the note at `.idea` even asserts that "`.facts`, `.block`, `.matrix` leave
+   vertical space to its `.grid` wrapper". That was true of the other two and never true here.
+   The fix is to make that claim true: the block has NO margin, and the interval belongs to the
+   wrapper, stated once. `:has(> .block)` rather than a new class on seven pages — the same device
+   `.feed .grid > .c1-12:has(> h2:only-child)` already uses, and the condition is genuinely "this
+   grid contains the loud sentence" rather than something a hand-typed class would have to
+   remember. It outranks `.grid + .grid`'s one lead, so all seven call sites get `--sect` above
+   without an inline style (method.astro's `--group` inline is deleted — an inline would have beaten
+   this rule and kept the page at 168).
+   BELOW is left to whatever follows, which is the same principle: six of the seven blocks are
+   followed by a `.grid.sect`, whose own 112 is the isolation. The seventh is /work/explain/, where
+   the next element is the embed the block is talking about ("Both examples below are live") and its
+   36px inline holds the pair together on purpose. The block's air is now stated by ONE element in
+   every case, so there is nothing left to stack. */
+.grid:has(> .block){margin-top:var(--sect)}
+.block{grid-column:1 / -1;align-self:start;max-width:62ch;margin:0}
 .block .st{display:block;font-weight:600}
 .block .sd{display:block;color:var(--dim);margin-top:var(--tight);font-weight:400}
 
@@ -1680,7 +1773,16 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
 .links a:hover .arrowc{padding-left:1ch}
 /* `font-family:var(--sans)` was here, on a site that no longer has a sans. */
 .links a .lu{display:block;margin-top:var(--tight)}
-@media(max-width:720px){.links a,.links a:nth-child(3n+1),.links a:nth-child(3n+2),.links a:nth-child(3n+3){grid-column:1 / -1;margin-top:0}}
+/* The staircase collapses at 1060 with everything else, and the GRID collapses with it — the
+   twelve tracks carry the same 308px gutter floor that overflowed 320px viewports. Measured in
+   the band before this: at 760px the stagger put link 2 at x=191 while link 1 ended at x=203, so
+   the "diagonal" overlapped itself by 13px with each entry 19 characters wide. Below 1060 the
+   tracks are too narrow for a 3-track stagger to read as anything. */
+@media(max-width:1060px){
+  .links{grid-template-columns:minmax(0,1fr);column-gap:0}
+  .links a,.links a:nth-child(3n+1),.links a:nth-child(3n+2),.links a:nth-child(3n+3){
+    grid-column:1 / -1;margin-top:0}
+}
 
 /* REDUCED MOTION. STYLE.md already required this ("Respect `prefers-reduced-motion` for
    any new non-essential animation") and `Explainer.astro` obeyed it; this stylesheet never
