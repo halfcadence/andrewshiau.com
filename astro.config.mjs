@@ -25,12 +25,13 @@ export default defineConfig({
     // /sitemap-index.xml used to 404 — the comment on `site` above claimed it drove a
     // sitemap, but nothing generated one.
     //
-    // PINNED to @astrojs/sitemap 3.6.0, exact, and it must stay pinned while this site is
-    // on Astro 4. 3.7.0 moved to the `astro:routes:resolved` hook, which Astro 4 never
-    // fires: `_routes` stays undefined and the build dies in the integration's own
-    // astro:build:done with "Cannot read properties of undefined (reading 'reduce')".
-    // The failure is at the END of the build, after all 13 pages report success, so the
-    // log reads green until the last two lines. Bump this only with Astro itself.
+    // UNPINNED. This was held at exactly 3.6.0 while the site was on Astro 4, because 3.7.0
+    // moved to the `astro:routes:resolved` hook that Astro 4 never fires — `_routes` stayed
+    // undefined and the build died in the integration's own `astro:build:done` with
+    // "Cannot read properties of undefined (reading 'reduce')", at the END of the build, so
+    // the log read green until the last two lines. That note said "bump this only with Astro
+    // itself", and that is what happened: Astro 7 fires the hook, so 3.7.x works and the pin
+    // is gone. 14 URLs in the sitemap before and after.
     sitemap({
       // Two exclusions, both because the URL isn't a page a reader can land on.
       //
