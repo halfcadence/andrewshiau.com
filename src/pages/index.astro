@@ -3,20 +3,16 @@ import Layout from '../layouts/Layout.astro';
 import { methodSpec, work, experiments } from '../data/experiments';
 import SideDot from '../components/SideDot.astro';
 import LockedRow from '../components/LockedRow.astro';
-import spec from '../../method/method.md?raw';
 
-// The thesis below is also the second sentence of method/method.md. Two copies of one
-// claim drift, and README.md saying "these must match" is a comment, not a check —
-// config that can drift from code will drift, so assert it. This fails the build at the
-// only moment a human is looking, and it fails loudly rather than letting the site
-// quietly stop quoting its own spec. Whitespace-collapsed because the markdown wraps
-// the sentence across two lines.
-const THESIS = 'Taste finds the simplest form; engineering proves the simplest solution.';
-if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
-  throw new Error(
-    'method/method.md no longer contains the thesis sentence index.astro quotes:\n  ' + THESIS
-  );
-}
+// THE THESIS ASSERTION IS GONE, with the sentence it guarded. It checked that
+// method/method.md still contained "Taste finds the simplest form; engineering proves the
+// simplest solution." — correct while the panel quoted that sentence verbatim, because two
+// copies of one claim drift and a README comment is not a check. The statement is now one
+// plain sentence (see the h1), so the assertion guarded a string this page no longer prints:
+// method.md could drop the aphorism and nothing here would be wrong, or keep it and nothing
+// here would be right. A check that can't fail for a real reason is a future false alarm.
+// `/method/` still asserts the one sentence IT quotes — see the SHARED array in method.astro.
+// The `?raw` import of the spec went with it; this page no longer reads the file.
 
 // `ENTRY_COUNT` was here, deriving the panel's Index row from the lists so a hand-written
 // "8 case studies" couldn't go stale. The row is gone — it counted what was already on screen
@@ -53,13 +49,16 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
            SideDot.astro — and the panel opens on the sentence, which is the thing a hiring
            manager came for. Nothing replaced it: the panel's own hairline is the top edge. -->
 
-      <!-- Same single-element statement as before, at the panel's measure: the name
-           sentence with the two thesis clauses inline, each in its own hue. Still the only
-           place colour enters body copy, because here the two halves of the practice ARE
-           the subject. The nav wordmark already says the name, so this isn't a repeat. -->
-      <h1 class="statement">Andrew Shiau is a frontend engineer who designs and builds,
-        chasing simplicity. <span class="t-design">Taste finds the simplest form</span>,
-        <span class="t-build">engineering proves the simplest solution</span>.</h1>
+      <!-- ONE SENTENCE NOW (annotation: the copy in full). It carried the two thesis clauses
+           inline — "Taste finds the simplest form, engineering proves the simplest solution" —
+           in italic after the name. That is the aphorism form of the claim, and the aphorism is
+           what `/method/` is for: the row linking it sits one column to the right of this
+           sentence, so the panel was stating the spec's thesis directly beside the link to the
+           spec. What a reader wants from the first line is who I am and what I go after.
+           The `.t-design` / `.t-build` spans went with the clauses, and so did their rule in
+           global.css — nothing else used them. -->
+      <h1 class="statement">Andrew Shiau is a frontend engineer who designs and builds, trying
+        to find the simplest solutions for everything.</h1>
 
       <!-- The ledger — the "instrument" half of the pick. ONE row, and the one fact here that
            a reader can't get by looking at the page: what I am doing now. No invented metric,
@@ -77,8 +76,12 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
       <div class="pled">
         <div class="prow">
           <span class="pk">Currently</span>
-          <span class="pv">Design systems engineer at Amazon, building a vibe design tool for
-            the Amazon store.</span>
+          <!-- "for Amazon design systems", not "for the Amazon store" (annotation). The store is
+               one surface the tool builds against; what it actually builds against is a set of
+               design systems, and naming the surface undersold the scope by a factor of the
+               number of systems. -->
+          <span class="pv">Design systems at Amazon, building a vibe design tool for Amazon
+            design systems.</span>
         </div>
       </div>
 
@@ -97,9 +100,20 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
            No literal ↗ in the link text: `a[target]` already appends one in CSS, and writing
            it by hand rendered "github ↗ ↗". The colophon's own external link never had one,
            which is the pattern these should have followed. -->
+      <!-- THE RÉSUMÉ IS ITS OWN ROW (annotation: "can we add a resume here … i think form should be
+           like a 1 page site which can be exported to a 1-2 page pdf"). It is placed above
+           `Elsewhere` rather than inside it, for the reason `Contact` was split out of that row in
+           the first place: `Elsewhere` is where else I post, and a résumé is a different ask — it
+           is the thing a hiring manager came to this panel for. Third in reading order behind the
+           address, because the address is what produces a reply.
+           An internal path, so it takes the ordinary link idiom and no ↗. /resume/ is the page and
+           the paper version — it prints to a two-page PDF, so there is no file to link. -->
       <div class="pfeet">
         <p class="pfoot">Contact
           <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+        </p>
+        <p class="pfoot">Résumé
+          <a href="/resume/">/resume/</a>
         </p>
         <p class="pfoot">Elsewhere
           <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a>
@@ -176,6 +190,21 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
                 <SideDot side={x.side} />
                 <span class="smeta">{x.meta}</span>
               </span>
+              {/* THE BLURB, ON WORK ROWS ONLY (chooser: andrewshiau-decisions, Q1/02).
+                  It was written for every artifact in experiments.ts and rendered for none of
+                  them — `index.astro` referenced `.blurb` zero times — so the index labelled
+                  Luthier "Figma widget" while the sentence describing a pipeline that makes
+                  50,000 marketing images a year sat unused in the data.
+                  THREE, not nine, and that is the whole design: STYLE.md's objection to blurbs
+                  is real ("eight blurbs is eight sentences you must read to find the one you
+                  want"), and it applies to a list you are scanning to CHOOSE from. It does not
+                  apply to the three rows a stranger has to be able to judge. Experiments stay
+                  bare, which turns the bareness itself into the hierarchy signal that Work
+                  matters more — a distinction the index could not previously make, because
+                  every row was identical.
+                  `.ed` is the existing class. It was `display:none` — a rule kept for a device
+                  nothing emitted — and it now has a call site again. */}
+              <span class="ed">{x.blurb}</span>
             </a>
           )
         ))}

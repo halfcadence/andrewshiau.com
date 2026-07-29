@@ -1043,6 +1043,27 @@ figure.demo.hang video{width:100%}
 /* The two blocks are one continuous document, so the panel gets no bottom rule, no bottom
    border, and no extra air beyond the group gap that separates every group from the next. */
 .pin{margin-bottom:var(--group)}
+/* ── ON A PHONE, CONTACT GOES BELOW THE WORK (chooser: andrewshiau-decisions, Q2/02).
+   Measured at 390×844 before this: the first Work row sat at y=938 — below the fold — because
+   the statement, the Currently row, Contact and Elsewhere all come first, and at ≤1060 the
+   Contact/Elsewhere pair un-hangs into two stacked blocks that cost ~120px. So a phone reader's
+   first artifact was `Method / The operating spec`: the most abstract thing on the site, with the
+   three projects off-screen. After: the first Work row is at y=620. Nothing was deleted and no
+   device changed — the same blocks are in a different order at one width.
+   `display:contents` is the mechanism and it is the only one that works here. `.pfeet` is a child
+   of `.pin`, and `order` only sorts an element among its own siblings — so ordering it could
+   never move it past `.feed`, which is `.pin`'s sibling, not its child. Dissolving `.pin` promotes
+   the statement, the ledger and the feet to grid items of `.grid.split`, and then one `order`
+   does it. This costs nothing because `.pin`'s only own declaration is the margin above, which the
+   `--sect` below replaces at this width.
+   The reasoning the panel's own comment gives for putting contact high — "reaching me shouldn't
+   require finishing the page" — is answered rather than overruled: the colophon has carried the
+   address all along, so on a phone it is below the work AND still on the page twice. */
+@media(max-width:720px){
+  .pin{display:contents}
+  .pin > *{grid-column:1 / -1}
+  .pfeet{order:99;margin-top:var(--sect)}
+}
 /* `.splitrule` still ships in the markup of ten pages — PanelHead emits it, and so do
    index.astro and gate.astro. It draws NOTHING now. Kept as an explicit `display:none`
    rather than by deleting the element from ten files: the rule states the intent in one
@@ -1133,7 +1154,15 @@ figure.demo.hang video{width:100%}
    head is bound to the list it opens (one lead) and cut off from the section before it (four).
    Space alone says "new section" now that the head is the same size and case as its own rows. */
 .feed > h2{margin-top:var(--sect);margin-bottom:var(--lead)}
-.feed > h2:first-child{margin-top:0}
+/* `margin-top:0` on the first head is right on DESKTOP — `.feed` is its own block below the
+   panel, so the panel's `--group` already supplies the interval and a `--sect` on top of it would
+   double. It is wrong at ≤720, where Q2/02 makes `.pin` `display:contents`: the panel's children
+   and the feed become siblings of one grid, so the panel's margin is gone and "Method" landed
+   FLUSH against the Currently value — measured, a 0px gap where every other head has 112.
+   Scoping the reset to above 720 restores the section interval on a phone without touching the
+   desktop stack. Found in the mobile screenshot, not by the numbers: the two blocks read as one
+   run-on paragraph. */
+@media(min-width:721px){ .feed > h2:first-child{margin-top:0} }
 /* ≤720px the grid already collapses every child to full measure (see the `.grid > *` rule
    at the top of this file), so the one column needs no breakpoint of its own. That is the
    other thing the direction buys: the layout that works at 390px is the same layout. */
@@ -1205,11 +1234,45 @@ figure.demo.hang video{width:100%}
    colliding with it. It draws nothing: a dotted leader was tried in the chooser's Direction
    03 and it turns a quiet list into a menu. */
 .entry .ends{flex:1 1 auto;min-width:16px}
-/* The blurb, if a row still carries one in the markup: not displayed. Kept as a rule rather
-   than by editing eight data entries, because the blurbs are the case-study deks and the data
-   is the source of truth for both — see `experiments.ts`, where `blurb` still feeds the
-   case-study page's own opening line. */
-.entry .ed{display:none}
+/* ── THE BLURB IS BACK, ON WORK ROWS ONLY (chooser: andrewshiau-decisions, Q1/02).
+   This was `display:none` — a rule kept for a device nothing emitted, which is the shape of dead
+   CSS even when it is deliberate. Meanwhile the blurbs existed for all nine artifacts in
+   `experiments.ts` and rendered for none, so the index called Luthier "Figma widget" and the
+   sentence about a pipeline making 50,000 marketing images a year sat unused in the data.
+   Three rows, not nine. STYLE.md's objection holds for a list you scan to choose from and not
+   for the three rows a stranger has to judge; Experiments keep the bare treatment, which makes
+   the bareness the signal that Work is the more important list. The index could not draw that
+   distinction before, because every row was identical.
+   `flex:0 0 100%` because `.entry` is a flex row: the blurb has to take a line of its own or it
+   competes with the meta column for the leader space. `padding-left:4ch` puts it on the TITLE's
+   axis (3ch numeral + 1ch gap), not the row's, so the sentence hangs under the thing it
+   describes rather than under the number. `--tight` above it, because a blurb and its title are
+   one object — the next ROW is `--group` away, and that 14-vs-56 ratio is what keeps three
+   three-line rows readable as three things.
+   `3ch` is measured, not derived: `.en` renders 18px wide (two digits) plus a `1ch` margin = 27px
+   to the title's edge, which is 3ch exactly. Verified with a Range over the text node rather than
+   a bounding box on the element — `.ed` is a full-width flex item, so its BOX starts at the row's
+   left edge and the padding moves its TEXT; measuring the box says 224 and measuring the text says
+   251, and only the second one is what a reader sees. Title text and blurb text both land on 251. */
+.entry .ed{flex:0 0 100%;display:block;color:var(--dim);max-width:62ch;
+  margin-top:var(--tight);padding-left:3ch}
+/* Row-to-row spacing has to grow with the blurb, or three 3-line rows run together into one
+   twelve-line block. `:has()` keeps Experiments at their own rhythm without a second class.
+   BOTH combinators are needed. `.entry + .entry` misses the pair either side of the locked row,
+   because `LockedRow` emits a `.egaterow` sibling between them — measured: the gap between rows
+   01 and 02 was 0 while 02→03 was 56. The second selector catches the row after that cell. */
+/* `~`, not `+`, and the DOM is why: `LockedRow` emits three siblings — the row, its `.egaterow`
+   gate cell, AND an inline `<script>` — so between row 01 and row 02 there are two nodes, not one.
+   Measured with `+ .egaterow + .entry`: the 01→02 gap was still 0 while 02→03 was 56. A general
+   sibling combinator doesn't care how many nodes intervene, and `:has(.ed)` already restricts it
+   to rows that carry a blurb, so it cannot leak into Experiments.
+   The `~` is scoped by `.matrix`, so it only ever matches inside one list. */
+.matrix .entry:has(.ed) ~ .entry{margin-top:var(--group)}
+@media(max-width:1060px){
+  /* The 3ch numeral column disappears when the row wraps, so the hanging indent would leave the
+     blurb floating 4 characters off the page's one left edge. */
+  .entry .ed{padding-left:0}
+}
 /* THE MARKER, at the end of the line. It has no track any more — the leader puts it at the
    right edge, and because every row shares one measure the markers form their own column
    anyway. That is the document's argument in miniature: the alignment a grid track was

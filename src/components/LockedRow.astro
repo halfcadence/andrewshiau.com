@@ -47,6 +47,11 @@ const Row = open ? 'div' : 'a';
     <SideDot side={x.side} />
     <span class="smeta">{x.meta}</span>
   </span>
+  {/* The blurb, same as every other Work row (chooser: andrewshiau-decisions, Q1/02). This row is
+      Work 01 and it is the one a hiring manager reads first, so it cannot be the one row in the
+      section with no sentence. It also does the job the gate's own copy can't: the ask inside the
+      expanded cell is only visible AFTER the click, and this is visible before. */}
+  <span class="ed">{x.blurb}</span>
 </Row>
 
 <div class:list={['egaterow', { open }]} id={id} hidden={!open}>
