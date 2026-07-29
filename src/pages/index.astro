@@ -226,9 +226,14 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
       <span class="ck">Before AI</span>
       <a href="https://2018.andrewshiau.com" target="_blank" rel="noopener">portfolio2018</a>
     </div>
+    <!-- A colophon states what the page is set in, so it has to be true. It said "Graphik,
+         self-hosted — the one typeface, from the 2018 portfolio" for one deploy after the mono
+         pass shipped, which made the one fact on the page a reader could check against the page
+         itself the one fact that was wrong. Caught by grepping the LIVE html for `Graphik`
+         rather than the source. -->
     <div class="colo c2">
       <span class="ck">Set in</span>
-      Graphik, self-hosted — the one typeface, from the 2018 portfolio.
+      IBM Plex Mono, self-hosted — one typeface, one size.
     </div>
   </div>
 </Layout>

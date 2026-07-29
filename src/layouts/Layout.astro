@@ -54,8 +54,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
          the title and nothing else — the first impression of a site whose whole argument
          is that it was designed was a bare grey rectangle.
          og.png is a real raster, not the favicon SVG: no unfurl renderer draws SVG. It is
-         generated from tools/og-card.html so the card is set in the site's own Graphik and
-         hexes rather than approximated — recipe in README.md. -->
+         generated from tools/og-card.html so the card is set in the site's own typeface and
+         hexes rather than approximated — recipe in README.md.
+         KNOWN STALE: og.png and tools/og-card.html are still Graphik at the old ramp, so the
+         unfurl card no longer looks like the site it links to. Re-shooting it is a step in the
+         design-system pass (it needs the card rebuilt in Plex, then the raster regenerated). -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
