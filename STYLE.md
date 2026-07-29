@@ -746,6 +746,72 @@ Kept because they're subtle and on-system. Don't add more without reason.
 
 ---
 
+## The design system — Basecoat, bound
+
+The base is **[Basecoat](https://basecoatui.com)**: shadcn/ui's components and visual patterns as
+plain HTML classes, with **no React**. Rendered at **andrewshiau.com/system/**.
+
+Researched before installing, because the obvious answer was wrong for this site:
+
+| | React? | Tailwind? | Verdict |
+|---|---|---|---|
+| shadcn/ui | **required** | **required** | its Astro install page requires `--add react`; components are imported as React components |
+| Basecoat | no | required v4 | **picked** — the patterns without the runtime |
+| Open Props | no | no | 500+ tokens where this site uses ~15 |
+
+The site ships **0 kb of JS** and has **one form control and no buttons**. shadcn's three main
+offers — button variants, Radix a11y primitives, Tailwind utilities — had nothing to attach to.
+
+### The one decision: Basecoat's tokens are bound to ours
+
+`src/styles/system.css` re-points all 149 of Basecoat's variables at tokens this site already
+measured, inside an `@theme` block so Tailwind's own utilities resolve to them too. A Basecoat
+component dropped on any page inherits Plex Mono at 15/28, warm paper, the three greys, the one hue
+and square corners **without being restyled at the call site** — and dark mode needs no second
+binding, because the right-hand side already flips.
+
+The alternative (let Basecoat's defaults win, override per component) is how a design system becomes
+a pile of `!important`, and would have put a rounded, sans-serif, blue button on a site whose whole
+argument is one typeface, one size, no rules.
+
+### Four rules enforced on Basecoat's own classes
+
+Tokens carry values; these are decisions, so they are stated as CSS:
+
+1. **No filled surfaces.** `.card`, `.alert`, `.popover`, `.dialog` lose their background, border
+   and padding. Every box came out with the document direction, including the one filled `.block`.
+2. **No caps, anywhere.** `.label`, `.btn`, `.badge`, `.kbd` get `text-transform:none`.
+3. **One size.** Every `-sm` / `-lg` modifier collapses to `--step`. A component offering size
+   modifiers is offering a ramp, and there isn't one.
+4. **The field is a line you type on** — the one Basecoat component actually used, rebound to the
+   shipped treatment.
+
+`system.css` loads **before** `global.css`, so where they disagree the site's measured rule wins on
+cascade order rather than on `!important`.
+
+### Imports are per-component and explicit
+
+Basecoat's full bundle is 234 kB for 38 components. Four are imported (`input`, `label`, `table`,
+`kbd`); two appear on a real page. **If a component has no call site, don't import it** — and if a
+specimen on `/system/` has no call site, delete the specimen. A system documenting unused
+components is a catalogue.
+
+The import path is `basecoat-css/components/<name>.css`. The short form the docs show
+(`basecoat-css/input`) fails with `Missing "./input" specifier`: the bare subpaths in that package's
+`exports` map are its **JavaScript** modules.
+
+### `/system/` is the visualizer, and every specimen is real
+
+No isolated sandbox and no second copy of any CSS — the specimens are `.frow`, `.entry`, `.f input`
+and `MarkFigure` with no overrides, so a specimen that renders correctly there renders correctly on
+a case study. Only the *chrome* (swatch, space bar, specimen row) is new CSS.
+
+The token values are duplicated in that page's frontmatter and **asserted against `global.css` at
+build time** — nine declarations, checked literally. A visualizer that lies is worse than no
+visualizer, so if a token moves and the page isn't updated, the build fails.
+
+---
+
 ## `/style/` — this file, as a page
 
 This document is rendered at **andrewshiau.com/style/**, from this file, at build time. It is set

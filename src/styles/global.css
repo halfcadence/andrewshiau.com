@@ -1230,6 +1230,62 @@ figure.demo.hang video{width:100%}
   .colo-lab{margin-top:0}
 }
 
+/* ── /system/ SPECIMENS. Six rules, and they draw the SPECIMEN CHROME only — the swatch square,
+   the space bar, the row that lays a token beside its job. Every actual device on that page
+   (`.frow`, `.entry`, `.f input`, the marker) is the real class with no override, which is the
+   property that makes the page evidence rather than a mock-up. If a rule here ever starts styling
+   a device instead of a specimen, the page has stopped being true.
+   `.sysrow` is the two-axis pair one level down: swatch + token at the annotation edge, value and
+   job on the content side. It re-uses `16ch` so the specimen list lands on the page's own axis. */
+/* ── THE SPECIMEN ROW IS THE SITE'S OWN PAIR, one level down. Two attempts got this wrong by
+   trying to fit four columns on one line, and the arithmetic says it never fits: the document
+   column is 68ch, four tracks plus three gutters spend 53 of them, and the longest job string is
+   49 characters. Rows wrapped to six lines, then to four.
+   So it uses the device the rest of the site uses. The SPECIMEN (swatch or bar, plus the token
+   name) is the annotation and sits on the 16ch axis at column 1; the value and the job are the
+   content and sit on the second axis, the value above the job as a `--tight` pair. Identical
+   structure to a `.frow`, which is the point — a specimen sheet whose own rows disobey the system
+   it documents is not evidence. */
+.sysrows{grid-column:1 / -1;margin-top:0}
+.sysrow{display:grid;grid-template-columns:16ch 1fr;column-gap:var(--gutter);
+  margin-top:var(--group)}
+.sysrow:first-child{margin-top:0}
+/* The specimen cell: swatch/bar and token name together, on one line, in the annotation column. */
+.sysrow > .sw,.sysrow > .bar{grid-column:1;grid-row:1}
+.sysrow > code{grid-column:1;grid-row:1;padding-left:4ch;background:none;color:var(--ink)}
+.sysrow-bar > code{padding-left:0;grid-row:2;padding-top:var(--tight)}
+.sysrow .sysv{grid-column:2;grid-row:1;color:var(--faint)}
+.sysrow .sysj{grid-column:2;grid-row:2;color:var(--dim);max-width:62ch;
+  padding-top:var(--tight)}
+/* The swatch is a character cell, not a chip: 2ch square, so it sits in the grid the type sits in.
+   `--line` border so a swatch whose fill IS the paper still has an edge. */
+.sysrow .sw{width:2ch;height:2ch;background:var(--sw);border:1px solid var(--line);
+  display:block;align-self:center;
+  /* the clipped-word `.sw` in a marker is a different element entirely — this one is a block with
+     a size, so the absolute-positioned rule for `.entry .em .side .sw` cannot reach it */
+  position:static;clip-path:none;overflow:visible}
+/* The space bar draws the interval at ACTUAL SIZE, horizontally, so 14 / 28 / 56 / 112 can be
+   compared by eye rather than read as numbers. Ink, because it is the specimen's subject. */
+.sysrow .bar{display:block;width:var(--h);height:2px;background:var(--ink);align-self:center;
+  grid-column:1 / 2;min-width:var(--h)}
+/* The bar row puts its token UNDER the bar rather than beside it: `--sect` draws 112px = 12.4ch,
+   which fills the 16ch annotation column, so a token name beside it would have 3ch. Stacked, the
+   bar is drawn at actual size and labelled underneath — which is also how a scale is drawn in a
+   type specimen. */
+/* Two specimens side by side, for the hung-vs-stacked pair. Stacks below the split. */
+.syspair{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;column-gap:var(--gutter)}
+.syspair .sysstack{display:block;color:var(--dim);max-width:62ch}
+.sysmarks{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,1fr);
+  column-gap:var(--gutter)}
+.sysmarks > div{display:grid;grid-template-columns:3ch 1fr;column-gap:1ch;align-items:baseline}
+.sysmarks .sysj{grid-column:2;color:var(--dim)}
+.sysfield{grid-column:1 / -1;max-width:34ch}
+@media(max-width:900px){
+  .syspair,.sysmarks{grid-template-columns:1fr;row-gap:var(--group)}
+  .sysrow,.sysrow:has(.bar){grid-template-columns:1fr;row-gap:0}
+  .sysrow .bar{grid-column:1}
+}
+
 /* ── THE MARKDOWN DOCUMENT (`/style/`). One block, and it is the only place on the site where a
    heading hierarchy arrives already nested — a rendered markdown file brings its own h2/h3, its
    own lists and tables, and no `.shead` to hang a head from.

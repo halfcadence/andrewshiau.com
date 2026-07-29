@@ -1,0 +1,322 @@
+---
+// /system/ — THE DESIGN SYSTEM, RENDERED.
+//
+// Task #7's visualizer. It is a Storybook in the only form that suits this site: every specimen
+// below is the REAL device, drawn by the real class, so the page cannot claim a token or a rule
+// the stylesheet doesn't actually implement. There is no isolated component sandbox and no second
+// copy of any CSS — a specimen that renders correctly here renders correctly on a case study,
+// because it IS the case study's markup.
+//
+// It ships publicly because for someone who builds design systems, the system is the evidence.
+// The three artifacts now reinforce each other: /method/ says how a decision gets made, /style/
+// is the steering file that records the decisions, and /system/ shows the decisions rendered.
+//
+// WHAT THIS PAGE MUST NEVER BECOME: a gallery of components the site doesn't use. Basecoat ships
+// 38; four are imported (see system.css) and only two are on any page. If a specimen here has no
+// call site, delete the specimen — a design system documenting things nobody uses is a catalogue,
+// and the reason this site has no dialog, dropdown or toast is that it needs none.
+//
+// The swatch/scale data below is written out rather than parsed from the CSS. A build-time parse
+// was the first instinct and it is worse: `--group: 56px` is trivially greppable, but the REASON
+// (two leadings, so a group break is unmistakably larger than the gap inside a group) is the part
+// worth publishing, and that only exists in prose. So the values are duplicated here and asserted
+// against the stylesheet at the bottom of this frontmatter — if a token moves and this page isn't
+// updated, the build fails.
+import Layout from '../layouts/Layout.astro';
+import MarkFigure from '../components/MarkFigure.astro';
+import css from '../styles/global.css?raw';
+
+const COLOUR = [
+  { t: '--paper',  v: '#f4f3ef', d: '#141413', job: 'The ground. Warm off-white, near-black in dark.' },
+  { t: '--ink',    v: '#141412', d: '#f0efe8', job: 'The fact. Titles, values, emphasis.' },
+  { t: '--dim',    v: '#5f5e57', d: '#a09f96', job: 'Support. Body copy, blurbs, ledger values.' },
+  { t: '--faint',  v: '#6e6d64', d: '#8f8e85', job: 'Annotation. Labels, meta, hung heads.' },
+  { t: '--line',   v: '#d5d4cd', d: '#2b2b27', job: 'The one hairline. Link underlines, the field.' },
+  { t: '--accent', v: '#14306b', d: '#6ea8ff', job: 'Interaction, and nothing else. 11.36:1 on paper.' },
+];
+
+const SPACE = [
+  { t: '--tight', v: 14,  n: '0.5 lead', job: 'A label to its own value. The pair is one object.' },
+  { t: '--lead',  v: 28,  n: '1 lead',   job: 'Between lines, and between peer rows.' },
+  { t: '--group', v: 56,  n: '2 leads',  job: 'Between groups inside a section.' },
+  { t: '--sect',  v: 112, n: '4 leads',  job: 'Between sections. The largest interval.' },
+];
+
+// ── the assertions. A token that moves in global.css must move here too.
+const must: [string, string][] = [
+  ['--step:15px', 'the one size'],
+  ['--lead:28px', 'the leading'],
+  ['--tight:14px', 'the tight pair'],
+  ['--group:56px', 'the group interval'],
+  ['--sect:112px', 'the section interval'],
+  ['--ink:#141412', 'ink'],
+  ['--dim:#5f5e57', 'dim'],
+  ['--faint:#6e6d64', 'faint'],
+  ['--design:#14306b', 'the hue'],
+];
+const flat = css.replace(/\s+/g, '');
+for (const [decl, name] of must) {
+  if (!flat.includes(decl.replace(/\s+/g, ''))) {
+    throw new Error(
+      `/system/ documents "${decl}" (${name}) and global.css no longer declares it. ` +
+      'Update the specimen on /system/ or restore the token — a visualizer that lies is worse ' +
+      'than no visualizer.'
+    );
+  }
+}
+---
+
+<Layout
+  title="System — Andrew Shiau"
+  description="The design system for andrewshiau.com, rendered: tokens, the space scale, the two axes, and every device on the site with its rule."
+>
+  <div class="grid">
+    <!-- Panel written out, not PanelHead: `metaOf()` throws for an href that isn't an artifact in
+         experiments.ts, and /system/ must not be one — it would appear as a tenth project in the
+         Work matrix. Same reasoning as /style/. -->
+    <div class="pin">
+      <p class="smark">System</p>
+      <h1>The system</h1>
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">What</div>
+          <div class="ftx">Every token and every device on this site, drawn by the real class.
+            Nothing here is a mock-up.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Base</div>
+          <div class="ftx"><a href="https://basecoatui.com" target="_blank" rel="noopener">Basecoat</a>
+            — <b>shadcn/ui's components without React</b>. Its 149 tokens are bound to the ones
+            below, so a Basecoat component inherits this system instead of overriding it.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Written down</div>
+          <div class="ftx"><a href="/style/">STYLE.md</a> is the steering file.
+            <a href="/method/">/method/</a> is how a decision gets made.</div>
+        </div>
+      </div>
+      <p class="pfoot">Contact
+        <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+      </p>
+    </div>
+
+    <div class="splitrule" aria-hidden="true"></div>
+
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">One typeface, one size, no rules. Hierarchy comes from colour value
+          and space — so those are the two things this page has to show.</p>
+      </div>
+
+      <!-- ── COLOUR ─────────────────────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Colour</h2>
+          <div class="sbody">
+            <p>Six tokens. Three are greys doing three jobs, and the split between them is the
+              site's primary hierarchy mechanism now that there is no type ramp. One is a hue, and
+              it means <b>you can act on this</b> — a link, or the hovered row. A coloured mark
+              that isn't interactive is a defect.</p>
+          </div>
+        </div>
+      </div>
+      <!-- The specimen list is OUT of `.sbody` on purpose. Inside it, the 62ch prose cap left the
+           job column 11ch for a 26-character sentence and every row wrapped to six lines —
+           measured, and visible immediately. A specimen list is a TABLE, not prose: it wants the
+           full document column, and `62ch` is a rule about reading a paragraph. -->
+      <div class="grid">
+        <div class="sysrows">
+          {COLOUR.map((c) => (
+            <div class="sysrow">
+              <span class="sw" style={`--sw:${c.v}`} aria-hidden="true"></span>
+              <code>{c.t}</code>
+              <span class="sysv">{c.v} / {c.d}</span>
+              <span class="sysj">{c.job}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- ── THE SPACE SCALE ───────────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Space</h2>
+          <div class="sbody">
+            <p>Four steps, each a multiple of the 28px leading, so every element on every page
+              sits on one baseline. The ratio is <b>2× at every step</b>: a reader can't measure 14
+              against 20, but 28 against 56 is unmistakable, and 56 against 112 is unmistakable
+              again. Hierarchy by doubling — the trick a type ramp uses, on the axis that still had
+              room in it.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="sysrows">
+          {SPACE.map((s) => (
+            <div class="sysrow sysrow-bar">
+              <span class="bar" style={`--h:${s.v}px`} aria-hidden="true"></span>
+              <code>{s.t}</code>
+              <span class="sysv">{s.v}px · {s.n}</span>
+              <span class="sysj">{s.job}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- ── THE TWO AXES ─────────────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The two axes</h2>
+          <div class="sbody">
+            <p>One number sets both: <code>16ch</code>, measured against the longest field label
+              on the site (<code>Dropdown refresh</code>, 16 characters). Everything that annotates
+              starts at column 1; everything that is annotated starts at 16ch + a gutter. The
+              specimen below is a real <code>.facts</code> ledger — the same markup a case study
+              uses, so its label sits on the same vertical as this section's own head.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">Annotation</div>
+            <div class="ftx">Column 1. The marker, the <code>h1</code>, every field label, every
+              section head.</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Content</div>
+            <div class="ftx">16ch + gutter. Every value, every paragraph, the dek, and media.
+              Capped at <b>62 characters</b>, which is the band a reader tracks.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ONE MECHANISM PER JOB ────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>One mechanism per job</h2>
+          <div class="sbody">
+            <p>The rule that governs every hierarchy decision, and the one that catches the
+              defects: a label earns its hierarchy from <b>position</b> if it has a position,
+              otherwise from <b>value</b>. Never both. That is why the ledger label above is faint
+              — it has a column, so it doesn't also need a colour change — and why the colophon's
+              stacked labels are ink.</p>
+            <p>Both specimens below are live. The left is hung, the right is stacked, and the only
+              difference in the CSS is which one gets <code>--ink</code>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="syspair">
+          <div>
+            <div class="frow">
+              <div class="fm">Hung</div>
+              <div class="ftx">Faint label. The column is the hierarchy.</div>
+            </div>
+          </div>
+          <div>
+            <span class="ck">Stacked</span>
+            <span class="sysstack">Ink label. There is no column, so value is.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── THE MARKER ──────────────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The marker</h2>
+          <div class="sbody">
+            <p>The site's only mark, and its only job is to carry a fact: which half of the
+              practice a row belongs to. <b>Outline vs. fill</b> is the signal, not colour — the two
+              old duality hues were 2.14:1 apart in greyscale, so a screenshot or a colourblind
+              reader saw two identical dots. Both circles are <code>r="5"</code> with the same 1.8
+              stroke, so the ring and the disc are the same 11.8 units across.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="sysmarks">
+          <div><span class="side"><MarkFigure side="both" /></span><code>both</code>
+            <span class="sysj">design + build</span></div>
+          <div><span class="side"><MarkFigure side="design" /></span><code>design</code>
+            <span class="sysj">the ring alone</span></div>
+          <div><span class="side"><MarkFigure side="build" /></span><code>build</code>
+            <span class="sysj">the disc alone</span></div>
+        </div>
+      </div>
+
+      <!-- ── STATES ─────────────────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>States</h2>
+          <div class="sbody">
+            <p>Hover the row. The title steps right by exactly <code>1ch</code> — one character
+              cell of the monospace grid — its underline goes to ink, and the numeral darkens.
+              Nothing fades, nothing scales, nothing tints. It is mirrored on
+              <code>:focus-visible</code>, because a shift only a mouse can trigger is a
+              mouse-only affordance.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="matrix">
+          <a class="entry" href="/system/">
+            <span class="en">01</span>
+            <span class="eh">Hover this row</span>
+            <span class="ends"></span>
+            <span class="em">
+              <span class="side"><MarkFigure side="both" /></span>
+              <span class="smeta">the 1ch shift</span>
+            </span>
+          </a>
+          <a class="entry" href="/system/">
+            <span class="en">02</span>
+            <span class="eh">Or tab to it</span>
+            <span class="ends"></span>
+            <span class="em">
+              <span class="side"><MarkFigure side="design" /></span>
+              <span class="smeta">focus-visible</span>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <!-- ── THE FIELD ─────────────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The field</h2>
+          <div class="sbody">
+            <p>The site's only form control, and the only Basecoat component on a real page. It is
+              a <b>line you type on</b>, not a box: every other border came out with the document
+              direction, which makes this one unambiguous — a horizontal rule under text means
+              "type here" and means nothing else. 16px is the one deliberate size exception,
+              because below it iOS Safari zooms the page on focus.</p>
+            <p>There is no button anywhere on this site. The gate checks as you type.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="sysfield">
+          <div class="f">
+            <input type="text" class="gi" placeholder="Type here" aria-label="Specimen field" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ── WHAT IS NOT HERE ─────────────────────────────────────────────────── -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>What isn't here</h2>
+          <div class="sbody">
+            <p>Basecoat ships 38 components. Four are imported and two are used. There is no
+              dialog, dropdown, menu, tabs, table of data, toast, popover, sidebar, chart, or
+              command palette — not because they'd be hard, but because nothing on this site needs
+              one, and a system that documents unused components is a catalogue.</p>
+            <p>Also absent: a type ramp, a second typeface, a filled surface, a rounded corner, a
+              second hue, and a single line of JavaScript in the bundle.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
