@@ -106,27 +106,33 @@ import PanelHead from '../../components/PanelHead.astro';
           </div>
         </div>
       </div>
-      <!-- Four clips on the .matrix lattice instead of a two-up row: these recordings aren't
-           all the same shape, and side by side the taller one read as though its bottom edge
-           were cropped. Scattered, no two share a baseline, so the mismatch never registers —
-           and the page can show four of the fixes testing produced instead of two. -->
+      <!-- Four clips in TWO ALIGNED COLUMNS, cropped to one ratio (annotation: "this staggered
+           thing no longer works, it should probably be rationalized as two columns, and aspect
+           ratio cropped a bit on the taller videos to match").
+           This was a diagonal scatter, and the scatter existed to hide a defect in the assets:
+           two of these recordings are 999x562 and the rest are 1000x626, so a two-up row put a
+           taller frame beside a shorter one and the taller read as bottom-cropped. Making sure no
+           two frames ever shared a baseline hid that — at the cost of the loudest composition on
+           a site whose structure is otherwise whitespace on one column.
+           `.mscatter` now crops both shapes to 1000/626 with object-fit, so the mismatch is
+           fixed rather than concealed and two columns just work. See global.css. -->
       <div class="matrix mscatter">
-        <figure class="demo m-a">
+        <figure class="demo">
           <video src="/media/pp-prototypeInUse.mp4" muted loop autoplay playsinline
             preload="metadata" aria-label="Silent screen recording: drawing on the working prototype with a pen."></video>
           <figcaption>The prototype in use. You draw on it with a real pen.</figcaption>
         </figure>
-        <figure class="demo m-b">
+        <figure class="demo">
           <video src="/media/pp-arrow.mp4" muted loop autoplay playsinline
             preload="metadata" aria-label="Silent screen recording: an arrow marking which colours can be modified."></video>
           <figcaption>An arrow marks which colours can be modified — a fix testing found.</figcaption>
         </figure>
-        <figure class="demo m-c">
+        <figure class="demo">
           <video src="/media/pp-colorJump.mp4" muted loop autoplay playsinline
             preload="metadata" aria-label="Silent screen recording: a colour jumping between slots, with an enlarge animation."></video>
           <figcaption>A colour that jumped between slots got an enlarge animation.</figcaption>
         </figure>
-        <figure class="demo m-d">
+        <figure class="demo">
           <video src="/media/pp-longPress.mp4" muted loop autoplay playsinline
             preload="metadata" aria-label="Silent screen recording: a long press adding a pen to the toolbox."></video>
           <figcaption>Long-press adds a pen — the power-user path that replaced the button.</figcaption>

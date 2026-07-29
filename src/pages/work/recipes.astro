@@ -61,10 +61,13 @@ import PanelHead from '../../components/PanelHead.astro';
             <iframe src="https://halfcadence.github.io/recipes/" title="The recipes collection, live"
               loading="lazy" referrerpolicy="no-referrer"></iframe>
           </div>
-          <figcaption>
-            <a href="https://halfcadence.github.io/recipes/" target="_blank" rel="noopener">halfcadence.github.io/recipes</a>
-            — live, embedded
-          </figcaption>
+          <!-- The caption is a LABEL, not a second link. Annotation: "you have double link (top
+               and bottom) here" — the same URL was an anchor above the frame and again below it,
+               so the one actionable thing on the page appeared twice, 700px apart, and a
+               keyboard reader tabbed through it twice to reach the same destination.
+               The `.esrc` above keeps the link (an embed is tall, so the action must not sit a
+               screenful down). This just says what the frame is. -->
+          <figcaption>Live, embedded — halfcadence.github.io/recipes</figcaption>
         </figure>
       </div>
     </div>

@@ -10,19 +10,25 @@
 // the signal now — it survives greyscale, a 16px favicon, and a photocopier — which is why the
 // figure is drawn in `currentColor` throughout rather than in `--design` / `--build`.
 //
-// THE TWO OBJECTS ARE THE SAME SIZE, which they were not until now. Annotation: "is the filled
-// circle smaller or is it some visual quirk" — it was smaller, and it was not a quirk.
-// A stroked circle's visual boundary is its OUTER edge, r + half the stroke = 5 + 0.9 = 5.9, so
-// the ring occupied 11.8 units across. The disc was r=5, so 10 units — 15% smaller, and at the
-// 18px row marker that is a full device pixel of difference. Both circles were written `r="5"`,
-// which is exactly the trap: equal radii do not mean equal size when one is stroked and the
-// other filled, because the stroke is centred on the path and hangs half outside it.
-// The disc is r=5.9 now, so both objects are 11.8 across and the pair reads as one figure.
-// The alternative was matching INK rather than diameter (a solid disc at equal diameter paints
-// 109 sq units against the ring's 57, so it does read heavier). Diameter wins because the eye
-// compares silhouettes in a two-object figure, and a disc visibly smaller than its ring reads as
-// a mistake where a disc slightly heavier than its ring reads as filled-vs-hollow, which is the
-// distinction the whole mark is making.
+// THE TWO OBJECTS ARE THE SAME SIZE, AND THE SAME `r` IN CODE. Annotation: "is the filled circle
+// smaller or is it some visual quirk" — it was genuinely smaller. A stroked circle's stroke is
+// centred on its path and hangs half outside it, so `r="5"` with a 1.8 stroke reaches 5.9 while
+// `r="5"` filled reaches 5.0: the ring was 11.8 units across and the disc 10, a 15% difference
+// and a full device pixel at the 18px marker.
+// THE FIX IS THAT THE DISC IS ALSO STROKED, in the same colour it is filled with. Follow-up
+// annotation, and it is the right call: "can you not do like the stroke outset — maybe the disc
+// should also have a stroke so they can have the same radius in code."
+// Both circles are `r="5"` `stroke-width="1.8"` now. One is `fill="none"` and one is filled, and
+// because a stroke of the same colour as the fill is invisible against it, the disc looks like a
+// plain disc while sharing the ring's geometry exactly. Outer edge 5.9 for both, by construction.
+// The first fix set the disc to `r="5.9"`, which produced the same picture and was worse code: two
+// different radii that had to stay 0.9 apart, a difference no reader of the file could see the
+// reason for, and a number that has to be recomputed by hand if the stroke ever changes. Now the
+// stroke is stated once per circle and the radii are simply equal — if the stroke changes, both
+// edges move together and nothing needs recomputing.
+// The remaining asymmetry is INK, not size: a filled 5.9 disc paints 109 sq units against the
+// ring's 57. That is correct and is the point — filled vs. hollow is the distinction the mark
+// makes, and the eye compares silhouettes first.
 //
 // THE RULE IS TRIMMED AT BOTH ENDS (chooser: andrewshiau-mark-options, Q1/04). It used to run
 // centre to centre, (10,10)→(22,22), which was invisible while both dots were solid: the line's
@@ -31,10 +37,11 @@
 // object, so both keep their own edge and the rule reads as a third element — a dimension line
 // between two things rather than a stick joining them.
 // The numbers are the geometry, not taste. The join runs at 45°, so the unit vector along it is
-// (0.70711, 0.70711). Both objects now have the same 5.9 outer radius, so the trim is symmetric:
-// the rule starts at 10 + 5.9(0.70711) = 14.17 and ends at 22 − 5.9(0.70711) = 17.83. It was
-// 18.46, computed against the disc's old r=5 — so fixing the size moved the trim too, which is
-// the point of the note below: change r or the stroke and BOTH numbers move.
+// (0.70711, 0.70711). Both objects have the same 5.9 outer edge (r=5 plus half of the 1.8
+// stroke), so the trim is symmetric: the rule starts at 10 + 5.9(0.70711) = 14.17 and ends at
+// 22 − 5.9(0.70711) = 17.83. It was 18.46 while the disc was unstroked and its edge was at 5.0.
+// Change r or the stroke and BOTH numbers move — which is now ONE change rather than two, since
+// the two circles share both values.
 // The cost, accepted: the trimmed rule is 4.29 units of a 32-unit box, so it renders about a
 // tenth of the figure's width. At the 18px row marker that is ~2.4px of line. It is the
 // smallest mark on the page and it is meant to be — see `.side .mark` in global.css for why 18
@@ -54,9 +61,8 @@
 // there. It is centred at the midpoint of the diagonal the pair spans, so the one-sided mark is
 // the two-sided mark with the pairing removed rather than a different glyph.
 //
-// THE ONE-SIDED OBJECTS HAVE THE SAME MISMATCH, fixed the same way: the ring is r=7.2 stroked
-// (outer 8.1) and the disc is now r=8.1 filled, so a `design` marker and a `build` marker are
-// the same size as each other. They were 16.2 and 14.4 units across.
+// THE ONE-SIDED OBJECTS ARE THE SAME, fixed the same way: both are `r="7.2"` with the 1.8 stroke,
+// so a `design` ring and a `build` disc are the same 16.2 units across. They were 16.2 and 14.4.
 //
 // r=7.2, not the pair's r=5, and the number is measured rather than derived. At r=5 the single
 // dot paints 47% of the ink the pair does inside the same 26px box — less than half the weight
@@ -81,11 +87,11 @@ const { side = 'both' } = Astro.props;
   <svg class="mark" viewBox="0 0 32 32" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <line x1="14.17" y1="14.17" x2="17.83" y2="17.83" stroke="currentColor" stroke-width="1.5"/>
     <circle cx="10" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <circle cx="22" cy="22" r="5.9" fill="currentColor"/>
+    <circle cx="22" cy="22" r="5" fill="currentColor" stroke="currentColor" stroke-width="1.8"/>
   </svg>
 ) : side === 'build' ? (
   <svg class="mark mark-one" viewBox="0 0 32 32" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="16" cy="16" r="8.1" fill="currentColor"/>
+    <circle cx="16" cy="16" r="7.2" fill="currentColor" stroke="currentColor" stroke-width="1.8"/>
   </svg>
 ) : (
   <svg class="mark mark-one" viewBox="0 0 32 32" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">

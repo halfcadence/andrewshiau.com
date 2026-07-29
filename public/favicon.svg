@@ -5,11 +5,12 @@
        carries its own hexes; the geometry below must match that file exactly. Change one,
        change both.
        Hollow ring, solid disc, and the rule trimmed at both ends so it touches neither object.
-       BOTH OBJECTS ARE 11.8 UNITS ACROSS: the ring is r=5 with a 1.8 stroke (outer edge 5.9) and
-       the disc is r=5.9 filled. They were both r="5", which made the disc 15% smaller — a
-       stroked circle's stroke is centred on its path and hangs half outside it, so equal radii
-       are not equal sizes. Fixing that moved the trim to 17.83 (from 18.46, which was computed
-       against the disc's old edge). The arithmetic is in MarkFigure.astro.
+       BOTH OBJECTS ARE r="5" WITH THE SAME 1.8 STROKE, so both reach 5.9 and the pair is 11.8
+       units across. The disc is stroked in the colour it is filled with — invisible against its
+       own fill, so it looks like a plain disc while sharing the ring's geometry exactly.
+       It was r="5" unstroked, which reached only 5.0 and made the disc 15% smaller (a stroke is
+       centred on its path and hangs half outside it, so equal radii are NOT equal sizes unless
+       both are stroked). The trim moved to 17.83 with it. The arithmetic is in MarkFigure.astro.
        NO HUES. The page's mark is currentColor throughout — outline vs. fill is the signal now,
        not navy vs. olive — so the tab is the same figure in one colour, and `.design` / `.build`
        are gone from this file. The two-hue version was legible at 16px only because the hues
@@ -32,5 +33,5 @@
   <rect class="bg" width="32" height="32"/>
   <line class="st" x1="14.17" y1="14.17" x2="17.83" y2="17.83" stroke-width="1.5"/>
   <circle class="st" cx="10" cy="10" r="5" fill="none" stroke-width="1.8"/>
-  <circle class="fg" cx="22" cy="22" r="5.9"/>
+  <circle class="fg st" cx="22" cy="22" r="5" stroke-width="1.8"/>
 </svg>

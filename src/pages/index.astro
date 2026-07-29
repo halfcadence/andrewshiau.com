@@ -228,13 +228,18 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
       <a href="https://2018.andrewshiau.com" target="_blank" rel="noopener">portfolio2018</a>
     </div>
     <!-- A colophon states what the page is set in, so it has to be true. It said "Graphik,
-         self-hosted — the one typeface, from the 2018 portfolio" for one deploy after the mono
-         pass shipped, which made the one fact on the page a reader could check against the page
-         itself the one fact that was wrong. Caught by grepping the LIVE html for `Graphik`
-         rather than the source. -->
+         self-hosted" for one deploy after the mono pass shipped, which made the one fact a reader
+         could check against the page itself the one fact that was wrong.
+         "self-hosted" is OUT. Annotation: "is 'self-hosted' relevant here? if its design details
+         should it be all design details" — and self-hosting is a delivery decision, not a design
+         one. It sat in a list of design facts as the only piece of infrastructure trivia, which is
+         the inconsistency the annotation names. The rest of the line is now all one kind of fact:
+         the typeface, the size, the measure — what a reader can see and check.
+         Kept short deliberately. A colophon that lists everything is a spec sheet; this is the
+         three decisions the page is actually made of. -->
     <div class="colo c2">
       <span class="ck">Set in</span>
-      IBM Plex Mono, self-hosted — one typeface, one size.
+      IBM Plex Mono at 15/28, one size, 62 characters.
     </div>
   </div>
 </Layout>

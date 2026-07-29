@@ -177,7 +177,10 @@ main > .grid:first-child{margin-top:var(--group)}
 .guide{position:absolute;inset:0 var(--gutter);display:none;
   grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);pointer-events:none;z-index:0}
 .guide i{background:var(--guide);display:block}
-body.showgrid .guide{display:grid}
+/* `:is(html, body).showgrid` — the class lands on `<html>` when the head script restores it
+   (body doesn't exist that early in the parse) and on `<body>` when the hotkey toggles it. One
+   selector for both rather than two rules that can drift. */
+:is(html,body).showgrid .guide{display:grid}
 .content{position:relative;z-index:1}
 
 /* ── THE LABEL — the one device, and now genuinely ONE SIZE.
@@ -196,7 +199,6 @@ body.showgrid .guide{display:grid}
    (capital letters have no ascender/descender rhythm to separate them) doesn't apply. */
 .smark,
 .step .sl,
-.duo .dk,
 figure.demo figcaption,
 .specblock figcaption,
 figure.embed figcaption,
@@ -206,7 +208,6 @@ figure.embed .esrc,
 .pin .pfoot,
 .colo-lab,
 .colo .ck,
-.foot .fr,
 .links a .lu{font-size:inherit;letter-spacing:normal;
   text-transform:none;font-weight:400;color:var(--faint);line-height:1.2}
 /* `line-height:1.2` (18px), not the 28px body leading, and this is the fix for a bug I could see
@@ -259,20 +260,33 @@ b,strong{font-weight:500}
 em,i{font-style:italic}
 a{color:var(--accent);text-underline-offset:4px}
 /* O7 — any link that opens in a new tab gets a ↗ marker; opacity lifts on hover.
-   Inherits currentColor so it stays legible inside the prose invert-fill (white on
-   hover) and the accent colophon links alike. Excludes .entry (matrix cells carry their
-   own .arrowc glyph). */
+   Inherits currentColor so it takes the link's own colour in both states. Excludes .entry
+   (index rows say "external" with the marker, not a glyph). */
 a[target]:not([href^="#"]):not(.entry)::after{content:"\00a0↗";font-size:.82em;opacity:.5;
   transition:opacity var(--dur-fast) var(--ease)}
 a[target]:not(.entry):hover::after{opacity:1}
-/* INLINE prose links (inside body <p>): ink + underline by default, invert-fill
-   (accent field, --on-accent text) on hover via a simple fade — no wipe. Scoped to prose so
-   it doesn't hit nav / colophon / project links. */
-p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);
-  text-underline-offset:2px;text-decoration-thickness:1px;
-  box-decoration-break:clone;padding:0 .08em;margin:0 -.08em;border-radius:1px;
-  transition:background-color var(--dur) var(--ease),color var(--dur) var(--ease)}
-p a:hover{background:var(--accent);color:var(--on-accent);text-decoration-color:transparent}
+/* ── ONE LINK TREATMENT, EVERYWHERE. THE INVERT-FILL IS DELETED.
+   Annotation: "something is wrong with the link highlight styles — pick one that matches the
+   site and doesnt fuck up and make text unreadable." It was a real bug, and a cascade collision
+   rather than a contrast failure. Measured on the built page, hovering `hi@andrewshiau.com`:
+   `color` and `background-color` both computed to `rgb(20, 48, 107)`. Navy text on a navy field.
+   Invisible.
+   The cause: `.pfoot` is a `<p>`, so `p a:hover` painted the accent FIELD, and then
+   `.pin .pfoot a:hover` — higher specificity, defined later — set `color` back to `--accent`
+   without knowing a background had been applied underneath it. Two link systems overlapping on
+   one element, where each is correct alone. That is the failure mode of having two.
+   So the site has ONE: ink type, `--line` underline, and on hover the underline goes to ink and
+   the text goes to accent. It is what `.entry`, `.pin .pfoot a`, `.colo a` and `.links a` already
+   do — this makes prose links the same, and deletes the only treatment that painted a field
+   behind type. A filled rectangle behind a word was also the last box-like device in body copy,
+   which the same pass removed from `.block`.
+   What is lost, honestly: a filled field is more findable mid-paragraph than an underline. The
+   trade is accepted because an underline in `--line` going to ink IS visible against 15px mono,
+   and because one idiom that always works beats two that collide. */
+p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);
+  text-underline-offset:4px;text-decoration-thickness:1px;
+  transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
+p a:hover{color:var(--accent);text-decoration-color:var(--ink)}
 /* `code` no longer changes typeface OR size — the whole page is the mono at 15px, so the
    old `font-family:var(--mono);font-size:.86em` said nothing and shrank the one thing on
    the page that most needs to be read character by character. What's left is the tint,
@@ -365,8 +379,27 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    by their kickers and by sitting side by side — which was always the argument the composition
    itself makes. */
 .duo .dcol{grid-column:span 6}
-.duo .dk{display:block;margin-bottom:var(--tight)}
-.duo h3{font-weight:500;font-size:inherit;line-height:inherit;margin:0}
+/* ── THE HIERARCHY WAS INVERTED, and two annotations caught the same bug from two angles:
+   "arent 'two inst...' and 'design -- the ins' bigger titles than 'how a design...'? but 'how a
+   design' reads brighter / stronger, at least in dark mode — and the former two are same
+   hierarchy??" and "something is weird about the line heights between header and body, like its
+   weird that the line height is weirdly smaller on headers."
+   Both are one cause. `.dk` — "Design — the instrument is the eye" — is the SECTION TITLE of its
+   column, and it was swept into the shared label rule when the caps came off: `--faint` at
+   `line-height:1.2`. The `h3` beneath it, which is subordinate to it, kept `--ink` at weight 500.
+   So level 2 rendered weaker than level 3, and it rendered at a tighter leading than the body
+   text around it, which is the "weird line height on headers" — an 18px line box between two 28px
+   ones reads as a cramped line, not as a heading.
+   THE THREE LEVELS, now distinct and in order:
+     h2  `Two instruments`              — faint, the page's section label
+     .dk `Design — the instrument…`     — INK at 500, the column's title
+     h3  `How a design decision…`       — ink at 400, the procedure it introduces
+   Level 2 is now the strongest thing in the column, which is what it always was in the markup.
+   `line-height:inherit` on both, so a heading sits on the same 28px baseline as everything else —
+   a heading is not a label and does not want a label's tight leading. */
+.duo .dk{display:block;color:var(--ink);font-weight:500;line-height:inherit;
+  margin-bottom:var(--tight)}
+.duo h3{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
 /* The numerals hang in the margin and are the procedure's spine. `2ch` of indent, not
    1.4em: in a monospace face the list marker plus its space is exactly two cells. */
 .duo ol{margin:var(--lead) 0 0;padding-left:2ch;color:var(--dim)}
@@ -402,9 +435,37 @@ code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em
    What it is now: the same words, indented `2ch`, with the statement in ink at weight 500 and
    the detail under it in `--dim`. Emphasis by position and weight, which is the system.
    `--accent` and `--on-accent` keep their tokens for the quiz state in the explainers. */
-.block{align-self:start;max-width:62ch;padding-left:2ch}
-.block .st{display:block;font-weight:500}
-.block .sd{display:block;color:var(--dim);margin-top:var(--tight)}
+/* THE MINIMALIST TREATMENT, and it uses the two mechanisms the page already has — air and
+   weight — rather than adding a third. Annotation: "this like quote block is generally kind of
+   not working in terms of the story, but if we're gonna use it maybe it can get some kind of
+   minimalist treatment to make it stand out."
+   De-filling it (the previous fix) removed the problem and left nothing in its place: at
+   `padding-left:2ch` with a 500 statement it was indistinguishable from a `.frow` pair.
+   So it stands out by being ISOLATED and by being the HEAVIEST type on the site:
+   - `--sect` above and below. That is the page's largest interval, the one otherwise reserved
+     for a section break, so the block sits alone in a field of white with nothing near it. On a
+     page built from 28px and 56px gaps, 112px on both sides is unmistakable — and it is the one
+     element that gets the section interval without being a section.
+   - Weight 600. Plex Mono's SemiBold has been loaded since the mono pass and used by NOTHING;
+     this is the one thing on the site set in it. So the block's statement is heavier than any
+     title, any head, any `<b>` — legible as the page's loudest sentence at a glance, without a
+     size change, a rule, a field of colour, or a box.
+   No indent: it stays at column 1 with everything else. Breaking the left edge was the
+   alternative (a hanging pull-quote) and it costs the one alignment invariant the page has to
+   make one element louder, which is a bad trade when air and weight are free.
+   THE CONTENT QUESTION IS STILL OPEN. The annotation's first clause — that the block isn't
+   working for the story — is a writing call, not a CSS one, and it is deliberately not answered
+   here: five pages emit a `.block`, and whether each one earns its sentence is a per-page edit. */
+/* FULL COLUMN, and `.c1-6` on it is overridden. Five pages emit `class="block c1-6"`, which was
+   written when the page was 12 fields wide and a half-width block meant ~518px. Inside the
+   document column it means 6 of the column's own re-divided 12 tracks = 291px — the same phantom
+   measure the section head and the hung caption had, and at 291px the page's loudest sentence was
+   its narrowest element, wrapping to five lines.
+   `grid-column:1 / -1` beats the `.c1-6` span without touching five files. The 62ch cap still
+   applies, so the block is exactly as wide as the prose it interrupts. */
+.block{grid-column:1 / -1;align-self:start;max-width:62ch;margin:var(--sect) 0}
+.block .st{display:block;font-weight:600}
+.block .sd{display:block;color:var(--dim);margin-top:var(--tight);font-weight:400}
 
 /* DEMO — a case-study screen recording, no frame. It had `border:1px solid var(--ink)` on the
    video, which the old file called "a hairline, not a card"; at 1px of ink all the way round a
@@ -436,39 +497,35 @@ figure.demo figcaption{margin-top:var(--tight)}
 figure.demo.hang{grid-column:1 / 13;display:block}
 figure.demo.hang video{width:100%}
 
-/* CLIP SCATTER — clips dropped into non-adjacent modules of the same .matrix lattice the
-   index uses (12 cols × 24px auto-rows). Why, not decoration: these recordings are not all
-   the same shape (1000×562 vs 1000×626), and a two-up row forced them onto one baseline
-   where the 0.18 ratio difference read as a cropped bottom edge. Here no two frames share a
-   baseline, so unequal ratios stop being a problem instead of needing to be corrected — and
-   the page carries four clips without becoming a wall of video. Collapses to a stack ≤900px,
-   same breakpoint as the index list.
-   IT DECLARES ITS OWN GRID NOW, and that is a real bug this pass caught rather than a
-   refactor. `.mscatter` only ever set `grid-auto-rows` and inherited `display:grid` plus the
-   12 tracks from `.matrix` — and `.matrix` is `display:block` since the index's rows became
-   document lines. Left as it was, the four clips on `powerpoint` would have stacked at full
-   width with their `grid-row` spans doing nothing: the lattice would have silently stopped
-   existing. The same class of defect as the ≤900px `.matrix.mscatter{display:block}` bug noted
-   below, which is why it is worth stating twice — a device that borrows its display mode from
-   a neighbour breaks when the neighbour changes. It owns its own now. */
-.matrix.mscatter{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-  column-gap:var(--gutter);grid-auto-rows:var(--unit)}
-.mscatter figure.demo{margin:0;align-self:start}
-.m-a{grid-column:1 / 7;grid-row:1 / 16}
-.m-b{grid-column:8 / 13;grid-row:8 / 22}
-.m-c{grid-column:2 / 7;grid-row:22 / 35}
-.m-d{grid-column:8 / 13;grid-row:30 / 45}
-/* `.matrix.mscatter`, not `.mscatter` — two classes, because the rule it has to beat is
-   `.matrix{display:grid}` and that sits ~50 lines LATER in this file. At one class each, the
-   later declaration won and this stack never applied: measured on `powerpoint` at 390px, the
-   four clips rendered 153 / 123 / 123 / 123px wide from 1000px screen recordings. The whole
-   scatter was rendering on a phone as a 12-column lattice inside 334px.
-   That was a live bug on the phone before the split existed; the split just made it visible,
-   because checking `.mscatter` at every breakpoint is what caught it. */
-@media(max-width:900px){
-  .matrix.mscatter{display:block}
-  .matrix.mscatter figure.demo{margin-top:var(--group)}
-  .matrix.mscatter figure.demo:first-child{margin-top:0}
+/* ── TWO ALIGNED COLUMNS, cropped to one ratio. The staggered scatter is deleted.
+   Annotation: "i think this staggered thing no longer works, it should probably be
+   rationalized as two columns, and aspect ratio cropped a bit on the taller videos to match."
+   Right on both counts, and the second is what made the first possible.
+   THE SCATTER EXISTED TO HIDE A RATIO MISMATCH. Measured from the files: `pp-prototypeInUse`
+   and `pp-final` are 999×562 (1.778) and the other ten are 1000×626 (1.597). Two-up, the
+   taller one read as though its bottom edge were cropped — so the old fix was to make sure no
+   two frames ever shared a baseline, using a 12-column × 24px-row lattice with four hand-placed
+   `grid-row` spans. It worked, and it was a composition built around a defect in the assets.
+   On a page whose structure is now whitespace on a single column, a diagonal scatter of four
+   videos is also the loudest thing on the site.
+   FIX THE DEFECT INSTEAD: `aspect-ratio:1000/626` on the frame plus `object-fit:cover` on the
+   video crops the two 16:9 clips to the same shape as the other ten. Cropping to the TALLER
+   ratio loses 10.2% of WIDTH rather than 10.2% of HEIGHT, and that is the right direction —
+   these are screen recordings, so the height carries the toolbars the page is about while the
+   width carries empty canvas at the sides.
+   Then two columns need no lattice at all: `repeat(2, 1fr)` with `--gutter` between and
+   `--group` down. Every frame is the same size and lands on the same two verticals. One column
+   ≤720px. `.m-a`…`.m-d` keep their class names (four call sites emit them) and place nothing —
+   the grid's own auto-flow does it. */
+.matrix.mscatter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:var(--gutter);row-gap:var(--group)}
+.mscatter figure.demo{margin:0}
+/* The frame sets the shape; the video fills it. `object-fit:cover` is what crops rather than
+   letterboxes — without it the 1.778 clips would sit inside a 1.597 box with bands top and
+   bottom, which is the mismatch made explicit instead of fixed. */
+.mscatter figure.demo video{aspect-ratio:1000 / 626;object-fit:cover;height:auto}
+@media(max-width:720px){
+  .matrix.mscatter{grid-template-columns:1fr}
 }
 
 
@@ -641,8 +698,28 @@ figure.demo.hang video{width:100%}
    is. They no longer travel to the foot of a full-height column (there is no full-height
    column), so `margin-top:auto` is gone. `--group` between them, not `--gutter`: they are
    two groups, and the page has one measure for the space between groups. */
-.pin .pfeet{display:flex;flex-wrap:wrap;column-gap:var(--group);row-gap:var(--lead);
-  margin-top:var(--group)}
+/* ON THE GRID, at column 4. Annotation: "why is this not aligned to grid, maybe should be on
+   like col4?" — it was a flex row with a `--group` gap, so `Elsewhere` landed wherever
+   `hi@andrewshiau.com` happened to end (x=386, which is not a column start). With the guide on,
+   it was visibly the one thing in the panel touching no column edge.
+   SEVEN tracks, not twelve, and that is the whole trick: `.pin` spans 7 of the page's 12 fields,
+   so a 7-track subgrid inside it has tracks at exactly the page's own column starts (0, 91, 182,
+   273 …). This is the honest version of what the deleted `grid-column:1 / 10` sub-grids were
+   trying to do — a nested subgrid only aligns with the page if its track count matches the
+   fields it spans. Twelve tracks in a 7-field column is the phantom measure this file warns
+   about twice.
+   `Contact` at field 1, `Elsewhere` at field 4. Field 4 because the address is 18 characters —
+   162px at 9px/char, which overruns field 3's start at 182 by a hair and lands clear at 273. */
+.pin .pfeet{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+  column-gap:var(--gutter);row-gap:var(--lead);margin-top:var(--group)}
+.pin .pfeet > .pfoot:first-child{grid-column:1 / 4}
+.pin .pfeet > .pfoot:nth-child(2){grid-column:4 / 8}
+@media(max-width:720px){
+  /* one column: at 390px the 7 fields are 24px each and a two-column pair is two slivers */
+  .pin .pfeet{grid-template-columns:1fr}
+  .pin .pfeet > .pfoot:first-child,
+  .pin .pfeet > .pfoot:nth-child(2){grid-column:1}
+}
 .pin .pfeet > .pfoot{margin-top:0}
 /* The document's link idiom, the same one `.entry .eh` uses: underline in `--line`, ink on
    hover, and the accent — colour's one job. `display:block` stacks the two Elsewhere links. */
@@ -909,12 +986,17 @@ figure.demo.hang video{width:100%}
 /* THE METHOD ROW is now literally `.entry` — the whole spec-row device is deleted (annotation:
    "cut the design / build sections here and just put title"). That removed ~25 rules: its own
    flex head, its marker cell, its hover shift, its two `.proc` sub-rows and their kickers.
-   It keeps ONE thing, and it needs a class for it: no numeral. Without the numeral the title
-   would start 3ch to the left of every other title on the page, so the three lists would have
-   two different left edges. `1ch` of padding plus the numeral's own `2ch` of digits is the 3ch
-   the other rows indent by — stated as a padding rather than an empty span, because an empty
-   span that exists only to hold space is the thing `.ends` already gets away with once. */
-.matrix > .entry:only-child{padding-left:3ch}
+   AND IT SITS AT COLUMN 1, flush. Annotation: "i want 'the operating...' to be on col 1 left
+   aligned." It had `padding-left:3ch` to fake the numeral its neighbours have, on the theory
+   that all three lists should share one title axis. Wrong call, and the annotation is the
+   correction: column 1 is the axis EVERYTHING else on the page uses — the statement, the labels,
+   the section heads, the prose, the clips. An indent to match two lists broke alignment with the
+   other nine elements, and it indented the row for a numeral that isn't there, which reads as a
+   hanging indent with nothing hanging in it.
+   Flush left, the row starts where the page starts. The 3ch offset on the Work and Experiments
+   titles is a real difference and it is now legible as one: those rows are numbered, and the
+   numeral is what occupies the space. */
+/* (no rule needed — `.entry` is flush by default) */
 /* SIDE MARKER — which half of the practice an entry belongs to, and THE ONLY PLACE THE MARK
    APPEARS ON THE PAGE (chooser: andrewshiau-mark-options, Q3/05). The figure isn't a masthead
    any more; it's this column's glyph, so every drawing of it that ships carries a fact. The
@@ -969,10 +1051,13 @@ figure.demo.hang video{width:100%}
 
 /* Footer — the last line, opened by air rather than by the 2px ink rule it used to carry. The
    page's end is the end of the text, which is how a document ends. */
-.foot{margin-top:var(--sect);
-  display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter)}
-.foot .fl{grid-column:1 / 9;color:var(--faint)}
-.foot .fr{grid-column:9 / 13;justify-self:end;text-align:right}
+/* ONE LINE, no grid. The right-hand cell held `© 2026 Andrew Shiau` and is deleted with it
+   (annotation: "if its just name it seems meaningless ... or delete"), so the footer has one
+   child and a 12-track grid to place it in was scaffolding for a column that no longer exists.
+   `.foot .fr` went with the markup rather than being left to rot — CSS for markup that doesn't
+   exist is a trap for whoever greps this file next, which is a rule this file states twice. */
+.foot{margin-top:var(--sect)}
+.foot .fl{color:var(--faint)}
 /* One of the two footer lines, never both. `Press g` is a keyboard instruction and it was
    printed on every phone screen on the site, where there is no `g` to press — an affordance
    the device can't reach, told to the reader as a fact. A pointer query, not a width one:
@@ -984,8 +1069,7 @@ figure.demo.hang video{width:100%}
   .foot .tou{display:inline}
 }
 @media(max-width:720px){
-  .foot{grid-template-columns:1fr}
-  .foot .fr{justify-self:start;text-align:left;margin-top:10px}
+  /* nothing to re-cut: one line at every width */
 }
 
 /* TOUCH TARGETS — 44px of reachable area for the standalone controls, on touch only.
@@ -1074,23 +1158,39 @@ figure.embed .esrc{margin-bottom:var(--tight)}
 figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
 @media(max-width:720px){ .embed-frame{aspect-ratio:3 / 4} }
 
-/* PHOTO GALLERY — two ragged column-flows, the right one dropped 3 units so the two
-   columns never start level. A 2-up grid pairs each photo with a neighbour and forces both
-   onto one baseline; every row then reads as a deliberate comparison of two unrelated
-   pictures. Two independent flows means each photograph is just the next one down. The
-   offset is what makes it read as ragged rather than as a broken grid. */
-.g-rag{grid-column:1 / 13;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
+/* ── TWO ALIGNED COLUMNS. The ragged offset is deleted (annotation: "also think we should
+   re-rationalize this into two aligned columns").
+   The offset existed on the argument that two independent flows mean each photograph is just the
+   next one down, rather than half of a forced comparison pair — with the right column dropped 3
+   units so the two never start level. That argument was about MISMATCHED shapes, and measured
+   from the files there are none: all twelve photographs are 1400×933, ratio 1.501, within 0.01 of
+   each other. There was nothing to stagger away from.
+   So the columns align, and the pairing that was feared is not a problem: two photographs of the
+   same size side by side read as a contact sheet, which is what a photography page is. `--gutter`
+   between, `--group` down — the same two intervals the clip grid uses, so the site has one way of
+   laying out media.
+   Still two column DIVS rather than one twelve-item grid, because the markup splits the list in
+   the page (`left` / `right`) and a grid with `grid-auto-flow:row` would order them across rather
+   than down. Down is right: a reader scrolls one column and then the other, which is how a
+   contact sheet is read. */
+.g-rag{grid-column:1 / 13;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   column-gap:var(--gutter)}
-.g-rag .col-l{grid-column:1 / 7}
-.g-rag .col-r{grid-column:7 / 13;margin-top:calc(var(--group)*1.5)}
+/* EXPLICIT tracks, not `auto`. `auto` was a bug I caught by measuring: with it, both column divs
+   landed in track 1 and every photograph rendered at x=224 in a single 518px column — `auto`
+   means "the next available slot by auto-placement", and since each div is a block that spans one
+   track, they stacked instead of sitting side by side. Named tracks say what is meant. */
+.g-rag .col-l{grid-column:1}
+.g-rag .col-r{grid-column:2}
 .g-rag figure{margin:0 0 var(--group)}
-/* No 1px frame. A photograph has an edge — its own. The hairline was a mat around a picture,
-   which is the card tell in a gallery's clothing. */
+.g-rag figure:last-child{margin-bottom:0}
+/* No 1px frame. A photograph has its own edge, and a hairline round one is a mat — the card tell
+   in a gallery's clothing. */
 .g-rag img{display:block;width:100%;height:auto}
 @media(max-width:720px){
-  /* one column: the drop would leave a 72px hole at the top of the stack */
-  .g-rag .col-l,.g-rag .col-r{grid-column:1 / 13}
-  .g-rag .col-r{margin-top:0}
+  .g-rag{grid-template-columns:1fr}
+  .g-rag .col-l,.g-rag .col-r{grid-column:1}
+  /* the left column's last figure needs its gap back — it is no longer the end of a column */
+  .g-rag .col-l figure:last-child{margin-bottom:var(--group)}
 }
 
 /* External-link list — L2: diagonal staircase, each link steps down-and-right

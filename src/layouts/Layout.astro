@@ -46,6 +46,18 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!-- THE GRID TOGGLE'S STATE, restored before first paint. It has to be in `<head>` and it
+         has to be `is:inline`: the toggle is a class on `<body>`, so anything that runs after the
+         document paints shows one frame of the page without the guide and then snaps it on.
+         `documentElement`, not `body` — `body` does not exist yet at this point in the parse, so
+         the class goes on `<html>` and `global.css` reads either (see `body.showgrid .guide`).
+         Kept tiny and dependency-free for the same reason: everything in here delays first paint,
+         so it is one read and one class. The keydown handler that WRITES this lives at the end of
+         the body with the rest of the behaviour. -->
+    <script is:inline>
+      try { if (localStorage.getItem('as:showgrid')) document.documentElement.classList.add('showgrid'); } catch {}
+    </script>
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
 
@@ -101,14 +113,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
             <span class="kb">Press <code>⌥G</code> to see the grid.</span>
             <span class="tou">Set on a 12-column grid.</span>
           </div>
-          <!-- NO YEAR, and no © glyph. Annotation: "do these copyright things need a year?"
-               They don't, and the year was a liability: it is a hardcoded `2026`, so the only
-               thing it reliably communicates is how long since the site was last touched — and
-               it communicates that wrongly the moment the calendar turns while the work is
-               still current. Copyright doesn't require a notice at all (Berne, and US law since
-               1989), so the glyph and the date were decoration that dated itself.
-               The name alone says whose page it is, which is the only fact this line has. -->
-          <div class="fr">Andrew Shiau</div>
+          <!-- DELETED, which is the second half of the annotation. First: "do these copyright
+               things need a year?" — no, so the hardcoded `2026` came off (it only ever
+               communicated staleness, and notice isn't required: Berne, US since 1989). Then:
+               "wait if its just name it seems meaningless, can it either still say © andrew
+               shiau or delete" — and it is right that a bare name in the footer's right corner
+               says nothing. The page's own masthead is the name, three screens up.
+               Deleted rather than restored to `© Andrew Shiau`: with the year gone the notice
+               asserts a right the law grants anyway, and the site's rule is that a mark has to
+               do a job. `.foot .fr` keeps its rules — /method/ and the explainers still place
+               something there. -->
         </footer>
       </div>
     </div>
@@ -124,12 +138,31 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
       // `e.code`, NOT `e.key`. With Option held, macOS composes the character — ⌥G arrives as
       // `©`, so an `e.key === 'g'` test never matches and the hotkey silently does nothing.
       // `code` is the physical key and is layout- and modifier-independent.
+      // IT PERSISTS ACROSS PAGES. Annotation: "can the grid status be saved like in localStorage
+      // and persist across pages" — yes, and it was a real gap: the grid is a tool for checking
+      // that things line up, and checking alignment means clicking between pages, which switched
+      // it off every time. A tool you must re-enable on arrival is a tool you stop using.
+      // The RESTORE is not here — it runs in `<head>` (see the head script), because this file's
+      // scripts sit at the end of `<body>` and restoring from here would paint the page once
+      // without the guide and then flash it on. Writing lives here; reading lives up there.
+      // `try/catch` because localStorage throws in Safari private browsing rather than returning
+      // null, and a dead hotkey is a better failure than a dead page.
+      // BOTH elements, and that is a fix not a belt-and-braces: the head script puts the class on
+      // `<html>` (body doesn't exist yet), so a toggle that only touched `<body>` would turn the
+      // guide ON fine and fail to turn it OFF — `html.showgrid` would survive and keep matching.
+      // Caught by reading the two scripts against each other rather than by clicking.
+      const setGrid = (on) => {
+        document.documentElement.classList.toggle('showgrid', on);
+        document.body.classList.toggle('showgrid', on);
+        try { on ? localStorage.setItem('as:showgrid', '1') : localStorage.removeItem('as:showgrid'); } catch {}
+      };
+
       document.addEventListener('keydown', (e) => {
         if (
           e.code === 'KeyG' && e.altKey && !e.metaKey && !e.ctrlKey && !e.shiftKey &&
           !/^(input|textarea|select)$/i.test(e.target.tagName)
         ) {
-          document.body.classList.toggle('showgrid');
+          setGrid(!document.documentElement.classList.contains('showgrid'));
         }
       });
 
