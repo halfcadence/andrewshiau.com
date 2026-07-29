@@ -362,20 +362,33 @@ else. Keep the two jobs separate:
   - **display** → `h1` hero `clamp(42px, 7.5vw, 88px)`, line-height 0.97, tracking
     `-0.03em` (above the ramp; the one type-as-event moment)
 - **Case:** sentence/lower case for content. `text-transform: uppercase` +
-  letter-spacing is used ONLY on the small micro-labels (kickers, `.em`, `.ck`, mast
-  captions, `.back`). Never uppercase a headline or body.
+  letter-spacing is used ONLY on the small micro-labels (kickers, `.em`, `.ck`, `.smark`,
+  `.fm`, `.pk`, mast captions). Never uppercase a headline or body.
 - Flush-left, ragged-right. **Never justify** — it wrecks word spacing.
 
 ### The grid
 
-- 12 columns, `--gutter` 28px, via `.grid` / `.c1-8` / `.c7-12` etc. Every block
+- 12 columns, `--gutter` 28px, via `.grid` / `.c1-6` / `.c7-12` / `.c1-12`. Every block
   MUST span a **named whole-column range**, never a stray width. Reuse column starts
   down the page so alignments recur — that recurrence *is* the design.
+- **Those three spans are all that exist**, and adding a fourth means placing it. Five more
+  were declared (`.c1-2`, `.c3-12`, `.c1-8`, `.c1-10`, `.c4-12`) and selected nothing —
+  leftovers from the full-width stack the split replaced. Inside the feed they're wrong by
+  construction: the feed re-divides its 8 columns into 12 of its own, so a block sits on the
+  FEED's tracks, and a span carried over from the page's grid lands somewhere else.
+  Declare a span when a page uses it, never in advance.
 - Vertical space is **`--unit` × n** (section gaps 2.5×, paragraph 1×, tight 0.5×).
   No off-grid margins like `17px`.
+- **The page's top edge is 1.5 units**, set once as `main > .grid:first-child` — not per page.
+  It was two inline `style="margin-top:…"` attributes on the index and `/gate/`, and the nine
+  case studies never got a copy: marker, title and dek opened flush at y=0. That is what an
+  inline value does — it can't reach a page nobody remembered to edit. The margin belongs on
+  the grid rather than on `.wrap`'s padding, because the guide overlay is `inset:0` inside
+  `.wrap` and padding there would make the guide stop describing the grid it draws.
 - Mobile (`≤720px`) collapses every block to full width (`1 / 13`).
-- The faint column-guide overlay is hidden; press **`g`** to flash it (wired in
-  `Layout.astro`). The footer invites it: "Press g to see it."
+- The faint column-guide overlay is hidden; press **`⌥G`** to flash it (wired twice — in
+  `Layout.astro` AND `Explainer.astro`, so a change to one needs the other). The footer
+  invites it: "Press ⌥G to see the grid."
 
 ---
 
@@ -478,8 +491,10 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   to outrank `.grid + .grid`'s one-unit gap.
   - Rules that **survive** are the ones that own something they touch: a `.frow` top rule
     opens its fact, an `.entry`'s opens its row, `.colo-rule` closes the page. The
-    full-width `.rule` is kept for `writing/*` only, where it pairs with a numbered
-    section's set figure.
+    full-width `.rule` survives for `writing/*` only, where it pairs with a numbered
+    section's set figure — **and it lives in `Explainer.astro`, not `global.css`.** The
+    declaration sat in both for a while, and the `global.css` copy selected nothing: the
+    explainers never load that file. Edit the one in `Explainer.astro`.
   - There is **no rule above a case-study `h1`**. The old 32px `.shrule` accent stub was
     not a column, not the word's width, not the measure — it read as template decoration.
     The `.smark` side marker opens the page instead and says more.
@@ -491,7 +506,7 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
 - **Section head — the stacked head** (`.shead` + `.sbody`): the `h2` sits **above** its
   prose and **both start at column 1**, spanning `1–9` (791px). Two vertical lines then run
   the length of the page: **column 1** (head, prose, ledger label, clip left edge, `h1`,
-  `.back`) and the **right edge of column 9** at x=959 (prose column, ledger value, clip
+  `.smark`) and the **right edge of column 9** at x=959 (prose column, ledger value, clip
   right edge, where the hung caption starts). Measured on the live page at 1400px.
   - This replaced a *paired* head (`h2` at c1–2, prose beside it at c4–12). The pairing
     aligned nicely and wasted the page: `.sbody` measured 791px while `p{max-width:33em}`
@@ -514,7 +529,9 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   `.statement` is the first). The composition states the argument before a word is read.
   - It MUST be preceded by a **full-measure unified statement**. Two lists side by side
     read as two unrelated lists to anyone meeting them cold; the shared claim runs
-    `.c1-8` above the split, so the columns arrive as halves of one thing.
+    `.c1-12` above the split, so the columns arrive as halves of one thing. (It was `.c1-8`
+    before the split; inside a 700px feed the two are the same edge, and `.c1-12` is one of
+    the three spans that still exist.)
   - Do **not** reach for it to put any two things next to each other. Two arbitrary
     columns are a layout convenience; the hued rules assert a relationship, and a `.duo`
     that isn't about design-vs-build makes the hues decorative.
@@ -648,6 +665,21 @@ de-duplicated ranked fix list. The panel for this site:
    shorter. Straightforward to a fault.
 6. **Minimalist code reviewer** — "less, but better": rips out dead CSS, unused classes,
    outdated markup; flags anything that shouldn't ship (leaked internal content/config).
+   Don't ask a persona to *eyeball* dead CSS — **measure** it: extract every class token from
+   `class="…"` across `dist/**/*.html`, extract every class in every selector, and diff.
+   Scope the two stylesheets SEPARATELY: `global.css` is loaded only by `Layout.astro`'s 14
+   pages, and the three `/writing/` explainers carry their own `is:global` block in
+   `Explainer.astro`. Pooling them reports a selector as live because the *other* stylesheet's
+   pages use that class — which is exactly how `.rule` sat dead in `global.css` while the
+   explainers drew their own copy. Allow for the handful of classes JS adds at runtime
+   (`showgrid`, and the quiz's `.correct` / `.wrong` / `.show`).
+   **A "reserved slot" is dead CSS.** `.colo.c3` and five grid spans each carried a comment
+   arguing the empty slot was the pattern rather than the content. To anyone reading the file
+   they're indistinguishable from a mistake, and a rule nothing selects is a rule nobody can
+   trust. Delete it and record the value in the comment, so the next person adds it back
+   knowing it was measured. Same for a comment that has outlived its rule: the `.back` tap
+   target claimed "still here for /method, which has a `.back` line" about a page that uses
+   `PanelHead`.
 7. **Reductionist product designer (Ive / Rams)** — cuts visible ornament; every element
    must earn its place.
 

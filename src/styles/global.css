@@ -81,9 +81,29 @@ body{margin:0;background:var(--paper);color:var(--ink);
 /* THE GRID — 12 fields */
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);row-gap:0}
 .grid + .grid{margin-top:var(--unit)}
-.c1-2{grid-column:1 / 3}   .c3-12{grid-column:3 / 13} .c1-6{grid-column:1 / 7}
-.c7-12{grid-column:7 / 13} .c1-8{grid-column:1 / 9}   .c1-10{grid-column:1 / 11}
-.c1-12{grid-column:1 / 13} .c4-12{grid-column:4 / 13}
+/* THE PAGE'S TOP EDGE — 1.5 units of air above the first row, on every page.
+   Measured before this existed: the index and /gate/ opened at y=36 because each carried an
+   inline `style="margin-top:calc(var(--unit)*1.5)"` on its first `.grid`, and the nine case
+   studies opened at y=0 — marker, title and dek all flush against the top of the window with
+   no air at all. Two pages had the value and nine didn't, which is what an inline style does:
+   it can't be applied to a page nobody remembered to edit.
+   As a rule it is one number in one place, and the two inline copies are gone. Set on
+   `main > .grid:first-child` rather than on `.wrap`'s padding, because the guide overlay is
+   `inset:0` inside `.wrap` — padding there would start the column guide 36px down the page and
+   the guide would stop describing the grid it's drawing.
+   1.5 units, not 1: it's the value the index already used and the same air `.grid + .grid` gives
+   a section (1) plus half again, so the page's top edge reads as a wider break than the gap
+   between two rows of one page. */
+main > .grid:first-child{margin-top:calc(var(--unit)*1.5)}
+/* THE THREE spans these pages actually place: full measure, and the half-and-half pair.
+   `.c1-2`, `.c3-12`, `.c1-8`, `.c1-10` and `.c4-12` were also declared here and none of them
+   selected anything — leftovers from the full-width stack the split replaced, where a section
+   head sat at c1–2 with its text at c3–12. Inside the feed those spans are wrong by
+   construction (the feed re-divides its 8 columns into 12 of its own, so a block is placed on
+   the FEED's tracks), which is why they stopped being used and why adding one back means
+   checking it against the feed's width rather than the page's. Add a span when a page places
+   it, not in advance. */
+.c1-6{grid-column:1 / 7}   .c7-12{grid-column:7 / 13}   .c1-12{grid-column:1 / 13}
 @media(max-width:720px){ .grid > *{grid-column:1 / 13 !important} }
 
 /* THE COLUMN GUIDE — hidden by default; press `g` to flash on */
@@ -167,12 +187,14 @@ code{font-family:var(--mono);font-size:.86em;
    that draws nothing has no reason to exist in the markup.
    Rules that SURVIVE are the ones that belong to something: a .frow's top rule opens its
    fact, an .entry's opens its cell, .colo-rule closes the page. Those touch their content.
-   `.rule` is still used by writing/* — those pages are numbered sections where the rule
-   pairs with a set figure, so the line does have an owner. */
+   `.rule` DID survive here for writing/*, and that was a mistake this file couldn't see: the
+   three explainers are built on Explainer.astro, whose `is:global` block is their only
+   stylesheet — they never load global.css. So the declaration here selected nothing on any of
+   the 14 pages that DO load this file, while the rule the explainers actually draw is their
+   own copy at Explainer.astro's `.rule`. Deleted here; edit it there. */
 /* .grid.sect, not .sect — it has to outrank `.grid + .grid`'s one-unit gap, and equal
    specificity later in the file beats it without reaching for !important. */
 .grid.sect{margin-top:calc(var(--unit)*3.5)}
-.rule{grid-column:1 / 13;border-top:1px solid var(--ink);height:0;margin:calc(var(--unit)*2.5) 0 var(--unit)}
 /* the side marker as the case-study kicker — the FIRST thing on the page. There used to be
    a 32px accent stub above it; 32px was not a column, not the word's width, not the
    measure, so it read as decoration that arrived with the template. The marker replaces it
@@ -370,17 +392,12 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
   border-top:1px solid var(--line);padding:14px 0}
 .frow:first-child{border-top:2px solid var(--ink)}
 
-/* .facts.claim — the claim+evidence ledger that follows the masthead on a Type A page.
-   Two .facts blocks stacked 48px apart both opened with the same 2px ink rule and shared the
-   same label column, so they read as ONE four-row ledger with an unexplained seam between
-   "Stack" and "Simplest form". The air alone didn't separate them: 48px is the same two units
-   that sit between a heading and its text elsewhere, so it reads as spacing, not as a break.
-   The fix is the accent top-rule, which is already how this site says "this row of the group
-   is the one that matters" (.entry.accent on the flagship index row, .step.accent). It costs
-   no vertical space, keeps the pair reading as a pair — they're both metadata-before-the-story,
-   not two sections — and it lands on the block that is actually the page's argument. A second
-   ink rule would have been a repeat; a label row would have added a row that says nothing. */
-.facts.claim .frow:first-child{border-top-color:var(--accent)}
+/* `.facts.claim` was here — an accent top-rule that separated a second stacked ledger from the
+   masthead's on a Type A page. The condition it solved no longer exists: the split moved the
+   masthead ledger into the panel, so no page stacks two `.facts` blocks in one column and
+   nothing emits `claim`. If a page ever needs to mark one ledger as the argument, the device to
+   reach for is the same one `.entry.accent` and `.step.accent` use — an accent top-rule, which
+   costs no vertical space — rather than a second ink rule or a label row that says nothing. */
 .frow .fm{grid-column:1 / 4;font-weight:700;font-size:13px;line-height:24px;letter-spacing:.03em;
   text-transform:uppercase}
 .frow .ftx{grid-column:4 / 13;font-size:16px;line-height:24px;color:var(--dim)}
@@ -665,7 +682,6 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 /* 39, not the page h1's 72: the panel is 308px of usable width and "Powerpoint" alone is
    360px at 72. 39 is the ramp step above the index panel's 31px statement, which is the
    right order — a case study's title is the loudest thing in its own panel. */
-.pin .back{margin-bottom:calc(var(--unit)*1.25)}
 /* The ledger at panel width — the existing `.facts > .frow > .fm + .ftx` markup, moved, not
    rewritten. Same re-cut as `.pin .prow`: an 88px key, a 14px gap, one hairline per row, a
    2px ink rule opening the block. The key steps down to the 11px faint caps the panel's
@@ -1088,14 +1104,15 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
 .colo a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;
   transition:border-color var(--dur-fast) var(--ease)}
 .colo a:hover{border-bottom-color:var(--accent)}
-/* label 1-3 · empty 3-5 · items each 2 cols from 5. `.c3` is unused on the index now that
-   Contact lives in the pinned panel; it stays defined because the slot is the pattern, not
-   the content, and the next fact added here belongs in it rather than in a new rule. */
+/* label 1-3 · empty 3-5 · items each 2 cols from 5. There was a `.colo.c3{grid-column:9 / 11}`
+   here, kept on the argument that the empty slot is the pattern rather than the content. It's
+   gone: the third fact moved into the pinned panel with Contact, and a reserved slot and a dead
+   rule are the same thing to anyone reading this file — the pattern is legible from c1 and c2
+   plus this line, and a third column is `9 / 11` when it's needed. */
 .colo.c1{grid-column:5 / 7}
 .colo.c2{grid-column:7 / 9}
-.colo.c3{grid-column:9 / 11}
 @media(max-width:720px){
-  .colo-lab,.colo.c1,.colo.c2,.colo.c3{grid-column:1 / 13;margin-top:var(--unit)}
+  .colo-lab,.colo.c1,.colo.c2{grid-column:1 / 13;margin-top:var(--unit)}
   .colo-lab{margin-top:0}
 }
 
@@ -1145,10 +1162,6 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
      area that overlaps the statement's first line — a tap meant for the h1 landing on the
      link home. The rule is deleted rather than zeroed: `padding:0` here would look like a
      correction to something, when in fact there is no longer anything to correct. */
-  /* `← Index`: inline-block so vertical padding applies at all. The negative margin is
-     only vertical — the left edge is the page's left edge and must not move.
-     Still here for /method, which has a `.back` line and no PanelHead. */
-  .back a{display:inline-block;padding:16px 8px;margin:-16px -8px}
   /* Contact in the panel. Already `display:block; width:fit-content`, so it only needs
      the vertical run; the hover underline stays on the text, not the padding. */
   .pin .pfoot a{padding:12px 0;margin:-12px 0}
@@ -1184,11 +1197,13 @@ figure.demo.hang figcaption{grid-column:10 / 13;margin-top:0;align-self:start}
    element in the shared footer trades the bottom of all eight case studies for composition on
    one page, and `scroll-margin-bottom` is what makes the snap position fall short. */
 
-/* Back-link on case-study pages */
-.back{grid-column:1 / 13;margin-bottom:var(--unit)}
-.back a{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
-  color:var(--dim);text-decoration:none}
-.back a:hover{color:var(--accent)}
+/* The `← Index` back-link block was here, plus its phone tap-target rule and
+   `.pin .back{margin-bottom}`. All three are gone: `.back` ships on no page. The link home
+   is the marker now (chooser: andrewshiau-panel-marks, Q5/06 — see SideMark.astro), so every
+   page reaches the index through the figure at the head of the panel and nothing emits
+   `class="back"`. Deleted rather than kept for the next page that might want one: a rule
+   nothing selects is a rule nobody can trust, and the tap-target comment was actively lying
+   ("still here for /method, which has a `.back` line") about a page that uses PanelHead. */
 
 /* Live embed — the real site framed by a hairline, not a static shot */
 figure.embed{margin:var(--unit) 0 0}

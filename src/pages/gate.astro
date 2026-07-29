@@ -41,7 +41,8 @@ if (!locked) {
   description="This case study is behind a shared password. Ask me for it — hi@andrewshiau.com."
   noindex={true}
 >
-  <div class="grid" style="margin-top:calc(var(--unit)*1.5)">
+  <!-- The inline top margin came off here too — see `main > .grid:first-child` in global.css. -->
+  <div class="grid">
     <div class="pin">
       <Mark />
       <p class="smark">Password required</p>

@@ -40,7 +40,10 @@ if (!spec.replace(/\s+/g, ' ').includes(THESIS)) {
   <!-- `split` makes this one screen tall with the feed scrolling inside it, so the panel is
        pinned from the first pixel instead of drifting until sticky catches it. See THE BOX in
        global.css — including why the case-study panels deliberately stay sticky. -->
-  <div class="grid split" style="margin-top:calc(var(--unit)*1.5)">
+  <!-- The 1.5 units of air above this row used to be an inline margin here. It's a rule now —
+       `main > .grid:first-child` in global.css — because the nine case studies never got the
+       inline copy and opened flush against the top of the window. -->
+  <div class="grid split">
     <div class="pin">
       <!-- The mark, moved here from the centred bar above the page (chooser:
            andrewshiau-panel-shape, Q1/02). `home={false}`: this IS the index, and a link
