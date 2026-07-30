@@ -165,9 +165,16 @@ const EDUCATION = [
 // tool I reach for), and "performance profiling" (the latency bullet claims it with a number, which
 // is stronger than a noun). Gone from Design: Sketch and Framer, both dead in 2026 — naming them
 // dates a reader's estimate of when I last designed anything.
-const BUILD =
-  'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, unit and visual-regression testing.';
-const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B testing.';
+//
+// EACH ROW IS ONE LINE, and the length is counted rather than eyeballed. The printed body column is
+// 60 characters (82 on the measure, less 20 for the hung label and 2 for the gutter), so a value of
+// 61 characters costs two lines and a whole extra line of white above the next row. All three rows
+// were 69–87 characters, which is why Stack alone was 7 lines and bought the second sheet. At 60 or
+// under they are 3 lines total. `unit and visual-regression testing` → `testing` because the kind of
+// testing is craft detail on a line that is doing keyword work, and the A/B testing on the Design
+// row already says the interesting half.
+const BUILD = 'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, testing.';
+const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B testing.';
 ---
 
 <Layout
@@ -325,8 +332,8 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
             and stops; the case studies argue for themselves on their own pages. */}
         <div class="role">
           <div class="rspan">Agents</div>
-          <div class="rbody"><div class="rtitle">Claude Code daily — five of the skills I wrote are
-            case studies here.</div></div>
+          <div class="rbody"><div class="rtitle">Claude Code daily; five of my skills are case
+            studies here.</div></div>
         </div>
       </div>
 
@@ -556,8 +563,23 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
        `break-inside` — the properties move to the section grid and to the cells. */
     .role{display:contents !important}
     .rsect{break-inside:auto;page-break-inside:auto;orphans:2;widows:2}
+    /* ── THE INTERVAL BETWEEN ROLES IS 6pt ON PAPER, NOT 9, AND THAT IS THE WHOLE ONE-PAGE FIX.
+       Measured before deciding: the document was 816pt of content against a 713pt page — 1.14
+       pages, over by 103pt. Of that overflow, 81pt was the nine 9pt gaps between roles and 28pt was
+       the two 14pt section gaps: 109pt of pure vertical space, against 103pt of overflow. So the
+       second sheet existed to hold the spacing, not the content.
+       The screen keeps `--group` at 9pt because a screen has infinite paper and the interval is
+       doing real work there. On a sheet with a hard edge, 6pt between two blocks that already have
+       a hung date to separate them is enough — the axis is the separator, the space is only
+       reinforcement. Same reasoning as the mobile space compression: a scale should start one step
+       lower where the medium is tighter, which is what having a scale is for.
+       This is also why the cut came first and the spacing second. Tightening space to rescue copy
+       that shouldn't be there would have been the wrong order — the 217 words were genuinely not
+       carrying anything, and only after they were gone was the remaining gap small enough that
+       6pt closed it honestly. */
     .rsect > .role + .role > .rspan,
-    .rsect > .role + .role > .rbody{margin-top:var(--group)}
+    .rsect > .role + .role > .rbody{margin-top:6pt}
+    .rsect{margin-top:10pt}
     /* 20ch, COUNTED, not guessed — and the first cut of this rule guessed 13ch and was wrong in a
        way worth recording, because `nowrap` is what made it visible. The longest span on the page is
        "Feb 2025 – May 2025" / "Nov 2018 – Jun 2019" at 19 characters; at 13ch the nowrap text ran
@@ -569,7 +591,21 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
        the gutter, 60 left for the body. Stated in `ch` because in a monospace face a character IS
        the unit, so a column measured in characters cannot drift when the type size changes. */
     .role .rspan{color:#555;white-space:nowrap}
-    .role .rorg,.role .rtitle{break-after:avoid;page-break-after:avoid}
+    /* ── `break-after:avoid` ON `.rorg` / `.rtitle` IS DELETED, and it was costing 5 lines.
+       It was written when `.role` was its own grid and the org/title were block siblings of the
+       bullet list, where "don't break after the org name" is exactly right — it stops "Amazon"
+       sitting alone at the foot of a sheet. Under Q3/03 the role is `display:contents` and those
+       two are inside a single grid CELL (`.rbody`) with the bullets. `break-after` on a box inside
+       a cell can't move a fragmentation point that belongs to the grid ROW, so the declaration no
+       longer does the job it was written for — but Chrome still honours it as a constraint on the
+       row, which is how it ended up forcing an EARLIER break than necessary.
+       Measured by bisection, one declaration at a time against a control: with it, page 1 carried
+       43 lines and page 2 carried 12. Without it, 48 and 7 — five lines moved up and nothing else
+       changed. The widow it was written to prevent cannot occur anyway, because the org, title and
+       bullets are now one cell and a cell is not split between its own children here.
+       A rule that was correct for the old structure became a pessimisation under the new one. Worth
+       recording because nothing about it looked wrong: it read as a safety rule, it had a good
+       comment, and it was silently buying a second sheet. */
     .role .rbody{max-width:none}
     .role .rlines li{break-inside:avoid;page-break-inside:avoid}
     .frow{break-inside:avoid;page-break-inside:avoid}

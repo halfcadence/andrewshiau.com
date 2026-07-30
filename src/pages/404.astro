@@ -1,0 +1,69 @@
+---
+// 404 — what nginx serves, with a real 404 status, for a path that doesn't exist.
+//
+// WHY THIS PAGE HAD TO EXIST BEFORE THE NGINX FIX. The vhost's `location /` ended
+// `try_files $uri $uri/ $uri/index.html /index.html`, so every miss returned the HOMEPAGE at
+// status **200**. Two costs, and the first is what surfaced it:
+//   1. `/favicon.ico` is requested by browsers on their own, at a fixed path, before any markup
+//      says where to look. It got 15 kB of HTML typed `text/html`, failed to decode as an image,
+//      and the browser drew its own placeholder tile — a square. That was the "i swear it has a
+//      square?" bug, and the square was never in favicon.svg.
+//   2. A 200 on a miss tells a crawler the URL is real, so any typo'd or stale link becomes an
+//      indexable duplicate of the homepage.
+// Changing the fallback to `=404` without this page would answer with nginx's own grey default —
+// so the page comes first, then the config points at it.
+//
+// NOT AN `Entry`, same as /style/, /system/ and /resume/: it must never appear in the Work or
+// Experiments matrix. It hand-rolls its panel rather than calling `PanelHead`, because `metaOf()`
+// throws for an href that isn't in experiments.ts — but the FIGURE is imported like everywhere
+// else. (resume.astro hand-copied the SVG and went stale; see MarkFigure.astro.)
+//
+// NO SEARCH BOX, NO SUGGESTIONS, NO "did you mean". There are fifteen pages and the index lists
+// all of them, so the honest recovery is a link to the index — one step, and the reader can see
+// the whole site from there. A search field on a fifteen-page site is a control that exists to
+// look helpful.
+import Layout from '../layouts/Layout.astro';
+import MarkFigure from '../components/MarkFigure.astro';
+---
+
+<!-- `noindex` because a 404 body should never be indexed even if a crawler follows a link to it.
+     The status does most of that work; this covers the case the page is fetched directly. -->
+<Layout
+  title="Not found — Andrew Shiau"
+  description="That page doesn't exist. The index lists everything on the site."
+  noindex={true}
+>
+  <div class="grid">
+    <div class="pin">
+      <p class="smark">
+        <a class="smark-home" href="/"><MarkFigure side="both" />Andrew Shiau</a>
+      </p>
+      <h1>Not found</h1>
+
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">What happened</div>
+          <div class="ftx">There's nothing at this address. The link was wrong, or it pointed at
+            something that has since moved.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Where to go</div>
+          <div class="ftx">The <a href="/">index</a> lists every page on the site — the work, the
+            experiments, and the spec.</div>
+        </div>
+      </div>
+
+      <p class="pfoot">Contact
+        <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
+      </p>
+    </div>
+
+    <div class="splitrule" aria-hidden="true"></div>
+
+    <div class="feed">
+      <p class="fine">
+        <a href="/">← Back to the index</a>
+      </p>
+    </div>
+  </div>
+</Layout>
