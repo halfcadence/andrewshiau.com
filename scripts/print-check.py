@@ -145,6 +145,27 @@ def main() -> int:
               f"{[a + '|' + b for a, b in collisions][:6]}")
     else:
         print("  date column clears its cell (no span butted against an org name)")
+    # EVERY EMBEDDED FONT MUST BE THE SITE'S OWN, and this check exists because a fallback shipped.
+    # `font-weight:600` was requested only by the print stylesheet, so the SemiBold woff2 was never
+    # fetched during screen layout and was not cached when Chrome ran print layout — which does not
+    # wait for a font. The three section heads fell through to the generic `monospace` tail and the
+    # PDF embedded `DejaVuSansMono-Bold` beside two IBM Plex faces. Page count was green throughout;
+    # the extracted text was identical; only the font table showed it.
+    fonts = set()
+    for p in r.pages:
+        for _, ref in (p.get("/Resources", {}) or {}).get("/Font", {}).items():
+            base = ref.get_object().get("/BaseFont")
+            if base:
+                # strip the "AAAAAA+" subset tag Chrome prefixes
+                fonts.add(str(base).lstrip("/").split("+")[-1])
+    alien = sorted(f for f in fonts if not f.startswith("IBMPlexMono"))
+    if alien:
+        print(f"  ⚠ FALLBACK TYPEFACE IN THE PDF: {alien}. A weight requested only in print is not"
+              f" cached when print layout runs — use a weight the screen already uses, or preload"
+              f" the woff2. All fonts found: {sorted(fonts)}")
+    else:
+        print(f"  every embedded font is IBM Plex Mono {sorted(fonts)}")
+
     last = [l for l in (r.pages[-1].extract_text() or "").split("\n") if l.strip()]
     if pages > 1 and len(last) < 8:
         print(f"  LAST PAGE IS THIN — {len(last)} lines. A sheet carrying a few lines is the"

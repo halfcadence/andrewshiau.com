@@ -423,16 +423,39 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
        carries the name and the address instead. */
     .smark,.pin h1{display:none !important}
     .pin .facts{display:none !important}
-    .printhead{display:block !important;margin:0 0 var(--group);color:#000}
+    /* `max-width:none` because `p{max-width:62ch}` in global.css is a SCREEN measure and this is
+       the one element on the printed page that runs the full width. The paper's measure is 83ch
+       on Letter, so the address line was wrapping 21 characters early and spending a third line
+       on the 22 characters of `github.com/halfcadence`. Two lines now (73ch + 52ch), still
+       inside the 45–75 comfort band, and the reclaimed line is what takes page 2 from 99% full
+       to 92% — which is the difference between a two-page document and a two-page document that
+       becomes three the next time a bullet is added. */
+    .printhead{display:block !important;margin:0 0 var(--group);color:#000;
+      max-width:none !important}
     .dek{margin-top:var(--tight)}
-    /* THE SECTION HEAD, as a head. `font-weight:600` alone put it one step from a job title's 500
-       and it stopped reading as a division of the document — see defect 3 above. A hairline over it
-       and tracked small caps is the same "a section opens here" signal the screen gets from 112px
-       of air, in the one medium where air is the scarce resource.
+    /* THE SECTION HEAD, as a head. A hairline over it and tracked small caps is the same "a
+       section opens here" signal the screen gets from 112px of air, in the one medium where air is
+       the scarce resource.
        `width:auto` is the important line: the site clamps a lone `h2` to `--label`, which is derived
-       from the viewport and collapses on paper. Every head has to be told to be its own width. */
+       from the viewport and collapses on paper. Every head has to be told to be its own width.
+       ── AND THE WEIGHT IS 500, NOT 600, BECAUSE 600 PRINTED IN THE WRONG TYPEFACE.
+       This is the defect that a page count could never have caught and that only reading the PDF's
+       own font table does. `font-weight:600` was requested by NOTHING on the screen version of this
+       page, so the SemiBold woff2 was never fetched during screen layout — and it is not in the
+       cache when Chrome runs print layout, which does not wait for a font. So the three heads fell
+       through `--mono` to the generic `monospace` tail and Chrome embedded
+       `BAAAAA+DejaVuSansMono-Bold` in the PDF beside two IBM Plex faces. Verified in the artifact:
+       `/F5 /BAAAAA+DejaVuSansMono-Bold` was one of three fonts on both pages, and the glyphs it set
+       were EXPERIENCE, EDUCATION and STACK. A résumé that ships in two typefaces, one of them a
+       fallback, on the page whose whole argument is one typeface.
+       500 is the fix rather than a `<link rel=preload>` because 500 is ALREADY on the page —
+       `.role .rorg` uses it — so the face is always cached and there is nothing to preload and
+       nothing to keep in sync. The head does not need 600 to read as a head: it has 9pt, `.14em` of
+       tracking, uppercase and a hairline rule doing that work, which is four signals against a job
+       title's one. `font-display` does not help (the fallback is already swapped in) and neither
+       does restating `font-family` (family resolution was never the problem). */
     .feed h2,.feed .grid > .c1-12 > h2{width:auto !important;max-width:none !important;
-      font-weight:600;font-size:9pt;letter-spacing:.14em;text-transform:uppercase;
+      font-weight:500;font-size:9pt;letter-spacing:.14em;text-transform:uppercase;
       margin:var(--sect) 0 var(--tight);padding-top:3pt;border-top:.5pt solid #000;
       break-after:avoid;page-break-after:avoid}
     /* A ROLE MAY SPLIT, but not carelessly (defect 2). `break-inside:avoid` shunted the 7-bullet
