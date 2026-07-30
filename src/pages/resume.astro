@@ -359,18 +359,42 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
      - LINKS lose their underline colour and print their URL, because a printed link that says
        "linkedin" is a dead end. `content:" (" attr(href) ")"` only on the ones that need it —
        mailto: and internal paths are already legible as text.
-     - A ROLE MUST NOT BREAK across pages. `break-inside:avoid` on `.role`, which is what makes
-       the output two clean pages instead of a job split across the fold.
      - The GRID OVERLAY and the scroll-progress bar are interactive furniture and must not print.
-     10.5pt at 1.4, and the space scale is MEASURED to the page rather than chosen. First pass ran
-     11pt with 22pt section breaks and rendered 2.52 pages — a third sheet carrying two lines, which
-     is the worst possible length for a document someone prints and staples. Measured in a 695px
-     frame (letter minus 16mm side margins) with the print rules applied, then tuned: at 10.5/1.4
-     with 16pt sections and 10pt between roles it lands inside two pages with room to spare, and the
-     leading is still 1.4 — looser than most résumés set at this size.
-     The 2× ratio between steps is kept where it can be (5/10/16) so the hierarchy survives the
-     shrink; `--sect` is 16 rather than 20 because a section head on paper already has a weight
-     change to announce it, where on screen space is the only signal. */
+
+     ── HOW THIS WAS ACTUALLY MEASURED, after getting it wrong once. The first pass tuned the scale
+     against a number from a screen iframe with the print rules copied into it, concluded "1.90
+     pages", and shipped. The real export was THREE pages. The simulation could not have been right:
+     an iframe has no `@page`, no `break-inside`, and no pagination at all — it reports one tall
+     column, so dividing its height by a page height ignores every break Chrome actually inserts.
+     Two of the three defects the owner saw were invisible to it.
+     The loop that replaced it, and the reason it can fail: print the page with headless Chrome
+     (`--print-to-pdf`) over a LOOPBACK server, then read the PDF back — page count from the file
+     itself, and the text of each page to see where the breaks landed. `scripts/print-check.py`
+     does it in one command. A server is required rather than convenient: the built CSS and the four
+     Plex woff2 files are referenced root-absolute (`/_astro/…`, `/fonts/…`), which `file://` cannot
+     resolve, so a `file://` render silently substitutes a system sans — which is most of why the
+     downloaded PDF looked, in the owner's words, "uglier than the site". 127.0.0.1 only, foreground,
+     torn down in a `finally`.
+
+     ── WHAT THE REAL PDF SHOWED, and what each fix is for:
+     1. EVERY DATE WRAPPED. "Aug 2025 – present" broke after the dash on all six roles. Cause: the
+        site's `.feed .grid > .c1-12:has(> h2:only-child) > h2` clamps a lone section head to
+        `width:var(--label)`, and `--label` is derived from the VIEWPORT (`min(100vw,--measure)`) —
+        which in a print context computes against the paper box and collapses the column. `.rspan`
+        inherited a 26mm track from the same thinking. Both are stated in `ch` now: a date is a
+        known string, so its column is measured in characters, and `white-space:nowrap` asserts it
+        rather than hoping.
+     2. PAGE 1 ENDED HALF-EMPTY. `break-inside:avoid` on `.role` is right for a 3-line job and
+        wrong for the 7-bullet Composer role, which is taller than the space left — so Chrome moved
+        the whole block to page 2 and left ~40% of page 1 blank. It is `auto` now, with orphan and
+        widow control instead: a role may split, but never with fewer than two lines on either side
+        of the fold, and its heading never sits alone at the foot of a page.
+     3. THE HEADS WERE INVISIBLE AS HEADS. `h2{font-weight:600}` on paper is one step from the 500
+        of a job title, so "Experience" and "Education" read as another line of the list. They take
+        a hairline rule and the small-caps treatment the screen gives a section, which is the one
+        piece of chrome paper genuinely needs — a reader scanning a printout has no scrollbar to
+        tell them where they are.
+     10.5pt at 1.4 stays; the scale (4/9/14) survived the re-measure. */
   @media print{
     :root{
       --paper:#fff; --ink:#000; --dim:#222; --faint:#555; --line:#bbb; --accent:#000;
@@ -400,11 +424,37 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
     .pin .facts{display:none !important}
     .printhead{display:block !important;margin:0 0 var(--group);color:#000}
     .dek{margin-top:var(--tight)}
-    h2{font-weight:600;margin-top:var(--sect)}
-    .role{display:grid !important;grid-template-columns:26mm 1fr;column-gap:6mm;
-      break-inside:avoid;page-break-inside:avoid}
-    .role .rspan{color:#555}
+    /* THE SECTION HEAD, as a head. `font-weight:600` alone put it one step from a job title's 500
+       and it stopped reading as a division of the document — see defect 3 above. A hairline over it
+       and tracked small caps is the same "a section opens here" signal the screen gets from 112px
+       of air, in the one medium where air is the scarce resource.
+       `width:auto` is the important line: the site clamps a lone `h2` to `--label`, which is derived
+       from the viewport and collapses on paper. Every head has to be told to be its own width. */
+    .feed h2,.feed .grid > .c1-12 > h2{width:auto !important;max-width:none !important;
+      font-weight:600;font-size:9pt;letter-spacing:.14em;text-transform:uppercase;
+      margin:var(--sect) 0 var(--tight);padding-top:3pt;border-top:.5pt solid #000;
+      break-after:avoid;page-break-after:avoid}
+    /* A ROLE MAY SPLIT, but not carelessly (defect 2). `break-inside:avoid` shunted the 7-bullet
+       Composer role to its own page and left page 1 40% empty. Orphans/widows do the job properly:
+       two lines minimum on either side of a fold, so a job can continue across pages the way prose
+       does, and `break-after:avoid` on its heading keeps the org name from sitting alone at the
+       bottom of a sheet. */
+    .role{display:grid !important;grid-template-columns:20ch 1fr;column-gap:2ch;
+      break-inside:auto;page-break-inside:auto;orphans:2;widows:2}
+    /* 20ch, COUNTED, not guessed — and the first cut of this rule guessed 13ch and was wrong in a
+       way worth recording, because `nowrap` is what made it visible. The longest span on the page is
+       "Feb 2025 – May 2025" / "Nov 2018 – Jun 2019" at 19 characters; at 13ch the nowrap text ran
+       straight out of its cell and collided with the org name — the print check screenshot read
+       "Aug 2025 – preseAmazon". That is the assertion doing its job: a wrapped date hides in a
+       layout, an overlapping one cannot be missed.
+       20ch = 19 plus one, and the arithmetic says it fits: the content box is 7.24in = 521pt, and
+       Plex Mono's advance at 10.5pt is 6.3pt, so the line is 82 characters — 20 for the date, 2 for
+       the gutter, 60 left for the body. Stated in `ch` because in a monospace face a character IS
+       the unit, so a column measured in characters cannot drift when the type size changes. */
+    .role .rspan{color:#555;white-space:nowrap}
+    .role .rorg,.role .rtitle{break-after:avoid;page-break-after:avoid}
     .role .rbody{max-width:none}
+    .role .rlines li{break-inside:avoid;page-break-inside:avoid}
     .frow{break-inside:avoid;page-break-inside:avoid}
     /* Links: black, no underline colour games, and the external ones print their destination. */
     a{color:#000 !important;text-decoration:underline;text-decoration-color:#999 !important}
@@ -422,5 +472,42 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
     /* The dek is the screen's opening paragraph. On paper the printhead line above it already
        states the name and the role, and a résumé's first inch belongs to the first job. */
     .dek{display:none !important}
+    /* ── AND THE LAST FOUR LINES CAME BACK ONTO PAGE 2. After fixing the dates and the role
+       breaks, the print check reported page 1 at 47 lines (it had been 27) and a third sheet
+       carrying four: the `Agents` row of the Stack ledger. A sheet holding four lines is the worst
+       length for something printed and stapled, so the remaining job was ~4 lines of height.
+       Found by measuring rather than by nudging the type down: the STACK section is a `.facts`
+       ledger whose three rows each get `--group` (9pt) above them plus a 14pt section break, and
+       its rows are short. Two changes, both structural rather than cosmetic:
+       - the ledger's rows tighten to `--tight` between pairs. On screen a `.frow` needs `--group`
+         because the label and value share a line and space is the only separator; here each row is
+         a label above a wrapped value, so the pair is already visually bound and 9pt between rows
+         was buying nothing.
+       - `Stack` is the one section allowed to break tight against what precedes it: its heading
+         takes half the section interval. It is the last block, and a section break exists to say
+         "a new division starts here" — at the foot of a document there is nothing left to divide.
+       Verified with scripts/print-check.py: two pages, and the last page is not thin.
+       ── AND THE STACK LEDGER HANGS ITS LABEL, on the SAME axis as the dates. This is the third
+       victim of one root cause: `.frow` sets `grid-template-columns:var(--label) 1fr`, and `--label`
+       is derived from `min(100vw,--measure)` — a viewport measure. In a print context it collapses,
+       so the three Stack labels stacked ABOVE their values (visible in the print screenshot: "Build"
+       on its own line, then the list) and each row cost two lines instead of one.
+       Stating it as `20ch` fixes the collapse and saves three lines, which is what brings the
+       document back to two pages after the date column widened. It also means the whole printed
+       document has exactly ONE hung axis: dates, education years, and stack labels all start at the
+       same character and their values all start at the same character. On screen that axis is 182px
+       and derived from the grid; on paper it is 20 characters and derived from the longest string.
+       Same idea, measured in the unit each medium actually has. */
+    .feed .facts .frow{display:grid !important;grid-template-columns:20ch 1fr;column-gap:2ch;
+      margin-top:var(--tight) !important}
+    .feed .facts .frow .fm{color:#555}
+    /* …EXCEPT the "On paper" row, which this rule accidentally resurrected. `.frow:has(.kb)` below
+       hides it with `display:none`, and the line above is more specific AND `!important`, so the row
+       came back — as a single orphan line on a third sheet, which the print check caught. Restated
+       here at matching specificity rather than moved, because the two rules answer different
+       questions: that one says "this row is screen furniture", this one says "ledger rows hang their
+       label". Both have to be true. */
+    .feed .facts .frow:has(.kb){display:none !important}
+    .feed .grid.sect:last-of-type h2{margin-top:calc(var(--sect)/2)}
   }
 </style>
