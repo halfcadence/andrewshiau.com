@@ -320,13 +320,31 @@ The duality did not go away — it stopped being a hue.
   things. The single object is **r=7.2, not r=5**: measured by ink coverage at 4×, r=5
   paints 47% of the pair's ink and r=9 paints 151%, so a radius picked by arithmetic makes a
   one-sided marker read lighter or heavier than a two-sided one. Match coverage, not radius.
-- **The join is trimmed at both ends, and the numbers are geometry** (chooser:
-  `andrewshiau-mark-options`, Q1/04). `x1,y1 = 14.17` is the ring's outer edge and
-  `x2,y2 = 18.46` the disc's near edge, both projected along the 45° join from r=5 circles
-  with a 1.8 stroke. The rule touches neither object, so it reads as a dimension line
-  between two things rather than a stick through them — and a centre-to-centre line, which
-  is what shipped while both dots were solid, pokes a visible stub into a hollow ring.
-  Change r or the stroke and **both numbers move**; the arithmetic is in `MarkFigure.astro`.
+- **The join lands on each circle's PATH, and the numbers are geometry** (chooser:
+  `andrewshiau-mark-options`, Q1/04). `x1,y1 = 13.54` and `x2,y2 = 18.46` — r=5 projected along
+  the 45° join (`5 × 0.70711`) from centres at 10 and 22. Each end sits **0.9 units inside the
+  1.8 stroke band**, so the rule overlaps the stroke it meets and the join is unambiguous.
+  Three positions exist and only the middle one works, all three rendered at 260px before
+  choosing: **centre-to-centre** pokes a visible stub into the hollow ring; the **outer edge**
+  (5.9 → `14.17`/`17.83`, which shipped for four passes) is *tangent* rather than overlapping, and
+  tangency plus a hair of antialiasing reads as a gap — the annotation that caught it was "the
+  bars are a tiny bit short and dont visibly connect at big sizes to the balls"; the **inner
+  edge** (4.1 → `12.90`) breaks back into the hole. The path leaves **0.64 units of clearance**
+  to the hole, and that margin is the entire tolerance of this device.
+  This entry previously stated `14.17` and `18.46` together, which are two different conventions
+  (outer edge and path) and cannot both be right — a spec that mixes them is how the wrong pair
+  survives a review.
+  Change r or the stroke and **both numbers and the clearance move**; the arithmetic is in
+  `MarkFigure.astro`.
+- **FOUR drawings of this figure exist and the join lives in TWO of them.** `MarkFigure.astro` is
+  the source of truth; `public/favicon.svg` is a hand copy because an SVG served as a favicon
+  cannot import. Change one, change both. `resume.astro` used to be a third — it hand-rolled the
+  whole SVG and silently kept the tangent join through this fix, which is exactly the drift the
+  component exists to prevent; it imports `MarkFigure` now. **A new hand copy is a slop finding**:
+  the page may hand-roll its panel (`metaOf()` throws for an href that isn't an `Entry`) and still
+  import the figure. The fourth is the GitHub avatar PNG, rendered from the same geometry —
+  `work/understand/halfcadence-avatar-options/upload/` — and it is a raster, so it is regenerated
+  rather than edited.
 - **The mark's only job on the page is the index's row marker** (chooser:
   `andrewshiau-mark-options`, Q3/05). There is no logo above the name: `Mark.astro` and
   `.pin .pmark` are deleted. The figure ships in exactly two wrappers, and both carry a

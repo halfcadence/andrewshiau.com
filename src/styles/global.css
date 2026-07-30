@@ -1647,11 +1647,26 @@ figure.demo.hang video{width:100%}
   column-gap:var(--gutter)}
 .sysmarks > div{display:grid;grid-template-columns:3ch 1fr;column-gap:1ch;align-items:baseline}
 .sysmarks .sysj{grid-column:2;color:var(--dim)}
+/* THE JOIN SPECIMENS. The same component at the three sizes that decide the number: the 18px
+   floor, the 26px kicker, and one large enough that a tangent join reads as a visible gap.
+   `.jf` sizes the FIGURE and nothing else — the specimen must be the real `MarkFigure`, at a real
+   size, or the page is documenting a drawing instead of the component (see `/system/`'s own rule).
+   Sizes are stated here rather than inline because an inline `style` can't reach the child `svg`,
+   and `.side .mark` already fixes 18px for the index. */
+.sysjoin{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,1fr);
+  column-gap:var(--gutter);align-items:end}
+.sysjoin > div{display:grid;row-gap:var(--tight)}
+.sysjoin .jf{display:block}
+.sysjoin .jf .mark{display:block;overflow:visible}
+.sysjoin .jf-18 .mark{width:18px;height:18px}
+.sysjoin .jf-26 .mark{width:26px;height:26px}
+.sysjoin .jf-96 .mark{width:96px;height:96px}
+.sysjoin .sysj{color:var(--dim)}
 .sysfield{grid-column:1 / -1;max-width:34ch}
 /* 1060, with every other hung device (Q1/01). `.sysrow` uses `--label`, so if it stacked at 900
    the page that DOCUMENTS the label column would be the page where it behaved differently. */
 @media(max-width:1060px){
-  .syspair,.sysmarks{grid-template-columns:1fr;row-gap:var(--group)}
+  .syspair,.sysmarks,.sysjoin{grid-template-columns:1fr;row-gap:var(--group)}
   .sysrow,.sysrow:has(.bar){grid-template-columns:1fr;row-gap:0}
   .sysrow .bar{grid-column:1}
 }

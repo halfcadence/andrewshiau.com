@@ -25,6 +25,12 @@
 import Layout from '../layouts/Layout.astro';
 import MarkFigure from '../components/MarkFigure.astro';
 import css from '../styles/global.css?raw';
+// THE FIGURE'S TWO COPIES, read as text so the build can compare them. `MarkFigure.astro` is the
+// source of truth and `favicon.svg` is a hand copy that cannot import — so the ONE thing no
+// reviewer reliably checks is whether the two still draw the same figure. They diverged for four
+// passes on exactly this line, and a diff of two files is a check a person shouldn't have to run.
+import markSrc from '../components/MarkFigure.astro?raw';
+import faviconSrc from '../../public/favicon.svg?raw';
 
 const COLOUR = [
   { t: '--paper',  v: '#f4f3ef', d: '#141413', job: 'The ground. Warm off-white, near-black in dark.' },
@@ -94,6 +100,51 @@ for (const [decl, name] of mustNot) {
       'deliberate decision to reverse chooser Q2/03.'
     );
   }
+}
+
+// ── THE FIGURE IS ONE DRAWING IN TWO FILES, AND THE BUILD CHECKS THAT.
+// The join is the one number in this mark that can be wrong while everything still renders, and
+// it WAS wrong: the rule stopped at each circle's outer edge (5.9 → 14.17/17.83), which is tangent
+// to the objects rather than overlapping them, so at large sizes it read as a gap. It now lands on
+// the path (r=5 → 13.54/18.46), 0.9 units inside the 1.8 stroke.
+// Pulling the geometry out of BOTH files and comparing them is what makes the favicon's hand copy
+// safe to keep. Asserting a literal here would only prove this page agrees with itself.
+const JOIN = { x1: '13.54', x2: '18.46' };
+// Only the PAIRED figure is compared. `MarkFigure` also draws the two one-sided marks (r=7.2,
+// centred at 16) and the favicon has no equivalent — it is always the pair — so a naive scrape of
+// every <circle> reports drift that isn't there. Matching on the pair's own centres (10 and 22) is
+// what makes the two files comparable; the first version of this check failed on exactly that.
+const geom = (src: string) => {
+  const line = src.match(/<line[^>]*x1="([\d.]+)"[^>]*x2="([\d.]+)"[^>]*stroke-width="([\d.]+)"/);
+  const circles = [...src.matchAll(/<circle[^>]*cx="(10|22)"[^>]*r="([\d.]+)"[^>]*stroke-width="([\d.]+)"/g)]
+    .map(m => `c${m[1]}/r${m[2]}/s${m[3]}`);
+  return line && circles.length === 2
+    ? { x1: line[1], x2: line[2], sw: line[3], circles: circles.join(' ') } : null;
+};
+const mark = geom(markSrc), fav = geom(faviconSrc);
+if (!mark || !fav) {
+  throw new Error(
+    '/system/ could not find the figure\'s <line> in MarkFigure.astro and/or favicon.svg. ' +
+    'The markup changed shape — update the `geom()` matcher, and check the two files still agree ' +
+    'by eye while you are there.'
+  );
+}
+if (mark.x1 !== JOIN.x1 || mark.x2 !== JOIN.x2) {
+  throw new Error(
+    `/system/ documents the join as ${JOIN.x1} → ${JOIN.x2} and MarkFigure.astro draws ` +
+    `${mark.x1} → ${mark.x2}. If the geometry moved deliberately, move the prose in "The join" ` +
+    'and STYLE.md with it — the clearance to the ring\'s hole (0.64 units at r=5) is what this ' +
+    'number is trading against, so a new value needs re-measuring, not just re-typing.'
+  );
+}
+if (mark.x1 !== fav.x1 || mark.x2 !== fav.x2 || mark.sw !== fav.sw ||
+    mark.circles !== fav.circles) {
+  throw new Error(
+    'The figure has DRIFTED between its two copies. ' +
+    `MarkFigure.astro: line ${mark.x1}→${mark.x2} sw ${mark.sw}, circles ${mark.circles}. ` +
+    `favicon.svg: line ${fav.x1}→${fav.x2} sw ${fav.sw}, circles ${fav.circles}. ` +
+    'The favicon cannot import, so it is a hand copy on purpose — change one, change both.'
+  );
 }
 ---
 
@@ -369,6 +420,38 @@ for (const [decl, name] of mustNot) {
             <span class="sysj">the ring alone</span></div>
           <div><span class="side"><MarkFigure side="build" /></span><code>build</code>
             <span class="sysj">the disc alone</span></div>
+        </div>
+      </div>
+
+      <!-- ── THE JOIN ───────────────────────────────────────────────────────────────
+           The figure is the site's only drawing, so the ONE number in it that can be
+           wrong deserves to be visible. This block exists because the join shipped
+           wrong for four passes and no page showed it at a size where the defect read.
+           Every specimen is the real component at a real size — no drawing of its own. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The join</h2>
+          <div class="sbody">
+            <p>The rule stops at each circle's <b>path</b> (<code>r=5</code>), not at its outer
+              edge — <code>13.54</code> to <code>18.46</code>, which is <code>5 × 0.70711</code>
+              projected along the 45° diagonal. That buries <b>0.9 units</b> of each end inside the
+              1.8 stroke, so the join <i>overlaps</i> the object it meets.</p>
+            <p>It ended at the outer edge (<code>14.17</code>) for four passes. That is
+              <i>tangent</i> to each circle rather than overlapping it, and tangency plus a hair of
+              antialiasing reads as a gap. Going 0.64 units further, to the inner edge, breaks a
+              stub back into the ring's hole. <b>The tolerance is 0.64 units</b>, and it is why
+              this number is documented rather than left to the file.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="sysjoin">
+          <div><span class="jf jf-26"><MarkFigure side="both" /></span>
+            <code>26px</code><span class="sysj">case-study kicker</span></div>
+          <div><span class="jf jf-18"><MarkFigure side="both" /></span>
+            <code>18px</code><span class="sysj">index row — the floor</span></div>
+          <div><span class="jf jf-96"><MarkFigure side="both" /></span>
+            <code>96px</code><span class="sysj">where a gap would show</span></div>
         </div>
       </div>
 

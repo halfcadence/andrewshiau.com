@@ -4,13 +4,19 @@
        This is a SECOND HAND COPY of src/components/MarkFigure.astro. It cannot import, so it
        carries its own hexes; the geometry below must match that file exactly. Change one,
        change both.
-       Hollow ring, solid disc, and the rule trimmed at both ends so it touches neither object.
+       Hollow ring, solid disc, and the rule landing on each circle's PATH so it overlaps the
+       stroke it meets.
        BOTH OBJECTS ARE r="5" WITH THE SAME 1.8 STROKE, so both reach 5.9 and the pair is 11.8
        units across. The disc is stroked in the colour it is filled with — invisible against its
        own fill, so it looks like a plain disc while sharing the ring's geometry exactly.
        It was r="5" unstroked, which reached only 5.0 and made the disc 15% smaller (a stroke is
        centred on its path and hangs half outside it, so equal radii are NOT equal sizes unless
-       both are stroked). The trim moved to 17.83 with it. The arithmetic is in MarkFigure.astro.
+       both are stroked). The arithmetic is in MarkFigure.astro.
+       THE JOIN IS 13.54 → 18.46, the path (r=5), NOT the outer edge (5.9 → 14.17/17.83). At the
+       outer edge the rule was tangent to each object rather than overlapping it, and tangency
+       reads as a gap: "the bars are a tiny bit short and dont visibly connect at big sizes."
+       This matters MORE here than on the page, because a favicon is where a hairline gap
+       disappears into one grey pixel. Do not shorten it back.
        NO HUES. The page's mark is currentColor throughout — outline vs. fill is the signal now,
        not navy vs. olive — so the tab is the same figure in one colour, and `.design` / `.build`
        are gone from this file. The two-hue version was legible at 16px only because the hues
@@ -39,7 +45,7 @@
       .st{stroke:#f0efe8}
     }
   </style>
-  <line class="st" x1="14.17" y1="14.17" x2="17.83" y2="17.83" stroke-width="1.5"/>
+  <line class="st" x1="13.54" y1="13.54" x2="18.46" y2="18.46" stroke-width="1.5"/>
   <circle class="st" cx="10" cy="10" r="5" fill="none" stroke-width="1.8"/>
   <circle class="fg st" cx="22" cy="22" r="5" stroke-width="1.8"/>
 </svg>

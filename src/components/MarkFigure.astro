@@ -30,22 +30,26 @@
 // ring's 57. That is correct and is the point — filled vs. hollow is the distinction the mark
 // makes, and the eye compares silhouettes first.
 //
-// THE RULE IS TRIMMED AT BOTH ENDS (chooser: andrewshiau-mark-options, Q1/04). It used to run
+// THE RULE LANDS ON EACH CIRCLE'S PATH, AND IT USED TO STOP AT THE OUTER EDGE. It first ran
 // centre to centre, (10,10)→(22,22), which was invisible while both dots were solid: the line's
 // ends were buried under the fills. Hollow the leading dot and the buried end reappears inside
-// the ring as a stub poking through it. Trimmed, the rule spans the gap and touches neither
-// object, so both keep their own edge and the rule reads as a third element — a dimension line
-// between two things rather than a stick joining them.
+// the ring as a stub poking through it. So it was trimmed to the OUTER EDGE (5.9) — and that
+// went too far. Annotation: "the bars are a tiny bit short and dont visibly connect at big
+// sizes to the balls."
+// Right, and the reason is that tangency is not connection. At 5.9 the rule ended exactly where
+// each object ended, so the two shapes touched at a single point with no overlap, and a hair of
+// antialiasing on either side reads as a gap at 260px.
 // The numbers are the geometry, not taste. The join runs at 45°, so the unit vector along it is
-// (0.70711, 0.70711). Both objects have the same 5.9 outer edge (r=5 plus half of the 1.8
-// stroke), so the trim is symmetric: the rule starts at 10 + 5.9(0.70711) = 14.17 and ends at
-// 22 − 5.9(0.70711) = 17.83. It was 18.46 while the disc was unstroked and its edge was at 5.0.
-// Change r or the stroke and BOTH numbers move — which is now ONE change rather than two, since
-// the two circles share both values.
-// The cost, accepted: the trimmed rule is 4.29 units of a 32-unit box, so it renders about a
-// tenth of the figure's width. At the 18px row marker that is ~2.4px of line. It is the
-// smallest mark on the page and it is meant to be — see `.side .mark` in global.css for why 18
-// is the floor (below it the 1.8 ring stroke drops under one device pixel and the ring greys).
+// (0.70711, 0.70711). The rule now stops at each circle's PATH (r=5), not its outer edge:
+// 10 + 5(0.70711) = 13.54 and 22 − 5(0.70711) = 18.46. That buries 0.9 units of each end inside
+// the 1.8 stroke band, so the join overlaps the stroke it meets and is unambiguous.
+// IT MUST NOT REACH THE INNER EDGE (4.1 → 12.90). There the tip breaks through into the ring's
+// hole and the stub is back — measured by rendering all three at 260px. Stopping at the path
+// leaves 0.64 units of clearance, which is the whole margin this device has to work in.
+// Change r or the stroke and BOTH numbers move, and so does that clearance.
+// The rule is now 6.97 units of a 32-unit box (it was 5.17) — about a fifth of the figure's
+// width, ~4.4px at the 18px row marker. See `.side .mark` in global.css for why 18 is the floor
+// (below it the 1.8 ring stroke drops under one device pixel and the ring greys).
 //
 // It was inline in Mark.astro until the case-study marker started drawing it too (chooser:
 // andrewshiau-panel-marks, Q5/06 — the logo goes and the marker becomes the link home). Two
@@ -85,7 +89,7 @@ const { side = 'both' } = Astro.props;
 ---
 {side === 'both' ? (
   <svg class="mark" viewBox="0 0 32 32" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-    <line x1="14.17" y1="14.17" x2="17.83" y2="17.83" stroke="currentColor" stroke-width="1.5"/>
+    <line x1="13.54" y1="13.54" x2="18.46" y2="18.46" stroke="currentColor" stroke-width="1.5"/>
     <circle cx="10" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/>
     <circle cx="22" cy="22" r="5" fill="currentColor" stroke="currentColor" stroke-width="1.8"/>
   </svg>

@@ -29,6 +29,12 @@
 // feature rather than an artifact that can go stale against the page. That is the same call the
 // site makes everywhere else — remove a step rather than add a file to keep in sync.
 import Layout from '../layouts/Layout.astro';
+// The panel is hand-rolled (see above) but the FIGURE is not: it is imported like everywhere else.
+// This page carried a hand copy of the SVG, and it went stale exactly as predicted — when the
+// join's trim moved from the outer edge (17.83) to the path (18.46), four drawings needed the fix
+// and this was the one nobody would have thought to grep. `metaOf()` is what this page can't call;
+// `MarkFigure` has no such constraint.
+import MarkFigure from '../components/MarkFigure.astro';
 
 // The roles, newest first. Data rather than markup because the print rules need to break between
 // them and the screen layout hangs a date column beside each — two shapes, one source.
@@ -166,12 +172,7 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
          claim a résumé for this particular job has to make in its first 60px. -->
     <div class="pin">
       <p class="smark">
-        <a class="smark-home" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          ><line x1="14.17" y1="14.17" x2="17.83" y2="17.83" stroke="currentColor" stroke-width="1.5"
-          /><circle cx="10" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="1.8"
-          /><circle cx="22" cy="22" r="5" fill="currentColor" stroke="currentColor" stroke-width="1.8"
-        /></svg>Andrew Shiau</a>
+        <a class="smark-home" href="/"><MarkFigure side="both" />Andrew Shiau</a>
       </p>
       <h1>Résumé</h1>
 
