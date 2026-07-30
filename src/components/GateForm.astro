@@ -130,5 +130,31 @@ const { href } = Astro.props;
       clearTimeout(timer);
       check(true);
     });
+
+    // BACK BUTTON: RESET TO THE DEFAULT STATE. Bug report: "when goign into the pass gated page
+    // for stores designer and then back we go back to •••••••••• Opening…"
+    // Exactly right, and it is two separate browser behaviours arriving together:
+    //   - FORM RESTORATION refills the input with what was typed. Browsers do this on history
+    //     navigation regardless of `autocomplete="off"` — that attribute governs the password
+    //     manager, not session history, which is why it did not prevent this.
+    //   - The BFCACHE restores the whole document as it was, so `.gmsg` still reads "Opening…" —
+    //     a status line describing a navigation that finished a minute ago.
+    // The result is a form mid-submit for a page the reader has already seen and left. There is
+    // nothing to resume: the destination was reached, and if the cookie is still good the row is
+    // not the way back in anyway.
+    // `pageshow` rather than `load`, because `load` DOES NOT FIRE on a bfcache restore — which is
+    // the case that leaves "Opening…" on screen. It fires on both paths, so this covers the plain
+    // history navigation (where the field is refilled but the message was never rendered) too.
+    // Unconditional rather than `if (e.persisted)`: on a first load these are already empty, so
+    // clearing costs nothing and needs no branch that only one of two paths exercises.
+    // `seq` is bumped so any request still in flight when the page was frozen lands stale and is
+    // discarded by the `mine !== seq` guard — otherwise a resolved fetch could write "Opening…"
+    // straight back into the field we just cleared.
+    window.addEventListener('pageshow', () => {
+      clearTimeout(timer);
+      seq++;
+      if (input instanceof HTMLInputElement) input.value = '';
+      say('');
+    });
   });
 </script>
