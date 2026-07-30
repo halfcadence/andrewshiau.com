@@ -1,0 +1,274 @@
+---
+// /stories/ — THE STORY BANK, AT THE COMPETENCY LEVEL, READ THROUGH AMAZON'S LEADERSHIP PRINCIPLES.
+//
+// Annotation: "should i make a (maybe hidden) page for my /story-bank … i want to help myself review
+// my story bank this way, maybe align it to amazon design principles etc" → gated, LP-mapped.
+//
+// ── WHAT THIS PAGE IS NOT. It is NOT `work/growth/story-bank.md`. That file is the interview bank —
+// 678 lines, internal codenames, CR numbers, an internal URL, and level-calibration language
+// ("L6 ANCHOR", "hardest L6 competency") — and it FAILS `work/tools/scrub-check.sh`, which is the
+// owner's own gate for anything leaving a private repo. Its verdict is literally "Do not publish."
+// So it does not leave the devbox, gate or no gate.
+//
+// This page renders `work/growth/star-stories.md`, the scrubbed sibling, which PASSES that gate
+// clean. Its own scrubbing rule is the right one and worth restating: "describe the skill I now own,
+// not my employer's business" — no company, product, system or team names, no coworker names, no
+// dollar figures or user counts, no CR links. Impact is the SHAPE of an outcome ("onboarding became
+// a data task, not an engineering fork"), never a business number.
+//
+// ── WHY THE SOURCE IS NOT IN THIS REPO, which is the actual security model.
+// This repo is PUBLIC on GitHub — verified rather than assumed: an unauthenticated GET on
+// github.com/halfcadence/andrewshiau.com returns 200. So a page behind an nginx cookie gate whose
+// markdown is committed here would be gated in name only; anyone could read the source and never
+// touch the URL. `import src from '../../STYLE.md?raw'` works for /style/ because STYLE.md is meant
+// to be public. This file reads from `work/`, outside the repo, so only the RENDERED HTML ships to
+// the droplet where nginx can gate it.
+//
+// THE COST, stated because it is real and it is a first for this repo: THIS REPO NO LONGER BUILDS
+// STANDALONE. A clone without a sibling `work/` checkout cannot build. The alternative — commit the
+// markdown and gate the URL — is worse, because it is a gate that does not gate. The build throws a
+// named error rather than emitting a blank page, so the failure explains itself.
+//
+// ── AND WHY IT IS GATED AT ALL, given the content is scrubbed. Two reasons, neither about secrecy:
+// a résumé is a claim and this is the working-out behind it, which is a different document and not
+// one a stranger should meet first; and the LP framing is written for an Amazon reader, so it would
+// read as employer-specific to everyone else. Gated means "I send this to you", which is what it is.
+import Layout from '../layouts/Layout.astro';
+import MarkFigure from '../components/MarkFigure.astro';
+import { LP_MAP, LP_GAPS } from '../data/stories';
+
+// The raw markdown, read from OUTSIDE the repo at build time. `?raw` on a relative path that leaves
+// the project root is resolved by Vite against the filesystem, which is exactly what is wanted here.
+import src from '../../../work/growth/star-stories.md?raw';
+
+// ── THE PARSER. Not a markdown renderer: `star-stories.md` uses exactly four constructs and this
+// reads those four. `/style/`'s renderer handles thirteen because STYLE.md needs thirteen; adding a
+// dependency for either would break the site's one-runtime-dependency rule (see method.astro).
+const esc = (t: string) =>
+  t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// Bold and inline code only, and code spans come out FIRST so a `**` inside one is never read as
+// bold — the same ordering bug /style/'s renderer documents.
+function inline(t: string): string {
+  const spans: string[] = [];
+  let s = esc(t).replace(/`([^`]+)`/g, (_m, c) => {
+    spans.push(`<code>${c}</code>`);
+    return ` ${spans.length - 1} `;
+  });
+  s = s
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g, '$1<i>$2</i>');
+  return s.replace(/ (\d+) /g, (_m, i) => spans[Number(i)]);
+}
+
+interface Beat { k: string; text: string }
+interface Story { n: number; title: string; competency: string; beats: Beat[] }
+
+// One pass over the file. A story is `## N · Title`, then `**Competency: …**`, then S/T/A/R bullets
+// whose continuation lines are indented — so a bullet is joined until the next `- **X:**`.
+const stories: Story[] = [];
+{
+  const lines = src.split('\n');
+  let cur: Story | null = null;
+  for (let i = 0; i < lines.length; i++) {
+    const h = lines[i].match(/^##\s+(\d+)\s+·\s+(.*)$/);
+    if (h) {
+      cur = { n: Number(h[1]), title: h[2].trim(), competency: '', beats: [] };
+      stories.push(cur);
+      continue;
+    }
+    if (!cur) continue;
+    // A second-level heading that is NOT a story ends the run (the file closes with
+    // "## What I deliberately left out"), so stop attributing content to the last story.
+    if (/^##\s/.test(lines[i])) { cur = null; continue; }
+    const c = lines[i].match(/^\*\*Competency:\s*(.*?)\*\*\s*$/);
+    if (c) { cur.competency = c[1]; continue; }
+    const b = lines[i].match(/^-\s+\*\*([STAR]):\*\*\s*(.*)$/);
+    if (b) { cur.beats.push({ k: b[1], text: b[2] }); continue; }
+    // continuation of the current bullet
+    if (/^\s{2,}\S/.test(lines[i]) && cur.beats.length) {
+      cur.beats[cur.beats.length - 1].text += ' ' + lines[i].trim();
+    }
+  }
+}
+
+// ── ASSERTIONS, because this page's source is a file the build cannot see in version control. A
+// missing sibling checkout, a renamed heading, or a reformatted bullet would otherwise ship a page
+// that renders empty and looks intentional. Each of these has a real failure mode behind it.
+if (stories.length < 10) {
+  throw new Error(
+    `/stories/ parsed only ${stories.length} stories from work/growth/star-stories.md — expected ` +
+    '10+. Either the sibling `work/` checkout is missing (this repo does NOT build standalone — see ' +
+    'the comment at the top of stories.astro), or the file\'s `## N · Title` heading shape changed.'
+  );
+}
+const beatless = stories.filter((s) => s.beats.length < 4);
+if (beatless.length) {
+  throw new Error(
+    `/stories/ parsed ${beatless.length} story/stories with fewer than four S/T/A/R beats ` +
+    `(#${beatless.map((s) => s.n).join(', #')}). The bullet shape is \`- **S:** …\` with indented ` +
+    'continuations; check the source rather than loosening the parser.'
+  );
+}
+// THE SCRUB ASSERTION, and it is the important one. This page is gated, not secret, and the whole
+// premise is that its source is the CLEAN file. If a marker from the internal bank ever appears
+// here — an employer name, a CR number, an internal host, a level target — the build must fail
+// rather than publish it behind a password and call that safe.
+const flat = src.toLowerCase();
+const forbidden: [string, string][] = [
+  ['amazon', 'an employer name'],
+  ['cr-', 'a code-review ID'],
+  ['a2z.com', 'an internal host'],
+  ['amazon.dev', 'an internal host'],
+  ['protozoa', 'an internal tool'],
+  ['l6', 'a level-calibration target'],
+  ['promo panel', 'promo-packet language'],
+];
+for (const [needle, what] of forbidden) {
+  if (flat.includes(needle)) {
+    throw new Error(
+      `/stories/ refused to build: its source contains "${needle}" (${what}). This page renders ` +
+      'the SCRUBBED bank (work/growth/star-stories.md), never work/growth/story-bank.md — that ' +
+      'file fails work/tools/scrub-check.sh and must not ship, gated or not. Fix the source.'
+    );
+  }
+}
+
+// Index by number so the LP groups can pull stories without re-parsing.
+const byN = new Map(stories.map((s) => [s.n, s]));
+// Every story appears under at least one LP; a story the map forgot is a story the page hides.
+const mapped = new Set(LP_MAP.flatMap((g) => g.stories));
+const unmapped = stories.filter((s) => !mapped.has(s.n));
+
+const BEAT: Record<string, string> = {
+  S: 'Situation', T: 'Task', A: 'Action', R: 'Result',
+};
+---
+
+<!-- FOUR LAYERS FOR ONE URL, and each covers a case the others miss: nginx answers 401 without the
+     cookie (the actual gate), robots.txt Disallows it, the sitemap `filter` never advertises it, and
+     `noindex` here covers the one case the Disallow cannot — a crawler that finds the URL as a bare
+     link, since a Disallow'd page is never fetched and so its `noindex` is never read. The same
+     stack /gate/ and the locked case study use, for the same reason. -->
+<Layout
+  title="Story bank — Andrew Shiau"
+  description="Engineering stories at the transferable-competency level, read through Amazon's Leadership Principles."
+  noindex={true}
+>
+  <div class="grid stories">
+    <div class="pin">
+      <p class="smark">
+        <a class="smark-home" href="/"><MarkFigure side="both" />Andrew Shiau</a>
+      </p>
+      <h1>Story bank</h1>
+
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">What</div>
+          <div class="ftx">{stories.length} engineering stories at the <b>transferable-competency</b>{' '}
+            level — the skill I own, told so it stands without naming an employer, product or
+            metric.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Lens</div>
+          <div class="ftx">Grouped by <b>{LP_MAP.length} of Amazon's Leadership Principles</b>. The
+            stories are employer-agnostic; the grouping is the lens, so the same set reads against a
+            different rubric without a rewrite.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Why gated</div>
+          <div class="ftx">Not secrecy — every line here passes my own scrub gate. A résumé is the
+            claim and this is the working-out, which is a different document and not the one a
+            stranger should meet first.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Rendered from</div>
+          <div class="ftx">One markdown file that lives <b>outside this site's repo</b>, read at
+            build time. The repo is public, so committing the source would make the gate
+            decorative.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="splitrule" aria-hidden="true"></div>
+
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">
+          The version with the numbers in it belongs in an employer's own promo tooling, where it is
+          sanctioned and actually useful. This is the portable half: what the work taught me, in a
+          form I can read back and check for gaps.
+        </p>
+      </div>
+
+      {LP_MAP.map((g) => (
+        <div class="rsect">
+          <h2 class="rsecth">{g.lp}</h2>
+          <div class="role">
+            <div class="rspan"></div>
+            <div class="rbody"><p class="rnote">{g.gist}</p></div>
+          </div>
+          {g.stories.map((n) => {
+            const s = byN.get(n);
+            return s ? (
+              <div class="role">
+                <div class="rspan">{s.competency.split(/\s*\/\s*/)[0]}</div>
+                <div class="rbody">
+                  <h3 class="rorg">{s.title}</h3>
+                  <ul class="rlines">
+                    {s.beats.map((b) => (
+                      <li><span class="bk">{BEAT[b.k]} ·</span> <span set:html={inline(b.text)} /></li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : null;
+          })}
+        </div>
+      ))}
+
+      {/* THE GAPS, on the page rather than in a note to myself. A coverage map with silent holes
+          reads as full coverage, which is the one thing this page must not do — the reason it exists
+          is to review the bank, and an honest gap is more useful than a padded claim. */}
+      <div class="rsect">
+        <h2 class="rsecth">Not claimed</h2>
+        {LP_GAPS.map((g) => (
+          <div class="role">
+            <div class="rspan">{g.lp}</div>
+            <div class="rbody"><div class="rtitle">{g.why}</div></div>
+          </div>
+        ))}
+        {unmapped.length > 0 && (
+          <div class="role">
+            <div class="rspan">Unmapped</div>
+            <div class="rbody"><div class="rtitle">{unmapped.length} stor{unmapped.length === 1 ? 'y' : 'ies'}
+              in the source carry no principle above: {unmapped.map((s) => `#${s.n}`).join(', ')}.
+              Either the mapping is incomplete or the story is weaker than the others.</div></div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  /* The page reuses `/resume/`'s `.rsect` device wholesale — a hung label column, a section head on
+     the same axis, one size, one emphasis weight — because a story bank IS the same shape as a
+     résumé: a dated ledger of blocks with a hung annotation. No new device, and the two pages read
+     as one document set. What is new is one span:
+
+     `.bk` — the S/T/A/R beat name. It takes the hung-label treatment INLINE, in `--faint`, because
+     each beat is a label-and-value pair like every `.frow` on the site, but four of them inside one
+     bullet cannot each have a column. Same idea, one level down, and the only place this page adds
+     a mark the site did not already have. */
+  .rlines .bk{color:var(--faint)}
+  /* ── THE LABEL COLUMN HOLDS A COMPETENCY, NOT A DATE, and that is the one place this page cannot
+     reuse /resume/'s device unchanged. The shared track is `min(var(--label),16ch)` — 16 characters,
+     derived from the longest date ("2025/02–2025/05", 15). A competency is "ownership in ambiguity /
+     cross-team coordination", 48 characters, and `.rspan` carries `white-space:nowrap` for the dates'
+     sake — so it ran straight out of its cell and printed over the story title.
+     `normal` lets it wrap inside the column, which is right for a label made of words rather than a
+     fixed-width string: a date must never break mid-range, a phrase may break anywhere. Same track,
+     same axis, one property different because the content is a different KIND of thing. */
+  .stories .rspan{white-space:normal}
+</style>

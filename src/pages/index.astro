@@ -327,9 +327,15 @@ import LockedRow from '../components/LockedRow.astro';
          only how many columns there were. One row per question: type above, width here. -->
     <div class="colo c3">
       <span class="ck">Grid</span>
+      <!-- "12 columns. Press ⌥G to see it." Annotation gives the line verbatim, and what it drops
+           is "8 of them used" — a fact about the grid's INTERNALS that a reader can neither check
+           nor use. The colophon states what the page is made of; how many fields the document
+           happens to occupy is a decision, not a material, and it is already visible the moment
+           anyone presses the key. Both copies change together: `.kb` is the pointer version and
+           `.tou` the coarse-pointer one, which drops the keystroke because there is no key. -->
       <span class="cv">
-        <span class="kb">12 columns, 8 of them used. Press <code>⌥G</code> to see it.</span>
-        <span class="tou">12 columns, 8 of them used.</span>
+        <span class="kb">12 columns. Press <code>⌥G</code> to see it.</span>
+        <span class="tou">12 columns.</span>
       </span>
     </div>
     <!-- THE STEERING FILE, linked (annotation: "we should encode this in site steering, and maybe
@@ -362,7 +368,11 @@ import LockedRow from '../components/LockedRow.astro';
          rendered. -->
     <div class="colo c4">
       <span class="ck">Steered by</span>
-      <span class="cv"><a href="/style/">/style/</a> · <a href="/system/">/system/</a></span>
+      <!-- `/style` and `/system`, NO TRAILING SLASH. Annotations: "prefer /style no trailing
+           slash" and "no trailing slash plz". The hrefs keep theirs so nginx serves the
+           directory with no redirect; only the visible text loses it. Same call as `/resume`
+           in the panel — one slash reads as a path, two read as a filesystem. -->
+      <span class="cv"><a href="/style/">/style</a> · <a href="/system/">/system</a></span>
     </div>
     </div>
   </div>

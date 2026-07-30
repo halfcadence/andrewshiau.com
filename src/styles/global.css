@@ -2158,3 +2158,94 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
 /* The `.kb` / `.tou` pair used to be re-declared here, scoped to `.foot`. It is one unscoped rule
    now — see the note beside it above — so the explainers' footers get the behaviour without a
    second copy of it. */
+
+/* ─── THE LEDGER OF DATED BLOCKS (`.rsect` / `.role`) ─────────────────────────────────────
+   MOVED HERE FROM resume.astro, and the note it left behind said exactly when to do this:
+   "Scoped here rather than added to global.css because exactly one page emits it … If a second
+   page ever needs it, it moves." /stories/ is the second page, so it moved.
+   The device is one two-column grid per section holding a head and any number of blocks, each
+   block a hung label beside a body — dates beside jobs on /resume/, competencies beside stories
+   on /stories/. Both are a ledger of dated blocks read down one axis, which is why one device
+   serves them and why neither needed a new mark to get it.
+   `is:global` in an .astro file is NOT global to the site: it scopes to pages that emit that
+   component's style block, so /stories/ inherited none of this while it lived there. A shared
+   device has to live in the shared stylesheet — that is the whole reason this file exists.
+   The PRINT half stays in resume.astro: paper is the résumé's problem, `/stories/` is a screen
+   document, and a print block for a page nobody prints is a rule with no reader. */
+
+  /* ── THE RÉSUMÉ'S OWN DEVICE. Scoped here rather than added to global.css because exactly one
+     page emits it: a `.role` is a dated block with a hung span and a bulleted body, and nothing
+     else on the site is shaped like that. If a second page ever needs it, it moves. */
+  /* The interval above each role is a RULE, not an inline style on the wrapper. It was
+     `style="margin-top:var(--group)"` on every `.grid` holding a role, and an inline margin cannot
+     be overridden by the print block without `!important` — which is exactly the trap
+     `.grid:has(> .block)` in global.css was written to get out of. Stated here, print can compress
+     it, and the markup carries no numbers. */
+  /* ── THE SECTION IS THE GRID (Q3/03). One two-column grid per section, holding the head and every
+     role in it, so all of them share ONE hung axis. `.role` is `display:contents` so its span and
+     body become direct children of that grid and land in its two tracks — a nested grid per role
+     would give each role its own axis, which is the thing this replaces.
+     `1 / -1` on the section, not a literal track count: it sits inside `.feed`, whose grid is
+     narrower than the page's, and a literal number here is the phantom-measure bug that cost this
+     rebuild four passes. */
+  .rsect{grid-column:1 / -1;display:grid;grid-template-columns:min(var(--label),16ch) 1fr;
+    column-gap:var(--gutter);margin-top:var(--sect)}
+  .rsect:first-of-type{margin-top:0}
+  /* The head hangs in the label column on the same row as the first role's org. `--ink` and weight
+     500, which is the site's one emphasis — no caps, no second size, no rule. */
+  .rsecth{grid-column:1;font-weight:500;color:var(--ink);margin:0}
+  .role{display:contents}
+  /* Every role after the first takes the interval; the first sits on the head's row. */
+  .rsect > .role + .role > .rspan,
+  .rsect > .role + .role > .rbody{margin-top:var(--group)}
+  /* The span hangs in the label column, in `--faint`, like every other hung label on the site.
+     ── AND THE COLUMN IS WIDE ENOUGH FOR A DATE, which it was not. This is the screen half of the
+     bug the PDF had: `--label` is 154px at the 1120px measure, which is 17.1 characters at 9px, and
+     the spans are 18 ("Aug 2025 – present") and 19 ("Feb 2025 – May 2025"). Four of five wrapped —
+     "Aug 2025 –" then "present" on a second line — which breaks the one thing the hung column is
+     for, a single column of dates the eye runs down.
+     THE FIX IS THE TRACK, NOT THE CELL, and the first cut got that wrong in a way worth recording:
+     `min-width:20ch` on `.rspan` makes the CELL 180px inside a 154px track, so it overflows by 26px
+     into the 28px gutter and leaves 2px of clearance — "Feb 2025 – May 2025" butted against "Void
+     Industries". The dates stopped wrapping and started colliding, which is the same defect the PDF
+     had at 13ch, reached from the other direction.
+     So `.rsect` states its own first track as `max(var(--label), 20ch)`. `max()` rather than a flat
+     20ch because below 1060 the grid collapses to one column anyway, and above it the site's derived
+     label is the floor this page raises only as far as a date needs — the content axis moves 26px
+     right of the site's, which is the honest cost of a column that must hold 19 characters.
+     `nowrap` asserts it instead of hoping. */
+  .role .rspan{grid-column:1;color:var(--faint);white-space:nowrap}
+  .role .rbody{grid-column:2;max-width:62ch}
+  /* The org is the fact; `h3` is already reset to the body size and weight site-wide (see the
+     `h3,h4,h5,h6` rule in global.css), so this only adds the weight that makes it the line the
+     eye lands on. Weight, not size and not colour — the page has one size, and colour means
+     interaction. */
+  .role .rorg{font-weight:500;color:var(--ink)}
+  .role .rtitle{color:var(--dim)}
+  .role .rwhere{color:var(--faint)}
+  .role .rnote{color:var(--dim);margin:var(--tight) 0 0}
+  /* The bullets. `--tight` above the list binds it to the title above it; `list-style:none` with
+     a hung `–` because a browser's own bullet sits off the 182px content axis and the whole page
+     is built on that axis holding. `1.5ch` is the dash plus its space at this size. */
+  .role .rlines{list-style:none;margin:var(--tight) 0 0;padding:0}
+  .role .rlines li{position:relative;padding-left:1.5ch;color:var(--dim)}
+  .role .rlines li::before{content:"–";position:absolute;left:0;color:var(--faint)}
+  .role .rlines li + li{margin-top:var(--tight)}
+  /* ── THE SCREEN-ONLY BULLETS sit in `--faint`, one step back from the `--dim` of a bullet that
+     survives onto paper. That is the whole signal: same size, same axis, same dash — colour alone
+     says "this is the longer version". A reader scanning gets the compressed resume by reading only
+     the darker lines, and a reader who stops on a role gets the rest. No italic, no smaller size,
+     no "read more" — the hierarchy is one property. */
+  .role .rlines .rmore{color:var(--faint)}
+  @media(max-width:1060px){
+    /* Stacks with every other hung device at the same width and for the same reason: below 1060
+       the label column can no longer hold its own label. The section grid collapses to one column
+       and `.role` goes back to being a block, so the head, the date and the body all stack. */
+    .rsect{grid-template-columns:minmax(0,1fr);column-gap:0}
+    .role{display:block}
+    .role .rspan{color:var(--ink);margin-bottom:var(--tight)}
+    .rsect > .role + .role > .rspan,
+    .rsect > .role + .role > .rbody{margin-top:0}
+    .rsect > .role + .role{margin-top:var(--group)}
+    .rsecth{margin-bottom:var(--group)}
+  }

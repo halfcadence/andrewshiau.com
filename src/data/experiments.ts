@@ -215,7 +215,13 @@ export const experiments: Entry[] = [
     title: 'Photography',
     blurb:
       'Shot with iPhones, a Fuji X100, and a Leica Q.',
-    meta: 'Photographs',
+    // `Photo set`, not `Photographs`. Annotation: "type photographs seems sus too the title says
+    // photography." Right — the row read `Photography / Photographs`, which is the title again
+    // with a suffix, so the one column on the index that exists to say WHAT EACH THING IS said
+    // nothing for this entry. Every other value names a kind of artifact you could hold
+    // ("Figma widget", "Agent skill", "Static site"); this one named the plural of its own title.
+    // A count would be worse — the ledger on the page already says `12 photographs`.
+    meta: 'Photo set',
     href: '/work/photography/',
     side: 'design',
   },
