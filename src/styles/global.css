@@ -1580,9 +1580,21 @@ figure.demo.hang video{width:100%}
   /* One column, with every other two-column device (Q6/01). The label-above-value pair survives
      the collapse unchanged — that is the advantage of 04 over the hung ledger it replaced: the
      narrow layout IS the wide layout with one column instead of two, so there is no second shape
-     to maintain and no `display:block` reset to remember. */
+     to maintain and no `display:block` reset to remember.
+     THE SELECTORS ARE REPEATED, not folded into `.colofield > *`, and that was a measured bug:
+     `.colofield .colo-lab` (0,2,1) and `.colo.c1` (0,2,0) both outrank a bare child selector, so
+     the cells kept their 2- and 3-track spans against a template that now has ONE track. Measured
+     at 1000px before the fix: the label computed `grid-column:1 / 3` and rendered 0px wide, and the
+     field's own template read `0px 0px 113px …` — the word "Colophon" was on the page and invisible.
+     Matching the specificity fixes it without `!important`, which is the same call `.grid.sect`
+     makes for the same reason (see the note there). */
   .colofield{grid-template-columns:minmax(0,1fr);column-gap:0;row-gap:var(--group)}
-  .colofield > *{grid-column:1 / -1}
+  .colofield .colo-lab,
+  .colo.c1,.colo.c2,.colo.c3,.colo.c4{grid-column:1 / -1}
+  /* The label goes to ink with every other STACKED label on the site: it no longer has a column of
+     its own, so value is the only mechanism left to separate it from what follows. That is the rule
+     at the top of this file, and the wide layout is the one that must NOT take the colour. */
+  .colofield .colo-lab{color:var(--ink)}
   .colo .ck{color:var(--ink)}
 }
 
