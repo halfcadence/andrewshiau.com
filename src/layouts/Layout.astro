@@ -63,7 +63,24 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <!-- TWO ICONS, AND THE `.ico` IS NOT DECORATION. The SVG is the real one — it is the page's
+         own figure and it carries a `prefers-color-scheme` block, so it flips with the tab strip.
+         A browser that understands `image/svg+xml` picks it and never fetches the other.
+         The `.ico` exists because a browser that DOESN'T asks for `/favicon.ico` on its own, at a
+         fixed path, before any markup tells it where to look. This site's nginx answers every
+         unknown path with `index.html` at status **200**, so that request used to return a 15 kB
+         HTML document labelled `Content-Type: text/html`. The browser can't decode an image from
+         it and draws its own placeholder tile instead — which is a SQUARE, and is what "i swear it
+         has a square?" was seeing. The favicon SVG was transparent the whole time; the square was
+         never in the file.
+         So this is a real 16/32/48 `.ico`, ink on transparency, generated from `MarkFigure.astro`'s
+         own geometry — not a rect, not a placeholder. An `.ico` cannot carry a media query, so it
+         gets ONE colour rather than a background: a filled square in either scheme would be the
+         exact thing the SVG deleted.
+         Sized 16/32/48 because an `.ico` is a container and the browser picks the frame; one 16px
+         frame upscales to a blur in the bookmark bar and history. -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
 
     <!-- THE GRID TOGGLE'S STATE, restored before first paint. It has to be in `<head>` and it
          has to be `is:inline`: the toggle is a class on `<body>`, so anything that runs after the

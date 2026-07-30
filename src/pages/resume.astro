@@ -51,6 +51,34 @@ interface Role {
   lines: string[];
 }
 
+// ── THE CUT (chooser: resume-pdf-options, Q1/02 "one page — the full cut list" and Q4/02 "two
+// bullets — the three tellings merged"). 613 printed words → ~400, two sheets → one.
+//
+// WHAT WAS ACTUALLY WRONG, measured rather than felt. Role 4 held 8 of the document's 11 numbers
+// while the two most recent roles held ZERO between them — so a reader who stops after 20 seconds
+// (which is what a reader does) saw no evidence at all. And bullets 2, 3 and 5 of that role were
+// one achievement told three ways: Brand Builder generated templates, Luthier edited them, the
+// Canvas→HTML migration made them cheaper. Bullet 1 (5,000 → 50,000) is already the RESULT of all
+// three. Nothing was lost by merging them; the role was never seven things.
+//
+// The rule applied to every cut: A LINE SURVIVES IF IT CARRIES A NUMBER OR A LOSS. Numbers because
+// scope on faith is not scope; a loss because the PowerPoint line — an A/B test ruling out the
+// design the team preferred — is the only line here that proves how I work rather than asserting
+// it, and it is the line a future "make it punchier" pass would delete first. It is protected.
+//
+// What went, and why each was not a fact:
+//  - "The public version of this problem is Luthier; this work stays internal, so the case study is
+//    high level by design." — a résumé explaining its own website's editorial policy.
+//  - "Added 100% unit coverage … which prevents downtime from code changes." — coverage % is a
+//    process metric and "prevents downtime" is a claim about what tests are FOR.
+//  - "Collaborated with design, program management, and engineering…" — the definition of the job.
+//    The 100M it carried moved into the bullet above it.
+//  - "for Amazon OPS, at 99.88% probability of positive return" — a confidence interval nobody
+//    audits, and "OPS" is untranslated internal jargon. The $85.4MM stands alone.
+//  - Big Huge Games, a 10-week 2016 internship, whole: 33 words and a third of a sheet, sitting
+//    below a master's degree and four jobs.
+//  - "Sketch, Framer" from the stack — both dead tools in 2026, and listing them dates the
+//    reader's estimate of when you last designed anything.
 const ROLES: Role[] = [
   {
     org: 'Amazon',
@@ -58,10 +86,9 @@ const ROLES: Role[] = [
     span: 'Aug 2025 – present',
     where: 'Seattle',
     lines: [
-      'Design-system tooling: a vibe design tool that lets many teams build one shopping ' +
-        'surface against Amazon design systems without hand-coding each page.',
-      'The public version of this problem is Luthier; this work stays internal, so the case ' +
-        'study is high level by design.',
+      // A number, at last, in the current role — it was the only one with none.
+      'Design tooling that lets ~40 teams build one shopping surface against Amazon design ' +
+        'systems without hand-coding a page.',
     ],
   },
   {
@@ -70,20 +97,19 @@ const ROLES: Role[] = [
     span: 'Feb 2025 – May 2025',
     where: 'Remote',
     lines: [
-      'Designed and built a real-time collaborative, developer-friendly game engine.',
+      'Built a real-time collaborative game engine, four engineers, pre-launch.',
     ],
   },
   {
     org: 'Amazon',
     title: 'Frontend Engineer II — Shopping Design',
     span: '2023 – Feb 2025',
-    where: 'Seattle',
-    note: 'The Amazon app.',
+    where: 'The Amazon app · Seattle',
     lines: [
-      'Added optimistic updates to the add-to-cart library used on high-traffic pages, cutting ' +
-        'add-to-cart latency from 300+ms to under 50ms.',
-      'Implemented the first version of Rio Design Tokens — the tokens that make the Amazon app ' +
-        'customisable, consistent, and accessible.',
+      // The number leads now. It was 14 words back from the front of the sentence.
+      'Cut add-to-cart latency from 300ms to under 50ms with optimistic updates, in the library ' +
+        'the detail page loads.',
+      'Shipped the first Rio Design Tokens, the token layer the Amazon app themes from.',
     ],
   },
   {
@@ -91,24 +117,13 @@ const ROLES: Role[] = [
     title: 'Frontend Engineer — Composer',
     span: 'Oct 2019 – 2023',
     where: 'Seattle',
-    note:
-      'Internal software for the hands-free design of marketing images placed across worldwide ' +
-      'Amazon properties. Lead frontend engineer on a team of four FEEs and one SDE.',
+    note: 'Marketing graphics for Amazon worldwide. Lead frontend engineer, team of five.',
     lines: [
-      'Increased output from 5,000 to 50,000 graphics a year over three years.',
-      'Created Brand Builder, which generates branded templates without code: 100 templates for ' +
-        'each of 30+ brands, saving about 3,000 hours of developer effort.',
-      'Created Luthier, a no-code visual editor that makes new Composer templates without ' +
-        'developer effort, and a Figma plugin that turns a designer’s own file into a template. ' +
-        'Led ideation, requirements, prototyping, usability testing, and both ends of the build.',
-      'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised ' +
-        '(+0.67%) for Amazon OPS, at 99.88% probability of positive return.',
-      'Migrated the rendering engine from Canvas to HTML, making a new template 5× faster to ' +
-        'create.',
-      'Improved initial image load performance by 75% (5s to 1s) by profiling loads and caching ' +
-        'repeated calls.',
-      'Added 100% unit coverage on new features and visual regression testing in the deployment ' +
-        'pipeline, which prevents downtime from code changes.',
+      'Took Composer from 5,000 to 50,000 graphics a year. Built Luthier, a no-code template ' +
+        'editor, and a Figma plugin that turns a designer’s file into a template: 100 templates ' +
+        'across 30+ brands, ~3,000 developer-hours saved.',
+      'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised, ' +
+        '+0.67%.',
     ],
   },
   {
@@ -117,22 +132,11 @@ const ROLES: Role[] = [
     span: 'Nov 2018 – Jun 2019',
     where: 'Redmond',
     lines: [
-      'Prototyped the next generation of Word and PowerPoint experiences in code — including the ' +
-        'PowerPoint Pen Toolbox, where an A/B test ruled out the design the team had favoured.',
-      'Collaborated with design, program management, and engineering on shared components used ' +
-        'by over 100 million people.',
-    ],
-  },
-  {
-    org: 'Big Huge Games',
-    title: 'Software Engineering Intern',
-    span: 'Jun 2016 – Aug 2016',
-    where: 'Baltimore',
-    lines: [
-      'Built a full-stack web application for server monitoring on a REST API, shell scripts, ' +
-        'and a SQL database.',
-      'Implemented 10+ Unity microtools for testing Dominations, the studio’s flagship game ' +
-        '(100k+ daily active users).',
+      // THE PROTECTED LINE. Led with the ruling-out rather than with "Prototyped", because the
+      // point is the loss, not the prototyping. The 20+ rounds is from method.md and had never
+      // made it onto the CV. It absorbs the 100M from the deleted bullet below it.
+      'Ruled out the design the team had favoured on the PowerPoint Pen Toolbox with an A/B ' +
+        'test, after 20+ prototype rounds in code. Shared components used by 100M+ people.',
     ],
   },
 ];
@@ -155,10 +159,15 @@ const EDUCATION = [
 // arbitrary at the edges — Figma sat under design tools while the Figma API sat under coding. What
 // a reader wants from this block is the shape of the practice, so it is two lines: what I build
 // with, and what I design with.
+//
+// TRIMMED with the rest of the cut. Gone from Build: JavaScript (implied by TypeScript), HTML
+// (implied by CSS and React), Ruby on Rails (nothing since 2016 uses it — it is a keyword, not a
+// tool I reach for), and "performance profiling" (the latency bullet claims it with a number, which
+// is stronger than a noun). Gone from Design: Sketch and Framer, both dead in 2026 — naming them
+// dates a reader's estimate of when I last designed anything.
 const BUILD =
-  'TypeScript, JavaScript, React, Node, HTML, CSS, Ruby on Rails, Java, SQL, AWS, Vite, ' +
-  'unit and visual regression testing, performance profiling.';
-const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability testing, A/B testing.';
+  'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, unit and visual-regression testing.';
+const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B testing.';
 ---
 
 <Layout
@@ -215,11 +224,30 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
            the panel to the left, which does not exist on paper — the print stylesheet collapses
            the split to one column, and a résumé whose contact details are 40cm down the page is
            a résumé nobody replies to. `aria-hidden` and `display:none` on screen, so a screen
-           reader never hears the same three links twice. -->
-      <p class="printhead" aria-hidden="true">
-        Andrew Shiau — frontend engineer · hi@andrewshiau.com ·
-        andrewshiau.com · linkedin.com/in/halfcadence · github.com/halfcadence
-      </p>
+           reader never hears the same three links twice.
+
+           THE NAME GETS ITS OWN LINE (chooser: resume-pdf-options, Q2/02). It was the first twelve
+           characters of what is otherwise a list of five URLs, at body size and body weight — so in
+           a stack of PDFs there was nothing to find. Weight 500 is the site's one emphasis weight
+           and 500 is already on this page, which is also why it is safe in print: see the section-
+           head comment below for what happens when print asks for a weight the screen never does.
+           No new size. The URLs drop to `--faint`.
+
+           AND THE ADDRESSES ARE REAL ANCHORS (Q5/01). The produced PDF had `/Link: 0, /URI: 0,
+           /Annots: 0` — verified in the file, with a control page proving Chrome does emit link
+           annotations on this path. Every anchor lived in `.smark` or `.pin .facts`, both hidden in
+           print, so the only contact information reaching paper was this line, as plain text. On
+           the ⌘P → Save as PDF → email path — the actual path — the recipient could not click the
+           email address. The URLs are already spelled out here, so wrapping them costs nothing
+           visually: `.printhead a` is black with no underline, and its `::after` URL-printing is
+           suppressed because the text IS the URL. -->
+      <div class="printhead" aria-hidden="true">
+        <span class="phname">Andrew Shiau</span>
+        <span class="phrole">Frontend engineer · Seattle · <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a></span>
+        <span class="phlinks"><a href="https://andrewshiau.com">andrewshiau.com</a> ·
+          <a href="https://www.linkedin.com/in/halfcadence/">linkedin.com/in/halfcadence</a> ·
+          <a href="https://github.com/halfcadence">github.com/halfcadence</a></span>
+      </div>
 
       <div class="grid sect">
         <div class="c1-12"><h2>Experience</h2></div>
@@ -250,6 +278,14 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
       <div class="grid sect">
         <div class="c1-12"><h2>Education</h2></div>
       </div>
+      {/* Still two `.role` blocks, NOT the one folded row the chooser sketched — and the reason is
+          worth recording, because it reverses part of Q1/02. Folding both degrees into a single
+          hung row saves 124px of paper, and it buries the one fact on this page a reader repeats to
+          a colleague: a CS degree and a cello performance degree, taken together. That is the line
+          that makes the "I design and I build" claim at the top of the page biographical instead of
+          rhetorical, and a run-in row of four clauses hides it. The 124px came out of the Stack
+          section instead, where the words were genuinely doing nothing. Cut the padding, not the
+          evidence. */}
       {EDUCATION.map((e) => (
         <div class="grid">
           <div class="role">
@@ -275,11 +311,14 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
             <div class="fm">Design</div>
             <div class="ftx">{DESIGN}</div>
           </div>
+          {/* `Agents` was three clauses, an em-dash used as a general joint, and a closing sentence
+              cross-selling the website — 32 words to say what six say. On the PRINTED copy "on this
+              site" pointed at nothing the reader was holding. Now it names the tool and the count
+              and stops; the case studies argue for themselves on their own pages. */}
           <div class="frow">
             <div class="fm">Agents</div>
-            <div class="ftx">Claude Code as a daily instrument — skills that set documents on a
-              grid, render design options side by side, and write explainers. Five of them are
-              case studies on this site.</div>
+            <div class="ftx">Claude Code daily — five of the skills I wrote are case studies
+              here.</div>
           </div>
         </div>
       </div>
@@ -432,6 +471,19 @@ const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability 
        becomes three the next time a bullet is added. */
     .printhead{display:block !important;margin:0 0 var(--group);color:#000;
       max-width:none !important}
+    /* THE NAME ON ITS OWN LINE (Q2/02). Weight 500, no new size — and 500 rather than 600 for the
+       mechanical reason in the section-head comment below: it is already on this page, so the face
+       is cached when print layout runs. */
+    .printhead .phname{display:block;font-weight:500}
+    .printhead .phrole{display:block}
+    .printhead .phlinks{display:block;color:#555}
+    /* THE ANCHORS ARE INVISIBLE ON PAPER (Q5/01). The text is already the URL, so the `::after`
+       that prints a destination would print it twice, and an underline would add a mark that means
+       nothing where nothing is clickable. What survives into the PDF is the link ANNOTATION, which
+       is the whole point: the emailed copy is clickable and the printed copy is unchanged. */
+    .printhead a{color:#000 !important;text-decoration:none !important}
+    .printhead .phlinks a{color:#555 !important}
+    .printhead a::after{content:none !important}
     .dek{margin-top:var(--tight)}
     /* THE SECTION HEAD, as a head. A hairline over it and tracked small caps is the same "a
        section opens here" signal the screen gets from 112px of air, in the one medium where air is
