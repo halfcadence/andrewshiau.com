@@ -1652,15 +1652,33 @@ figure.demo.hang video{width:100%}
    `.jf` sizes the FIGURE and nothing else — the specimen must be the real `MarkFigure`, at a real
    size, or the page is documenting a drawing instead of the component (see `/system/`'s own rule).
    Sizes are stated here rather than inline because an inline `style` can't reach the child `svg`,
-   and `.side .mark` already fixes 18px for the index. */
+   and `.side .mark` already fixes 18px for the index.
+   ORDER IS 18 → 26 → 96, smallest first. It shipped 26 → 18 → 96, which is what a specimen sheet
+   must never do: the row exists to show the figure getting bigger, and a non-monotonic sequence
+   makes the reader check the labels to find the order the picture should have given them free.
+   THE LABEL IS NOT A `<code>`. Screenshot-caught, and it is the kind of thing only looking finds:
+   `code` carries a 6% ink tint from the inline-code rule, and here it sits in a grid cell where it
+   computes to `display:block` — so the tint stretched the full column and drew three GREY BARS
+   under the specimens. A filled surface is exactly what the document direction deleted (STYLE.md,
+   "No filled surfaces"), and it was the loudest mark in the block. The size is a caption now: the
+   11px micro-label, which is what every other specimen on this page labels with. */
 .sysjoin{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,1fr);
   column-gap:var(--gutter);align-items:end}
-.sysjoin > div{display:grid;row-gap:var(--tight)}
-.sysjoin .jf{display:block}
+/* The figure's own row is a fixed 96px box — the largest specimen — so all three marks sit on ONE
+   baseline instead of each floating at the bottom of its own cell. `align-items:end` inside it is
+   what puts the 18px mark on the same line as the 96px one. Without the fixed row the cells were
+   already bottom-aligned by the parent, but the 96px figure set the row height and the two small
+   ones had nothing to align against but the caption below them. */
+.sysjoin > div{display:grid;grid-template-rows:96px auto auto;row-gap:var(--tight);
+  align-items:end;justify-items:start}
+.sysjoin .jf{display:flex;align-items:flex-end}
 .sysjoin .jf .mark{display:block;overflow:visible}
 .sysjoin .jf-18 .mark{width:18px;height:18px}
 .sysjoin .jf-26 .mark{width:26px;height:26px}
 .sysjoin .jf-96 .mark{width:96px;height:96px}
+/* The size, as the 11px caption the rest of the page uses — not a tinted `code` box. */
+.sysjoin .jsz{font-size:11px;line-height:18px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink)}
 .sysjoin .sysj{color:var(--dim)}
 .sysfield{grid-column:1 / -1;max-width:34ch}
 /* 1060, with every other hung device (Q1/01). `.sysrow` uses `--label`, so if it stacked at 900

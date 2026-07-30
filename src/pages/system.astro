@@ -433,11 +433,14 @@ if (mark.x1 !== fav.x1 || mark.x2 !== fav.x2 || mark.sw !== fav.sw ||
           <h2>The join</h2>
           <div class="sbody">
             <p>The rule stops at each circle's <b>path</b> (<code>r=5</code>), not at its outer
-              edge — <code>13.54</code> to <code>18.46</code>, which is <code>5 × 0.70711</code>
-              projected along the 45° diagonal. That buries <b>0.9 units</b> of each end inside the
+              edge — <code>13.54</code> to <code>18.46</code>, which is <code>5 × 0.70711</code> projected along the 45° diagonal. That buries <b>0.9 units</b> of each end inside the
               1.8 stroke, so the join <i>overlaps</i> the object it meets.</p>
-            <p>It ended at the outer edge (<code>14.17</code>) for four passes. That is
-              <i>tangent</i> to each circle rather than overlapping it, and tangency plus a hair of
+            <!-- BOTH SIDES OF `<i>tangent</i>` ON ONE LINE. The HTML minifier collapses the
+                 whitespace between an inline tag and an adjacent newline, on EITHER side: breaking
+                 after the tag shipped "tangentto each", and breaking before it shipped
+                 "is<i>tangent". Only a screenshot catches this — the source reads correctly both
+                 times. Keep the phrase unbroken; the line is long on purpose. -->
+            <p>It ended at the outer edge (<code>14.17</code>) for four passes. That is <i>tangent</i> to each circle rather than overlapping it, and tangency plus a hair of
               antialiasing reads as a gap. Going 0.64 units further, to the inner edge, breaks a
               stub back into the ring's hole. <b>The tolerance is 0.64 units</b>, and it is why
               this number is documented rather than left to the file.</p>
@@ -446,12 +449,12 @@ if (mark.x1 !== fav.x1 || mark.x2 !== fav.x2 || mark.sw !== fav.sw ||
       </div>
       <div class="grid">
         <div class="sysjoin">
-          <div><span class="jf jf-26"><MarkFigure side="both" /></span>
-            <code>26px</code><span class="sysj">case-study kicker</span></div>
           <div><span class="jf jf-18"><MarkFigure side="both" /></span>
-            <code>18px</code><span class="sysj">index row — the floor</span></div>
+            <span class="jsz">18px</span><span class="sysj">index row — the floor</span></div>
+          <div><span class="jf jf-26"><MarkFigure side="both" /></span>
+            <span class="jsz">26px</span><span class="sysj">case-study kicker</span></div>
           <div><span class="jf jf-96"><MarkFigure side="both" /></span>
-            <code>96px</code><span class="sysj">where a gap would show</span></div>
+            <span class="jsz">96px</span><span class="sysj">where a gap would show</span></div>
         </div>
       </div>
 
