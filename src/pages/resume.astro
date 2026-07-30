@@ -49,6 +49,18 @@ interface Role {
   where?: string;
   note?: string;      // one line of context, when the org name isn't self-explanatory
   lines: string[];
+  // ── SCREEN-ONLY BULLETS. Annotation: "maybe can be a bit more wordy / have more bullet points."
+  // Right, and the reason it is a separate field rather than more entries in `lines` is the whole
+  // point of this page: the PDF is the COMPRESSED artifact and the screen is the COMPLETE one. A
+  // sheet holds 48.5 lines and every line on it had to be fought for; a screen has no such limit
+  // and a reader who chose to open a résumé page is a reader who will read.
+  // So `lines` is what survives onto paper — the numbers and the loss — and `more` is what a
+  // reader with room gets as well. One source, two lengths, and the compression is stated on the
+  // page (see the "On paper" row in the panel) rather than hidden.
+  // The rule for what goes in `more`: it must be a FACT the compressed version had no room for,
+  // never a restatement of one that is already there. Everything below was cut from the PDF for
+  // length, not for being untrue — which is exactly the material this field is for.
+  more?: string[];
 }
 
 // ── THE CUT (chooser: resume-pdf-options, Q1/02 "one page — the full cut list" and Q4/02 "two
@@ -92,6 +104,10 @@ const ROLES: Role[] = [
       'Design tooling that lets ~40 teams build one shopping surface against Amazon design ' +
         'systems without hand-coding.',
     ],
+    more: [
+      'The public version of this problem is Luthier, three roles down. This work is internal, so ' +
+        'the case study stays high level.',
+    ],
   },
   {
     org: 'Void Industries',
@@ -100,6 +116,11 @@ const ROLES: Role[] = [
     where: 'Remote',
     lines: [
       'Built a real-time collaborative game engine, four engineers, pre-launch.',
+    ],
+    more: [
+      'Real-time collaboration is the hard part of a design tool and the reason this four-month ' +
+        'contract is on the page: it is the same problem as multiplayer editing in Composer, ' +
+        'solved again from scratch with nobody else\u2019s library to lean on.',
     ],
   },
   {
@@ -112,6 +133,11 @@ const ROLES: Role[] = [
       'Cut add-to-cart latency from 300ms to under 50ms with optimistic updates, in the library ' +
         'the detail page loads.',
       'Shipped the first Rio Design Tokens, the token layer the Amazon app themes from.',
+    ],
+    more: [
+      'Rio Design Tokens is what makes the app themeable, consistent and accessible at once \u2014 ' +
+        'one source of truth for colour, type and spacing across iOS, Android and web, instead of ' +
+        'three teams agreeing by hand.',
     ],
   },
   {
@@ -128,6 +154,15 @@ const ROLES: Role[] = [
         'across 30+ brands, ~3,000 developer-hours saved.',
       'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised, ' +
         '+0.67%.',
+    ],
+    more: [
+      'Built Brand Builder alongside it: generated branded templates without code, 100 templates ' +
+        'for each of 30+ brands, about 3,000 hours of developer effort saved.',
+      'Migrated the rendering engine from Canvas to HTML, making a new template 5\u00d7 faster to ' +
+        'create, and cut initial image load 75% (5s to 1s) by profiling loads and caching ' +
+        'repeated calls.',
+      'The Fresh test result held at 99.88% probability of positive return. Led ideation, ' +
+        'requirements, prototyping, usability testing and both ends of the build.',
     ],
   },
   {
@@ -223,16 +258,32 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
       </p>
       <h1>Résumé</h1>
 
+      <!-- ── THE PANEL IS THE PRINTHEAD'S SHAPE NOW. Annotation: "can the page be more similar to
+           pdf like in structure. 'Both halves / I design and I build. The two procedures I run are
+           written down at /method/' seems useless delete."
+           Both halves is gone and it was the right call twice over. It was a MANIFESTO — "the two
+           procedures I run" is the stated-principle habit in its purest form, asserting a way of
+           working on the one page where the work should demonstrate it. And it was the third
+           paraphrase of one sentence inside 400px: the `Now` row said "design systems and the
+           tooling that builds against them", the dek said "design systems and the tools teams
+           build with", and this said "I design and I build". Three statements, one fact, before a
+           reader reached a single number.
+           `Now` goes with it, for the same reason: it named the current employer and title, which
+           is the first row of Experience 400px below. The panel's job on a résumé is to say who
+           you are and how to reach you — the roles say the rest.
+           WHAT SURVIVES is exactly what the PDF's printhead carries: name, one line of practice,
+           contact. Same three facts, same order, on both media. The `/method/` link moves into the
+           practice line, where it is a pointer rather than a claim. -->
       <div class="facts">
+        {/* The panel row does NOT restate the dek. It said "I design and I build the systems other
+            teams build against" and so does the dek 200px below — which is the exact defect that
+            deleted `Both halves`, reintroduced by me one edit later. The panel's job here is the
+            two facts the dek doesn't carry: the current title, and where the working method is
+            written down. The dek makes the claim and gives the evidence. */}
         <div class="frow">
           <div class="fm">Now</div>
-          <div class="ftx">Frontend engineer, <b>Shopping Design Tech</b> at Amazon. Design
-            systems and the tooling that builds against them.</div>
-        </div>
-        <div class="frow">
-          <div class="fm">Both halves</div>
-          <div class="ftx">I design and I build. The two procedures I run are written down at
-            <a href="/method/">/method/</a>.</div>
+          <div class="ftx">Frontend engineer, <b>Shopping Design Tech</b> at Amazon. How I work is
+            written down at <a href="/method/">/method/</a>.</div>
         </div>
         <!-- The contact row EARNS its place on this page, unlike on a case study (where it was
              deleted — see PanelHead.astro). A résumé's whole function is to produce a reply, so
@@ -240,9 +291,20 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
              Same reasoning that keeps it on the index and on /gate/. -->
         <div class="frow">
           <div class="fm">Contact</div>
-          <div class="ftx"><a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a><br
-            /><a href="https://www.linkedin.com/in/halfcadence/" target="_blank" rel="noopener">linkedin</a>
-            <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a></div>
+          <div class="ftx"><a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a> ·
+            Seattle<br
+            /><a href="https://www.linkedin.com/in/halfcadence/" target="_blank" rel="noopener">linkedin</a>{' · '}<a
+              href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a></div>
+        </div>
+        <!-- The one row the PDF doesn't have, and it earns the difference: paper is the compressed
+             artifact and the screen is the complete one, so the screen says where the compression
+             went. It is also the honest version of a "download my CV" button — it tells a reader
+             the two documents differ and by how much. -->
+        <div class="frow">
+          <div class="fm">On paper</div>
+          <div class="ftx">Press <span class="kb"><code>⌘P</code></span><span class="tou">print
+            from your browser</span> for the PDF: <b>one page</b>, black on white, the same facts
+            compressed to what fits.</div>
         </div>
       </div>
     </div>
@@ -250,11 +312,19 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
     <div class="splitrule" aria-hidden="true"></div>
 
     <div class="feed">
+      {/* ── THE DEK, REWRITTEN, and it is now the one place the three examples appear.
+           It used to open "Frontend engineer, seven years in", which was the weakest available
+           opener: the date column below computes it, it undersells (Nov 2018 → now is 7y8m, so it
+           rounds DOWN), and it needs hand-editing every year — a résumé fact that goes stale on a
+           timer should not be a résumé fact. The strongest number on the page was 400px lower.
+           It also used to be the second of three paraphrases of one sentence. With `Now` and `Both
+           halves` gone from the panel, the panel says the practice in one line and this says it
+           with the evidence — which is the division the two blocks should have had all along. */}
       <div class="grid">
         <p class="dek c1-12">
-          Frontend engineer, seven years in. Design systems and the tools teams build with —
-          Amazon’s marketing-graphics pipeline, the Amazon app’s design tokens, and now the
-          tooling for one shopping surface many teams ship to.
+          I design and I build the systems other teams build against: Amazon’s marketing-graphics
+          pipeline, which went from <b>5,000 to 50,000 images a year</b>; the Amazon app’s design
+          tokens; and now the tooling ~40 teams ship one shopping surface with.
         </p>
       </div>
 
@@ -326,8 +396,15 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
               <h3 class="rorg">{r.org}</h3>
               <div class="rtitle">{r.title}{r.where && <span class="rwhere"> · {r.where}</span>}</div>
               {r.note && <p class="rnote">{r.note}</p>}
+              {/* ONE list, not two. The screen-only bullets are `<li class="rmore">` inside the
+                  same `<ul>` rather than a second list below it, so a screen reader hears one
+                  enumeration and the hung dash stays on the same axis. Print hides the class; the
+                  list it leaves behind is exactly the PDF's. A second `<ul>` would also have put a
+                  `--tight` gap between the two groups, which would read as a division that isn't
+                  there — these are the same kind of thing, just longer. */}
               <ul class="rlines">
                 {r.lines.map((l) => <li>{l}</li>)}
+                {r.more?.map((l) => <li class="rmore">{l}</li>)}
               </ul>
             </div>
           </div>
@@ -378,24 +455,13 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
         </div>
       </div>
 
-      <!-- The close: how to get the paper copy. It is one sentence rather than a button, because
-           the mechanism IS the browser's own — there is nothing to click that Cmd-P doesn't do
-           better, and a "Download PDF" link would either point at a file that drifts from this
-           page or fire a script to make one. `.kb` / `.tou` is the site's existing device for an
-           affordance a touch device doesn't have; a phone gets the fact without the keystroke. -->
-      <div class="grid sect">
-        <div class="facts">
-          <div class="frow">
-            <div class="fm">On paper</div>
-            <div class="ftx">
-              <span class="kb">This page is set for print. Press <code>⌘P</code> and save as
-                PDF — two pages, black on white.</span>
-              <span class="tou">This page is set for print: print it from your browser to get
-                the PDF, two pages, black on white.</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* ── THE TRAILING "On paper" ROW IS DELETED. It said the same thing as the panel's row now
+           does, 2,900px further down — and it said "two pages", which stopped being true the moment
+           the document became one. A fact stated twice is a fact that goes stale in one place: this
+           is the second time this exact sentence has been wrong on this page.
+           It also had the worst possible position for what it says. A reader who wants a PDF wants
+           it before they read, not after; in the panel it is on the first screen. The mechanism is
+           unchanged — still ⌘P, still no committed file — so nothing was lost but a duplicate. */}
     </div>
   </div>
 </Layout>
@@ -416,7 +482,7 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
      `1 / -1` on the section, not a literal track count: it sits inside `.feed`, whose grid is
      narrower than the page's, and a literal number here is the phantom-measure bug that cost this
      rebuild four passes. */
-  .rsect{grid-column:1 / -1;display:grid;grid-template-columns:var(--label) 1fr;
+  .rsect{grid-column:1 / -1;display:grid;grid-template-columns:max(var(--label),20ch) 1fr;
     column-gap:var(--gutter);margin-top:var(--sect)}
   .rsect:first-of-type{margin-top:0}
   /* The head hangs in the label column on the same row as the first role's org. `--ink` and weight
@@ -426,8 +492,23 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
   /* Every role after the first takes the interval; the first sits on the head's row. */
   .rsect > .role + .role > .rspan,
   .rsect > .role + .role > .rbody{margin-top:var(--group)}
-  /* The span hangs in the label column, in `--faint`, like every other hung label on the site. */
-  .role .rspan{grid-column:1;color:var(--faint)}
+  /* The span hangs in the label column, in `--faint`, like every other hung label on the site.
+     ── AND THE COLUMN IS WIDE ENOUGH FOR A DATE, which it was not. This is the screen half of the
+     bug the PDF had: `--label` is 154px at the 1120px measure, which is 17.1 characters at 9px, and
+     the spans are 18 ("Aug 2025 – present") and 19 ("Feb 2025 – May 2025"). Four of five wrapped —
+     "Aug 2025 –" then "present" on a second line — which breaks the one thing the hung column is
+     for, a single column of dates the eye runs down.
+     THE FIX IS THE TRACK, NOT THE CELL, and the first cut got that wrong in a way worth recording:
+     `min-width:20ch` on `.rspan` makes the CELL 180px inside a 154px track, so it overflows by 26px
+     into the 28px gutter and leaves 2px of clearance — "Feb 2025 – May 2025" butted against "Void
+     Industries". The dates stopped wrapping and started colliding, which is the same defect the PDF
+     had at 13ch, reached from the other direction.
+     So `.rsect` states its own first track as `max(var(--label), 20ch)`. `max()` rather than a flat
+     20ch because below 1060 the grid collapses to one column anyway, and above it the site's derived
+     label is the floor this page raises only as far as a date needs — the content axis moves 26px
+     right of the site's, which is the honest cost of a column that must hold 19 characters.
+     `nowrap` asserts it instead of hoping. */
+  .role .rspan{grid-column:1;color:var(--faint);white-space:nowrap}
   .role .rbody{grid-column:2;max-width:62ch}
   /* The org is the fact; `h3` is already reset to the body size and weight site-wide (see the
      `h3,h4,h5,h6` rule in global.css), so this only adds the weight that makes it the line the
@@ -444,6 +525,12 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
   .role .rlines li{position:relative;padding-left:1.5ch;color:var(--dim)}
   .role .rlines li::before{content:"–";position:absolute;left:0;color:var(--faint)}
   .role .rlines li + li{margin-top:var(--tight)}
+  /* ── THE SCREEN-ONLY BULLETS sit in `--faint`, one step back from the `--dim` of a bullet that
+     survives onto paper. That is the whole signal: same size, same axis, same dash — colour alone
+     says "this is the longer version". A reader scanning gets the compressed résumé by reading only
+     the darker lines, and a reader who stops on a role gets the rest. No italic, no smaller size,
+     no "read more" — the hierarchy is one property. */
+  .role .rlines .rmore{color:var(--faint)}
   @media(max-width:1060px){
     /* Stacks with every other hung device at the same width and for the same reason: below 1060
        the label column can no longer hold its own label. The section grid collapses to one column
@@ -708,6 +795,9 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
        comment, and it was silently buying a second sheet. */
     .role .rbody{max-width:none}
     .role .rlines li{break-inside:avoid;page-break-inside:avoid}
+    /* The screen's longer bullets do not print — the sheet is the compressed version and every
+       line on it was fought for. This is the one rule that makes the two lengths one source. */
+    .role .rlines .rmore{display:none !important}
     .frow{break-inside:avoid;page-break-inside:avoid}
     /* Links: black, no underline colour games.
        ── THE URL-PRINTING RULE IS DELETED, and it was dead code with a paragraph defending it.
