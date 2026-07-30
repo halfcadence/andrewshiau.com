@@ -117,7 +117,9 @@ const ROLES: Role[] = [
     title: 'Frontend Engineer — Composer',
     span: 'Oct 2019 – 2023',
     where: 'Seattle',
-    note: 'Marketing graphics for Amazon worldwide. Lead frontend engineer, team of five.',
+    // 60 characters, so it is one line. It was 78 — "for Amazon worldwide" and the spelled-out
+    // "frontend engineer" cost a second line to say what the title above it already says.
+    note: 'Marketing graphics, Amazon worldwide. Lead FE, team of five.',
     lines: [
       'Took Composer from 5,000 to 50,000 graphics a year. Built Luthier, a no-code template ' +
         'editor, and a Figma plugin that turns a designer’s file into a template: 100 templates ' +
@@ -174,7 +176,12 @@ const EDUCATION = [
 // testing is craft detail on a line that is doing keyword work, and the A/B testing on the Design
 // row already says the interesting half.
 const BUILD = 'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, testing.';
-const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B testing.';
+// MEASURED FROM THE PDF, not computed. My arithmetic said the body column was 60 characters; the
+// extracted text shows the longest line that fits is 60 for the VALUE, and `Build …` at 66 total
+// sits on one line while `Design …` at 62 wrapped. So the real limit is the value at ≤59 — computing
+// `82 − 20 − 2` ignored that the hung label and the value share a text line in the extraction and
+// that Plex's advance rounds against you at the last glyph. Read the artifact; don't derive it.
+const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B tests.';
 ---
 
 <Layout

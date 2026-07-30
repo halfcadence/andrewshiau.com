@@ -100,14 +100,16 @@ location ^~ /gate/ {
   internal;                 # reachable by error_page's internal redirect, 404 from outside
 }
 
-location / { try_files $uri $uri/ $uri/index.html /index.html; }
+location / { try_files $uri $uri/ $uri/index.html =404; }
+
+error_page 404 /404.html;
 ```
 
 Three things here are not interchangeable:
 
-- **`^~`** so the prefix beats any regex location, and a **`=404` fallback, not
-  `/index.html`** — the site-wide `try_files … /index.html` would otherwise serve the public
-  homepage for a miss under the protected prefix, which reads like the gate failed open.
+- **`^~`** so the prefix beats any regex location, and a **`=404` fallback** on the gated
+  prefix — `/index.html` there would serve the public homepage for a miss under the protected
+  prefix, which reads like the gate failed open.
 - **`error_page`, not a redirect.** The address bar keeps reading `/work/stores-designer/`
   and the status stays 401, so the reader gets a page where the dialog used to be while a
   crawler gets exactly the refusal Basic Auth gave it.
@@ -115,6 +117,27 @@ Three things here are not interchangeable:
   version was too narrow: a request for `/gate/` fell through to `try_files` → `index` and
   served the gate as a URL of its own. Prefix + `internal` 404s both `/gate/` and
   `/gate/index.html` from outside while the internal redirect still reaches the file.
+
+### `location /` ends `=404`, and that is load-bearing
+
+It ended **`/index.html`** until Jul 2026, which served the homepage at status **200** for every
+path that does not exist. Two costs, and the second is how it was found:
+
+1. A 200 on a miss tells a crawler the URL is real, so any typo'd or stale inbound link becomes
+   an indexable duplicate of the homepage.
+2. **Browsers request `/favicon.ico` on their own**, at a fixed path, before any markup says
+   where to look. It received 15 kB of HTML typed `text/html`, could not be decoded as an image,
+   and the browser drew its own placeholder tile — **a square**. The report was "i swear it has a
+   square?", and the square was never in `favicon.svg` (that file has no `rect` and its corners
+   measure transparent). Chasing it in the SVG finds nothing; the bug is one line of nginx.
+
+`$uri/index.html` **stays ahead of the fallback** — that is what serves the real pages, which are
+all directory-style (`/method/` → `/method/index.html`). Only the final fallback changed.
+
+`error_page 404 /404.html` is required with it: `=404` alone answers with nginx's grey default,
+which is worse than the homepage was. The body is `src/pages/404.astro` → `dist/404.html`, and it
+is **not** `internal` (unlike `/gate/`) because there is no secret in it. **Deploy the page before
+changing the config**, or misses are nginx-grey in the window between.
 
 ```bash
 ssh droplet 'nginx -t && systemctl reload nginx'
@@ -136,6 +159,19 @@ C https://andrewshiau.com/gate/index.html       # 404  internal only
 C https://andrewshiau.com/                      # 200  public pages unaffected
 C https://andrewshiau.com/work/luthier/         # 200
 ```
+
+The same run covers the `=404` fallback, because the two share `try_files` and a change to one
+can break the other:
+
+```bash
+C https://andrewshiau.com/zzz-does-not-exist    # 404  NOT 200 — the whole point
+curl -s https://andrewshiau.com/zzz | grep -c 'Not found'   # 1  our page, not nginx grey
+curl -sI https://andrewshiau.com/favicon.ico | grep -i content-type   # image/x-icon
+C https://andrewshiau.com/method/               # 200  $uri/index.html still ahead of =404
+```
+
+`/favicon.ico` returning `text/html` is the regression to watch for: it means the fallback went
+back to `/index.html`, and the placeholder square comes with it.
 
 **To change the password:** rewrite `conf.d/gate.conf` (step 1) and reload. Nothing else —
 the password is never in the bundle. The client sets the cookie and asks the *server*
