@@ -1,7 +1,7 @@
-# Installing the method
+# Installing simple design technology
 
-The method lives in this repo, beside the site whose thesis it states. Loading it is a
-**filesystem read**, not a network fetch.
+The method — **simple design technology** — lives in this repo, beside the site whose thesis
+it states. Loading it is a **filesystem read**, not a network fetch.
 
 ## Install (Claude Code, this machine)
 
@@ -56,8 +56,10 @@ section.
 - **Mechanism edit** (`POINTER.md`, the path) → re-run `./method/install.sh` and
   re-verify the symlink.
 
-The site's index carries `method.md`'s second sentence verbatim. Change one, change both —
-that co-location is why this lives here rather than in a separate repo.
+`/method/` quotes one sentence of `method.md` verbatim and asserts it at build time, so
+changing that sentence here breaks the site build until the page is updated. (The index used
+to quote the thesis too; that assertion is gone with the sentence.) This co-location is why
+the method lives here rather than in a separate repo.
 
 ## This repo is public
 
@@ -71,3 +73,10 @@ gate stays private — its marker list is itself a roster of internal names).
 This was called a "digital twin" for about a day, after the pattern it borrows from. The
 name was wrong twice: it reads as a stand-in for a person, which this isn't, and it named
 the mechanism instead of the content. It encodes a method — how decisions get made.
+
+It was then "the operating spec" for a while, which was wrong the same way in a quieter
+register: it named the FORM (a spec, and it operates) rather than the subject. It is
+**simple design technology** now — what the two procedures are actually for. The directory
+and the filenames stay `method/` and `method.md`, because the install path, the symlink and
+every cross-reference point at them, and renaming files to match a title is churn a reader
+gains nothing from.

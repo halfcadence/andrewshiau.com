@@ -1,0 +1,426 @@
+---
+// /resume/ — THE ONE-PAGE RÉSUMÉ, and the paper version of the same file.
+//
+// Annotation: "can we add a resume here i think we have old version sof our resume in
+// portfolio2018 mb you can read my linkedin which i have open … i think form should be like a 1
+// page site which can be exported to a 1-2 page pdf … also make new lines for my most recent exp
+// which isnt covered."
+//
+// SOURCES, both read rather than remembered: the LinkedIn experience page (which has the two roles
+// the old PDF predates — Void Industries, and the Shopping Design Tech role that started Aug 2025)
+// and `portfolio2018/design/Resume/Resumes/Resume (2023 Jan, FEE).pdf`, which is where the
+// quantified Composer bullets and the education dates come from. The repo holding that PDF is
+// private now, so it was read through an authenticated browser; there is no raw URL to re-fetch.
+// Where the two disagree, LinkedIn wins on dates (it is the one being maintained) and the PDF wins
+// on numbers (it states them precisely).
+//
+// NOT AN `Entry`. It is not a project and must never appear in the Work or Experiments matrix — a
+// résumé in a list of case studies reads as a tenth thing I built. Same reasoning as /style/ and
+// /system/, and like those two it hand-rolls its panel rather than calling `PanelHead`, because
+// `metaOf()` throws for an href that isn't in experiments.ts.
+//
+// ONE PAGE, DELIBERATELY. The whole set of roles fits in the reading column at one size, so there
+// is no section nav, no "download my CV" call to action, and no expand/collapse: a résumé that
+// hides half of itself behind an interaction is the disclosure-triangle failure the operating
+// rules name. Everything is on screen.
+//
+// THE PDF IS Cmd-P. There is no committed `resume.pdf` and no generator script: the print
+// stylesheet at the bottom of this file sets the page for paper, so the export is a browser
+// feature rather than an artifact that can go stale against the page. That is the same call the
+// site makes everywhere else — remove a step rather than add a file to keep in sync.
+import Layout from '../layouts/Layout.astro';
+
+// The roles, newest first. Data rather than markup because the print rules need to break between
+// them and the screen layout hangs a date column beside each — two shapes, one source.
+//
+// `lines` are the bullets exactly as the sources state them, including the magnitudes. The numbers
+// are the point: a résumé without them asks a reader to take scope on faith, and every one here is
+// attributable to the 2023 PDF or the LinkedIn entry rather than reconstructed.
+interface Role {
+  org: string;
+  title: string;
+  span: string;
+  where?: string;
+  note?: string;      // one line of context, when the org name isn't self-explanatory
+  lines: string[];
+}
+
+const ROLES: Role[] = [
+  {
+    org: 'Amazon',
+    title: 'Frontend Engineer II — Shopping Design Tech',
+    span: 'Aug 2025 – present',
+    where: 'Seattle',
+    lines: [
+      'Design-system tooling: a vibe design tool that lets many teams build one shopping ' +
+        'surface against Amazon design systems without hand-coding each page.',
+      'The public version of this problem is Luthier; this work stays internal, so the case ' +
+        'study is high level by design.',
+    ],
+  },
+  {
+    org: 'Void Industries',
+    title: 'Frontend Engineer — Product Design',
+    span: 'Feb 2025 – May 2025',
+    where: 'Remote',
+    lines: [
+      'Designed and built a real-time collaborative, developer-friendly game engine.',
+    ],
+  },
+  {
+    org: 'Amazon',
+    title: 'Frontend Engineer II — Shopping Design',
+    span: '2023 – Feb 2025',
+    where: 'Seattle',
+    note: 'The Amazon app.',
+    lines: [
+      'Added optimistic updates to the add-to-cart library used on high-traffic pages, cutting ' +
+        'add-to-cart latency from 300+ms to under 50ms.',
+      'Implemented the first version of Rio Design Tokens — the tokens that make the Amazon app ' +
+        'customisable, consistent, and accessible.',
+    ],
+  },
+  {
+    org: 'Amazon',
+    title: 'Frontend Engineer — Composer',
+    span: 'Oct 2019 – 2023',
+    where: 'Seattle',
+    note:
+      'Internal software for the hands-free design of marketing images placed across worldwide ' +
+      'Amazon properties. Lead frontend engineer on a team of four FEEs and one SDE.',
+    lines: [
+      'Increased output from 5,000 to 50,000 graphics a year over three years.',
+      'Created Brand Builder, which generates branded templates without code: 100 templates for ' +
+        'each of 30+ brands, saving about 3,000 hours of developer effort.',
+      'Created Luthier, a no-code visual editor that makes new Composer templates without ' +
+        'developer effort, and a Figma plugin that turns a designer’s own file into a template. ' +
+        'Led ideation, requirements, prototyping, usability testing, and both ends of the build.',
+      'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised ' +
+        '(+0.67%) for Amazon OPS, at 99.88% probability of positive return.',
+      'Migrated the rendering engine from Canvas to HTML, making a new template 5× faster to ' +
+        'create.',
+      'Improved initial image load performance by 75% (5s to 1s) by profiling loads and caching ' +
+        'repeated calls.',
+      'Added 100% unit coverage on new features and visual regression testing in the deployment ' +
+        'pipeline, which prevents downtime from code changes.',
+    ],
+  },
+  {
+    org: 'Microsoft',
+    title: 'UX Engineer (through Harman)',
+    span: 'Nov 2018 – Jun 2019',
+    where: 'Redmond',
+    lines: [
+      'Prototyped the next generation of Word and PowerPoint experiences in code — including the ' +
+        'PowerPoint Pen Toolbox, where an A/B test ruled out the design the team had favoured.',
+      'Collaborated with design, program management, and engineering on shared components used ' +
+        'by over 100 million people.',
+    ],
+  },
+  {
+    org: 'Big Huge Games',
+    title: 'Software Engineering Intern',
+    span: 'Jun 2016 – Aug 2016',
+    where: 'Baltimore',
+    lines: [
+      'Built a full-stack web application for server monitoring on a REST API, shell scripts, ' +
+        'and a SQL database.',
+      'Implemented 10+ Unity microtools for testing Dominations, the studio’s flagship game ' +
+        '(100k+ daily active users).',
+    ],
+  },
+];
+
+const EDUCATION = [
+  {
+    org: 'University of Washington',
+    span: '2017 – 2018',
+    what: 'Master of Human-Computer Interaction + Design',
+  },
+  {
+    org: 'Johns Hopkins University & the Peabody Institute',
+    span: '2013 – 2017',
+    what: 'BS Computer Science, and BM Cello Performance',
+  },
+];
+
+// The stack, as ONE list rather than the PDF's three columns (Skills / Coding Tools / Design
+// Tools). Thirty-odd nouns split across three headed columns is a keyword wall, and the split was
+// arbitrary at the edges — Figma sat under design tools while the Figma API sat under coding. What
+// a reader wants from this block is the shape of the practice, so it is two lines: what I build
+// with, and what I design with.
+const BUILD =
+  'TypeScript, JavaScript, React, Node, HTML, CSS, Ruby on Rails, Java, SQL, AWS, Vite, ' +
+  'unit and visual regression testing, performance profiling.';
+const DESIGN = 'Figma and the Figma API, Sketch, Framer, prototyping, usability testing, A/B testing.';
+---
+
+<Layout
+  title="Résumé — Andrew Shiau"
+  description="Andrew Shiau — frontend engineer. Design systems at Amazon, Composer and Luthier, Microsoft Office prototyping. One page."
+>
+  <div class="grid">
+    <!-- The panel, hand-rolled for the reason in the frontmatter. Same shape as every case study:
+         the mark and wordmark as the link home, the title, then a ledger read before the content.
+         The mark is the WHOLE figure — this page is both halves of the practice, which is the one
+         claim a résumé for this particular job has to make in its first 60px. -->
+    <div class="pin">
+      <p class="smark">
+        <a class="smark-home" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          ><line x1="14.17" y1="14.17" x2="17.83" y2="17.83" stroke="currentColor" stroke-width="1.5"
+          /><circle cx="10" cy="10" r="5" fill="none" stroke="currentColor" stroke-width="1.8"
+          /><circle cx="22" cy="22" r="5" fill="currentColor" stroke="currentColor" stroke-width="1.8"
+        /></svg>Andrew Shiau</a>
+      </p>
+      <h1>Résumé</h1>
+
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">Now</div>
+          <div class="ftx">Frontend engineer, <b>Shopping Design Tech</b> at Amazon. Design
+            systems and the tooling that builds against them.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Both halves</div>
+          <div class="ftx">I design and I build. The two procedures I run are written down at
+            <a href="/method/">/method/</a>.</div>
+        </div>
+        <!-- The contact row EARNS its place on this page, unlike on a case study (where it was
+             deleted — see PanelHead.astro). A résumé's whole function is to produce a reply, so
+             the address is the point of the document rather than an ask appended to an argument.
+             Same reasoning that keeps it on the index and on /gate/. -->
+        <div class="frow">
+          <div class="fm">Contact</div>
+          <div class="ftx"><a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a><br
+            /><a href="https://www.linkedin.com/in/halfcadence/" target="_blank" rel="noopener">linkedin</a>
+            <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="splitrule" aria-hidden="true"></div>
+
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">
+          Frontend engineer, seven years in. Design systems and the tools teams build with —
+          Amazon’s marketing-graphics pipeline, the Amazon app’s design tokens, and now the
+          tooling for one shopping surface many teams ship to.
+        </p>
+      </div>
+
+      <!-- PRINT ONLY: the address, repeated at the top of the paper version. On screen it is in
+           the panel to the left, which does not exist on paper — the print stylesheet collapses
+           the split to one column, and a résumé whose contact details are 40cm down the page is
+           a résumé nobody replies to. `aria-hidden` and `display:none` on screen, so a screen
+           reader never hears the same three links twice. -->
+      <p class="printhead" aria-hidden="true">
+        Andrew Shiau — frontend engineer · hi@andrewshiau.com ·
+        andrewshiau.com · linkedin.com/in/halfcadence · github.com/halfcadence
+      </p>
+
+      <div class="grid sect">
+        <div class="c1-12"><h2>Experience</h2></div>
+      </div>
+
+      {ROLES.map((r) => (
+        /* One `.role` per job, and the page break is forbidden inside it (see the print block).
+           `.facts`/`.frow` was the obvious device to reuse and it is the wrong one: a `.frow`
+           hangs a SHORT label beside a value, and a job is a title, a date range, a location and
+           up to seven bullets. So `.role` is its own block using the same two axes — the span
+           hangs in the label column, everything else sits on the content axis at 182px, so this
+           page's left edges are the site's. */
+        <div class="grid">
+          <div class="role">
+            <div class="rspan">{r.span}</div>
+            <div class="rbody">
+              <h3 class="rorg">{r.org}</h3>
+              <div class="rtitle">{r.title}{r.where && <span class="rwhere"> · {r.where}</span>}</div>
+              {r.note && <p class="rnote">{r.note}</p>}
+              <ul class="rlines">
+                {r.lines.map((l) => <li>{l}</li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <div class="grid sect">
+        <div class="c1-12"><h2>Education</h2></div>
+      </div>
+      {EDUCATION.map((e) => (
+        <div class="grid">
+          <div class="role">
+            <div class="rspan">{e.span}</div>
+            <div class="rbody">
+              <h3 class="rorg">{e.org}</h3>
+              <div class="rtitle">{e.what}</div>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <div class="grid sect">
+        <div class="c1-12"><h2>Stack</h2></div>
+      </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">Build</div>
+            <div class="ftx">{BUILD}</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Design</div>
+            <div class="ftx">{DESIGN}</div>
+          </div>
+          <div class="frow">
+            <div class="fm">Agents</div>
+            <div class="ftx">Claude Code as a daily instrument — skills that set documents on a
+              grid, render design options side by side, and write explainers. Five of them are
+              case studies on this site.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- The close: how to get the paper copy. It is one sentence rather than a button, because
+           the mechanism IS the browser's own — there is nothing to click that Cmd-P doesn't do
+           better, and a "Download PDF" link would either point at a file that drifts from this
+           page or fire a script to make one. `.kb` / `.tou` is the site's existing device for an
+           affordance a touch device doesn't have; a phone gets the fact without the keystroke. -->
+      <div class="grid sect">
+        <div class="facts">
+          <div class="frow">
+            <div class="fm">On paper</div>
+            <div class="ftx">
+              <span class="kb">This page is set for print. Press <code>⌘P</code> and save as
+                PDF — two pages, black on white.</span>
+              <span class="tou">This page is set for print: print it from your browser to get
+                the PDF, two pages, black on white.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  /* ── THE RÉSUMÉ'S OWN DEVICE. Scoped here rather than added to global.css because exactly one
+     page emits it: a `.role` is a dated block with a hung span and a bulleted body, and nothing
+     else on the site is shaped like that. If a second page ever needs it, it moves. */
+  /* The interval above each role is a RULE, not an inline style on the wrapper. It was
+     `style="margin-top:var(--group)"` on every `.grid` holding a role, and an inline margin cannot
+     be overridden by the print block without `!important` — which is exactly the trap
+     `.grid:has(> .block)` in global.css was written to get out of. Stated here, print can compress
+     it, and the markup carries no numbers. */
+  .grid:has(> .role){margin-top:var(--group)}
+  .role{grid-column:1 / -1;display:grid;grid-template-columns:var(--label) 1fr;
+    column-gap:var(--gutter)}
+  /* The span hangs in the label column, in `--faint`, like every other hung label on the site. */
+  .role .rspan{grid-column:1;color:var(--faint)}
+  .role .rbody{grid-column:2;max-width:62ch}
+  /* The org is the fact; `h3` is already reset to the body size and weight site-wide (see the
+     `h3,h4,h5,h6` rule in global.css), so this only adds the weight that makes it the line the
+     eye lands on. Weight, not size and not colour — the page has one size, and colour means
+     interaction. */
+  .role .rorg{font-weight:500;color:var(--ink)}
+  .role .rtitle{color:var(--dim)}
+  .role .rwhere{color:var(--faint)}
+  .role .rnote{color:var(--dim);margin:var(--tight) 0 0}
+  /* The bullets. `--tight` above the list binds it to the title above it; `list-style:none` with
+     a hung `–` because a browser's own bullet sits off the 182px content axis and the whole page
+     is built on that axis holding. `1.5ch` is the dash plus its space at this size. */
+  .role .rlines{list-style:none;margin:var(--tight) 0 0;padding:0}
+  .role .rlines li{position:relative;padding-left:1.5ch;color:var(--dim)}
+  .role .rlines li::before{content:"–";position:absolute;left:0;color:var(--faint)}
+  .role .rlines li + li{margin-top:var(--tight)}
+  @media(max-width:1060px){
+    /* Stacks with every other hung device at the same width and for the same reason: below 1060
+       the label column can no longer hold its own label. */
+    .role{display:block}
+    .role .rspan{margin-bottom:var(--tight)}
+  }
+
+  /* The print-only address line is hidden on screen. */
+  .printhead{display:none}
+
+  /* ── THE PAPER VERSION. The annotation asked for "a 1 page site which can be exported to a 1-2
+     page pdf", and this is the export: no committed PDF, no generator, no dependency — the page
+     re-sets itself for paper and the browser does the rest.
+     What has to change for paper, and why each one is a real defect rather than a preference:
+     - The SPLIT has to collapse. The panel is `position:sticky` inside a viewport-height box; on
+       paper there is no viewport to stick to, so it would print once at the top and leave the
+       contact details on page 1 while the roles run to page 2. One column, and the panel's
+       content prints as the document's head.
+     - COLOUR goes to black on white. The site's paper is #f4f3ef and its ink is #141412; a warm
+       ground costs a full ink cartridge and a résumé is the one page that gets printed by someone
+       else, on someone else's printer.
+     - LINKS lose their underline colour and print their URL, because a printed link that says
+       "linkedin" is a dead end. `content:" (" attr(href) ")"` only on the ones that need it —
+       mailto: and internal paths are already legible as text.
+     - A ROLE MUST NOT BREAK across pages. `break-inside:avoid` on `.role`, which is what makes
+       the output two clean pages instead of a job split across the fold.
+     - The GRID OVERLAY and the scroll-progress bar are interactive furniture and must not print.
+     10.5pt at 1.4, and the space scale is MEASURED to the page rather than chosen. First pass ran
+     11pt with 22pt section breaks and rendered 2.52 pages — a third sheet carrying two lines, which
+     is the worst possible length for a document someone prints and staples. Measured in a 695px
+     frame (letter minus 16mm side margins) with the print rules applied, then tuned: at 10.5/1.4
+     with 16pt sections and 10pt between roles it lands inside two pages with room to spare, and the
+     leading is still 1.4 — looser than most résumés set at this size.
+     The 2× ratio between steps is kept where it can be (5/10/16) so the hierarchy survives the
+     shrink; `--sect` is 16 rather than 20 because a section head on paper already has a weight
+     change to announce it, where on screen space is the only signal. */
+  @media print{
+    :root{
+      --paper:#fff; --ink:#000; --dim:#222; --faint:#555; --line:#bbb; --accent:#000;
+      --step:10.5pt; --lead:1.4;
+      --tight:4pt; --group:9pt; --sect:14pt; --unit:9pt; --gutter:12pt;
+    }
+    @page{margin:14mm 16mm}
+    html,body{background:#fff;color:#000;font-size:10.5pt;line-height:1.4}
+    /* `.wrap`'s 28px side padding is the screen's margin; on paper `@page` owns the margin, and
+       keeping both cost 56px of the 695px content box. */
+    .wrap{padding:0 !important;max-width:none !important}
+    /* The section interval is stated on `.grid.sect` for the screen; on paper the head's own
+       `margin-top` carries it, so leaving both stacked two intervals — the same non-collapsing
+       grid-item defect this pass fixed on `.block`. */
+    .grid.sect{margin-top:0 !important}
+    .grid:has(> .role){margin-top:var(--group) !important}
+    /* The split collapses: both children become full-width blocks in source order, so the panel
+       (name, title, contact) prints as the head and the feed follows. */
+    .grid,.grid.split{display:block !important}
+    .pin,.feed{display:block !important;position:static !important;
+      max-height:none !important;overflow:visible !important;width:auto !important}
+    .splitrule,.guide,.progress,.colo-rule{display:none !important}
+    /* The panel's own head: on paper the wordmark link and the h1 "Résumé" are two lines saying
+       what the reader already knows they are holding, so the mark goes and the printhead line
+       carries the name and the address instead. */
+    .smark,.pin h1{display:none !important}
+    .pin .facts{display:none !important}
+    .printhead{display:block !important;margin:0 0 var(--group);color:#000}
+    .dek{margin-top:var(--tight)}
+    h2{font-weight:600;margin-top:var(--sect)}
+    .role{display:grid !important;grid-template-columns:26mm 1fr;column-gap:6mm;
+      break-inside:avoid;page-break-inside:avoid}
+    .role .rspan{color:#555}
+    .role .rbody{max-width:none}
+    .frow{break-inside:avoid;page-break-inside:avoid}
+    /* Links: black, no underline colour games, and the external ones print their destination. */
+    a{color:#000 !important;text-decoration:underline;text-decoration-color:#999 !important}
+    a[target="_blank"]::after{content:" (" attr(href) ")";font-size:9pt;color:#555}
+    /* The site appends a ↗ to external links in CSS; on paper the URL is printed instead, so the
+       arrow is one more mark that means nothing. */
+    a[target="_blank"]::before{content:none !important}
+    /* The keystroke instruction is screen furniture — you are already holding the output. */
+    .kb,.tou{display:none !important}
+    /* …and so is the row that holds it: "On paper" tells a reader of the paper copy how to make
+       the paper copy. Deleting the whole `.frow` rather than just its text is what takes the
+       document under two pages — it was the last block, and a trailing empty label row would have
+       pushed a third sheet on its own. */
+    .frow:has(.kb){display:none !important}
+    /* The dek is the screen's opening paragraph. On paper the printhead line above it already
+       states the name and the role, and a résumé's first inch belongs to the first job. */
+    .dek{display:none !important}
+  }
+</style>

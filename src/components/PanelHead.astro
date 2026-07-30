@@ -23,12 +23,13 @@ const { href, title } = Astro.props;
        ~30px lower at a different size. Two drawings of one figure, stacked, in the first 60px of
        the panel: the reader's question is "what is this page", and the answer arrived twice in
        the same shape before the title.
-       The marker is the one that carries a fact, so it took the link as well — see
-       SideMark.astro. The accessible name ("andrewshiau — home") moved with it, so the way
-       back is still announced, and its figure is side-aware: the whole figure on the pages that
-       sat on both halves of the practice, one object on the ones that didn't. The logo component
-       that used to sit here is now deleted site-wide (andrewshiau-mark-options, Q3/05), so these
-       eight pages were simply the first to make the call. -->
+       The marker is the one that carried a fact, so it took the link as well — see
+       SideMark.astro, which now prints the WORDMARK next to the figure rather than the side
+       word, because a link home that reads "Design + Build" is not findable. Its figure stays
+       side-aware: the whole figure on the pages that sat on both halves of the practice, one
+       object on the ones that didn't. The logo component that used to sit here is deleted
+       site-wide (andrewshiau-mark-options, Q3/05), so these eight pages were simply the first to
+       make the call. -->
   <SideMark href={href} />
   <h1>{title}</h1>
 
@@ -40,11 +41,16 @@ const { href, title } = Astro.props;
     <slot />
   </div>
 
-  <!-- The one call to action, at the foot of the column that never leaves the screen —
-       the same place and the same treatment as on the index. -->
-  <p class="pfoot">Contact
-    <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
-  </p>
+  <!-- NO CONTACT ROW (annotation: "dont think contact should be at top here remove from every
+       page (execpt home obv)"). It was here on all eight case studies, in the panel, which put
+       "email me" above the fold of a page a reader has not read yet — the ask arriving before
+       the evidence. On the index that placement is right and stays: the panel there IS the
+       introduction, and a hiring manager who has decided from the statement alone shouldn't
+       have to scroll for the address. On a case study the reader is mid-argument.
+       Nothing replaced it. The address is one click away on the index, and every case study's
+       marker at the top of this panel is that click.
+       `/gate/` keeps its own copy — see the note there; its whole content is "ask me for the
+       password", so the address is the page's function rather than an appended CTA. -->
 </div>
 
 <!-- The split's rule. An empty element because it belongs to neither side; see

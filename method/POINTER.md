@@ -1,4 +1,4 @@
-# Andrew's method — load it
+# Simple design technology — Andrew's method, load it
 
 At the start of any substantive task, read the method. It is on this machine; there is no
 network fetch.

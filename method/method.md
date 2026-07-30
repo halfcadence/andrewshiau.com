@@ -1,4 +1,4 @@
-# Method — how Andrew works
+# Simple design technology — how Andrew works
 
 Andrew Shiau is a frontend engineer who designs and builds, chasing simplicity.
 

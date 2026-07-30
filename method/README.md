@@ -1,14 +1,16 @@
-# method/
+# method/ — simple design technology
 
 How I work, stated so an agent can run it. Not a model and not a biography — judgment as
-procedures.
+procedures. **Simple design technology** is the name of the whole thing: the site's index
+row, `method.md`'s own title, and `/method/` all use it. The directory stays `method/`
+because that is what the install path and every cross-reference point at.
 
 This sits in the site repo on purpose: the site's thesis and this spec are the same claim,
 so they get edited together. If one changes, check the other.
 
 | file | what it is |
 |---|---|
-| `method.md` | The root, always applies. *Both sides chase the same thing: the simplest thing that works. Taste finds the simplest form; engineering proves the simplest solution.* Names which side to load next. |
+| `method.md` | The root, always applies — *Simple design technology*. Both sides chase the same thing: the simplest thing that works. Taste finds the simplest form; engineering proves the simplest solution. Names which side to load next. |
 | `designer.md` | The eye as instrument — render every option in the real system, option 1 is what's live, taste as constraints. |
 | `builder.md` | Measurement as instrument — prove it on the real deployment, pair every change with a control, name the mechanism, report the boundary of what was tested. |
 | `messaging.md` | The reader's attention as instrument — name the ask and cut the rest, the artifact carries the detail, keep the judgments and cut the explanations, blamelessness is mechanical. Applies whenever work leaves your hands. |
@@ -16,8 +18,11 @@ so they get edited together. If one changes, check the other.
 | `INSTALL.md` | Install, the off-machine raw-URL option, and why a local path beats a URL here. |
 | `install.sh` | `./method/install.sh` → links the pointer. Safe to re-run. |
 
-The site's index carries the second sentence of `method.md` verbatim as its thesis. Those
-two strings must match.
+The site's index NO LONGER quotes `method.md`. It used to carry the thesis sentence
+verbatim, asserted at build time — that assertion is deleted with the sentence (the panel's
+statement is now one plain line). `/method/` still quotes one sentence and still asserts it;
+see the `SHARED` array in `src/pages/method.astro`. Change that sentence here and the build
+fails, which is the intended behaviour.
 
 ## Install
 

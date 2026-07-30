@@ -25,7 +25,7 @@ import PanelHead from '../../components/PanelHead.astro';
       <div class="frow">
         <div class="fm">Stack</div>
         <div class="ftx">
-          Jekyll · GitHub Pages · own CSS, no theme · system Helvetica.
+          Jekyll, GitHub Pages, own CSS with no theme, system Helvetica.
         </div>
       </div>
       <div class="frow">
@@ -61,13 +61,13 @@ import PanelHead from '../../components/PanelHead.astro';
             <iframe src="https://halfcadence.github.io/recipes/" title="The recipes collection, live"
               loading="lazy" referrerpolicy="no-referrer"></iframe>
           </div>
-          <!-- The caption is a LABEL, not a second link. Annotation: "you have double link (top
-               and bottom) here" — the same URL was an anchor above the frame and again below it,
-               so the one actionable thing on the page appeared twice, 700px apart, and a
-               keyboard reader tabbed through it twice to reach the same destination.
+          <!-- NO CAPTION (annotation: "can u delet ethis its useless"). It read "Live, embedded —
+               halfcadence.github.io/recipes", which was the URL from the `.esrc` link directly
+               above plus two words describing what an embedded frame visibly is. An earlier pass
+               demoted it from a second link to a label to stop the same URL being tabbable twice;
+               the label was what remained, and it stated nothing the frame didn't.
                The `.esrc` above keeps the link (an embed is tall, so the action must not sit a
-               screenful down). This just says what the frame is. -->
-          <figcaption>Live, embedded — halfcadence.github.io/recipes</figcaption>
+               screenful down). Same deletion on `aping`. -->
         </figure>
       </div>
     </div>

@@ -249,8 +249,17 @@ import LockedRow from '../components/LockedRow.astro';
        mislabel: this block called itself "Colophon" while its first column was contact
        details, and now the label is true.
        Nothing is printed twice. github and instagram are in the panel and only there. -->
+  <!-- A 2×2 FIELD, not four stacked rows (chooser: andrewshiau-colophon-options, option 04 —
+       rendered against the live ledger plus four other layouts, picked by looking). The annotation
+       asked for the four facts to be "more dynamic", sketched as a stagger; the field gets that
+       from composition instead of from an indent, so the page keeps its single left edge. Full
+       reasoning at `.colofield` in global.css.
+       `.colofield` wraps the label and the four cells because the field needs its own grid: the
+       cells are placed on eight tracks of their own, and the page-level `.grid` outside is what
+       constrains the whole block to the document's width. -->
   <div class="grid" style="margin-top:calc(var(--unit)*3)">
     <div class="colo-rule"></div>
+    <div class="colofield">
     <div class="colo-lab">Colophon</div>
     <!-- THE VALUES ARE WRAPPED IN `.cv` NOW. They were bare text nodes beside the `.ck` label,
          which was fine while the colophon was four stacked blocks and is not once the block is a
@@ -337,6 +346,7 @@ import LockedRow from '../components/LockedRow.astro';
     <div class="colo c4">
       <span class="ck">Steered by</span>
       <span class="cv"><a href="/style/">/style/</a> · <a href="/system/">/system/</a></span>
+    </div>
     </div>
   </div>
 </Layout>

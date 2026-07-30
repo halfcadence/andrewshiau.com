@@ -31,12 +31,12 @@ for (const s of SHARED) {
 ---
 
 <Layout
-  title="Method — Andrew Shiau"
+  title="Simple design technology — Andrew Shiau"
   description="One principle, two instruments: how a design decision gets made, how a change gets proven, and how the result leaves my hands."
 >
   <!-- THE SPLIT (chooser round 2: concept 02, scope 03). This page was the tenth and it
-       was missed: the index's feed opens with "Method → The operating spec", so the first
-       click off the landing page used to leave the new shape for the old full-width stack.
+       was missed: the index's feed opens with "Method → Simple design technology", so the
+       first click off the landing page used to leave the new shape for the old full-width stack.
        Same `.pin` / `.splitrule` / `.feed` children at the same 4:8 columns as everything
        else, so the site's one vertical division doesn't move.
        TYPE B: the facts block here is a COLOPHON — Form, What it isn't, Source, the same
@@ -44,7 +44,16 @@ for (const s of SHARED) {
        marker + title + Type + contact. Not Type A: this page has no role and no employer
        to print, because it isn't a project. -->
   <div class="grid">
-    <PanelHead href="/method/" title="Method" />
+    <!-- "Simple design technology", not "Method" (annotation: "can we retitle this like 'Simple
+         design technology' in the skill and title here"). Renamed at all three sites so one
+         artifact has one name: this h1, the index row (`methodSpec.title` in experiments.ts), and
+         method.md's own H1. The URL stays `/method/` and the directory stays `method/` — the
+         install symlink, POINTER.md and every cross-reference point at them, and a redirect
+         earned nothing a reader would notice.
+         The index's SECTION HEAD above the row still reads "Method". That is deliberate: it names
+         the section the way "Work" and "Experiments" name theirs, and the row under it names the
+         artifact. -->
+    <PanelHead href="/method/" title="Simple design technology" />
 
     <div class="feed">
       <!-- c1–12 of the FEED's twelve sub-tracks, matching every other page in the split:

@@ -1,5 +1,5 @@
 // Three indexes the landing page renders as separate sections, in this order:
-//   method      — the operating spec the other two came out of (one entry)
+//   method      — the spec the other two came out of (one entry)
 //   work        — professional projects (pre-AI + shipped-at-work), each a case study
 //   experiments — the AI-forward experiments
 // Each entry with an internal `href` (/work/…, /method/) has its own page.
@@ -60,7 +60,7 @@ export function metaOf(href: string): string {
   return entry.meta;
 }
 
-// THE METHOD — the operating spec, not a project, and deliberately NOT an `Entry`. It gets
+// THE METHOD — the spec, not a project, and deliberately NOT an `Entry`. It gets
 // the index's row device (see `.espec`) with two differences the data has to carry:
 //   no `n` — there is exactly one of it, and a set "01" promises an "02" that never comes;
 //   two procedures instead of one blurb — the duality is the row's content, so it is two
@@ -83,7 +83,14 @@ export interface SpecRow {
 }
 
 export const methodSpec: SpecRow = {
-  title: 'The operating spec',
+  // "Simple design technology", not "The operating spec" (annotation: "can we retitle this like
+  // 'Simple design technology' in the skill and title here"). The old title named the FORM of the
+  // thing — it's a spec, and it operates — which is the least interesting fact about it and reads
+  // like a filing category. The new one names the subject: what the two procedures are for.
+  // Renamed everywhere the string appears, not just here: method.md's own H1, the /method/ page
+  // title, and the cross-references in POINTER.md / README.md / INSTALL.md. A title that differs
+  // between the index row, the page and the file is three names for one artifact.
+  title: 'Simple design technology',
   meta: 'Agent spec',
   href: '/method/',
   side: 'both',
@@ -153,7 +160,12 @@ export const experiments: Entry[] = [
       'committed style guide; I do the cooking.',
     meta: 'Static site',
     href: '/work/recipes/',
-    side: 'build',
+    // `both`, not `build` (annotation: "this is design and build"). The archive is a static
+    // site an agent files into, which is why this said build — but the thing a reader sees is
+    // a typeset reference manual: numbered sections, one set of measures, own CSS and no
+    // theme. The layout was decided by looking, over a chooser sheet that is embedded on
+    // /work/proofs/. Deciding how a page is set is the design half by definition.
+    side: 'both',
     accent: true,
   },
   {
@@ -163,7 +175,12 @@ export const experiments: Entry[] = [
       "An agent skill that sets HTML on Müller-Brockmann's grid. It built this site.",
     meta: 'Agent skill',
     href: '/work/aping/',
-    side: 'both',
+    // `design`, not `both` (annotation: "this is mostly design"). The skill is a markdown
+    // file — there is no build here beyond the agent reading it. What the file contains is a
+    // type ramp, a grid, a palette and a set of rules about restraint, which is a design
+    // system written down. It sat on `both` because the output is HTML; the output being code
+    // isn't the same as the work being engineering.
+    side: 'design',
   },
   {
     n: '03',
@@ -173,7 +190,11 @@ export const experiments: Entry[] = [
       'diagram and a quiz. Three of them are on this site.',
     meta: 'Agent skill',
     href: '/work/explain/',
-    side: 'build',
+    // `both`, not `build` (annotation: "this is design and code"). It writes the explainer AND
+    // sets it: the diagram, the type, and the quiz's interaction are design decisions, and the
+    // quiz engine and the hosting are engineering. Neither half is the junior partner, which
+    // is the test for `both`.
+    side: 'both',
   },
   {
     n: '04',
@@ -183,7 +204,11 @@ export const experiments: Entry[] = [
       'Three sheets from this site and my recipe archive are embedded live.',
     meta: 'Agent skill',
     href: '/work/proofs/',
-    side: 'design',
+    // `both`, not `design` (annotation: "this is design and code"). The purpose is a design
+    // decision — render every option in the real system and pick by looking — but the sheet
+    // has to BUILD each option at its real width in the live stylesheet, which is the whole
+    // reason it beats a mockup. The instrument is the eye; the apparatus is code.
+    side: 'both',
   },
   {
     n: '05',

@@ -1525,21 +1525,65 @@ figure.demo.hang video{width:100%}
    The rule generalises: `-1` means "every track of my parent", which is right for a block inside
    the document and wrong for a block that IS placed on the document. At page level the document's
    width has to be stated. */
-.colo-lab,.colo{grid-column:1 / 9;display:grid;
-  grid-template-columns:var(--label) 1fr;column-gap:var(--gutter)}
-/* NO margin under the label — the first `.colo`'s own `--group` is the whole interval.
-   Measured after the constrain: the label carried `margin-bottom:--group` AND the first row
-   carried `margin-top:--group`, so the gap between the block's label and the block's first row
-   was 112px — a SECTION interval — while consecutive rows sat 56 apart. The label read as a
-   heading for something further down rather than as this block's own label, which is the
-   space-scale equivalent of the hierarchy bug the one-mechanism rule exists to catch. */
-.colo-lab{margin-bottom:0}
-.colo{margin-top:var(--group)}
-.colo .ck{grid-column:1;margin-bottom:0}
-.colo .cv{grid-column:2}
+/* ══ AND NOW IT IS A 2×2 FIELD (chooser: andrewshiau-colophon-options, option 04).
+   Annotation: "i somehow wish this was more dynamic like could we still have a layotu like —
+   colophon. steered by / set in / before ai / grid", sketched as the four facts walking to the
+   right instead of stacked in a list. Six options were rendered on the real grid and the pick was
+   04 over the literal stagger.
+   What it is: the four facts as four BLOCKS on two axes, each label directly above its value, the
+   word `Colophon` hanging in the margin. Two rows of two, and the second row starts on the same
+   two verticals as the first.
+   Why this beats the sketch as drawn (option 02) and the staircase (03), stated after the choice:
+   the sketch's indent breaks the one alignment invariant the page has — every block on the site
+   starts at column 1 or on the 182px content axis, and a fact indented to a third vertical is a
+   third left edge that means nothing. 04 gets the same "not a table" reading out of COMPOSITION:
+   the label sitting on top of its value is what stops the block reading as rows, and two axes is
+   what makes it a field. One left edge kept, list defeated.
+   The label/value pair is `--tight` — they are one object, which is the rule the whole space scale
+   is built on — and the pairs are `--group` apart, so a pair binds tighter to itself than to its
+   neighbour. Without that the eight lines read as one stack again, which is the failure the
+   previous two-rows-of-two note records.
+   THE MARKUP DID NOT CHANGE. `.c1`–`.c4` already carried nothing but row order (see the note
+   above), so they now carry cell order instead: 1 and 3 at column 3, 2 and 4 at column 7 — the
+   same two verticals, one row apart. That is the third time this block has been re-cut without
+   touching index.astro, which is what those four classes are for. */
+.colo-lab,.colo{grid-column:1 / 9}
+/* `1 / 9` on the wrapper's twelve tracks and its own four cells inside — the block is placed on
+   the DOCUMENT (it is a sibling of `.split`, not a child of `.feed`), so the width has to be
+   stated rather than `-1`'d. This is the exception the rule at `.c1-12` names: `-1` here resolves
+   to all twelve tracks and the colophon goes full-bleed again. */
+.colofield{grid-column:1 / 9;display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));column-gap:var(--gutter);
+  row-gap:var(--group)}
+/* The label hangs where every hung label on the site hangs: two tracks, the content axis at 182px.
+   It is the block's name, not a heading for the first cell — so it takes the field's first row and
+   nothing else sits beside it in column 1. */
+.colofield .colo-lab{grid-column:1 / 3;color:var(--faint)}
+.colo{color:var(--dim);display:block}
+/* The two verticals. c1/c3 open each row on the content axis at column 3; c2/c4 sit beside them.
+   THREE fields each, and the two cells fill the field's remaining six tracks exactly — the first
+   cut wrote `3 / 6` and `6 / 9`, which is also three each but left the second column ending at the
+   field's edge while the label's two tracks went unused above it. Measured after the fix: each cell
+   is 245px = 27 characters, and the longest value ("IBM Plex Mono at 15/28, one size.", 33
+   characters) wraps to two lines while the two link cells take one.
+   That two-line wrap is ACCEPTED rather than fixed by widening. The proof sheet rendered these
+   cells at four fields (336px) where every value fits one line, and that shape needs the label's
+   own two tracks — which would put the facts back at the page's left edge and delete the hung
+   label the whole site is built on. A colophon value wrapping to a second line costs nothing; a
+   third left edge costs the alignment invariant. The cells are equal width, on two verticals, and
+   no cell is the four-line ribbon that killed the original four-across. */
+.colo.c1,.colo.c3{grid-column:3 / 6}
+.colo.c2,.colo.c4{grid-column:6 / 9}
+.colo .ck{display:block;margin-bottom:var(--tight);color:var(--faint)}
+.colo .cv{display:block}
 @media(max-width:1060px){
-  .colo-lab,.colo{display:block}
-  .colo .ck{color:var(--ink);margin-bottom:var(--tight)}
+  /* One column, with every other two-column device (Q6/01). The label-above-value pair survives
+     the collapse unchanged — that is the advantage of 04 over the hung ledger it replaced: the
+     narrow layout IS the wide layout with one column instead of two, so there is no second shape
+     to maintain and no `display:block` reset to remember. */
+  .colofield{grid-template-columns:minmax(0,1fr);column-gap:0;row-gap:var(--group)}
+  .colofield > *{grid-column:1 / -1}
+  .colo .ck{color:var(--ink)}
 }
 
 /* ── /system/ SPECIMENS. Six rules, and they draw the SPECIMEN CHROME only — the swatch square,
@@ -1707,13 +1751,22 @@ figure.demo.hang video{width:100%}
    landmark holding one sentence, `--sect` below the colophon that already ends the page: a second
    ending after the real one. `.foot`, `.foot .fl` and `.foot .fr` are gone rather than left as
    CSS for markup that doesn't exist.
-   The `.kb` / `.tou` pointer pair SURVIVES and is now scoped to the colophon: `Press ⌥G` is a
-   keyboard instruction, and printing it on a phone tells the reader a fact they cannot act on. */
-.colo .kb{display:inline}
-.colo .tou{display:none}
+   The `.kb` / `.tou` pointer pair SURVIVES: `Press ⌥G` is a keyboard instruction, and printing it
+   on a phone tells the reader a fact they cannot act on.
+   ── IT IS UNSCOPED NOW, and that is a bug fix. It was declared twice — once under `.colo`, once
+   under `.foot` — so the mechanism only worked inside those two ancestors, and `/resume/` (which
+   states the ⌘P instruction the same way) rendered BOTH halves: "Press ⌘P and save as PDF … This
+   page is set for print: print it from your browser". Measured on the running page, `.kb` and
+   `.tou` both computed `display:inline`, because neither selector matched.
+   One mechanism, everywhere, which is what the pair should always have been: two ancestor-scoped
+   copies of one rule is the drift this file keeps arriving at. `.tou` is hidden by default and
+   swaps in on a coarse pointer, so any page can state a keyboard affordance without re-declaring
+   the rule — and the two `.foot` copies below are deleted with this change. */
+.kb{display:inline}
+.tou{display:none}
 @media(hover:none),(pointer:coarse){
-  .colo .kb{display:none}
-  .colo .tou{display:inline}
+  .kb{display:none}
+  .tou{display:inline}
 }
 @media(max-width:720px){
   /* nothing to re-cut: one line at every width */
@@ -2019,8 +2072,6 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
   text-decoration-thickness:1px;text-underline-offset:4px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .foot a:hover{color:var(--accent);text-decoration-color:var(--ink)}
-.foot .tou{display:none}
-@media(hover:none),(pointer:coarse){
-  .foot .kb{display:none}
-  .foot .tou{display:inline}
-}
+/* The `.kb` / `.tou` pair used to be re-declared here, scoped to `.foot`. It is one unscoped rule
+   now — see the note beside it above — so the explainers' footers get the behaviour without a
+   second copy of it. */

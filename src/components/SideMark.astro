@@ -1,37 +1,55 @@
 ---
-// The side marker for a case-study header: which half of the practice this project sat on,
-// and — since chooser andrewshiau-panel-marks Q5/06 — the way back to the index.
+// The masthead of a case-study header: the wordmark, and the way back to the index. The figure
+// beside it is side-aware, so the line still says which half of the practice the page sat on —
+// but it says it in the drawing, not in words. See the annotation note below for the swap.
 //
 // The panel head used to open with the logo and then this line, so the figure was drawn
 // TWICE, stacked, ~30px apart, at two sizes. The logo was there to be the link home; this
-// line was there to name the side. One of them had to go, and the marker is the one that
-// carries a fact, so it took the link as well.
+// line was there to name the side. One of them had to go (chooser andrewshiau-panel-marks
+// Q5/06), and the marker is the one that carried a fact, so it took the link as well. That
+// merge is what left a link reading "Design + Build" — the defect the annotation caught.
 //
 // It draws `MarkFigure` side-aware: the whole figure where the page sat on both halves of the
 // practice, the ring alone for design, the disc alone for build. A pairing is only drawn where
 // there is one — the diagonal's whole subject is two things joined, and on `/work/luthier/`
 // there is no second thing for the rule to reach.
 //
-// SAME GLYPH AS THE INDEX ROW NOW, at 26px instead of 18. The index used to draw a flat 22×8
+// SAME GLYPH AS THE INDEX ROW, at 26px instead of 18. The index used to draw a flat 22×8
 // version, so this file's note read "the logo's figure, not the flat glyph the index uses";
 // that glyph is gone (chooser: andrewshiau-mark-options, Q3/05 — see SideDot.astro). The two
-// wrappers now differ only in size, hover and whether the word shows, which is what they should
-// have differed in all along. It is not SideDot itself because that one clips its word and is
-// not a link; both read their side from the same `sideOf`, so the fact can't drift.
+// wrappers now differ in size, hover, and what the text beside the figure says. It is not
+// SideDot itself because that one prints the side word (clipped) and is not a link; both read
+// their side from the same `sideOf`, so the figure can't drift from the index's.
 //
-// The WORD stays here, visible. The index hides it now (Q1/05) because eight rows repeating
-// "Design + Build" was the loudest thing in that column; a panel head prints one marker, so the
-// word costs nothing. It is no longer the ONLY non-colour signal — the ring/disc pair carries
-// into greyscale where the two hues could not (navy and olive are 2.14:1 apart — STYLE.md) —
-// but a shape a reader has to learn is not a label, so the word is not up for deletion.
-import { sideOf, SIDE_LABEL } from '../data/experiments';
+// IT READS THE NAME NOW, NOT THE SIDE (annotation: "i think design + build doesn't add a lot
+// here and we have no link to get back to the main page. can it isntead be [logomark thing]
+// Andrew Shiau and clicking goes back to top").
+//
+// The link home was already here — this element has been the way back since Q5/06 — but it said
+// "Design + Build", so no reader could tell. A link whose text names something other than its
+// destination is not discoverable, and the annotation is the proof: the person who built it
+// reported the site had no way home. The accessible name was right ("andrewshiau — home") and
+// only a screen reader ever got it, which is the tell that the visible text was the bug.
+// So the text is the wordmark, and the label a link needs is the one it now prints. The
+// `aria-label` is deleted rather than corrected: with "Andrew Shiau" as the text there is
+// nothing left for it to add, and an aria-label that restates the text is one more string that
+// can drift from what's on screen.
+//
+// THE SIDE WORD IS GONE, not moved to a tooltip. The annotation's judgment is that it doesn't
+// earn its place at the top of a case study, and the figure beside it still carries the fact
+// visually — ring for design, disc for build, both joined for both. Putting the word behind a
+// `title` would be hiding it rather than removing it, and the win is the thing that's gone.
+// The index made the same call for a different reason (Q1/05: eight rows repeating "Design +
+// Build" was the loudest thing in that column) but kept the word clipped in the a11y tree,
+// because there the marker column is the only place the side is stated at all. Here the ledger
+// under the title already names the artifact type, and the side is not a fact this page owes a
+// reader before the title.
+import { sideOf } from '../data/experiments';
 import MarkFigure from './MarkFigure.astro';
 interface Props { href: string }
 const { href } = Astro.props;
 const side = sideOf(href);
 ---
 <p class="smark">
-  <a class="smark-home" href="/" aria-label="andrewshiau — home"
-    ><MarkFigure side={side} />{SIDE_LABEL[side]}</a
-  >
+  <a class="smark-home" href="/"><MarkFigure side={side} />Andrew Shiau</a>
 </p>

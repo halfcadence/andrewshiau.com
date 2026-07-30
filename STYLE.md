@@ -1033,9 +1033,11 @@ Do not re-file these. Each was raised by a persona and disproved:
 - **Focus indicators.** Nothing is unreachable. Only `.entry` and `.f input` declare a
   `:focus-visible` style; everything else falls back to the UA ring, which is a consistency gap,
   not a blocker.
-- **Leaks.** Zero hits across `dist/` for `a2z`, `amazon.dev`, `Protozoa`, CR numbers,
-  `localhost` or private IPs. No password ships — the gate is nginx-side and the client reads a
-  status code. The droplet IP on this page is already public via DNS (`dig andrewshiau.com`).
+- **Leaks.** Zero hits across `dist/` for internal hostnames, code-review or ticket IDs, project
+  codenames, loopback addresses or private IPs. (The scan pattern lives in the audit, not here —
+  naming the strings on a public page is how a clean result becomes a list of things to grep for.)
+  No password ships: the gate is nginx-side and the client only reads a status code. The droplet
+  IP on this page is already public via DNS — `dig andrewshiau.com` returns it.
 
 ### The defect class worth remembering
 
