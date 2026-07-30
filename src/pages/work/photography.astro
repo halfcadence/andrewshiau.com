@@ -43,28 +43,21 @@ const right = photos.filter((_, i) => i % 2 === 1);
        `.splitrule` / `.feed` children at the same 4:8 columns as the index, so the
        site's one vertical division doesn't move when you click into a case study. -->
   <div class="grid">
-    <PanelHead href="/work/photography/" title="Photography">
-      <!-- TYPE C: dek → the contents ledger → the work, and nothing after it. The ledger is
-           the panel's content here, which is what the split is for: a collection's metadata
-           is a count and a stack, and it stays on screen while you look at the work it
-           counts. Short on purpose — there is no claim to make about a photograph that the
-           photograph doesn't make.
-           The count only. It used to read "in two ragged columns so no two share a baseline",
-           which was true of the full-width page and is not true in the feed — the gallery runs
-           one flow there so each frame gets the whole 700px (see `.feed .g-rag`). A ledger row
-           that describes the layout has to be re-checked every time the layout moves, and this
-           one had already gone stale once; the count doesn't. And only the count — the dek
-           directly to the right already says "shot over about a decade on whatever I had with
-           me", so a row repeating it would put the same clause twice on one screen. -->
-      <div class="frow">
-        <div class="fm">Contents</div>
-        <div class="ftx"><b>12 photographs</b></div>
-      </div>
-      <div class="frow">
-        <div class="fm">Cameras</div>
-        <div class="ftx">iPhones, Fuji X100, Leica Q.</div>
-      </div>
-    </PanelHead>
+    <!-- NO LEDGER (annotation: "i wonder if this shuld not have top matter and just have the
+         'shot with' line"). The panel is the marker, the link home, and the title — nothing else.
+         WHY THE LEDGER WENT RATHER THAN THE DEK, because a second annotation asked for the
+         opposite ("this is useless since there's a camera section delete"): the two rows and the
+         dek were the SAME FACT twice, so one had to go, and the sentence is the better carrier.
+         `Cameras: iPhones, Fuji X100, Leica Q.` and `Shot with a Leica, a Fuji, and an iPhone.`
+         are one sentence and one table row saying one thing; the sentence reads at a glance and
+         needs no label to explain what it is. `Contents: 12 photographs` counted what is directly
+         below it — the page IS the count. And `Type: Photographs` was the row that prompted "seems
+         sus": the title again, with a suffix.
+         What it costs, stated: this is the one Type C page with no ledger, so the type now has two
+         shapes (`recipes` keeps its counts). That is a real widening of the page-type system and it
+         is recorded in STYLE.md, not just here — a type that quietly grows a second shape is how
+         the eight pages drifted in the first place. -->
+    <PanelHead href="/work/photography/" title="Photography" ledger={false} />
 
     <div class="feed">
       <!-- c1–12 of the FEED's twelve sub-tracks, not c1–8: the dek's own 32em cap is

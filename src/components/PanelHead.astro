@@ -12,10 +12,18 @@
 // its own rows as children. So Type A follows with Role and Where, Type C with a count, and
 // Type B adds nothing and still gets a ledger — which is why the Type B panels aren't a
 // title floating over 300px of nothing.
+// `ledger={false}` DROPS THE WHOLE BLOCK, Type row included, and exactly one page uses it.
+// Annotation on /work/photography/: "i wonder if this shuld not have top matter and just have the
+// 'shot with' line." The reason it is a prop rather than a second component: the panel's other
+// three parts (the marker, the link home, the h1) are identical on all eight pages, and a
+// `PanelHeadNoLedger` would be the eight-copies drift this component was written to prevent.
+// It is `true` by default, so the seven pages that say nothing keep the ledger they have.
+// Type C is now TWO shapes — a ledger of counts (`recipes`) or one sentence (`photography`) — and
+// that is a real change to STYLE.md's page types, recorded there rather than only here.
 import { metaOf } from '../data/experiments';
 import SideMark from './SideMark.astro';
-interface Props { href: string; title: string }
-const { href, title } = Astro.props;
+interface Props { href: string; title: string; ledger?: boolean }
+const { href, title, ledger = true } = Astro.props;
 ---
 <div class="pin">
   <!-- ONE mark, doing both jobs (chooser: andrewshiau-panel-marks, Q5/06). This opened with a
@@ -33,13 +41,15 @@ const { href, title } = Astro.props;
   <SideMark href={href} />
   <h1>{title}</h1>
 
-  <div class="facts">
-    <div class="frow">
-      <div class="fm">Type</div>
-      <div class="ftx">{metaOf(href)}</div>
+  {ledger && (
+    <div class="facts">
+      <div class="frow">
+        <div class="fm">Type</div>
+        <div class="ftx">{metaOf(href)}</div>
+      </div>
+      <slot />
     </div>
-    <slot />
-  </div>
+  )}
 
   <!-- NO CONTACT ROW (annotation: "dont think contact should be at top here remove from every
        page (execpt home obv)"). It was here on all eight case studies, in the panel, which put

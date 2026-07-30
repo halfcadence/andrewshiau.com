@@ -1119,36 +1119,32 @@ figure.demo.hang video{width:100%}
    It is what it always was semantically — a label beside a value — so it uses `--label` and the
    content axis like `.frow`, `.colo` and `.specblock`. Found by auditing every span for the old
    width after the document went to eight fields; the block looked fine. */
-.pin .pfeet{display:grid;grid-template-columns:var(--label) 1fr;
-  column-gap:var(--gutter);row-gap:var(--lead);margin-top:var(--group)}
-/* 1060, with every other two-axis block (chooser: andrewshiau-breakpoints, Q1/01). It was 720 —
-   correct for the old private 7-track grid, wrong now that the block uses `--label`: between 1060
-   and 720 the label column would have been narrower than the label it holds, which is the exact
-   condition the site-wide breakpoint is derived from.
-   One column below it, and `--group` between the two pairs rather than `--lead`: stacked, they are
-   two groups rather than two rows of one. */
+/* TWO EQUAL COLUMNS. Annotation: "can u make this section like two columns" — and it supersedes
+   the stacked version shipped an hour earlier, which was the fix for "this seems too close to
+   contact". Both notes are about the same block and the second one wins; the history is kept
+   because it explains why the obvious `--label 1fr` is NOT what this block wants.
+   WHAT WENT WRONG BEFORE, measured on the render rather than read off the CSS. The block declared
+   `grid-template-columns: var(--label) 1fr` — a label column and a value column — but a `.pfoot`
+   carries its label ABOVE its value (`display:block` on the anchor), so it never needed two tracks.
+   Each `.pfoot` is a plain grid child, so the three of them AUTO-FLOWED into whatever cells
+   existed: Contact in the 154px label track, Résumé in the 518px value track BESIDE it, Elsewhere
+   wrapped to row 2. Three pairs, laid out as if they were two label/value rows. That mismatch is
+   what "too close to contact" was reporting, and a `padding-left` on top of it pushed Résumé to
+   x=497 — off every field edge on the page.
+   Now the tracks describe what is actually in them: two equal halves of the panel column, one pair
+   per cell. 336px each at the measure, against a longest value of 162px
+   (`hi@andrewshiau.com`), so nothing wraps and the second column has room to grow.
+   Three pairs in two columns leaves the third alone on row 2 — which is the same shape `.links`
+   takes on `/work/explain/`, so the site has ONE answer for "a short list in two columns" rather
+   than a bespoke arrangement per block. `--group` between the rows because the pairs are groups.
+   ONE COLUMN at 1060, with every other two-axis block (chooser: andrewshiau-breakpoints, Q1/01).
+   It was 720 — correct for the old private 7-track grid, and wrong once the block used `--label`. */
+.pin .pfeet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:var(--gutter);row-gap:var(--group);margin-top:var(--group)}
 @media(max-width:1060px){
-  .pin .pfeet{grid-template-columns:1fr;row-gap:var(--group)}
+  .pin .pfeet{grid-template-columns:minmax(0,1fr)}
 }
 .pin .pfeet > .pfoot{margin-top:0}
-/* EVERY FOOT ROW IS ITS OWN ROW, IN COLUMN 1. Annotation: "this seems too close to contact mb put
-   in col 3?"
-   The first fix was wrong, and measuring the render is what caught it. `.pfeet` is
-   `grid-template-columns: var(--label) 1fr` and each `.pfoot` is a plain grid child — so they
-   AUTO-FLOWED: Contact took the 154px label track, Résumé took the 518px value track BESIDE it,
-   and Elsewhere wrapped to row 2. The block was never three stacked rows, which is exactly what
-   "too close to contact" was reporting. Adding a `padding-left` on top of that pushed Résumé to
-   x=497 — off every field edge on the page, aligned with nothing.
-   `grid-column:1` puts each row back on the one axis, one above the next. The two declared tracks
-   still exist and still do their job for the blocks that want a label column; these three simply
-   don't span it, because a `.pfoot` carries its label ABOVE its value (`display:block` on the
-   anchor), not beside it. A two-track grid was never the right container for them.
-   `--group` between rows, not `--lead`: three pairs are three groups, and the gap that separates
-   them has to be unmistakably larger than the 14px inside a pair (STYLE.md, the space scale).
-   That spacing IS the annotation's fix — Résumé is no longer crowding Contact because there is a
-   full group break between them, on the same axis, rather than a sideways nudge off the grid. */
-.pin .pfeet{row-gap:var(--group)}
-.pin .pfeet > .pfoot{grid-column:1}
 /* The document's link idiom, the same one `.entry .eh` uses: underline in `--line`, ink on
    hover, and the accent — colour's one job. `display:block` stacks the two Elsewhere links. */
 /* THE VALUE, at the body size. The label's `font-size:11px` / `letter-spacing` / `uppercase`
