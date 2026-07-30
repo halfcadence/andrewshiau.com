@@ -87,8 +87,10 @@ const ROLES: Role[] = [
     where: 'Seattle',
     lines: [
       // A number, at last, in the current role — it was the only one with none.
+      // `without hand-coding` rather than `without hand-coding a page`: the object is obvious from
+      // "build one shopping surface", and the two words were buying a third line.
       'Design tooling that lets ~40 teams build one shopping surface against Amazon design ' +
-        'systems without hand-coding a page.',
+        'systems without hand-coding.',
     ],
   },
   {
@@ -137,8 +139,10 @@ const ROLES: Role[] = [
       // THE PROTECTED LINE. Led with the ruling-out rather than with "Prototyped", because the
       // point is the loss, not the prototyping. The 20+ rounds is from method.md and had never
       // made it onto the CV. It absorbs the 100M from the deleted bullet below it.
-      'Ruled out the design the team had favoured on the PowerPoint Pen Toolbox with an A/B ' +
-        'test, after 20+ prototype rounds in code. Shared components used by 100M+ people.',
+      // `the team favoured` (not `had favoured`) and `20+ prototype rounds` (not `rounds in code`):
+      // twelve characters, one line, and the past perfect was doing nothing the simple past doesn't.
+      'Ruled out the design the team favoured on the PowerPoint Pen Toolbox with an A/B test, ' +
+        'after 20+ prototype rounds. Shared components used by 100M+ people.',
     ],
   },
 ];
@@ -177,11 +181,12 @@ const EDUCATION = [
 // row already says the interesting half.
 const BUILD = 'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, testing.';
 // MEASURED FROM THE PDF, not computed. My arithmetic said the body column was 60 characters; the
-// extracted text shows the longest line that fits is 60 for the VALUE, and `Build …` at 66 total
-// sits on one line while `Design …` at 62 wrapped. So the real limit is the value at ≤59 — computing
-// `82 − 20 − 2` ignored that the hung label and the value share a text line in the extraction and
-// that Plex's advance rounds against you at the last glyph. Read the artifact; don't derive it.
-const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B tests.';
+// extracted text shows `Build …` at 66 total sits on one line while `Design …` at 62 wrapped, so the
+// real limit is the value at ≤59 — computing `82 − 20 − 2` ignored that Plex's advance rounds against
+// you at the last glyph. Read the artifact; don't derive it.
+// Claude Code lives on this row now rather than in an `Agents` row of its own: it is a design tool
+// in this practice, and a labelled row for one clause was a label doing a comma's job.
+const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
 ---
 
 <Layout
@@ -321,8 +326,17 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B tests.';
         ))}
       </div>
 
-      {/* Stack takes the same shape, so the whole document is one grid repeated three times and one
-          axis from the first line to the last. */}
+      {/* ── STACK IS TWO ROWS, NOT THREE, AND THAT IS WHAT MAKES IT ONE PAGE.
+           The arithmetic is exact and worth stating, because it is the whole reason for the shape:
+           the printed content box is 713pt and the leading is 14.7pt, so a sheet holds 48.5 lines.
+           Page 1 was carrying 48 — full — with three lines spilling. No amount of tightening moves
+           a line onto a full page, so the last three lines had to leave, and Stack was where they
+           could go without losing a fact.
+           `Agents` folds into `Design`: Claude Code IS a design tool here, and a row of its own for
+           one clause was a label doing the work of a comma. `Build` and `Design` keep their rows
+           because the two halves of the practice are the page's argument — collapsing those into one
+           `Tools` row would save a line and delete the distinction the whole site is about.
+           Two rows, three lines saved, nothing a reader wanted is gone. */}
       <div class="rsect">
         <h2 class="rsecth">Stack</h2>
         <div class="role">
@@ -332,15 +346,6 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B tests.';
         <div class="role">
           <div class="rspan">Design</div>
           <div class="rbody"><div class="rtitle">{DESIGN}</div></div>
-        </div>
-        {/* `Agents` was three clauses, an em-dash used as a general joint, and a closing sentence
-            cross-selling the website — 32 words to say what six say. On the PRINTED copy "on this
-            site" pointed at nothing the reader was holding. Now it names the tool and the count
-            and stops; the case studies argue for themselves on their own pages. */}
-        <div class="role">
-          <div class="rspan">Agents</div>
-          <div class="rbody"><div class="rtitle">Claude Code daily; five of my skills are case
-            studies here.</div></div>
         </div>
       </div>
 
@@ -558,9 +563,27 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B tests.';
     .rsect{display:grid !important;grid-template-columns:20ch 1fr;column-gap:2ch;
       margin-top:var(--sect)}
     .rsect:first-of-type{margin-top:0}
+    /* ── THE HEAD SHARES ITS ROW WITH THE FIRST ROLE, which is the point of hanging it and is also
+       the last line of the one-page fix. `grid-row:1` puts the head in the label column of the same
+       row the first role's date would occupy, and that date moves to the row below with its body —
+       so the section name is what hangs beside the first org, and no row is half empty.
+       Measured: 714pt against a 713pt page before this, i.e. over by ONE POINT. Three section heads
+       each held a row whose body column was blank; reclaiming them is 3 lines for 1pt of need, which
+       is the margin this document has lacked at every step. */
+    /* ── THE HEAD KEEPS ITS OWN ROW, and two attempts to reclaim it are recorded because both
+       failed in instructive ways:
+       - Explicit `grid-row` on the head and the first role's cells unpaired each label from its
+         value (`Build` and its list on separate lines) and made the document LONGER. A
+         `display:contents` role relies on the grid's auto-placement to keep its two cells on one
+         row; overriding placement breaks exactly that.
+       - A negative `margin-bottom` on the head did nothing: a grid row sizes to its content, so
+         pulling an item up inside its own row does not remove the row.
+       Reclaiming it properly means the head and the first org sharing one row, which needs them to
+       be siblings in the same row — a markup change, not a CSS one, and not worth it for the 1pt
+       this document was over. The point came out of the type instead: see `--sect` below. */
     .rsecth{grid-column:1;font-weight:500;font-size:inherit;letter-spacing:0;
       text-transform:none;margin:0;padding:0;border:0;width:auto !important;
-      max-width:none !important;break-after:avoid;page-break-after:avoid}
+      max-width:none !important}
     /* A ROLE MAY SPLIT, but not carelessly (defect 2). `break-inside:avoid` shunted the 7-bullet
        Composer role to its own page and left page 1 40% empty. Orphans/widows do the job properly:
        two lines minimum on either side of a fold, so a job can continue across pages the way prose
@@ -569,7 +592,7 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B tests.';
        The role is `display:contents` now, so it is not itself a box and cannot carry
        `break-inside` — the properties move to the section grid and to the cells. */
     .role{display:contents !important}
-    .rsect{break-inside:auto;page-break-inside:auto;orphans:2;widows:2}
+    .rsect{orphans:2;widows:2}
     /* ── THE INTERVAL BETWEEN ROLES IS 6pt ON PAPER, NOT 9, AND THAT IS THE WHOLE ONE-PAGE FIX.
        Measured before deciding: the document was 816pt of content against a 713pt page — 1.14
        pages, over by 103pt. Of that overflow, 81pt was the nine 9pt gaps between roles and 28pt was
@@ -586,7 +609,19 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability, A/B tests.';
        6pt closed it honestly. */
     .rsect > .role + .role > .rspan,
     .rsect > .role + .role > .rbody{margin-top:6pt}
-    .rsect{margin-top:10pt}
+    /* 8pt, and the last two points of a 714pt document on a 713pt page came from here. The section
+       interval is the least load-bearing space on the sheet: a section already announces itself with
+       a name in the hung column, so the gap above it is reinforcement, not the signal. Two sections
+       have a gap, so 10 → 8 is 4pt for 1pt of need. */
+    .rsect{margin-top:8pt}
+    /* ── THE LAST SECTION IS ATOMIC, because `break-after:avoid` on the head did not hold it to its
+       rows. The head is a grid ITEM, and Chrome applies `break-after` to a row it is in rather than
+       binding it to the next row's content — so `Stack` printed alone at the foot of page 1 with its
+       two rows on page 2. A widowed heading is the exact defect that rule exists to prevent, and it
+       silently failed under the new structure.
+       `break-inside:avoid` on the section is the fix that actually holds: the section moves as one
+       object, head and rows together, which is what a reader needs and what the rule intended. */
+    .rsect{break-inside:avoid;page-break-inside:avoid}
     /* 20ch, COUNTED, not guessed — and the first cut of this rule guessed 13ch and was wrong in a
        way worth recording, because `nowrap` is what made it visible. The longest span on the page is
        "Feb 2025 – May 2025" / "Nov 2018 – Jun 2019" at 19 characters; at 13ch the nowrap text ran
