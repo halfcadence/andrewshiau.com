@@ -187,6 +187,25 @@ const BUILD = 'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, testing.';
 // Claude Code lives on this row now rather than in an `Agents` row of its own: it is a design tool
 // in this practice, and a labelled row for one clause was a label doing a comma's job.
 const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
+
+// ── THE PRACTICE LINE (chooser: resume-density, Q2/02 — "one line, on the hung axis").
+// The printed page said what I have DONE and never what I do: a name, a title, five URLs, then a
+// job. The screen's opening paragraph is `display:none` on paper, so nothing framed the sheet.
+//
+// IT IS A ROLE-SHAPED OBJECT, not a new device. A `Practice` label hangs in the same 20ch column as
+// every date, section name and stack label, and the sentence sits on the content axis — so the
+// summary is the same kind of thing as everything else and the axis is unbroken. No dek, no italic,
+// no rule, no second size.
+//
+// 59 CHARACTERS, WHICH IS THE MEASURED CEILING. The printed body column takes 59 before it wraps
+// (see the DESIGN comment above: 60 wrapped, 59 did not, read off the PDF rather than derived). A
+// wrapped summary would cost two lines instead of one, and one line is the entire budget.
+//
+// "I design and I build" rather than a list of nouns, because the sentence has to do the job the
+// numbers cannot: every bullet below is evidence of ONE half of the practice, and nothing on the
+// page said the two halves are one thing. It is also what the masthead figure already asserts — a
+// ring and a disc joined by a rule — so the résumé and the mark now say the same thing.
+const PRACTICE = 'I design and I build the systems other teams build against.';
 ---
 
 <Layout
@@ -272,6 +291,16 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
           href="https://github.com/halfcadence">github.com/halfcadence</a></span>
       </div>
 
+      {/* The practice row: a `.rsect` with no head, holding one role-shaped row. See the `PRACTICE`
+           comment in the frontmatter. It takes no section interval on paper because it belongs to
+           the head block above it rather than opening a new division. */}
+      <div class="rsect practice">
+        <div class="role">
+          <div class="rspan">Practice</div>
+          <div class="rbody"><div class="rtitle">{PRACTICE}</div></div>
+        </div>
+      </div>
+
       {/* ── ONE SECTION, ONE GRID (chooser: resume-pdf-options, Q3/03 — "the head hangs in the date
            column"). The head is a sibling of the roles inside a single `.rsect` grid rather than its
            own full-width `.grid.sect` block, which is what lets it share the hung axis with the
@@ -337,7 +366,7 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
            because the two halves of the practice are the page's argument — collapsing those into one
            `Tools` row would save a line and delete the distinction the whole site is about.
            Two rows, three lines saved, nothing a reader wanted is gone. */}
-      <div class="rsect">
+      <div class="rsect stack">
         <h2 class="rsecth">Stack</h2>
         <div class="role">
           <div class="rspan">Build</div>
@@ -430,6 +459,12 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
 
   /* The print-only address line is hidden on screen. */
   .printhead{display:none}
+  /* ── AND SO IS THE PRACTICE ROW, for the same reason and it is worth stating: it exists to
+     replace what PRINT deletes. On screen the panel's "Both halves" row already says "I design and
+     I build" and the dek says the longer version — so shown on screen the row is the third
+     paraphrase of one sentence in 400px, and it opened with the panel's exact five words. Print
+     hides both of those, which is the gap the row was written for. One statement per medium. */
+  .rsect.practice{display:none}
 
 
   /* ── THE PAPER VERSION. The annotation asked for "a 1 page site which can be exported to a 1-2
@@ -493,6 +528,11 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
     /* `.wrap`'s 28px side padding is the screen's margin; on paper `@page` owns the margin, and
        keeping both cost 56px of the 695px content box. */
     .wrap{padding:0 !important;max-width:none !important}
+    /* `.wrap` carries `padding-bottom:calc(var(--unit)*5)` for the screen — 45pt of trailing space
+       that, on paper, is a box with height after the last line of text. It was pushing a BLANK
+       second sheet: the print check reported "last page carries 0 lines", which is the one failure
+       mode a page count alone would call two pages and a human would call a printer error. */
+    .wrap{padding-bottom:0 !important}
     /* The section interval is stated on `.grid.sect` for the screen; on paper the head's own
        `margin-top` carries it, so leaving both stacked two intervals — the same non-collapsing
        grid-item defect this pass fixed on `.block`. */
@@ -516,7 +556,7 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
        inside the 45–75 comfort band, and the reclaimed line is what takes page 2 from 99% full
        to 92% — which is the difference between a two-page document and a two-page document that
        becomes three the next time a bullet is added. */
-    .printhead{display:block !important;margin:0 0 var(--group);color:#000;
+    .printhead{display:block !important;margin:0 0 4pt;color:#000;
       max-width:none !important}
     /* THE NAME ON ITS OWN LINE (Q2/02). Weight 500, no new size — and 500 rather than 600 for the
        mechanical reason in the section-head comment below: it is already on this page, so the face
@@ -608,12 +648,12 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
        carrying anything, and only after they were gone was the remaining gap small enough that
        6pt closed it honestly. */
     .rsect > .role + .role > .rspan,
-    .rsect > .role + .role > .rbody{margin-top:6pt}
+    .rsect > .role + .role > .rbody{margin-top:4pt}
     /* 8pt, and the last two points of a 714pt document on a 713pt page came from here. The section
        interval is the least load-bearing space on the sheet: a section already announces itself with
        a name in the hung column, so the gap above it is reinforcement, not the signal. Two sections
        have a gap, so 10 → 8 is 4pt for 1pt of need. */
-    .rsect{margin-top:8pt}
+    .rsect{margin-top:5pt}
     /* ── THE LAST SECTION IS ATOMIC, because `break-after:avoid` on the head did not hold it to its
        rows. The head is a grid ITEM, and Chrome applies `break-after` to a row it is in rather than
        binding it to the next row's content — so `Stack` printed alone at the foot of page 1 with its
@@ -622,6 +662,24 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
        `break-inside:avoid` on the section is the fix that actually holds: the section moves as one
        object, head and rows together, which is what a reader needs and what the rule intended. */
     .rsect{break-inside:avoid;page-break-inside:avoid}
+    /* The practice row has no head, so nothing can be widowed, and it belongs to the head block
+       above rather than opening a division — no interval, and free to break. */
+    .rsect.practice{display:grid !important;break-inside:auto;page-break-inside:auto;
+      margin-top:0}
+    /* ── `Stack` KEEPS ITS HEAD, and the attempt to delete it is recorded because it looked right
+       and printed wrong. The argument was sound — `Build` and `Design` hang in the label column and
+       already name themselves, so a `Stack` head above them is a label for two labels — and it did
+       buy the line the practice row needed. But in the artifact the two rows then read as unlabelled
+       continuations of EDUCATION, because the only thing separating a section from the one above it
+       on this sheet is its name in the hung column. Remove the name and the section stops existing.
+       The line came out of the role interval instead (4pt, below). */
+    /* With no head, Stack has no widow to protect, so it must not be atomic: an unbreakable block
+       makes Chrome reserve its full height on page 1 even when the content fits, which is what kept
+       buying a second sheet. Two short rows can split without harm. */
+    .rsect.stack{break-inside:auto;page-break-inside:auto}
+    /* `orphans:2` inherited from `.rsect` forces two lines to travel together; Stack's rows are
+       single lines that may sit alone. */
+    .rsect.stack{orphans:1;widows:1}
     /* 20ch, COUNTED, not guessed — and the first cut of this rule guessed 13ch and was wrong in a
        way worth recording, because `nowrap` is what made it visible. The longest span on the page is
        "Feb 2025 – May 2025" / "Nov 2018 – Jun 2019" at 19 characters; at 13ch the nowrap text ran
