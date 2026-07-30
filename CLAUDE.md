@@ -36,9 +36,29 @@ npm run build && ./deploy.sh && git push
 1. **Never run a dev server on the Amazon devbox.** `npm run dev` runs on the **Mac**
    only. On the devbox, `npm run build` and view the Unison-synced `file://` copy. A
    server bound to `0.0.0.0` here is a CRITICAL Qualys finding (it has happened twice).
+   The one sanctioned exception is `scripts/print-check.py`, which binds **127.0.0.1**,
+   runs in the foreground, and closes in a `finally` — see below for why it needs a server.
 2. **A green build ≠ a correct change.** Fetch the LIVE bundle and grep for what you
    shipped, then eyeball the rendered page (light, dark, and phone width). Two bugs
    shipped clean-built.
+
+## Verify the artifact, not a simulation of it
+
+`file://` cannot resolve this site's root-absolute `/_astro/…` and `/fonts/…` URLs, so a
+`file://` render **silently substitutes a system sans**. Any measurement taken from one is
+a measurement of a different document in a different typeface.
+
+And a screen render can't tell you anything about paper: an iframe has no `@page`, no
+`break-inside`, and no pagination. Dividing its height by a page height is not a page
+count. That exact mistake shipped `/resume/` as three pages while the notes claimed 1.90.
+
+```bash
+npm run build && python3 scripts/print-check.py /resume/
+```
+
+Prints the real page with headless Chrome over loopback, reads the PDF back, and asserts
+page count, wrapped dates, and cell collisions. **When output is an artifact — a PDF, an
+image, an unfurl card — produce the artifact and inspect it.** Don't infer it.
 
 ## Reading the user's design annotations
 
