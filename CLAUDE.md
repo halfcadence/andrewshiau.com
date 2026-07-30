@@ -7,6 +7,30 @@ Astro static personal site, hand-set in the Müller-Brockmann grid system.
   before editing anything visual.
 - **Setup, droplet runbook, deploy: [`README.md`](README.md).**
 
+## Ship it — don't sit on finished work
+
+**Every change goes out as soon as it works. Commit, push, and deploy without being
+asked.** This is a static personal site: the whole rollback is one `git revert` plus one
+`./deploy.sh`, so the cost of shipping something imperfect is minutes, and the cost of
+holding it is that the owner can't see it. The owner's words: *"all work should be
+immediately deployed and pushed. we can always roll back."*
+
+```bash
+npm run build && ./deploy.sh && git push
+```
+
+- **No "want me to push?" checkpoint.** Finish a coherent unit of work → build → deploy →
+  push → then report, with the live URL. Batching a session's worth of changes into one
+  end-of-session deploy is the anti-pattern.
+- **Work in progress still ships.** A page that is 80% written and renders correctly is
+  better deployed than sitting in a dirty tree. Say what isn't finished in the report.
+- **Still verify after deploying** (rule 2 below) — shipping fast is not shipping blind.
+  The order is deploy, then check the live bundle, then report what you checked.
+- The two exceptions where you still stop and ask first: anything **destructive** on the
+  droplet (nginx config, certs, `rm` outside the webroot) and anything that publishes
+  **someone else's** or **internal** information. Deploying the site is not destructive;
+  it is `rsync --delete` into one webroot that holds nothing but built output.
+
 ## Two rules that bite
 
 1. **Never run a dev server on the Amazon devbox.** `npm run dev` runs on the **Mac**
