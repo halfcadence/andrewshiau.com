@@ -57,8 +57,20 @@ import LockedRow from '../components/LockedRow.astro';
            spec. What a reader wants from the first line is who I am and what I go after.
            The `.t-design` / `.t-build` spans went with the clauses, and so did their rule in
            global.css — nothing else used them. -->
-      <h1 class="statement">Andrew Shiau is a frontend engineer who designs and builds, trying
-        to find the simplest solutions for everything.</h1>
+      <!-- FIRST PERSON, AND IT NAMES THE VALUES. Annotation, given as the replacement text:
+           "Hi, I'm Andrew Shiau, frontend engineer who designs and builds. I value simplicity,
+           curiosity and kindness."
+           Two things changed and both are the point. It was third person ("Andrew Shiau is a…"),
+           which is the résumé voice STYLE.md rules against — "First person, lower-key." A page
+           whose whole subject is one person referring to that person as a third party reads as
+           written by a publicist.
+           And the second clause moved from a claim about the WORK ("trying to find the simplest
+           solutions for everything") to a statement of VALUES. "Simplest solutions for everything"
+           was also an overclaim the rest of the site spends its time qualifying; simplicity as
+           something valued is honest, and the two nouns beside it are not things the artifacts
+           can show, which is exactly why the sentence has to say them. -->
+      <h1 class="statement">Hi, I'm Andrew Shiau, frontend engineer who designs and builds. I value
+        simplicity, curiosity and kindness.</h1>
 
       <!-- The ledger — the "instrument" half of the pick. ONE row, and the one fact here that
            a reader can't get by looking at the page: what I am doing now. No invented metric,
@@ -112,8 +124,15 @@ import LockedRow from '../components/LockedRow.astro';
         <p class="pfoot">Contact
           <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
         </p>
-        <p class="pfoot">Résumé
-          <a href="/resume/">/resume/</a>
+        <!-- `.pstep` moves this pair one field right, off the axis the address sits on — see
+             `.pfoot.pstep` in global.css for why it is a padding rather than a third column.
+             THE TEXT IS `/resume`, ONE SLASH. Annotation: "can this style of link use only one
+             slash like /resume i htink its cleaner". The href keeps its trailing slash so nginx
+             serves the directory with no redirect; only the visible text loses it. A leading slash
+             is what makes this read as a path rather than a label in a panel of one type size, and
+             the trailing one added nothing a reader needed. -->
+        <p class="pfoot pstep">Résumé
+          <a href="/resume/">/resume</a>
         </p>
         <p class="pfoot">Elsewhere
           <a href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a>

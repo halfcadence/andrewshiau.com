@@ -95,14 +95,16 @@ const ROLES: Role[] = [
   {
     org: 'Amazon',
     title: 'Frontend Engineer II — Shopping Design Tech',
-    span: 'Aug 2025 – present',
-    where: 'Seattle',
+    span: '2025/08–present',
     lines: [
       // A number, at last, in the current role — it was the only one with none.
       // `without hand-coding` rather than `without hand-coding a page`: the object is obvious from
       // "build one shopping surface", and the two words were buying a third line.
-      'Design tooling that lets ~40 teams build one shopping surface against Amazon design ' +
-        'systems without hand-coding.',
+      // Annotation: "i think we should lead with ai skills in this job env." The work already WAS
+      // the AI work — a vibe design tool is an agentic system — but the line named the outcome
+      // ("design tooling") and left the mechanism to be inferred. Now it says what it is first.
+      'Build the agentic design tooling ~40 teams use to ship one shopping surface against ' +
+        'Amazon design systems — generated from a prompt, not hand-coded.',
     ],
     more: [
       'The public version of this problem is Luthier, three roles down. This work is internal, so ' +
@@ -112,8 +114,7 @@ const ROLES: Role[] = [
   {
     org: 'Void Industries',
     title: 'Frontend Engineer — Product Design',
-    span: 'Feb 2025 – May 2025',
-    where: 'Remote',
+    span: '2025/02–2025/05',
     lines: [
       'Built a real-time collaborative game engine, four engineers, pre-launch.',
     ],
@@ -126,8 +127,8 @@ const ROLES: Role[] = [
   {
     org: 'Amazon',
     title: 'Frontend Engineer II — Shopping Design',
-    span: '2023 – Feb 2025',
-    where: 'The Amazon app · Seattle',
+    span: '2023–2025/02',
+    where: 'The Amazon app',
     lines: [
       // The number leads now. It was 14 words back from the front of the sentence.
       'Cut add-to-cart latency from 300ms to under 50ms with optimistic updates, in the library ' +
@@ -143,8 +144,7 @@ const ROLES: Role[] = [
   {
     org: 'Amazon',
     title: 'Frontend Engineer — Composer',
-    span: 'Oct 2019 – 2023',
-    where: 'Seattle',
+    span: '2019/10–2023',
     // 60 characters, so it is one line. It was 78 — "for Amazon worldwide" and the spelled-out
     // "frontend engineer" cost a second line to say what the title above it already says.
     note: 'Marketing graphics, Amazon worldwide. Lead FE, team of five.',
@@ -168,16 +168,19 @@ const ROLES: Role[] = [
   {
     org: 'Microsoft',
     title: 'UX Engineer (through Harman)',
-    span: 'Nov 2018 – Jun 2019',
-    where: 'Redmond',
+    span: '2018/11–2019/06',
     lines: [
-      // THE PROTECTED LINE. Led with the ruling-out rather than with "Prototyped", because the
-      // point is the loss, not the prototyping. The 20+ rounds is from method.md and had never
-      // made it onto the CV. It absorbs the 100M from the deleted bullet below it.
-      // `the team favoured` (not `had favoured`) and `20+ prototype rounds` (not `rounds in code`):
-      // twelve characters, one line, and the past perfect was doing nothing the simple past doesn't.
-      'Ruled out the design the team favoured on the PowerPoint Pen Toolbox with an A/B test, ' +
-        'after 20+ prototype rounds. Shared components used by 100M+ people.',
+      // Annotation: "'Ruled out the design the team' this copy is a bit weird can u focus on
+      // positive achievements." Right, and the correction is to my own reasoning: I had protected
+      // this line in a comment specifically BECAUSE it reported a loss, arguing that was the only
+      // thing on the page demonstrating method rather than asserting it. That is true of the fact
+      // and false of the sentence — "ruled out" reads as a negative before a scanning reader parses
+      // whose design it was, so a line I called the strongest was costing a second pass.
+      // The fact survives whole: 20+ prototype rounds in code, an A/B test, a design settled on
+      // evidence. It now leads with what shipped. The evidence is still the point; the framing was
+      // the problem, and those are separable.
+      'Shipped the PowerPoint Pen Toolbox after 20+ prototype rounds in code, with an A/B test ' +
+        'settling the final design. Shared components used by 100M+ people.',
     ],
   },
 ];
@@ -185,12 +188,12 @@ const ROLES: Role[] = [
 const EDUCATION = [
   {
     org: 'University of Washington',
-    span: '2017 – 2018',
+    span: '2017–2018',
     what: 'Master of Human-Computer Interaction + Design',
   },
   {
     org: 'Johns Hopkins University & the Peabody Institute',
-    span: '2013 – 2017',
+    span: '2013–2017',
     what: 'BS Computer Science, and BM Cello Performance',
   },
 ];
@@ -221,9 +224,22 @@ const BUILD = 'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, testing.';
 // you at the last glyph. Read the artifact; don't derive it.
 // Claude Code lives on this row now rather than in an `Agents` row of its own: it is a design tool
 // in this practice, and a labelled row for one clause was a label doing a comma's job.
-const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
+// Claude Code leads the Design row rather than trailing it (annotation: "lead with ai skills").
+// It is the tool I actually reach for first, and on a CV read in 2026 it is the item a reader is
+// scanning for — burying it after Figma described a 2022 practice.
+const DESIGN = 'Claude Code and agents, Figma and its API, prototyping, A/B tests.';
 
-// ── THE PRACTICE LINE (chooser: resume-density, Q2/02 — "one line, on the hung axis").
+// ── THE `Currently` LINE (chooser: resume-density, Q2/02, then annotation: "can u just put
+// currently and then my amazon job, dont want to be too narrow").
+//
+// It said "I design and I build the systems other teams build against", which was a POSITIONING
+// claim, and the annotation is right that positioning is the wrong job for this line. A sentence
+// naming what kind of engineer I am tells a reader to stop considering me for everything it didn't
+// name — on a sheet whose whole argument is that the roles below cover design AND build, the
+// summary was the only thing narrowing it.
+// A current title does the opposite: it is a fact, it is what a reader looks for first, and it
+// leaves the breadth to the five roles that demonstrate it. The screen's dek still makes the
+// claim, because a screen has room for a claim and its evidence together.
 // The printed page said what I have DONE and never what I do: a name, a title, five URLs, then a
 // job. The screen's opening paragraph is `display:none` on paper, so nothing framed the sheet.
 //
@@ -240,7 +256,7 @@ const DESIGN = 'Figma, the Figma API, prototyping, A/B tests; Claude Code.';
 // numbers cannot: every bullet below is evidence of ONE half of the practice, and nothing on the
 // page said the two halves are one thing. It is also what the masthead figure already asserts — a
 // ring and a disc joined by a rule — so the résumé and the mark now say the same thing.
-const PRACTICE = 'I design and I build the systems other teams build against.';
+const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
 ---
 
 <Layout
@@ -351,14 +367,18 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
            suppressed because the text IS the URL. -->
       <div class="printhead" aria-hidden="true">
         <span class="phname">Andrew Shiau</span>
-        <span class="phrole">Frontend engineer · Seattle · <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a></span>
-        {/* `{' '}` around each separator, not a raw newline. JSX collapses a newline between two
-            elements to nothing, so the PDF read `andrewshiau.com ·linkedin.com/…` — the same class
-            of bug as the glued `form,engineering` earlier in this rebuild, and again invisible in
-            the source because the indentation looks like a space. */}
-        <span class="phlinks"><a href="https://andrewshiau.com">andrewshiau.com</a>{' · '}<a
-          href="https://www.linkedin.com/in/halfcadence/">linkedin.com/in/halfcadence</a>{' · '}<a
-          href="https://github.com/halfcadence">github.com/halfcadence</a></span>
+        <span class="phrole">Seattle · <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>{' · '}<a
+          href="https://andrewshiau.com">andrewshiau.com</a></span>
+        {/* ── THE LINKS LINE IS GONE. Annotation: "andrewshiau.com · linkedin.com/in/halfcadence ·
+            github.com/halfcadence too many links maybe just contact and personal website is good
+            enough here on the pdf."
+            Right, and the arithmetic agrees: three URLs at 27 and 22 characters were a whole line of
+            the first inch spent on strings nobody types off paper. The email and the domain are now
+            one line with the city, and the domain reaches everything the other two did — linkedin and
+            github are both linked from the site's colophon, one click from where the URL lands.
+            `{' '}` around the separator rather than a raw newline: JSX collapses a newline between
+            two elements to nothing, which printed `andrewshiau.com ·linkedin.com/…` in an earlier
+            cut of this line and is the third instance of that bug in this rebuild. */}
       </div>
 
       {/* The practice row: a `.rsect` with no head, holding one role-shaped row. See the `PRACTICE`
@@ -366,7 +386,7 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
            the head block above it rather than opening a new division. */}
       <div class="rsect practice">
         <div class="role">
-          <div class="rspan">Practice</div>
+          <div class="rspan">Currently</div>
           <div class="rbody"><div class="rtitle">{PRACTICE}</div></div>
         </div>
       </div>
@@ -482,7 +502,7 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
      `1 / -1` on the section, not a literal track count: it sits inside `.feed`, whose grid is
      narrower than the page's, and a literal number here is the phantom-measure bug that cost this
      rebuild four passes. */
-  .rsect{grid-column:1 / -1;display:grid;grid-template-columns:max(var(--label),20ch) 1fr;
+  .rsect{grid-column:1 / -1;display:grid;grid-template-columns:min(var(--label),16ch) 1fr;
     column-gap:var(--gutter);margin-top:var(--sect)}
   .rsect:first-of-type{margin-top:0}
   /* The head hangs in the label column on the same row as the first role's org. `--ink` and weight
@@ -607,11 +627,17 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
   @media print{
     :root{
       --paper:#fff; --ink:#000; --dim:#222; --faint:#555; --line:#bbb; --accent:#000;
-      --step:10.5pt; --lead:1.4;
+      --step:10pt; --lead:1.4;
       --tight:4pt; --group:9pt; --sect:14pt; --unit:9pt; --gutter:12pt;
     }
     @page{margin:14mm 16mm}
-    html,body{background:#fff;color:#000;font-size:10.5pt;line-height:1.4}
+    /* 10pt, not 10.5. Annotation: "if we're going 10pt can it just be 10pt not 10.5."
+       Right, and the half-point was never earning it: 10.5pt existed because it happened to be
+       exactly 14px at 96dpi, which is a convenience for MEASURING the page rather than a reason for
+       a reader. 10pt is inside Butterick's 10–12pt band, it is the number every other CV states, and
+       at 1.4 the leading becomes 14pt — so a page holds 50.9 lines instead of 48.5, which is 2.4
+       lines of room this document has never had. A rounder number that also buys space. */
+    html,body{background:#fff;color:#000;font-size:10pt;line-height:1.4}
     /* `.wrap`'s 28px side padding is the screen's margin; on paper `@page` owns the margin, and
        keeping both cost 56px of the 695px content box. */
     .wrap{padding:0 !important;max-width:none !important}
@@ -687,7 +713,7 @@ const PRACTICE = 'I design and I build the systems other teams build against.';
     /* The section grid, in `ch` rather than `--label` — that token is derived from the viewport and
        collapses on paper, which is the root cause of three separate defects in this file's history.
        20ch is the longest span ("Feb 2025 – May 2025", 19 characters) plus one. */
-    .rsect{display:grid !important;grid-template-columns:20ch 1fr;column-gap:2ch;
+    .rsect{display:grid !important;grid-template-columns:16ch 1fr;column-gap:2ch;
       margin-top:var(--sect)}
     .rsect:first-of-type{margin-top:0}
     /* ── THE HEAD SHARES ITS ROW WITH THE FIRST ROLE, which is the point of hanging it and is also

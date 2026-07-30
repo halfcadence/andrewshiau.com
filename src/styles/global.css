@@ -1131,6 +1131,24 @@ figure.demo.hang video{width:100%}
   .pin .pfeet{grid-template-columns:1fr;row-gap:var(--group)}
 }
 .pin .pfeet > .pfoot{margin-top:0}
+/* THE RÉSUMÉ ROW STEPS ONE FIELD RIGHT. Annotation: "this seems too close to contact mb put in
+   col 3?" — and it was, exactly: `.pfeet` is two columns (`--label` then `1fr`), so the label sat
+   at x=0 and EVERY value at x=182. `/resume/` therefore landed directly under
+   `hi@andrewshiau.com`, two links in the same column with only `--lead` between them, and read as
+   a continuation of the address rather than as its own thing.
+   `--track + --gutter` (91px) is ONE FIELD of the page's own grid, so the pair moves to the next
+   column start — label x=91, value x=273 — rather than by a nudge nobody could name. Both halves
+   move together, because the label and its value are one object (STYLE.md: "the pair is the
+   unit"); indenting only the value would break the axis the label belongs to.
+   It is a `padding-left` on the row rather than a third grid column: the block has TWO axes and
+   adding a column to hold one row would give the panel a third, which is the defect the seven
+   private tracks were deleted for. The offset is stated in the grid's own increment, so it lands on
+   a field edge at every width the two-column layout survives.
+   It goes away below 1060 with the columns themselves — stacked, there is no axis to step off. */
+.pin .pfeet > .pfoot.pstep{padding-left:calc(var(--track) + var(--gutter))}
+@media(max-width:1060px){
+  .pin .pfeet > .pfoot.pstep{padding-left:0}
+}
 /* The document's link idiom, the same one `.entry .eh` uses: underline in `--line`, ink on
    hover, and the accent — colour's one job. `display:block` stacks the two Elsewhere links. */
 /* THE VALUE, at the body size. The label's `font-size:11px` / `letter-spacing` / `uppercase`
@@ -1940,21 +1958,44 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
 
 /* External-link list — L2: diagonal staircase, each link steps down-and-right
    across the grid (echoes the homepage experiment scatter). A gallery you navigate. */
-.links{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-  column-gap:var(--gutter);row-gap:var(--lead)}
-/* The document's link idiom again, at the staircase's scale — which is now every other scale.
+/* TWO COLUMNS, NOT A 3-TRACK STAGGER — and the stagger's real problem was a phantom measure.
+   Annotations: "this overflows to two lines when hovered very ugly, mabe the ffect shoudlb e like
+   transfomr?" and "i think the stagger makes les sense for the layout we have now maybe think about
+   2 columns layout". Both are the same defect, and the second one names the cause.
+   MEASURED, which is what turned two complaints into one fix: `.links` declared
+   `repeat(12,1fr)` while sitting INSIDE the document column, so the twelve tracks divided **700px,
+   not 1120** — 32.7px each instead of 63. Every `grid-column:1 / 6` span therefore resolved to
+   **275px** rather than the 427px the numbers imply. This is exactly the phantom-measure class
+   STYLE.md names ("A track count inside the document column is a phantom measure"), and it had
+   survived here because the staircase still *looked* deliberate at the wrong size.
+   275px is why the hover wrapped: the canelé title plus its arrow measures 270px, leaving **5px of
+   slack** against a `1ch` (9px) shift. It is the only one of the three that wrapped, which is
+   precisely the link the annotation landed on. The other two have 14px and 122px.
+   So the fix is the layout, not the motion: the shift stays `1ch` (it is the site's one motion
+   vocabulary and changing it here would make this block the odd one out), and the column gets wide
+   enough to hold it. Two equal halves of the document = **336px**, which leaves the canelé title
+   66px of slack. The blurbs still wrap to two lines and that is fine — they are a second line by
+   design, not an overflow.
+   The stagger is deleted rather than re-tracked: at three links it composed a diagonal across a
+   width the page no longer has, and `.mscatter` is the one surviving scatter (STYLE.md). Two
+   columns of a three-item list also means the third sits alone on row 2, which reads as a list
+   that continues rather than as a broken grid. */
+.links{grid-column:1 / -1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:var(--gutter);row-gap:var(--group)}
+/* The document's link idiom again, at the two-column scale — which is now every other scale.
    The 2px ink rule over each one is gone, and so is the accent rule on the first: `.links` is a
    set of external links, and a coloured rule on the lead member is the "structural accent" role
-   that colour gave up when its one job became interaction. The staircase itself is the
-   composition; it needs no rules to be one. */
+   that colour gave up when its one job became interaction. The composition needs no rules. */
 .links a{text-decoration:underline;text-decoration-color:var(--line);
   text-decoration-thickness:1px;text-underline-offset:4px;
   color:var(--ink);font-weight:500;align-self:start;
   background:none;padding:0;margin-left:0;margin-right:0;border-radius:0;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
-.links a:nth-child(3n+1){grid-column:1 / 6}
-.links a:nth-child(3n+2){grid-column:5 / 10;margin-top:var(--lead)}
-.links a:nth-child(3n+3){grid-column:8 / 13;margin-top:var(--group)}
+/* NO PER-CHILD PLACEMENT. The three `nth-child(3n+…)` spans and their two stagger margins are
+   deleted, not ported: each link is simply the next cell of a two-column flow, which is what makes
+   the block responsive with no arithmetic. The old rules also carried the phantom track counts
+   (`1 / 6`, `5 / 10`, `8 / 13`) that caused the wrap — leaving them would keep 12 tracks alive
+   inside a 2-track grid, where `8 / 13` points at columns that no longer exist. */
 .links a:hover{color:var(--accent);background:none;text-decoration-color:var(--ink)}
 /* The arrow slides by ONE CHARACTER, the same unit the index rows move by — one motion
    vocabulary, stated in the grid's own increment rather than in 6 arbitrary pixels. */
@@ -1963,15 +2004,12 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
 .links a:hover .arrowc{padding-left:1ch}
 /* `font-family:var(--sans)` was here, on a site that no longer has a sans. */
 .links a .lu{display:block;margin-top:var(--tight)}
-/* The staircase collapses at 1060 with everything else, and the GRID collapses with it — the
-   twelve tracks carry the same 308px gutter floor that overflowed 320px viewports. Measured in
-   the band before this: at 760px the stagger put link 2 at x=191 while link 1 ended at x=203, so
-   the "diagonal" overlapped itself by 13px with each entry 19 characters wide. Below 1060 the
-   tracks are too narrow for a 3-track stagger to read as anything. */
+/* ONE COLUMN at 1060, with every other hung device. Two 336px halves become two ~150px halves as
+   the document narrows, and a 15px mono title needs ~18 characters — so below the breakpoint the
+   pair stops being two columns and becomes a list. The `nth-child` resets are gone with the spans
+   they were resetting; a two-column flow needs nothing but the track count changed. */
 @media(max-width:1060px){
   .links{grid-template-columns:minmax(0,1fr);column-gap:0}
-  .links a,.links a:nth-child(3n+1),.links a:nth-child(3n+2),.links a:nth-child(3n+3){
-    grid-column:1 / -1;margin-top:0}
 }
 
 /* REDUCED MOTION. STYLE.md already required this ("Respect `prefers-reduced-motion` for
