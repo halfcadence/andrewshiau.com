@@ -169,14 +169,14 @@ two hues became one hue with one job.
 1. **ONE SIZE.** 15px / 28px leading for everything — prose, titles, labels, meta. Hierarchy
    comes from **case, colour value, and whitespace only**. `--step` and `--lead` are the tokens.
    A new font-size is a bug, not a decision. Two exceptions, both earned:
-   - `11px` tracked caps — the micro-label (`.lb`, `.fm`, `.pk`, `.ck`, `.sl`, `.dk`, `.proc
+   - ~~`11px` tracked caps~~ — **GONE.** The micro-label lost both its size and its caps in the mono pass: `.fm`, `.pk`, `.ck`, `.sl` are 15px, sentence case, `--faint`. No rule in `global.css` declares `font-size:11px`, and `.lb` does not exist.
      .pk`, captions, `.foot .fr`, the gate button). This is the ONE below-ramp step, kept
      because caps at 15px in a monospace face are as wide as the title they label.
    - `16px` on `.f input` — below 16px iOS Safari zooms the page on focus. A size forced by a
      platform is not a ramp step.
 2. **WHITESPACE IS THE STRUCTURE.** There are no rules. No 2px group openers, no per-row
    hairlines, no vertical split rule, no frames on clips or photographs. Groups are separated
-   by `--group` (52px). **Exactly two borders survive site-wide**, and each is a fact rather
+   by `--group` (56px). **Exactly two borders survive site-wide**, and each is a fact rather
    than decoration: `.f input`'s writing line (a horizontal rule under text means "type here",
    and now means nothing else), and `.embed-frame`'s 1px boundary (inside it is somebody
    else's live page — the border says where this site stops).
@@ -234,7 +234,7 @@ so each page adds its own rows.
 ## Design system — Müller-Brockmann grid
 
 International Typographic Style, taken to its quiet end: one typeface, a 12-column modular
-grid every element snaps to (invisible — press `g`), structure drawn by **whitespace and
+grid every element snaps to (invisible — press `⌥G`), structure drawn by **whitespace and
 alignment**, and **one hue with one job**. Hierarchy is weight + value + case + whitespace,
 never size and never colour. Light is default; dark follows `prefers-color-scheme`.
 
@@ -350,7 +350,7 @@ The duality did not go away — it stopped being a hue.
   Consolas, "Liberation Mono", monospace` fallback. One family, and it is the BODY family —
   `--mono` is the only type token. **`--sans` is deleted**; nothing in `src/` sets Graphik.
   (Graphik's four woff2 files remain in `public/fonts/` because the three explainers under
-  `src/pages/writing/` and `public/writing/` carry their own inline `<style>` and still ask
+  the four Graphik files stay in `public/fonts/` because ONE standalone artifact still asks for them — `demo/index-layouts/`, embedded on `/work/proofs/`. `public/writing/` is empty and `src/pages/writing/` is on `global.css` now, so the reason this line used to give is wrong even though the decision is right.
   for them. They are not referenced by `global.css`.)
   Plex over JetBrains because its italic is a **true italic**, not a slanted roman — and the
   site's one emphasis device is the italic thesis clause. Plex over system-mono because a
@@ -440,7 +440,7 @@ by `5 × (100% + gutter) / 7`. See **Nothing breaks out** below for why all of t
     cannot get smaller. `.fine` is a single `color` declaration.
   - **case** — 11px tracked caps for labels, and section heads (`h2`) which are the one place
     case is structural at full size.
-  - **whitespace** — `--group` (52px) between groups, `--lead` (28px) inside one.
+  - **whitespace** — `--group` (56px) between groups, `--lead` (28px) inside one.
   A new `font-size` anywhere is a **slop finding**. The two sanctioned values are `11px`
   (micro-label, tracked `.14em` uppercase — ONE tracking value site-wide now; it used to be
   `.13em`/`.14em`/`.16em` in three places for one device) and `16px` on `.f input`.
@@ -487,7 +487,7 @@ by `5 × (100% + gutter) / 7`. See **Nothing breaks out** below for why all of t
   inheriting a `display` it no longer got). **State an inner measure in `ch`.** See The
   document.
 - Vertical space is one of three values, and each has a job: **`--lead` (28px)** inside a group,
-  **`--group` (52px)** between groups, **`--unit` (24px)** for the grid's own increments (the
+  **`--group` (56px)** between groups, **`--sect` (112px)** between sections (the
   page's top edge, the guide). `--group` is deliberately NOT a clean multiple of `--unit`: at
   48px a group break measured the same as the gap inside a group and the page read as one
   undifferentiated list. Whitespace can only be structure if the structural gap is
@@ -754,11 +754,17 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
   the long ones overflowed. The side marker already says which half; the noun says what.
 - **The one filled form:** `.block` (`--accent` field, `--on-accent` text) — used once
   per page for the key statement. Everything else is type + rule. No filled cards.
-- **The locked row + its gate** (`.entry .lockc`, `.egaterow` / `.egate`, `.f`): the site's
-  only form, and the only row that opens. A gated entry keeps the index row exactly as it is
-  and adds **two** signals, because neither an icon nor a colour is ever allowed to be the
-  only one: a small lock in the arrow's slot at the title (`.lockc`, ink → accent when open,
-  `aria-hidden`) and the word `Password` as a third line in the marker cell. Clicking the row
+- **The locked row + its gate** (`.egaterow` / `.egate`, `.f`): the site's
+  only form, and the only row that opens. A gated entry keeps the index row **exactly** as it
+  is — same numeral, same title, same marker, and **no signal that it is shut**. A lock glyph
+  and the word `Password` were both tried and both removed: on the page they read as a warning
+  label on the one row in the list that most wants opening, and they were two extra marks in a
+  matrix whose whole device is one row per artifact. **The gate is the disclosure** — clicking
+  opens the ask in place, immediately, under the row that was clicked, so nothing is hidden and
+  no promise is broken (chooser `andrewshiau-decisions`, Q5/01, which re-confirmed this against
+  a hiring-manager reading that called the unmarked row a broken link; the row's own comment in
+  `LockedRow.astro` carries the argument). This paragraph used to describe the lock and the
+  `Password` marker as shipping. They do not, and `.lockc` does not exist. Clicking the row
   expands the gate **in place** — a sibling cell on the row's own tracks, starting on the
   title's left edge, no page transition (chooser `andrewshiau-gate-options`, option 05). The
   gate cannot be a child of the row: `.entry` is an `<a>`, and a `<form>` inside an anchor is
@@ -994,6 +1000,53 @@ Two things that follow for design work here:
   element. If the cause is a token, a ramp step, or a shared block in `global.css`, fix it
   there so every page moves together — a one-off override on the annotated node is how
   this system rots.
+
+---
+
+## Decisions the critique surfaced, and what they were
+
+A `/design-critique` panel of eight personas reviewed all 16 pages at desktop and phone width
+(2026-07-29) and produced ~110 findings. Every one was verified against the live site before
+being acted on; three were **refuted** by measurement and are recorded here so nobody re-files
+them. Six were judgment calls, put to a proof sheet
+(`work/understand/andrewshiau-decisions/`) because a render changes the answer.
+
+### The six calls
+
+| | decision | why |
+|---|---|---|
+| Blurbs | **Work rows only** (3, not 9) | The objection to blurbs holds for a list you scan to CHOOSE from; it does not hold for the three rows a stranger has to judge. Experiments stay bare, which makes the bareness the signal that Work matters more. |
+| Mobile fold | **Contact drops below the lists at ≤720** | The first artifact on a phone was an agent spec; the three projects were off-screen. The colophon has always carried the address, so nothing is lost. |
+| `/style/` scope | **Publish everything, add one framing row** | Cutting the runbook and the persona roster would have been editing the spec before showing it. What was missing was a frame, not a redaction. |
+| HTML comments | **Stripped on build, kept in source** | 31% of shipped bytes, and eight private annotations. The reasoning lives in the repo, on `/style/` and on `/system/` — none of which require view-source. |
+| The gated row | **No signal before the click** | Re-confirmed against a hiring-manager reading that called the unmarked row a broken link. The gate opening in place IS the disclosure; two extra marks read as a warning label on the one row that most wants opening. |
+| The marker legend | **None on the index** | The type-noun already says what each artifact is. The ring/disc split is a second classification, and a reader who never decodes it is not missing something they needed. |
+
+### Three findings that were WRONG, measured
+
+Do not re-file these. Each was raised by a persona and disproved:
+
+- **Contrast.** Every text token passes AA in both schemes: ink 16.61:1, dim 5.86:1, faint
+  4.69:1, accent 11.36:1 on paper; 15.99 / 6.93 / 5.60 / 7.64 in dark. `--line` at 1.34:1 is a
+  decorative underline on text that itself carries 16.61:1 — 1.4.3 does not apply. **`--faint`
+  has a 0.19 margin, so do not lighten it.**
+- **Focus indicators.** Nothing is unreachable. Only `.entry` and `.f input` declare a
+  `:focus-visible` style; everything else falls back to the UA ring, which is a consistency gap,
+  not a blocker.
+- **Leaks.** Zero hits across `dist/` for `a2z`, `amazon.dev`, `Protozoa`, CR numbers,
+  `localhost` or private IPs. No password ships — the gate is nginx-side and the client reads a
+  status code. The droplet IP on this page is already public via DNS (`dig andrewshiau.com`).
+
+### The defect class worth remembering
+
+**A track count is only meaningful in the grid it is evaluated in**, and the corollary the
+critique added: **a grid's tracks must collapse, not just its children.** At ≤720 every `.grid`
+child was `1 / -1` while the twelve tracks were still declared — and eleven 28px gutters are
+308px that cannot compress, so every page scrolled sideways below 364px. Invisible for months
+because every sweep tested 390 and up.
+When you collapse a grid, use `minmax(0,1fr)`, never a bare `1fr`: `1fr` means
+`minmax(auto,1fr)`, whose minimum is min-content, and a 1165px table inside it will force the
+track open. Measured: `/style/` went from 336px to 847px on the first attempt.
 
 ---
 
