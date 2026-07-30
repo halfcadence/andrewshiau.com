@@ -244,23 +244,34 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
       <div class="printhead" aria-hidden="true">
         <span class="phname">Andrew Shiau</span>
         <span class="phrole">Frontend engineer · Seattle · <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a></span>
-        <span class="phlinks"><a href="https://andrewshiau.com">andrewshiau.com</a> ·
-          <a href="https://www.linkedin.com/in/halfcadence/">linkedin.com/in/halfcadence</a> ·
-          <a href="https://github.com/halfcadence">github.com/halfcadence</a></span>
+        {/* `{' '}` around each separator, not a raw newline. JSX collapses a newline between two
+            elements to nothing, so the PDF read `andrewshiau.com ·linkedin.com/…` — the same class
+            of bug as the glued `form,engineering` earlier in this rebuild, and again invisible in
+            the source because the indentation looks like a space. */}
+        <span class="phlinks"><a href="https://andrewshiau.com">andrewshiau.com</a>{' · '}<a
+          href="https://www.linkedin.com/in/halfcadence/">linkedin.com/in/halfcadence</a>{' · '}<a
+          href="https://github.com/halfcadence">github.com/halfcadence</a></span>
       </div>
 
-      <div class="grid sect">
-        <div class="c1-12"><h2>Experience</h2></div>
-      </div>
+      {/* ── ONE SECTION, ONE GRID (chooser: resume-pdf-options, Q3/03 — "the head hangs in the date
+           column"). The head is a sibling of the roles inside a single `.rsect` grid rather than its
+           own full-width `.grid.sect` block, which is what lets it share the hung axis with the
+           dates instead of sitting on a line of its own.
 
-      {ROLES.map((r) => (
-        /* One `.role` per job, and the page break is forbidden inside it (see the print block).
-           `.facts`/`.frow` was the obvious device to reuse and it is the wrong one: a `.frow`
-           hangs a SHORT label beside a value, and a job is a title, a date range, a location and
-           up to seven bullets. So `.role` is its own block using the same two axes — the span
-           hangs in the label column, everything else sits on the content axis at 182px, so this
-           page's left edges are the site's. */
-        <div class="grid">
+           WHAT I DREW IN THE CHOOSER WAS WORSE THAN THIS, and the difference matters. That render
+           put the section name in the label column and pushed EVERY date inline beside its location
+           — which reads fine in a 14-line crop and quietly destroys the one thing a reader uses to
+           scan a CV: a single column of dates you can run your eye down. The option's label didn't
+           say that, because I hadn't noticed I'd done it.
+           So the label column STACKS instead: the section name, then the date, both hanging on the
+           same character. Column 2 gets the org on the head's row. Nothing moves inline, the date
+           axis survives intact, and the head still costs no line of its own. */}
+      <div class="rsect">
+        <h2 class="rsecth">Experience</h2>
+        {ROLES.map((r) => (
+          /* `display:contents` on `.role` so the span and the body become direct children of the
+             section grid and land in its two columns. Without it each role would be one grid item
+             in column 1 and the axis would collapse. */
           <div class="role">
             <div class="rspan">{r.span}</div>
             <div class="rbody">
@@ -272,12 +283,9 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
               </ul>
             </div>
           </div>
-        </div>
-      ))}
-
-      <div class="grid sect">
-        <div class="c1-12"><h2>Education</h2></div>
+        ))}
       </div>
+
       {/* Still two `.role` blocks, NOT the one folded row the chooser sketched — and the reason is
           worth recording, because it reverses part of Q1/02. Folding both degrees into a single
           hung row saves 124px of paper, and it buries the one fact on this page a reader repeats to
@@ -286,8 +294,9 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
           rhetorical, and a run-in row of four clauses hides it. The 124px came out of the Stack
           section instead, where the words were genuinely doing nothing. Cut the padding, not the
           evidence. */}
-      {EDUCATION.map((e) => (
-        <div class="grid">
+      <div class="rsect">
+        <h2 class="rsecth">Education</h2>
+        {EDUCATION.map((e) => (
           <div class="role">
             <div class="rspan">{e.span}</div>
             <div class="rbody">
@@ -295,31 +304,29 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
               <div class="rtitle">{e.what}</div>
             </div>
           </div>
-        </div>
-      ))}
-
-      <div class="grid sect">
-        <div class="c1-12"><h2>Stack</h2></div>
+        ))}
       </div>
-      <div class="grid">
-        <div class="facts">
-          <div class="frow">
-            <div class="fm">Build</div>
-            <div class="ftx">{BUILD}</div>
-          </div>
-          <div class="frow">
-            <div class="fm">Design</div>
-            <div class="ftx">{DESIGN}</div>
-          </div>
-          {/* `Agents` was three clauses, an em-dash used as a general joint, and a closing sentence
-              cross-selling the website — 32 words to say what six say. On the PRINTED copy "on this
-              site" pointed at nothing the reader was holding. Now it names the tool and the count
-              and stops; the case studies argue for themselves on their own pages. */}
-          <div class="frow">
-            <div class="fm">Agents</div>
-            <div class="ftx">Claude Code daily — five of the skills I wrote are case studies
-              here.</div>
-          </div>
+
+      {/* Stack takes the same shape, so the whole document is one grid repeated three times and one
+          axis from the first line to the last. */}
+      <div class="rsect">
+        <h2 class="rsecth">Stack</h2>
+        <div class="role">
+          <div class="rspan">Build</div>
+          <div class="rbody"><div class="rtitle">{BUILD}</div></div>
+        </div>
+        <div class="role">
+          <div class="rspan">Design</div>
+          <div class="rbody"><div class="rtitle">{DESIGN}</div></div>
+        </div>
+        {/* `Agents` was three clauses, an em-dash used as a general joint, and a closing sentence
+            cross-selling the website — 32 words to say what six say. On the PRINTED copy "on this
+            site" pointed at nothing the reader was holding. Now it names the tool and the count
+            and stops; the case studies argue for themselves on their own pages. */}
+        <div class="role">
+          <div class="rspan">Agents</div>
+          <div class="rbody"><div class="rtitle">Claude Code daily — five of the skills I wrote are
+            case studies here.</div></div>
         </div>
       </div>
 
@@ -354,9 +361,23 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
      be overridden by the print block without `!important` — which is exactly the trap
      `.grid:has(> .block)` in global.css was written to get out of. Stated here, print can compress
      it, and the markup carries no numbers. */
-  .grid:has(> .role){margin-top:var(--group)}
-  .role{grid-column:1 / -1;display:grid;grid-template-columns:var(--label) 1fr;
-    column-gap:var(--gutter)}
+  /* ── THE SECTION IS THE GRID (Q3/03). One two-column grid per section, holding the head and every
+     role in it, so all of them share ONE hung axis. `.role` is `display:contents` so its span and
+     body become direct children of that grid and land in its two tracks — a nested grid per role
+     would give each role its own axis, which is the thing this replaces.
+     `1 / -1` on the section, not a literal track count: it sits inside `.feed`, whose grid is
+     narrower than the page's, and a literal number here is the phantom-measure bug that cost this
+     rebuild four passes. */
+  .rsect{grid-column:1 / -1;display:grid;grid-template-columns:var(--label) 1fr;
+    column-gap:var(--gutter);margin-top:var(--sect)}
+  .rsect:first-of-type{margin-top:0}
+  /* The head hangs in the label column on the same row as the first role's org. `--ink` and weight
+     500, which is the site's one emphasis — no caps, no second size, no rule. */
+  .rsecth{grid-column:1;font-weight:500;color:var(--ink);margin:0}
+  .role{display:contents}
+  /* Every role after the first takes the interval; the first sits on the head's row. */
+  .rsect > .role + .role > .rspan,
+  .rsect > .role + .role > .rbody{margin-top:var(--group)}
   /* The span hangs in the label column, in `--faint`, like every other hung label on the site. */
   .role .rspan{grid-column:1;color:var(--faint)}
   .role .rbody{grid-column:2;max-width:62ch}
@@ -377,13 +398,20 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
   .role .rlines li + li{margin-top:var(--tight)}
   @media(max-width:1060px){
     /* Stacks with every other hung device at the same width and for the same reason: below 1060
-       the label column can no longer hold its own label. */
+       the label column can no longer hold its own label. The section grid collapses to one column
+       and `.role` goes back to being a block, so the head, the date and the body all stack. */
+    .rsect{grid-template-columns:minmax(0,1fr);column-gap:0}
     .role{display:block}
-    .role .rspan{margin-bottom:var(--tight)}
+    .role .rspan{color:var(--ink);margin-bottom:var(--tight)}
+    .rsect > .role + .role > .rspan,
+    .rsect > .role + .role > .rbody{margin-top:0}
+    .rsect > .role + .role{margin-top:var(--group)}
+    .rsecth{margin-bottom:var(--group)}
   }
 
   /* The print-only address line is hidden on screen. */
   .printhead{display:none}
+
 
   /* ── THE PAPER VERSION. The annotation asked for "a 1 page site which can be exported to a 1-2
      page pdf", and this is the export: no committed PDF, no generator, no dependency — the page
@@ -485,38 +513,51 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
     .printhead .phlinks a{color:#555 !important}
     .printhead a::after{content:none !important}
     .dek{margin-top:var(--tight)}
-    /* THE SECTION HEAD, as a head. A hairline over it and tracked small caps is the same "a
-       section opens here" signal the screen gets from 112px of air, in the one medium where air is
-       the scarce resource.
-       `width:auto` is the important line: the site clamps a lone `h2` to `--label`, which is derived
-       from the viewport and collapses on paper. Every head has to be told to be its own width.
-       ── AND THE WEIGHT IS 500, NOT 600, BECAUSE 600 PRINTED IN THE WRONG TYPEFACE.
-       This is the defect that a page count could never have caught and that only reading the PDF's
-       own font table does. `font-weight:600` was requested by NOTHING on the screen version of this
-       page, so the SemiBold woff2 was never fetched during screen layout — and it is not in the
-       cache when Chrome runs print layout, which does not wait for a font. So the three heads fell
-       through `--mono` to the generic `monospace` tail and Chrome embedded
-       `BAAAAA+DejaVuSansMono-Bold` in the PDF beside two IBM Plex faces. Verified in the artifact:
-       `/F5 /BAAAAA+DejaVuSansMono-Bold` was one of three fonts on both pages, and the glyphs it set
-       were EXPERIENCE, EDUCATION and STACK. A résumé that ships in two typefaces, one of them a
-       fallback, on the page whose whole argument is one typeface.
-       500 is the fix rather than a `<link rel=preload>` because 500 is ALREADY on the page —
-       `.role .rorg` uses it — so the face is always cached and there is nothing to preload and
-       nothing to keep in sync. The head does not need 600 to read as a head: it has 9pt, `.14em` of
-       tracking, uppercase and a hairline rule doing that work, which is four signals against a job
-       title's one. `font-display` does not help (the fallback is already swapped in) and neither
-       does restating `font-family` (family resolution was never the problem). */
-    .feed h2,.feed .grid > .c1-12 > h2{width:auto !important;max-width:none !important;
-      font-weight:500;font-size:9pt;letter-spacing:.14em;text-transform:uppercase;
-      margin:var(--sect) 0 var(--tight);padding-top:3pt;border-top:.5pt solid #000;
-      break-after:avoid;page-break-after:avoid}
+    /* ── THE SECTION HEAD HANGS IN THE DATE COLUMN (chooser: resume-pdf-options, Q3/03).
+       It was 9pt uppercase tracked `.14em` at weight 600 with a hairline over it: FOUR devices the
+       mono pass deleted from the screen, revived for paper. The argument for them was real — paper
+       has no colour and no scrollbar, so a reader has no other way to know where they are — but it
+       was answering the wrong question. This page already HAS a mechanism for an annotation that
+       isn't body copy: the hung column the dates sit in. Putting the head there means the printed
+       document has ONE axis carrying every annotation — section names, dates, education years, stack
+       labels, all starting at the same character — and needs no second size, no caps, no tracking
+       and no rule to say "a division starts here". One mechanism per job, which is the rule the
+       caps treatment was breaking.
+       `width:auto` stays and is still load-bearing: the site clamps a lone `h2` to `--label`, which
+       is derived from `min(100vw, --measure)` and collapses in a print context. Every head has to
+       be told to be its own width.
+       ── AND THE WEIGHT IS 500, NOT 600, BECAUSE 600 PRINTED IN THE WRONG TYPEFACE. Kept here
+       because it is the reason this whole question was worth asking, and because the trap is
+       reusable: a weight requested ONLY by a print stylesheet is never fetched during screen
+       layout, and print layout does not wait for a font. The SemiBold face wasn't cached, so the
+       three heads fell through `--mono` to the generic `monospace` tail and Chrome embedded
+       `BAAAAA+DejaVuSansMono-Bold` in the PDF beside two IBM Plex faces — verified in the
+       artifact's own font table, on the page whose whole argument is one typeface. 500 is the fix
+       rather than a `<link rel=preload>` because 500 is ALREADY on this page (`.role .rorg`), so
+       the face is always cached: nothing to preload, nothing to keep in sync. `scripts/print-check.py`
+       now fails on any embedded face that isn't IBM Plex Mono, so this cannot recur silently.
+       A DEPARTURE FROM THE SYSTEM TURNED OUT TO HAVE A MECHANICAL COST, NOT JUST AN AESTHETIC ONE,
+       which is the strongest argument the system has ever made for itself here. */
+    /* The section grid, in `ch` rather than `--label` — that token is derived from the viewport and
+       collapses on paper, which is the root cause of three separate defects in this file's history.
+       20ch is the longest span ("Feb 2025 – May 2025", 19 characters) plus one. */
+    .rsect{display:grid !important;grid-template-columns:20ch 1fr;column-gap:2ch;
+      margin-top:var(--sect)}
+    .rsect:first-of-type{margin-top:0}
+    .rsecth{grid-column:1;font-weight:500;font-size:inherit;letter-spacing:0;
+      text-transform:none;margin:0;padding:0;border:0;width:auto !important;
+      max-width:none !important;break-after:avoid;page-break-after:avoid}
     /* A ROLE MAY SPLIT, but not carelessly (defect 2). `break-inside:avoid` shunted the 7-bullet
        Composer role to its own page and left page 1 40% empty. Orphans/widows do the job properly:
        two lines minimum on either side of a fold, so a job can continue across pages the way prose
        does, and `break-after:avoid` on its heading keeps the org name from sitting alone at the
-       bottom of a sheet. */
-    .role{display:grid !important;grid-template-columns:20ch 1fr;column-gap:2ch;
-      break-inside:auto;page-break-inside:auto;orphans:2;widows:2}
+       bottom of a sheet.
+       The role is `display:contents` now, so it is not itself a box and cannot carry
+       `break-inside` — the properties move to the section grid and to the cells. */
+    .role{display:contents !important}
+    .rsect{break-inside:auto;page-break-inside:auto;orphans:2;widows:2}
+    .rsect > .role + .role > .rspan,
+    .rsect > .role + .role > .rbody{margin-top:var(--group)}
     /* 20ch, COUNTED, not guessed — and the first cut of this rule guessed 13ch and was wrong in a
        way worth recording, because `nowrap` is what made it visible. The longest span on the page is
        "Feb 2025 – May 2025" / "Nov 2018 – Jun 2019" at 19 characters; at 13ch the nowrap text ran
@@ -532,12 +573,17 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
     .role .rbody{max-width:none}
     .role .rlines li{break-inside:avoid;page-break-inside:avoid}
     .frow{break-inside:avoid;page-break-inside:avoid}
-    /* Links: black, no underline colour games, and the external ones print their destination. */
+    /* Links: black, no underline colour games.
+       ── THE URL-PRINTING RULE IS DELETED, and it was dead code with a paragraph defending it.
+       `a[target="_blank"]::after{content:" (" attr(href) ")"}` could never match: every external
+       anchor on this page lives in `.smark` or `.pin .facts`, both `display:none` here, so the
+       produced PDF had `/Link: 0, /URI: 0, /Annots: 0`. The comment above it described a document
+       that did not exist. The real fix was upstream — the printhead's addresses are anchors now
+       (see `.printhead a`), which is what makes the emailed copy clickable. Its companion
+       `a[target="_blank"]::before{content:none}` went too, and was doubly dead: the site puts the
+       ↗ on `::after`, not `::before`, so it was aimed at the wrong pseudo-element AND at elements
+       that were not on the page. */
     a{color:#000 !important;text-decoration:underline;text-decoration-color:#999 !important}
-    a[target="_blank"]::after{content:" (" attr(href) ")";font-size:9pt;color:#555}
-    /* The site appends a ↗ to external links in CSS; on paper the URL is printed instead, so the
-       arrow is one more mark that means nothing. */
-    a[target="_blank"]::before{content:none !important}
     /* The keystroke instruction is screen furniture — you are already holding the output. */
     .kb,.tou{display:none !important}
     /* …and so is the row that holds it: "On paper" tells a reader of the paper copy how to make
@@ -548,42 +594,11 @@ const DESIGN = 'Figma and the Figma API, prototyping, usability testing, A/B tes
     /* The dek is the screen's opening paragraph. On paper the printhead line above it already
        states the name and the role, and a résumé's first inch belongs to the first job. */
     .dek{display:none !important}
-    /* ── AND THE LAST FOUR LINES CAME BACK ONTO PAGE 2. After fixing the dates and the role
-       breaks, the print check reported page 1 at 47 lines (it had been 27) and a third sheet
-       carrying four: the `Agents` row of the Stack ledger. A sheet holding four lines is the worst
-       length for something printed and stapled, so the remaining job was ~4 lines of height.
-       Found by measuring rather than by nudging the type down: the STACK section is a `.facts`
-       ledger whose three rows each get `--group` (9pt) above them plus a 14pt section break, and
-       its rows are short. Two changes, both structural rather than cosmetic:
-       - the ledger's rows tighten to `--tight` between pairs. On screen a `.frow` needs `--group`
-         because the label and value share a line and space is the only separator; here each row is
-         a label above a wrapped value, so the pair is already visually bound and 9pt between rows
-         was buying nothing.
-       - `Stack` is the one section allowed to break tight against what precedes it: its heading
-         takes half the section interval. It is the last block, and a section break exists to say
-         "a new division starts here" — at the foot of a document there is nothing left to divide.
-       Verified with scripts/print-check.py: two pages, and the last page is not thin.
-       ── AND THE STACK LEDGER HANGS ITS LABEL, on the SAME axis as the dates. This is the third
-       victim of one root cause: `.frow` sets `grid-template-columns:var(--label) 1fr`, and `--label`
-       is derived from `min(100vw,--measure)` — a viewport measure. In a print context it collapses,
-       so the three Stack labels stacked ABOVE their values (visible in the print screenshot: "Build"
-       on its own line, then the list) and each row cost two lines instead of one.
-       Stating it as `20ch` fixes the collapse and saves three lines, which is what brings the
-       document back to two pages after the date column widened. It also means the whole printed
-       document has exactly ONE hung axis: dates, education years, and stack labels all start at the
-       same character and their values all start at the same character. On screen that axis is 182px
-       and derived from the grid; on paper it is 20 characters and derived from the longest string.
-       Same idea, measured in the unit each medium actually has. */
-    .feed .facts .frow{display:grid !important;grid-template-columns:20ch 1fr;column-gap:2ch;
-      margin-top:var(--tight) !important}
-    .feed .facts .frow .fm{color:#555}
-    /* …EXCEPT the "On paper" row, which this rule accidentally resurrected. `.frow:has(.kb)` below
-       hides it with `display:none`, and the line above is more specific AND `!important`, so the row
-       came back — as a single orphan line on a third sheet, which the print check caught. Restated
-       here at matching specificity rather than moved, because the two rules answer different
-       questions: that one says "this row is screen furniture", this one says "ledger rows hang their
-       label". Both have to be true. */
+    /* The `.facts` ledger rules that used to live here are gone: Stack is a `.rsect` now, like
+       Experience and Education, so it hangs its label on the one axis by construction instead of
+       by a `20ch` restatement that had to be kept in sync with `.role`'s. Three sections, one
+       grid, one number. What survives is the rule for the one remaining `.facts` block — the
+       "On paper" row — which print deletes. */
     .feed .facts .frow:has(.kb){display:none !important}
-    .feed .grid.sect:last-of-type h2{margin-top:calc(var(--sect)/2)}
   }
 </style>

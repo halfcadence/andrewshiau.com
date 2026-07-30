@@ -80,7 +80,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
          Sized 16/32/48 because an `.ico` is a container and the browser picks the frame; one 16px
          frame upscales to a blur in the bookmark bar and history. -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="alternate icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link id="favico" rel="alternate icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
 
     <!-- THE GRID TOGGLE'S STATE, restored before first paint. It has to be in `<head>` and it
          has to be `is:inline`: the toggle is a class on `<body>`, so anything that runs after the
@@ -92,6 +92,29 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
          the body with the rest of the behaviour. -->
     <script is:inline>
       try { if (localStorage.getItem('as:showgrid')) document.documentElement.classList.add('showgrid'); } catch {}
+    </script>
+    <!-- THE .ICO'S DARK VARIANT, swapped here because an .ico cannot carry a media query.
+         `favicon.svg` needs none of this — it has its own `prefers-color-scheme` block and every
+         browser that understands `image/svg+xml` (Chrome/Edge 80+, Firefox 41+, Safari 26+) uses
+         it and never fetches an .ico at all. This exists for the browsers that don't, where ink on
+         a dark tab measures 1.38:1 and is effectively invisible.
+         The alternative was one compromise grey (#828178 — the site's warmth at the luminance that
+         maximises the worst case, 2.98:1 on every tab ground). Rejected: it costs the light case
+         14.07:1 → 2.99:1, so the common render gets worse to rescue the rare one. Two files keep
+         both at full contrast.
+         KNOWN COST, stated because it decides whether this is worth it: the browsers that need the
+         .ico cache favicons hard, so the swap may not take until a reload — and `matchMedia`'s
+         `change` event fires reliably while the tab strip's redraw does not. A stale ink icon on a
+         dark tab is no worse than what the one-grey option would have given it, and better on
+         every light tab. This is the whole mechanism; there is no polling and no second request. -->
+    <script is:inline>
+      try {
+        var l = document.getElementById('favico');
+        var q = matchMedia('(prefers-color-scheme: dark)');
+        var set = function () { l.href = q.matches ? '/favicon-dark.ico' : '/favicon.ico'; };
+        set();
+        q.addEventListener('change', set);
+      } catch {}
     </script>
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
