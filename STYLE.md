@@ -751,6 +751,23 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
     the five empty fields are the page's margin, and type in them would make it a column.
   - `.hang` is kept as a selector (six pages emit it) and now means "a clip at the full column
     width", which every clip is. It becomes redundant in the design-system pass.
+  - **CONTROLS APPEAR ON HOVER, and nowhere else** (chooser: `andrewshiau-clip-controls`, option
+    03). Annotation: *"this autoplay no controls vieo is cool but it might be more practical if it
+    had controls."* The clips are muted, looping and autoplaying; `controls` is set on
+    `pointerenter` and cleared on `pointerleave`. **The still page is unchanged** — a browser
+    control bar is a filled grey surface across the bottom of a 700px frame, and always-on would
+    have put the loudest box on the site inside the one device that is meant to be pure evidence.
+    Three states qualify it, all in `Layout.astro`'s one `apply()`:
+    **`prefers-reduced-motion`** pins controls on and pauses on frame 1 — that beats the hover rule,
+    because a reader who asked for no motion must not hold a pointer still to keep the bar.
+    **`(hover:none)`** gets controls permanently: `pointerenter` does fire on a tap, but it would
+    strand the bar with no way to dismiss it.
+    **A clip the reader paused keeps its controls** on leave — removing them would leave a stopped
+    clip with no way to restart it.
+    All eight clips are governed by this: three on `luthier`, five on `powerpoint`. It is one
+    listener pair in the layout, never per page, and it MUST stay in the same function that reads
+    the motion query — two handlers setting `controls` on one element is the class of bug that
+    produced the panel-feet defect.
 - **Links — L2** (`.links a`): a **diagonal staircase** — each link steps down-and-right
   (`3n+1`→1–6, `3n+2`→5–10 + 1 unit down, `3n+3`→8–13 + 2 units down). A gallery you
   navigate; echoes the clip scatter.

@@ -261,30 +261,67 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         }
       });
 
-      // REDUCED MOTION for the eight looping screen recordings. CSS can't do this — there
-      // is no property that pauses a playing <video> — so the media query is read here and
-      // the clip is stopped on its first frame and given `controls`. The evidence stays on
-      // the page; it holds still until the reader starts it.
-      // Not `autoplay` removed at build time: whether to animate is the reader's setting,
-      // not the page's, and it can change without a reload — hence the listener.
+      // THE EIGHT LOOPING SCREEN RECORDINGS — controls, and when they appear.
+      // Two behaviours share this block because they both decide `controls` on the same
+      // elements, and two functions racing to set one property is how the panel-feet bug
+      // happened. One `apply()` owns it.
+      //
+      // 1. CONTROLS ON HOVER (chooser: andrewshiau-clip-controls, option 03). Annotation:
+      //    "this autoplay no controls vieo is cool but it might be more practical if it had
+      //    controls, /proofs plz?" — so five treatments were rendered with the real clip and
+      //    this one won. The still page looks exactly as it did (no browser bar over the
+      //    frame, which is the one filled surface the document direction would have had to
+      //    allow), and the affordance is one pointer movement away.
+      //    Rejected, and why it matters here: `controls` always-on paints Chrome's own grey
+      //    bar across the bottom of every clip permanently, on a page whose argument is that
+      //    nothing decorative survives.
+      // 2. REDUCED MOTION, which was already here. CSS can't pause a playing <video> — there
+      //    is no property for it — so the query is read in JS and the clip stops on its first
+      //    frame with controls ON PERMANENTLY. That must beat the hover rule: a reader who
+      //    asked for no motion should not have to hold a pointer still to keep the controls.
+      //
+      // TOUCH GETS CONTROLS ALWAYS. `pointerenter` does fire on a tap, but it would leave the
+      // bar up with no way to dismiss it, and an affordance that needs a mouse is no
+      // affordance on a phone. `(hover:none)` is the honest test for "there is no hover here".
+      //
+      // A CLIP THE READER PAUSED KEEPS ITS CONTROLS on pointer-leave — stripping them would
+      // leave a stopped clip with no way to restart it, which is worse than the bar showing.
       (function () {
-        const q = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const noHover = window.matchMedia('(hover: none)');
+        const clips = () => document.querySelectorAll('figure.demo video');
+
         const apply = () => {
-          document.querySelectorAll('figure.demo video').forEach((v) => {
-            if (q.matches) {
+          clips().forEach((v) => {
+            if (still.matches) {
               v.autoplay = false;
               v.loop = false;
               v.controls = true;
               v.pause();
             } else {
               v.loop = true;
-              v.controls = false;
+              // Always-on where there is no pointer to hover with; otherwise off until entered.
+              v.controls = noHover.matches;
               v.play().catch(() => {});
             }
           });
         };
+
+        clips().forEach((v) => {
+          v.addEventListener('pointerenter', () => {
+            if (still.matches || noHover.matches) return;  // already on, permanently
+            v.controls = true;
+          });
+          v.addEventListener('pointerleave', () => {
+            if (still.matches || noHover.matches) return;
+            if (v.paused) return;   // the reader stopped it — leave them the way back
+            v.controls = false;
+          });
+        });
+
         apply();
-        q.addEventListener('change', apply);
+        still.addEventListener('change', apply);
+        noHover.addEventListener('change', apply);
       })();
     </script>
   </body>
