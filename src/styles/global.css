@@ -1131,24 +1131,24 @@ figure.demo.hang video{width:100%}
   .pin .pfeet{grid-template-columns:1fr;row-gap:var(--group)}
 }
 .pin .pfeet > .pfoot{margin-top:0}
-/* THE RÉSUMÉ ROW STEPS ONE FIELD RIGHT. Annotation: "this seems too close to contact mb put in
-   col 3?" — and it was, exactly: `.pfeet` is two columns (`--label` then `1fr`), so the label sat
-   at x=0 and EVERY value at x=182. `/resume/` therefore landed directly under
-   `hi@andrewshiau.com`, two links in the same column with only `--lead` between them, and read as
-   a continuation of the address rather than as its own thing.
-   `--track + --gutter` (91px) is ONE FIELD of the page's own grid, so the pair moves to the next
-   column start — label x=91, value x=273 — rather than by a nudge nobody could name. Both halves
-   move together, because the label and its value are one object (STYLE.md: "the pair is the
-   unit"); indenting only the value would break the axis the label belongs to.
-   It is a `padding-left` on the row rather than a third grid column: the block has TWO axes and
-   adding a column to hold one row would give the panel a third, which is the defect the seven
-   private tracks were deleted for. The offset is stated in the grid's own increment, so it lands on
-   a field edge at every width the two-column layout survives.
-   It goes away below 1060 with the columns themselves — stacked, there is no axis to step off. */
-.pin .pfeet > .pfoot.pstep{padding-left:calc(var(--track) + var(--gutter))}
-@media(max-width:1060px){
-  .pin .pfeet > .pfoot.pstep{padding-left:0}
-}
+/* EVERY FOOT ROW IS ITS OWN ROW, IN COLUMN 1. Annotation: "this seems too close to contact mb put
+   in col 3?"
+   The first fix was wrong, and measuring the render is what caught it. `.pfeet` is
+   `grid-template-columns: var(--label) 1fr` and each `.pfoot` is a plain grid child — so they
+   AUTO-FLOWED: Contact took the 154px label track, Résumé took the 518px value track BESIDE it,
+   and Elsewhere wrapped to row 2. The block was never three stacked rows, which is exactly what
+   "too close to contact" was reporting. Adding a `padding-left` on top of that pushed Résumé to
+   x=497 — off every field edge on the page, aligned with nothing.
+   `grid-column:1` puts each row back on the one axis, one above the next. The two declared tracks
+   still exist and still do their job for the blocks that want a label column; these three simply
+   don't span it, because a `.pfoot` carries its label ABOVE its value (`display:block` on the
+   anchor), not beside it. A two-track grid was never the right container for them.
+   `--group` between rows, not `--lead`: three pairs are three groups, and the gap that separates
+   them has to be unmistakably larger than the 14px inside a pair (STYLE.md, the space scale).
+   That spacing IS the annotation's fix — Résumé is no longer crowding Contact because there is a
+   full group break between them, on the same axis, rather than a sideways nudge off the grid. */
+.pin .pfeet{row-gap:var(--group)}
+.pin .pfeet > .pfoot{grid-column:1}
 /* The document's link idiom, the same one `.entry .eh` uses: underline in `--line`, ink on
    hover, and the accent — colour's one job. `display:block` stacks the two Elsewhere links. */
 /* THE VALUE, at the body size. The label's `font-size:11px` / `letter-spacing` / `uppercase`

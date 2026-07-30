@@ -124,14 +124,12 @@ import LockedRow from '../components/LockedRow.astro';
         <p class="pfoot">Contact
           <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>
         </p>
-        <!-- `.pstep` moves this pair one field right, off the axis the address sits on — see
-             `.pfoot.pstep` in global.css for why it is a padding rather than a third column.
-             THE TEXT IS `/resume`, ONE SLASH. Annotation: "can this style of link use only one
+        <!-- THE TEXT IS `/resume`, ONE SLASH. Annotation: "can this style of link use only one
              slash like /resume i htink its cleaner". The href keeps its trailing slash so nginx
              serves the directory with no redirect; only the visible text loses it. A leading slash
              is what makes this read as a path rather than a label in a panel of one type size, and
              the trailing one added nothing a reader needed. -->
-        <p class="pfoot pstep">Résumé
+        <p class="pfoot">Resume
           <a href="/resume/">/resume</a>
         </p>
         <p class="pfoot">Elsewhere

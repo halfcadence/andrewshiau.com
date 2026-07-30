@@ -14,13 +14,27 @@
 // Where the two disagree, LinkedIn wins on dates (it is the one being maintained) and the PDF wins
 // on numbers (it states them precisely).
 //
+// "RESUME", NO ACCENTS, EVERYWHERE — page title, h1, the index's label, and the sentence
+// /method/ quotes. Annotation: "did we remove the accents from the word resume they read
+// pretentious and dated."
+// It is a voice call, not a spelling one, and it is the same call STYLE.md already makes twice:
+// "Own the premise plainly. Don't reach for a softer word" and "Cut hedging adverbs and
+// intensifiers." `Résumé` is the typographic version of reaching — it asks a reader to read a
+// diacritic before they read the word, on a site whose argument is that nothing decorative
+// survives. Both spellings are correct English; only one of them performs.
+// It is ALSO the word the machines want: every applicant-tracking system and every recruiter
+// search box types `resume`, and a page titled `Résumé` is a page they match by luck.
+// The accents are gone from `method/method.md` too, because /method/ quotes that sentence
+// VERBATIM and asserts it at build time (see SHARED in method.astro) — changing only the page
+// would have failed the build, which is the check working as intended.
+//
 // NOT AN `Entry`. It is not a project and must never appear in the Work or Experiments matrix — a
-// résumé in a list of case studies reads as a tenth thing I built. Same reasoning as /style/ and
+// resume in a list of case studies reads as a tenth thing I built. Same reasoning as /style/ and
 // /system/, and like those two it hand-rolls its panel rather than calling `PanelHead`, because
 // `metaOf()` throws for an href that isn't in experiments.ts.
 //
 // ONE PAGE, DELIBERATELY. The whole set of roles fits in the reading column at one size, so there
-// is no section nav, no "download my CV" call to action, and no expand/collapse: a résumé that
+// is no section nav, no "download my CV" call to action, and no expand/collapse: a resume that
 // hides half of itself behind an interaction is the disclosure-triangle failure the operating
 // rules name. Everything is on screen.
 //
@@ -40,7 +54,7 @@ import MarkFigure from '../components/MarkFigure.astro';
 // them and the screen layout hangs a date column beside each — two shapes, one source.
 //
 // `lines` are the bullets exactly as the sources state them, including the magnitudes. The numbers
-// are the point: a résumé without them asks a reader to take scope on faith, and every one here is
+// are the point: a resume without them asks a reader to take scope on faith, and every one here is
 // attributable to the 2023 PDF or the LinkedIn entry rather than reconstructed.
 interface Role {
   org: string;
@@ -53,7 +67,7 @@ interface Role {
   // Right, and the reason it is a separate field rather than more entries in `lines` is the whole
   // point of this page: the PDF is the COMPRESSED artifact and the screen is the COMPLETE one. A
   // sheet holds 48.5 lines and every line on it had to be fought for; a screen has no such limit
-  // and a reader who chose to open a résumé page is a reader who will read.
+  // and a reader who chose to open a resume page is a reader who will read.
   // So `lines` is what survives onto paper — the numbers and the loss — and `more` is what a
   // reader with room gets as well. One source, two lengths, and the compression is stated on the
   // page (see the "On paper" row in the panel) rather than hidden.
@@ -80,7 +94,7 @@ interface Role {
 //
 // What went, and why each was not a fact:
 //  - "The public version of this problem is Luthier; this work stays internal, so the case study is
-//    high level by design." — a résumé explaining its own website's editorial policy.
+//    high level by design." — a resume explaining its own website's editorial policy.
 //  - "Added 100% unit coverage … which prevents downtime from code changes." — coverage % is a
 //    process metric and "prevents downtime" is a claim about what tests are FOR.
 //  - "Collaborated with design, program management, and engineering…" — the definition of the job.
@@ -255,24 +269,24 @@ const DESIGN = 'Claude Code and agents, Figma and its API, prototyping, A/B test
 // "I design and I build" rather than a list of nouns, because the sentence has to do the job the
 // numbers cannot: every bullet below is evidence of ONE half of the practice, and nothing on the
 // page said the two halves are one thing. It is also what the masthead figure already asserts — a
-// ring and a disc joined by a rule — so the résumé and the mark now say the same thing.
+// ring and a disc joined by a rule — so the resume and the mark now say the same thing.
 const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
 ---
 
 <Layout
-  title="Résumé — Andrew Shiau"
+  title="Resume — Andrew Shiau"
   description="Andrew Shiau — frontend engineer. Design systems at Amazon, Composer and Luthier, Microsoft Office prototyping. One page."
 >
   <div class="grid">
     <!-- The panel, hand-rolled for the reason in the frontmatter. Same shape as every case study:
          the mark and wordmark as the link home, the title, then a ledger read before the content.
          The mark is the WHOLE figure — this page is both halves of the practice, which is the one
-         claim a résumé for this particular job has to make in its first 60px. -->
+         claim a resume for this particular job has to make in its first 60px. -->
     <div class="pin">
       <p class="smark">
         <a class="smark-home" href="/"><MarkFigure side="both" />Andrew Shiau</a>
       </p>
-      <h1>Résumé</h1>
+      <h1>Resume</h1>
 
       <!-- ── THE PANEL IS THE PRINTHEAD'S SHAPE NOW. Annotation: "can the page be more similar to
            pdf like in structure. 'Both halves / I design and I build. The two procedures I run are
@@ -285,7 +299,7 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
            build with", and this said "I design and I build". Three statements, one fact, before a
            reader reached a single number.
            `Now` goes with it, for the same reason: it named the current employer and title, which
-           is the first row of Experience 400px below. The panel's job on a résumé is to say who
+           is the first row of Experience 400px below. The panel's job on a resume is to say who
            you are and how to reach you — the roles say the rest.
            WHAT SURVIVES is exactly what the PDF's printhead carries: name, one line of practice,
            contact. Same three facts, same order, on both media. The `/method/` link moves into the
@@ -302,7 +316,7 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
             written down at <a href="/method/">/method/</a>.</div>
         </div>
         <!-- The contact row EARNS its place on this page, unlike on a case study (where it was
-             deleted — see PanelHead.astro). A résumé's whole function is to produce a reply, so
+             deleted — see PanelHead.astro). A resume's whole function is to produce a reply, so
              the address is the point of the document rather than an ask appended to an argument.
              Same reasoning that keeps it on the index and on /gate/. -->
         <div class="frow">
@@ -331,8 +345,8 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
       {/* ── THE DEK, REWRITTEN, and it is now the one place the three examples appear.
            It used to open "Frontend engineer, seven years in", which was the weakest available
            opener: the date column below computes it, it undersells (Nov 2018 → now is 7y8m, so it
-           rounds DOWN), and it needs hand-editing every year — a résumé fact that goes stale on a
-           timer should not be a résumé fact. The strongest number on the page was 400px lower.
+           rounds DOWN), and it needs hand-editing every year — a resume fact that goes stale on a
+           timer should not be a resume fact. The strongest number on the page was 400px lower.
            It also used to be the second of three paraphrases of one sentence. With `Now` and `Both
            halves` gone from the panel, the panel says the practice in one line and this says it
            with the evidence — which is the division the two blocks should have had all along. */}
@@ -346,8 +360,8 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
 
       <!-- PRINT ONLY: the address, repeated at the top of the paper version. On screen it is in
            the panel to the left, which does not exist on paper — the print stylesheet collapses
-           the split to one column, and a résumé whose contact details are 40cm down the page is
-           a résumé nobody replies to. `aria-hidden` and `display:none` on screen, so a screen
+           the split to one column, and a resume whose contact details are 40cm down the page is
+           a resume nobody replies to. `aria-hidden` and `display:none` on screen, so a screen
            reader never hears the same three links twice.
 
            THE NAME GETS ITS OWN LINE (chooser: resume-pdf-options, Q2/02). It was the first twelve
@@ -547,7 +561,7 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
   .role .rlines li + li{margin-top:var(--tight)}
   /* ── THE SCREEN-ONLY BULLETS sit in `--faint`, one step back from the `--dim` of a bullet that
      survives onto paper. That is the whole signal: same size, same axis, same dash — colour alone
-     says "this is the longer version". A reader scanning gets the compressed résumé by reading only
+     says "this is the longer version". A reader scanning gets the compressed resume by reading only
      the darker lines, and a reader who stops on a role gets the rest. No italic, no smaller size,
      no "read more" — the hierarchy is one property. */
   .role .rlines .rmore{color:var(--faint)}
@@ -583,7 +597,7 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
        contact details on page 1 while the roles run to page 2. One column, and the panel's
        content prints as the document's head.
      - COLOUR goes to black on white. The site's paper is #f4f3ef and its ink is #141412; a warm
-       ground costs a full ink cartridge and a résumé is the one page that gets printed by someone
+       ground costs a full ink cartridge and a resume is the one page that gets printed by someone
        else, on someone else's printer.
      - LINKS lose their underline colour and print their URL, because a printed link that says
        "linkedin" is a dead end. `content:" (" attr(href) ")"` only on the ones that need it —
@@ -657,7 +671,7 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
     .pin,.feed{display:block !important;position:static !important;
       max-height:none !important;overflow:visible !important;width:auto !important}
     .splitrule,.guide,.progress,.colo-rule{display:none !important}
-    /* The panel's own head: on paper the wordmark link and the h1 "Résumé" are two lines saying
+    /* The panel's own head: on paper the wordmark link and the h1 "Resume" are two lines saying
        what the reader already knows they are holding, so the mark goes and the printhead line
        carries the name and the address instead. */
     .smark,.pin h1{display:none !important}
@@ -844,7 +858,7 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
        pushed a third sheet on its own. */
     .frow:has(.kb){display:none !important}
     /* The dek is the screen's opening paragraph. On paper the printhead line above it already
-       states the name and the role, and a résumé's first inch belongs to the first job. */
+       states the name and the role, and a resume's first inch belongs to the first job. */
     .dek{display:none !important}
     /* The `.facts` ledger rules that used to live here are gone: Stack is a `.rsect` now, like
        Experience and Education, so it hangs its label on the one axis by construction instead of

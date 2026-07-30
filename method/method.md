@@ -57,6 +57,6 @@ Bar for humor: **better not funny than very, very bad.**
 
 ## What this is not
 
-Not a biography, not a résumé, not a decision log, and not a stand-in for a person. It
+Not a biography, not a resume, not a decision log, and not a stand-in for a person. It
 encodes judgment — how to decide — so a fresh agent can run the procedures rather than
 recite the facts.
