@@ -14,9 +14,12 @@
 # turns a crawler away, but without the Disallow the URL still gets indexed and surfaces as a
 # search result that asks for a password. It is excluded from the sitemap for the same reason.
 #
-# The third is /stories/, the story bank — same gate, same reasoning as the case study above. It is
-# a document sent to a named reader rather than published, so a search result for it is a defect
-# even when the 401 holds.
+# The third is /stories/, the story bank. UNLIKE the case study above it is NOT behind the 401 — it
+# is readable by anyone holding the URL, and that is deliberate: every line in it passes the scrub
+# gate, so there is nothing a password would protect. What it should not be is FOUND. A résumé is
+# the claim and the story bank is the working-out; a stranger arriving at the working-out first has
+# met the wrong document. So the Disallow here, `noindex` on the page, and no sitemap entry — three
+# layers about discovery, none about access.
 #
 # /gate/ is deliberately NOT Disallow'd. It is the page nginx serves as that 401's body, and it
 # carries `noindex` instead: a Disallow'd URL can still be indexed as a bare link, because the

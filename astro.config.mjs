@@ -116,10 +116,10 @@ export default defineConfig({
       // explanation of which page it opens. It also carries `noindex` for a crawler that finds
       // it another way, since a sitemap filter only stops us advertising it.
       //
-      // /stories/ — the story bank, behind the same gate as the case study above, and excluded
-      // for the same reason: it answers 401 without the cookie, and asking a crawler to index a
-      // URL that answers 401 lands it as a search result that demands a password. It is also a
-      // document I SEND rather than publish, so being findable defeats the point of gating it.
+      // /stories/ — the story bank. Not gated (see stories.astro) and it does not 401, so the
+      // reason here is different from the case study's: it is a document I SEND rather than
+      // publish. A search result for it puts the working-out in front of a reader who has not
+      // seen the claim, which is the wrong order to meet someone in.
       //
       // NOT excluded: the /writing/ explainers embedded on /work/aping/ and
       // /work/explain/. Those are full pages that stand alone and should be indexed.

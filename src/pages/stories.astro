@@ -29,10 +29,17 @@
 // markdown and gate the URL — is worse, because it is a gate that does not gate. The build throws a
 // named error rather than emitting a blank page, so the failure explains itself.
 //
-// ── AND WHY IT IS GATED AT ALL, given the content is scrubbed. Two reasons, neither about secrecy:
-// a résumé is a claim and this is the working-out behind it, which is a different document and not
-// one a stranger should meet first; and the LP framing is written for an Amazon reader, so it would
-// read as employer-specific to everyone else. Gated means "I send this to you", which is what it is.
+// ── UNLISTED, NOT GATED, and this changed after the page shipped. The plan was the nginx cookie
+// gate that fronts /work/stores-designer/; the owner's call was to leave it open, and that call is
+// defensible precisely BECAUSE of the scrubbing: every line passes `scrub-check.sh`, so there is
+// nothing here a password would be protecting. What the page is not is ADVERTISED — `noindex`, a
+// robots Disallow, absent from the sitemap, and nothing on the site links to it. Three of the four
+// original layers, and the one that is missing was the one about secrecy rather than discovery.
+// The copy on the page was corrected to match: a row that said "Why gated" on an ungated page is a
+// document lying about its own security, which is worse than either choice made honestly.
+// IF IT IS EVER GATED, the block is four lines mirroring the case study's in the droplet's vhost —
+// `location ^~ /stories/` with `if ($asc_gate_ok = 0) { return 401; }` and a `=404` try_files
+// fallback. It needs no new `map`: the cookie and password already exist in conf.d/gate.conf.
 import Layout from '../layouts/Layout.astro';
 import MarkFigure from '../components/MarkFigure.astro';
 import { LP_MAP, LP_GAPS } from '../data/stories';
@@ -145,11 +152,11 @@ const BEAT: Record<string, string> = {
 };
 ---
 
-<!-- FOUR LAYERS FOR ONE URL, and each covers a case the others miss: nginx answers 401 without the
-     cookie (the actual gate), robots.txt Disallows it, the sitemap `filter` never advertises it, and
-     `noindex` here covers the one case the Disallow cannot — a crawler that finds the URL as a bare
-     link, since a Disallow'd page is never fetched and so its `noindex` is never read. The same
-     stack /gate/ and the locked case study use, for the same reason. -->
+<!-- THREE LAYERS, all about DISCOVERY rather than access: robots.txt Disallows the URL, the sitemap
+     `filter` never advertises it, and `noindex` here covers the one case a Disallow cannot — a
+     crawler that finds the URL as a bare link, since a Disallow'd page is never fetched and so its
+     `noindex` is never read. There is deliberately no fourth layer: the page is readable by anyone
+     holding the URL, which is a choice the scrubbing makes safe rather than an oversight. -->
 <Layout
   title="Story bank — Andrew Shiau"
   description="Engineering stories at the transferable-competency level, read through Amazon's Leadership Principles."
@@ -176,16 +183,16 @@ const BEAT: Record<string, string> = {
             different rubric without a rewrite.</div>
         </div>
         <div class="frow">
-          <div class="fm">Why gated</div>
-          <div class="ftx">Not secrecy — every line here passes my own scrub gate. A résumé is the
-            claim and this is the working-out, which is a different document and not the one a
-            stranger should meet first.</div>
+          <div class="fm">Unlisted</div>
+          <div class="ftx">Not indexed and not linked from anywhere — a résumé is the claim and this
+            is the working-out, which is a different document. But <b>nothing here is secret</b>:
+            every line passes the scrub I run before anything leaves a private repo.</div>
         </div>
         <div class="frow">
           <div class="fm">Rendered from</div>
           <div class="ftx">One markdown file that lives <b>outside this site's repo</b>, read at
-            build time. The repo is public, so committing the source would make the gate
-            decorative.</div>
+            build time — the repo is public, and the unscrubbed bank it sits beside must never be
+            one <code>git push</code> from a URL.</div>
         </div>
       </div>
     </div>
