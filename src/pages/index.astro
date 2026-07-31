@@ -122,29 +122,27 @@ import LockedRow from '../components/LockedRow.astro';
              a chooser rather than a call: the panel is the one block whose height is permanently
              on screen. Placed after `Currently` and before `Contact`, so reading order stays
              what-I-do → who-I-am-otherwise → how-to-reach-me.
-             THE LINKS BEHAVE BY THEMSELVES. All three links take the `↗` that `a[target]`
-             appends in CSS — not written by hand, which is the bug that once rendered
-             "github ↗ ↗".
-             THE CANELÉ LINK IS THE RECIPE, NOT THE EXPLAINER (annotation: "can u link to the
-             canele recipe instead of writing the writing"). It pointed at `/writing/canele/`,
-             which is the ratio-analysis explainer — a page ABOUT canelés, and the wrong object
-             for this sentence. The sentence says I bake them, so the honest link is the thing I
-             bake from: `halfcadence.github.io/recipes/r/canele`, the recipe in the archive that
-             /work/recipes/ is a case study of.
-             NO TRAILING SLASH ON THIS ONE, and it is not a style call — `…/r/canele/` returns a
-             404 on GitHub Pages (verified with curl: 200 without, 404 with). The recipes archive
-             emits extensionless files rather than directories, so the pattern the rest of this
-             site follows — internal hrefs keep their slash so nginx serves the directory with no
-             redirect — is inverted here. A slash copied from habit would have shipped a dead link
-             in the panel that never leaves the screen.
-             It is EXTERNAL now, so it gets the `↗` the other two get, and that is the tell a
-             reader needs: the previous link went to a page of this site and this one leaves it.
-             The explainer isn't orphaned — /work/aping/ and /work/explain/ both embed it, and
-             /work/recipes/ links the archive. -->
-        <!-- `r/canele`, the plain one, out of nineteen canelé recipes in the archive (chocolate,
-             earl grey, thai tea, savoury, big-batch, two Ferrandi variants…). The sentence makes
-             a general claim — "baking canelés" — so it links the canonical recipe rather than a
-             flavour, and a reader who wants the others is one click from the index. -->
+             THE LINKS BEHAVE BY THEMSELVES. The two Instagram links take the `↗` that
+             `a[target]` appends in CSS — not written by hand, which is the bug that once
+             rendered "github ↗ ↗" — and the canelé link is internal so it gets none.
+             THE CANELÉ LINK IS THE EXPLAINER, `/writing/canele/`, AND IT STAYS THAT WAY.
+             It was pointed at the recipe itself for one deploy — `halfcadence.github.io/recipes/
+             r/canele` — on the reasoning that a sentence saying "baking canelés" should link the
+             thing I bake FROM. Reverted on the owner's call: "meh actually link to writing is ok.
+             eventually i do want to improve the writing but its ok."
+             Which is the better answer, and worth stating so it doesn't get re-litigated: the
+             other two links in this sentence go to bands — things to LOOK at, evidence that the
+             claim is true. A recipe is an instruction set; it tells a reader how to make canelés,
+             which is not what someone reading a personal panel wants from the word. The explainer
+             is the thing I made about baking, so it matches what the Instagram links are doing.
+             It also keeps the sentence's one internal link internal: the panel gets two `↗`s
+             instead of three, so the glyph still marks the boundary between this site and
+             elsewhere rather than appearing on everything.
+             The recipe archive is not hidden — /work/recipes/ is a case study of it, two rows
+             down in the same column. -->
+        <!-- KNOWN, AND DELIBERATELY NOT FIXED HERE: the owner wants the writing on that page
+             improved eventually. That is a change to /writing/canele/, not to this link — noted
+             so a future pass doesn't read the link as the thing that needs work. -->
         <!-- THE BAND NAMES ARE CONFIRMED BY THEIR MEMBER, not derived from the handles.
              They shipped for one deploy as `Pana Vallenato` and `Baobella`, expanded from
              `panavallenato` and `_baobella` — Baobella was right and the other was not: it is
@@ -202,7 +200,7 @@ import LockedRow from '../components/LockedRow.astro';
           <span class="pv">Playing in two Seattle bands
             (<a href="https://www.instagram.com/panavallenato/" target="_blank" rel="noopener">Vallenato&nbsp;Panamericano</a>,&#32;<a
               href="https://www.instagram.com/_baobella/" target="_blank" rel="noopener">Baobella</a>) and baking <a
-              href="https://halfcadence.github.io/recipes/r/canele" target="_blank" rel="noopener">canelés</a>.</span>
+              href="/writing/canele/">canelés</a>.</span>
         </div>
       </div>
 
