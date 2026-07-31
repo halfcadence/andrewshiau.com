@@ -101,5 +101,21 @@ const Row = open ? 'div' : 'a';
       set(false);
       row.focus();
     });
+
+    // BACK BUTTON: THE ROW CLOSES TOO. Follow-up to the field/message reset in GateForm.astro —
+    // "seems better should the password field maybe close too?" Yes, and for the same reason: the
+    // reader has been to the gated page and come back, so an open row is a question already
+    // answered. Clearing the field but leaving the disclosure open is a half-reset, which reads
+    // as a form waiting for a second attempt.
+    // `set(false)` rather than touching `hidden` here — it owns `aria-expanded`, both `open`
+    // classes and `hidden` together, and a second place setting three of the four is how those
+    // drift apart.
+    // NO `row.focus()`, unlike Escape: that close was a keyboard action mid-page, so focus had to
+    // go somewhere sensible. This one happens during a navigation the reader did not aim at any
+    // element, and stealing focus to a row they did not ask for would scroll the page to it.
+    // `pageshow`, not `load` — `load` does not fire on a bfcache restore, which is the path that
+    // brings the row back open in the first place. Same reasoning as the GateForm handler; the two
+    // are deliberately separate listeners because each component owns its own state.
+    window.addEventListener('pageshow', () => set(false));
   });
 </script>
