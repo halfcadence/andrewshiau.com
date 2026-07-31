@@ -199,20 +199,38 @@ const ROLES: Role[] = [
     // ALSO: the figures belonged to Brand Builder, and the bullet had attached them to Luthier and
     // the Figma plugin — three products, one set of numbers, so it wasn't clear which one had
     // saved the hours. The bullet now names what I built; the note owns the measurement.
-    // THE CONSERVATIVE READING IS WHAT SHIPS: "100 templates across 30+ brands". Flagged for
-    // Andrew — if it really was 100 PER brand, this understates the work by 30× and the line
-    // should say "3,000+ templates" outright, which is a much stronger claim than anything else in
-    // this role. It stays conservative until confirmed, because an overclaim on a resume is the
-    // one error that costs more than the credit it buys.
+    // IT IS 100 PER BRAND — confirmed by Andrew, so the figure is 3,000+ TEMPLATES. The
+    // conservative reading shipped for one deploy ("100 templates across 30+ brands") because the
+    // two contradicting copies couldn't both be true and an overclaim on a resume costs more than
+    // the credit it buys. Confirmed, it goes the other way: understating by 30× is its own defect.
+    //
+    // AND IT MOVED ONTO PAPER. `more` is screen-only; `lines` is what survives into the printed
+    // sheet. 3,000+ templates generated without a developer is the largest scale number in this
+    // role after the 5,000→50,000, and this page's own stated cut rule is "a line survives if it
+    // carries a number or a loss" — so a figure that big cannot live in the field the PDF drops.
+    // It was in `more` only because, at "100 templates", it wasn't worth a line. At 3,000+ it is.
+    //
+    // THE TWO 3,000s ARE NOT THE SAME NUMBER, and that is why they are no longer in one sentence.
+    // 3,000+ templates and ~3,000 developer-hours saved are different quantities that happen to
+    // round to the same figure; printed side by side ("3,000+ templates, about 3,000 hours") a
+    // reader takes it for a copy-paste error and stops trusting the column. The template count is
+    // the headline and sits in the bullet; the hours stay in `more`, a paragraph away, where the
+    // coincidence is invisible.
+    // Worth Andrew's eye: at 3,000+ templates and weeks per hand-coded template (see
+    // /work/luthier/, "Each one took weeks"), ~3,000 hours saved now looks LOW by an order of
+    // magnitude — it was probably computed for a subset or a single year. It is kept exactly as
+    // the 2023 PDF states it rather than recomputed here, because inventing a bigger number is
+    // the one thing worse than an understated one.
     lines: [
       'Took Composer from 5,000 to 50,000 graphics a year. Built Luthier, a no-code template ' +
         'editor, and a Figma plugin that turns a designer’s file into a template.',
+      'Built Brand Builder: 100 generated templates per brand across 30+ brands, so 3,000+ ' +
+        'templates nobody hand-coded.',
       'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised, ' +
         '+0.67%.',
     ],
     more: [
-      'Brand Builder generated branded templates without code: 100 templates across 30+ brands, ' +
-        'about 3,000 developer-hours saved.',
+      'That replaced hand-coding: about 3,000 developer-hours saved.',
       'Migrated the rendering engine from Canvas to HTML, making a new template 5\u00d7 faster to ' +
         'create, and cut initial image load 75% (5s to 1s) by profiling loads and caching ' +
         'repeated calls.',
