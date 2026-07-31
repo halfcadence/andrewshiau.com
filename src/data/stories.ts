@@ -68,20 +68,19 @@ export const LP_MAP: LpGroup[] = [
 
 // ── WHAT IS NOT CLAIMED. Named on the page, because a coverage map with silent gaps is a map that
 // lies by omission — and the gaps are the useful part when the reader is me, reviewing.
+//
+// TWO PRINCIPLES WERE REMOVED FROM THIS LIST 2026-07-30, on the owner's call, and the distinction
+// matters: they are not gaps, they are DECISIONS. Frugality and Hire and Develop the Best are the two
+// he does not intend to carry a story for. Listing a principle you have chosen not to pursue as a
+// "gap" invites a reader to score it as a shortfall, which is a worse misreading than omitting it —
+// this list is for thin evidence, not for scope.
+// Frugality's nearest reading already lives in a story that claims something better (removing the
+// work rather than doing it cheaper), so it was never absent so much as differently told.
 export const LP_GAPS = [
   {
-    lp: 'Hire and Develop the Best',
-    why: 'No evidence. I have not hired, and mentoring has not been a formal part of a role yet — ' +
-      'the closest is #13, enabling another org rather than developing an individual.',
-  },
-  {
     lp: 'Think Big',
-    why: 'Thin. #1 is the closest — a platform play rather than a feature — but the framing was ' +
-      'de-risk-and-decouple, not a bet on a much larger outcome.',
-  },
-  {
-    lp: 'Frugality',
-    why: 'One story touches it (#8, a multi-week manual process becoming a shared asset) and it is ' +
-      'told as leverage, not cost. Real but not the strongest reading of that work.',
+    why: 'Thin, and the only one left on this list. The platform work is the closest — a bet on an ' +
+      'architecture rather than a feature — but I framed it as de-risking, not as a much larger ' +
+      'outcome. That framing is mine to fix, not a missing story.',
   },
 ];
