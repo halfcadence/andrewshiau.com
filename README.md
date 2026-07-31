@@ -1,56 +1,121 @@
 # andrewshiau.com
 
-AI-forward personal site. Astro static site, hand-set in the Müller-Brockmann
-grid system (`/muller` house style). Served from a DigitalOcean droplet over
-HTTPS (nginx + certbot / Let's Encrypt, auto-renew).
+Astro static site, set in IBM Plex Mono on a 12-column grid. Served from a
+DigitalOcean droplet over HTTPS (nginx + certbot / Let's Encrypt, auto-renew).
 
-**Design + voice spec: [`STYLE.md`](STYLE.md).** Read it before editing — it's the
-source of truth for tokens, the type ramp, the link system, motion, voice, and the
-`/design-critique` panel.
+**Design + voice spec: [`STYLE.md`](STYLE.md)** — tokens, the one size, the grid, the
+link system, motion, voice, the `/design-critique` panel. Read it before editing
+anything visual. It renders at [`/style/`](https://andrewshiau.com/style/) from that
+same file, so the page and the spec cannot drift.
 
 **Working with an agent here: [`CLAUDE.md`](CLAUDE.md)** — the devbox/Mac split, the
 verify-live rule, and how to read the browser design annotations.
 
 ## Develop
 
-Repo lives in `workplace/andrewshiau` so Unison syncs the **source** to the Mac.
-`node_modules/` and `dist/` are intentionally NOT synced (native binaries differ
-per-OS) — run `npm install` once on whichever machine you build from.
-
 ```bash
 npm install
 npm run build          # → dist/
-npm run dev            # local dev server on 127.0.0.1 (run on the MAC, not the devbox)
+npm run dev            # 127.0.0.1:4321 — run on the MAC, never the devbox
 ```
 
-Devbox rule: never run `npm run dev`/preview bound to all interfaces on the Amazon
-devbox. Build on the devbox and view via the synced `file://` copy, or run `npm run
-dev` on the Mac (where 127.0.0.1 is fine).
+The repo lives in `workplace/andrewshiau` so Unison syncs the **source** to the Mac.
+`node_modules/` and `dist/` are deliberately not synced (native binaries differ per OS),
+so run `npm install` once on whichever machine you build from.
+
+**Devbox rule:** never run a dev server on the Amazon devbox. Build there and view the
+synced `file://` copy, or run `npm run dev` on the Mac. A server on `0.0.0.0` here is a
+CRITICAL Qualys finding — it has happened twice. The one sanctioned exception is
+`scripts/print-check.py`, which binds `127.0.0.1`, runs in the foreground, and closes in
+a `finally`.
+
+Dependencies: **nothing ships at runtime** — no `dependencies` block at all, and the five
+devDependencies are build-time only (`astro`, `@astrojs/sitemap`, `tailwindcss` +
+`@tailwindcss/vite`, `basecoat-css`). Tailwind and Basecoat are used by `/system/` alone;
+`global.css` does the layout by hand. There is no markdown renderer either — `style.astro`
+carries its own ~145-line one for the thirteen constructs `STYLE.md` actually uses. Keep it
+that way: it must not grow into a parser.
 
 ## Structure
 
 ```
-src/pages/index.astro       landing — bio + numbered experiment index
-src/pages/work/*.astro       one case study per experiment
-src/data/experiments.ts      the experiment list (edit here to add entries)
-src/layouts/Layout.astro     shared shell (nav, footer, `g`-to-show-grid)
-src/styles/global.css        the Müller-Brockmann system (tokens + grid)
-Caddyfile                    UNUSED — production is nginx (see below)
-deploy.sh                    rsync dist/ → droplet
+src/pages/index.astro        landing — pinned panel, Work + Experiments matrices, colophon
+src/pages/work/*.astro       8 case studies
+src/pages/writing/*.astro    3 explainers (own layout + quiz engine)
+src/pages/style.astro        renders STYLE.md itself, at build time
+src/pages/system.astro       every token and device drawn with the real classes
+src/pages/method.astro       the method files, with build-time assertions against method/
+src/pages/{resume,stories,gate,404}.astro
+src/data/experiments.ts      the Work + Experiments rows (edit here to add an entry)
+src/data/stories.ts          /stories/ content
+src/layouts/Layout.astro     shared shell — head, landmarks, ⌥G grid overlay, favicon swap
+src/styles/global.css        the design system (tokens, grid, every block)
+src/styles/system.css        /system/ only — connects the system to basecoat-css
+method/                      method.md + designer/builder/messaging, rendered by /method/
+scripts/print-check.py       print a page for real and assert the PDF
+scripts/favicon-ico.py       regenerate the .ico files from MarkFigure.astro's geometry
+scripts/mac-preview.py       rewrite dist/ for file:// viewing on the Mac
+tools/og-card.html           source for public/og.png (not a route)
+deploy.sh                    rsync dist/ → droplet, with an empty-dist guard
+Caddyfile                    UNUSED — production is nginx
 ```
 
-To add an experiment: append to `src/data/experiments.ts`; add a page under
-`src/pages/work/` if it needs a case study.
+To add an entry: append to `src/data/experiments.ts`, and add a page under
+`src/pages/work/` if it needs a case study. `PanelHead.astro` derives each case study's
+panel from that same data, so a row and its page cannot disagree — which also means a
+page whose `href` is not in the list must write its own panel (`/style/` does).
+
+### Two build-time behaviours worth knowing
+
+- **Comments are stripped from the built HTML** (`stripHtmlComments` in
+  `astro.config.mjs`). The source carries long explanatory comments; the shipped page
+  doesn't. `<pre>`, `<code>`, `<script>` and `<style>` regions are masked first, so the
+  explainers' quiz engine survives.
+- **Several pages assert their own content and fail the build if it drifts.** `/method/`
+  quotes `method/*.md` and checks the sentences still exist. `/style/` requires 24+ headings
+  plus three literal rules by name. `/system/` checks that every token it documents is still
+  declared in `global.css` (and that deleted ones stayed deleted), and diffs `favicon.svg`'s
+  geometry against `MarkFigure.astro` — the one thing a hand copy can't guarantee. `/stories/`
+  and `/gate/` assert their own data. A build error from one of these is the assertion doing
+  its job: fix the source of truth, don't loosen the number.
+
+## Ship it
+
+Everything goes out as soon as it works — this is a static personal site and the whole
+rollback is one `git revert` plus one `./deploy.sh`.
+
+```bash
+npm run build && ./deploy.sh && git push
+```
+
+Then **verify against the live site, not the build**: fetch the page and grep for what you
+shipped, and look at it rendered in light, dark, and at phone width. Two bugs have shipped
+clean-built. `deploy.sh` refuses to sync a `dist/` with fewer than 15 HTML files — a failed
+build once left `dist/` empty and `rsync --delete` wiped the live webroot.
+
+When the output is an artifact — a PDF, the social card, an unfurl — produce the artifact
+and inspect it:
+
+```bash
+npm run build && python3 scripts/print-check.py /resume/
+```
+
+That prints the real page with headless Chrome over loopback and reads the PDF back
+(page count, wrapped dates, cell collisions). A screen render can't tell you anything
+about paper: an iframe has no `@page`, no `break-inside`, and no pagination. Dividing its
+height by a page height is not a page count — that mistake shipped `/resume/` as three
+pages while the notes claimed 1.90.
 
 ---
 
 ## The password gate (nginx cookie gate, not Basic Auth)
 
+`/work/stores-designer/` is the one gated page.
+
 **What runs in production is nginx, not Caddy.** `systemctl is-active nginx caddy` on the
 droplet returns `active` / `inactive`; the live vhost is
 `/etc/nginx/sites-enabled/andrewshiau` (root `/var/www/andrewshiau`, certbot-managed TLS).
-The `Caddyfile` in this repo was never installed — the "One-time droplet setup" section
-below describes a migration that didn't happen. Edit nginx, not the Caddyfile.
+The `Caddyfile` in this repo was never installed. Edit nginx, not the Caddyfile.
 
 **Read this first: this is a speed bump, not a safety guarantee.** It keeps a page out of
 Google and off a casual visitor's screen. It does **not** make the page safe for material
@@ -153,7 +218,7 @@ C --cookie 'asc_gate=wrong' $U                  # 401  wrong password
 C --cookie "asc_gate=$PW" $U                    # 200  correct
 C --cookie "asc_gate=$PW" ${U}nope/             # 404  the =404 fallback, not the homepage
 curl -sI $U | grep -i www-authenticate          # NOTHING — the whole point: no dialog
-curl -s $U | grep -c 'Not open yet'             # 1    the 401 body is our page
+curl -s $U | grep -c '<h1>Not open yet</h1>'    # 1    the 401 body is our page
 C https://andrewshiau.com/gate/                 # 404  internal only
 C https://andrewshiau.com/gate/index.html       # 404  internal only
 C https://andrewshiau.com/                      # 200  public pages unaffected
@@ -165,13 +230,18 @@ can break the other:
 
 ```bash
 C https://andrewshiau.com/zzz-does-not-exist    # 404  NOT 200 — the whole point
-curl -s https://andrewshiau.com/zzz | grep -c 'Not found'   # 1  our page, not nginx grey
+curl -s https://andrewshiau.com/zzz | grep -c '<h1>Not found</h1>'  # 1  our page, not nginx grey
 curl -sI https://andrewshiau.com/favicon.ico | grep -i content-type   # image/x-icon
 C https://andrewshiau.com/method/               # 200  $uri/index.html still ahead of =404
 ```
 
 `/favicon.ico` returning `text/html` is the regression to watch for: it means the fallback went
 back to `/index.html`, and the placeholder square comes with it.
+
+Both body checks match the **`<h1>`**, not the bare phrase. `grep -c` counts matching *lines*,
+and the built HTML is minified onto a few very long ones — the page title and the OG tags put
+"Not found" on a second line, so the loose version of that check reported `2` and looked like a
+failure. Anchor the assertion to the one element that can only appear once.
 
 **To change the password:** rewrite `conf.d/gate.conf` (step 1) and reload. Nothing else —
 the password is never in the bundle. The client sets the cookie and asks the *server*
@@ -202,10 +272,9 @@ all done for `/work/stores-designer/`:
 `tools/og-card.html` is the source. Do this when the claim, the palette, or the mark
 changes — the PNG is a fixed raster and can't track the site on its own.
 
-It has to be **served**, not opened as `file://`: the card is set in Graphik and the
-woff2 files only load same-origin, so a `file://` copy falls back to Helvetica and the
-card stops being cut from the real system. Run it on the **Mac** — never a server on the
-devbox (see the top of this file).
+It has to be **served**, not opened as `file://`: the woff2 files only load same-origin, so
+a `file://` copy falls back to a system face and the card stops being cut from the real
+system. Run it on the **Mac** — never a server on the devbox.
 
 ```bash
 # on the Mac, in the repo
@@ -220,69 +289,37 @@ The copy is deliberately temporary. `tools/` is outside `src/pages/`, so the car
 route and not in the sitemap — a bare card page is not something a reader should land on.
 
 Then check the result: 1200×630, under ~100KB, and legible at thumbnail size (the ledger's
-15px caps are the first thing to go). `Layout.astro` hardcodes the dimensions and the
+small caps are the first thing to go). `Layout.astro` hardcodes the dimensions and the
 `og:image:alt` text — if the card's wording changes, change the alt with it.
+
+## Regenerating the favicons
+
+```bash
+python3 scripts/favicon-ico.py
+```
+
+`MarkFigure.astro` is the source of truth for the mark; `favicon.svg` is a hand copy the
+build **diffs against it** (assertions in `src/pages/system.astro`). An `.ico` is a raster
+and can't be diffed that way, so it is never hand-edited — run the script and commit both
+`favicon.ico` (ink, light tab) and `favicon-dark.ico` (paper, dark tab). `Layout.astro`
+swaps them on a `prefers-color-scheme` listener.
 
 ---
 
-## One-time droplet setup (run from your Mac)
+## The droplet
 
-> **Historical — not what production runs.** This describes a planned nginx→Caddy
-> migration that was never carried out; the droplet still serves the site with nginx +
-> certbot. See "The password gate" above for the live layout.
+| | |
+|---|---|
+| Host | `104.236.237.122`, Ubuntu 18.04, NYC3, 512 MB. SSH alias `droplet` |
+| Server | nginx 1.14.0, certbot 0.27 (`certbot.timer` active, auto-renew) |
+| Webroot | `/var/www/andrewshiau` — the `rsync --delete` target, built output only |
+| vhosts | `sites-available/andrewshiau`, `andrewshiau2018` |
+| Archive | the old React site at `https://2018.andrewshiau.com` |
 
-The droplet (`104.236.237.122`, Ubuntu) currently runs nginx serving the old
-React site. These steps put **Caddy** in front for HTTPS, archive the old site
-to `2018.andrewshiau.com`, and publish this site at the apex.
+Certs were added with `certbot --nginx` rather than swapping in Caddy: nginx was already
+healthy serving every vhost, so adding certs in place had far lower blast radius than
+replacing the server on an EOL 512 MB box. That is why `Caddyfile` is unused.
 
-**1. DNS** — in the DigitalOcean control panel, add an A record:
-   `2018.andrewshiau.com → 104.236.237.122`. (Apex `andrewshiau.com` and `www`
-   already point there.)
-
-**2. SSH in and archive the old site + free ports 80/443:**
-   ```bash
-   ssh root@104.236.237.122
-   # Preserve the current nginx webroot as the 2018 archive
-   sudo cp -r /var/www/html /var/www/andrewshiau-2018   # adjust src if nginx root differs
-   # Stop nginx so Caddy can take 80/443 (or reconfigure nginx to proxy — see note)
-   sudo systemctl stop nginx && sudo systemctl disable nginx
-   sudo mkdir -p /var/www/andrewshiau
-   ```
-   > Find the real nginx root first: `grep -R "root " /etc/nginx/sites-enabled/`.
-
-**3. Install Caddy:**
-   ```bash
-   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
-   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-   sudo apt update && sudo apt install -y caddy
-   ```
-
-**4. Install the Caddyfile** (copy this repo's `Caddyfile` to the droplet):
-   ```bash
-   # from your Mac, in this repo:
-   scp Caddyfile root@104.236.237.122:/etc/caddy/Caddyfile
-   ssh root@104.236.237.122 'sudo systemctl reload caddy'
-   ```
-   Caddy fetches Let's Encrypt certs automatically on first request to each host.
-
-**5. Deploy the site:**
-   ```bash
-   npm run build
-   ./deploy.sh
-   ```
-
-**6. Verify:**
-   ```bash
-   curl -I https://andrewshiau.com          # 200, valid cert
-   curl -I http://andrewshiau.com           # 308 redirect → https (Caddy default)
-   curl -I https://2018.andrewshiau.com     # old React app
-   ```
-
-## Update workflow
-
-```bash
-# edit content, then:
-git commit -am "…" && git push
-npm run build && ./deploy.sh
-```
+**Anything destructive here — nginx config, certs, `rm` outside the webroot — stops and
+asks first.** Deploying does not: it is one rsync into a directory that holds nothing but
+built output.
