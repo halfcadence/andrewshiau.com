@@ -19,7 +19,7 @@ const quiz = [
   { q: "You push flour above 15% of batter. What happens to the interior?",
     opts:["It gets richer and darker.","It turns firm, cakey, bread-like.","It collapses and stays raw."], a:1 },
   { q: "Why lean on egg yolks rather than whole eggs?",
-    opts:["Yolks make it sturdier and easier to unmold.","Yolks add fat and emulsification for a silky, rich set.","Whites would make it sweeter."], a:1 },
+    opts:["Yolks make it sturdier and easier to unmould.","Yolks add fat and emulsification for a silky, rich set.","Whites would make it sweeter."], a:1 },
 ];
 ---
 
@@ -39,7 +39,7 @@ const quiz = [
       <div class="facts">
         <div class="frow">
           <div class="fm">What</div>
-          <div class="ftx">Six popular canelé recipes, normalized to percentages of total batter
+          <div class="ftx">Six popular canelé recipes, normalised to percentages of total batter
             weight, to find what actually decides the interior.</div>
         </div>
         <div class="frow">
@@ -59,18 +59,43 @@ const quiz = [
 
     <div class="feed">
       <div class="grid">
-        <p class="dek c1-12">I normalized six popular canelé recipes to percentages of total
-          batter weight to find what decides the interior. One number does most of the work.</p>
+        <!-- ANSWER FIRST (chooser: andrewshiau-copy-editor-pass, Q6/02). It opened on the
+             METHOD — "I normalized six popular canelé recipes to percentages of total batter
+             weight to find what decides the interior. One number does most of the work." — which
+             is the order I found it in, and messaging.md says that is almost never the order to
+             explain it. A reader who came for "what makes a canelé custardy" got a procedure and
+             a promise that a number exists, with the number itself two sections down.
+             Now: the finding, then what it costs you, then how it was found. The figure is the
+             one the page already states twice (the `.num` block and section 1), so the dek stops
+             being a teaser for its own contents.
+             `normalising`, not `normalizing` — the site is British throughout (colour, favoured,
+             behaviour, summarise) and this page carried the only two American -ize spellings on
+             it, plus one more in the /work/explain/ links list. Same pass fixed all three. -->
+        <p class="dek c1-12">Flour, as a share of total batter, is what decides whether a canelé
+          comes out custardy or cakey: <b>9–14%</b> for a custardy interior, firm and bread-like
+          much above 15%. Everything else in the recipe is richness and colour. I found it by
+          normalising six popular recipes to percentages of batter weight.</p>
       </div>
 
       <!-- THE ONE IDEA. It was a 30px bold paragraph under a 3px accent rule; it is the body
            size in `--ink` with a group of air around it, which is the space scale doing the job
-           the size jump did. -->
+           the size jump did.
+           IT NO LONGER REPEATS THE DEK. Moving the finding up into the dek (Q6/02) put this
+           block one screen under a sentence that now said the same thing — "Flour, as a percent
+           of batter, is the lever between custardy and cakey. Everything else is richness and
+           colour" against a dek naming the same lever and the same remainder. Answer-first
+           creates that collision by construction: whatever the page was saving for the middle is
+           now at the top, and the block that used to reveal it has nothing left to reveal.
+           So it states the CONSEQUENCE instead: what the ratio means for a baker holding a
+           recipe, which is the one thing the dek's three sentences don't cover. A reader who
+           only reads the panel and this block still gets the whole idea, which is what the device
+           is for. -->
       <div class="grid sect">
         <div class="idea c1-12">
           <span class="k">The one idea</span>
-          <p>Flour, as a percent of batter, is the lever between custardy and cakey. Everything
-            else is richness and colour.</p>
+          <p>So you can read any canelé recipe by weighing its flour against everything else. The
+            ones that disagree about rum, vanilla or resting time are arguing about flavour; the
+            one that moves the flour is the one that changes what you get.</p>
         </div>
       </div>
 
@@ -117,8 +142,8 @@ const quiz = [
       <div class="grid">
         <div class="facts">
           <div class="frow"><div class="fm">Flour</div><div class="ftx">Structure. <b>More</b> = cakey and firm; <b>less</b> = custardy but fragile. The main lever.</div></div>
-          <div class="frow"><div class="fm">Sugar</div><div class="ftx">Sweetness and caramelization. More = a darker shell; less = paler, less caramel.</div></div>
-          <div class="frow"><div class="fm">Fat</div><div class="ftx">Butter, cream, yolk fat → richness. The lean recipes taste custardy but hollow. Fat is flavor.</div></div>
+          <div class="frow"><div class="fm">Sugar</div><div class="ftx">Sweetness and caramelisation. More = a darker shell; less = paler, less caramel.</div></div>
+          <div class="frow"><div class="fm">Fat</div><div class="ftx">Butter, cream, yolk fat → richness. The lean recipes taste custardy but hollow. Fat is flavour.</div></div>
           <div class="frow"><div class="fm">Egg</div><div class="ftx">Yolks bind and emulsify for a rich set; more whole egg makes it sturdier but less silky.</div></div>
         </div>
       </div>

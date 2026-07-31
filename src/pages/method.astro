@@ -19,8 +19,18 @@ import spec from '../../method/method.md?raw';
 // the same question on both sides of the work") instead of quoting the aphorism, so
 // asserting it here would guard a string the page no longer prints. The index still
 // displays it verbatim and still asserts it — see the THESIS check in index.astro.
+// THE ASSERTED SENTENCE CHANGED WITH THE SPEC, not independently of it (chooser:
+// andrewshiau-copy-editor-pass, Q2/03). It was 'Not a biography, not a resume, not a decision
+// log, and not a stand-in for a person.' — a four-fold negation, and the first habit STYLE.md
+// bans ("the antithesis snap … it reads as emphasis and carries no information: the reader was
+// never considering Y"). /method/ carried five of them, which made the page whose subject IS the
+// rules the page that broke the first one.
+// Both copies moved in the same commit BECAUSE of this check: method.md is the source of truth
+// and the build fails if the page quotes a sentence the file no longer contains. That is the
+// check doing its job — it is what stops the site's copy of the spec drifting from the spec an
+// agent actually loads. Edit `method/method.md` first, then this string.
 const SHARED = [
-  'Not a biography, not a resume, not a decision log, and not a stand-in for a person.',
+  'It encodes judgment — how to decide — so a fresh agent can run the procedures rather than recite the facts.',
 ];
 const flat = spec.replace(/\s+/g, ' ');
 for (const s of SHARED) {
@@ -89,10 +99,10 @@ for (const s of SHARED) {
               and I write down which one it was.
             </p>
             <p>
-              This is the part I bring to a team. The procedures below are the ones I run at
-              work, on a system where a wrong component ships to a lot of pages at once — and
-              they’re written as a spec an agent can execute, so a second person, or a machine,
-              can run them without me in the room.
+              This is the part I bring to a team. I run these procedures at work, on a system
+              where a wrong component ships to a lot of pages at once. They’re written as a spec
+              an agent can execute, so a second person, or a machine, can run them without me in
+              the room.
             </p>
           </div>
         </div>
@@ -117,8 +127,8 @@ for (const s of SHARED) {
                 “better” has no referent.</li>
               <li>A few distinct options beat a dozen near-duplicates. If two differ by
                 2px, they are one option.</li>
-              <li><b>Pick by looking.</b> Then state the one-line reason — after the
-                choice, not before.</li>
+              <li><b>Pick by looking.</b> The one-line reason comes after the choice: a
+                reason written first is a prediction, and it will bend the pick to fit.</li>
               <li>Check both colourways and phone width before calling it done.</li>
             </ol>
           </div>
@@ -180,7 +190,8 @@ for (const s of SHARED) {
               hand them, so I hand them the true one. The order I found something in is
               almost never the order to explain it.</li>
             <li><b>If I can’t say it plainly, I haven’t finished thinking it.</b> The
-              write-up is the last place the work gets checked, not a wrapper round it.</li>
+              write-up is the last place the work gets checked; it comes after the thinking and
+              it is part of it.</li>
             <li><b>Say the strong thing, then say how sure I am.</b> Confidence and accuracy
               are separate dials. Naming what I don’t know usually buys more trust than the
               finding it qualifies.</li>
@@ -208,9 +219,9 @@ for (const s of SHARED) {
         <div class="rules">
           <div class="step accent">
             <span class="sl">Rule 01</span>
-            <span class="st">Simplify by removal, not by hiding</span>
-            <span class="sd">The win is the thing that’s gone — a step, a file, a person in the
-              loop — not a thing tucked behind a disclosure triangle.</span>
+            <span class="st">Simplify by removal</span>
+            <span class="sd">The win is the thing that’s gone: a step, a file, a person in the
+              loop. A thing tucked behind a disclosure triangle is still there.</span>
           </div>
           <div class="step">
             <span class="sl">Rule 02</span>
@@ -221,8 +232,8 @@ for (const s of SHARED) {
           <div class="step">
             <span class="sl">Rule 03</span>
             <span class="st">Real conditions or it doesn’t count</span>
-            <span class="sd">The actual tokens and grid; the actual deployment, not a fixture.
-              A mockup and a unit test are both hypotheses.</span>
+            <span class="sd">The actual tokens and grid; the actual deployment. A mockup and a
+              unit test are both hypotheses.</span>
           </div>
           <div class="step">
             <span class="sl">Rule 04</span>
@@ -254,9 +265,9 @@ for (const s of SHARED) {
           <div class="frow">
             <div class="fm">What it isn’t</div>
             <div class="ftx">
-              Not a biography, not a resume, not a decision log, and not a stand-in for a
-              person. It encodes <b>how to decide</b>, so a fresh agent can run the procedures
-              rather than recite the facts.
+              It encodes <b>how to decide</b>, so a fresh agent can run the procedures rather
+              than recite the facts. It holds no biography, no dates and no decision log, and it
+              is not a stand-in for a person.
             </div>
           </div>
           <div class="frow">

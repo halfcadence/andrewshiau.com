@@ -173,7 +173,10 @@ const ROLES: Role[] = [
         'curves and the timing — and reviewed it with a principal designer. The part a handed-over ' +
         'spec cannot carry is feasibility: what the motion should say and what holds up at frame rate ' +
         'on a busy page were the same decision, made once. It launched on the homepage and Buy Again.',
-      'Rio Design Tokens is what makes the app themeable, consistent and accessible at once \u2014 ' +
+      // A COLON, NOT A DASH (chooser: andrewshiau-copy-editor-pass, Q1/02). One character, and it
+      // is the clearest case of what that pass is for: the dash was standing in for "here comes
+      // the definition", which is a colon's actual job. The sentence's shape is unchanged.
+      'Rio Design Tokens is what makes the app themeable, consistent and accessible at once: ' +
         'one source of truth for colour, type and spacing across iOS, Android and web, instead of ' +
         'three teams agreeing by hand.',
     ],
@@ -185,16 +188,31 @@ const ROLES: Role[] = [
     // 60 characters, so it is one line. It was 78 — "for Amazon worldwide" and the spelled-out
     // "frontend engineer" cost a second line to say what the title above it already says.
     note: 'Marketing graphics, Amazon worldwide. Lead FE, team of five.',
+    // ── EACH NUMBER STATED ONCE (chooser: andrewshiau-copy-editor-pass, Q3/02).
+    // The two Composer entries carried the SAME two figures in different words, ~60 words apart:
+    //   bullet  → "100 templates across 30+ brands, ~3,000 developer-hours saved"
+    //   note    → "100 templates for each of 30+ brands, about 3,000 hours of developer effort saved"
+    // Two defects, not one. The duplication is the visible one; the contradiction underneath it is
+    // worse — "for each of 30+ brands" is 3,000+ templates, a 30× larger claim than "across 30+
+    // brands", and the two cannot both be true. A resume that states one figure two ways invites a
+    // reader to check, and the one thing they must not find is a number that disagrees with itself.
+    // ALSO: the figures belonged to Brand Builder, and the bullet had attached them to Luthier and
+    // the Figma plugin — three products, one set of numbers, so it wasn't clear which one had
+    // saved the hours. The bullet now names what I built; the note owns the measurement.
+    // THE CONSERVATIVE READING IS WHAT SHIPS: "100 templates across 30+ brands". Flagged for
+    // Andrew — if it really was 100 PER brand, this understates the work by 30× and the line
+    // should say "3,000+ templates" outright, which is a much stronger claim than anything else in
+    // this role. It stays conservative until confirmed, because an overclaim on a resume is the
+    // one error that costs more than the credit it buys.
     lines: [
       'Took Composer from 5,000 to 50,000 graphics a year. Built Luthier, a no-code template ' +
-        'editor, and a Figma plugin that turns a designer’s file into a template: 100 templates ' +
-        'across 30+ brands, ~3,000 developer-hours saved.',
+        'editor, and a Figma plugin that turns a designer’s file into a template.',
       'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised, ' +
         '+0.67%.',
     ],
     more: [
-      'Built Brand Builder alongside it: generated branded templates without code, 100 templates ' +
-        'for each of 30+ brands, about 3,000 hours of developer effort saved.',
+      'Brand Builder generated branded templates without code: 100 templates across 30+ brands, ' +
+        'about 3,000 developer-hours saved.',
       'Migrated the rendering engine from Canvas to HTML, making a new template 5\u00d7 faster to ' +
         'create, and cut initial image load 75% (5s to 1s) by profiling loads and caching ' +
         'repeated calls.',
@@ -216,7 +234,7 @@ const ROLES: Role[] = [
       // The fact survives whole: 20+ prototype rounds in code, an A/B test, a design settled on
       // evidence. It now leads with what shipped. The evidence is still the point; the framing was
       // the problem, and those are separable.
-      'Shipped the PowerPoint Pen Toolbox after 20+ prototype rounds in code, with an A/B test ' +
+      'Shipped the PowerPoint Pen Toolbox after 20-plus prototype rounds in code, with an A/B test ' +
         'settling the final design. Shared components used by 100M+ people.',
     ],
   },
