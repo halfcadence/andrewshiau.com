@@ -216,21 +216,46 @@ const ROLES: Role[] = [
     // reader takes it for a copy-paste error and stops trusting the column. The template count is
     // the headline and sits in the bullet; the hours stay in `more`, a paragraph away, where the
     // coincidence is invisible.
-    // Worth Andrew's eye: at 3,000+ templates and weeks per hand-coded template (see
-    // /work/luthier/, "Each one took weeks"), ~3,000 hours saved now looks LOW by an order of
-    // magnitude — it was probably computed for a subset or a single year. It is kept exactly as
-    // the 2023 PDF states it rather than recomputed here, because inventing a bigger number is
-    // the one thing worse than an understated one.
+    // ── THE RECOMPUTE, AND WHY IT DELETED THE NUMBER INSTEAD OF RAISING IT.
+    // Asked to recompute "~3,000 developer-hours saved" against the confirmed 3,000+ templates,
+    // because at "weeks" per hand-coded template (/work/luthier/: "Each one took weeks") the old
+    // figure looked an order of magnitude low. Done, and the arithmetic refuses the question:
+    //   3,000 templates × ~100h (2.5 weeks) = 300,000 hours = ~150 developer-YEARS.
+    // No resume line can say that, because the counterfactual never existed. ONE engineer wrote
+    // the templates by hand, and the page says the approach "capped the number of templates at
+    // whatever one person could write in a year" — 17–25 a year at that rate. 3,000 templates was
+    // not a slower way of doing this work; it was a thing that could not be done at all. Hours
+    // "saved" measures a world where someone hand-coded 3,000 templates, and nobody was ever
+    // going to.
+    // Which also explains the original ~3,000: at 2–3 weeks each it is 25–38 templates, about
+    // 1.5–2 years of that one engineer. It was computed against the templates ACTUALLY hand-coded,
+    // which was the honest number for the claim it was making and is the wrong denominator now.
+    // So the saving is stated as the capability, with the rate a reader can check:
+    // 17–25 templates a year by hand → 3,000+ generated. Same evidence, no invented hours, and it
+    // is a bigger claim than the one it replaces. A ratio survives scrutiny that a synthetic
+    // "hours saved" does not — and per messaging.md, stating the boundary ("what one engineer
+    // could write in a year") is what makes the number usable rather than impressive.
     lines: [
       'Took Composer from 5,000 to 50,000 graphics a year. Built Luthier, a no-code template ' +
         'editor, and a Figma plugin that turns a designer’s file into a template.',
-      'Built Brand Builder: 100 generated templates per brand across 30+ brands, so 3,000+ ' +
-        'templates nobody hand-coded.',
+      // ONE LINE, AND print-check.py IS WHY IT IS THIS SHORT. The first version ran "100
+      // generated templates per brand across 30+ brands. One engineer hand-coding them managed 20
+      // a year; this shipped 3,000+." — two sentences, and it spilled the sheet onto a SECOND
+      // page carrying zero lines, which the print check flags as the worst possible length for
+      // something stapled. The rate belongs on /work/luthier/, which now states it with the
+      // "each one took weeks" fact beside it; here the figure and its comparison have to fit one
+      // printed line. `20/yr → 3,000+` is the whole argument in nine characters.
+      // A COLON, NOT A DASH — this line took /resume/ to four prose em-dashes, one over the cap
+      // the same pass had just brought every page under. Enforcing a rule and then breaking it
+      // with the next line I write is the exact failure the rule is for.
+      'Built Brand Builder: 100 templates per brand across 30+ brands, 3,000+ in all, against ' +
+        '20 a year hand-coded.',
       'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised, ' +
         '+0.67%.',
     ],
     more: [
-      'That replaced hand-coding: about 3,000 developer-hours saved.',
+      'The rate is the whole argument: a hand-coded template took weeks and only its author could ' +
+        'change it, so the ceiling was whatever one engineer could write in a year.',
       'Migrated the rendering engine from Canvas to HTML, making a new template 5\u00d7 faster to ' +
         'create, and cut initial image load 75% (5s to 1s) by profiling loads and caching ' +
         'repeated calls.',
