@@ -145,11 +145,34 @@ const ROLES: Role[] = [
     where: 'The Amazon app',
     lines: [
       // The number leads now. It was 14 words back from the front of the sentence.
-      'Cut add-to-cart latency from 300ms to under 50ms with optimistic updates, in the library ' +
-        'the detail page loads.',
+      //
+      // ── AND THE SECOND HALF EXISTS NOW, which it did not for two years of this bullet's life.
+      // It read "…in the library the detail page loads" and stopped — a latency fix on one surface.
+      // What was missing is the two facts that make it a senior line, both confirmed 2026-07-30 while
+      // judging the story bank: the interaction had NO DESIGNER ASSIGNED and I authored the design
+      // myself as the frontend engineer (choreography, easing curves, timing, and — the part a
+      // handed-over spec cannot supply — what holds up at frame rate on a page already doing a lot),
+      // and it shipped as a COMPONENT every add-to-cart surface reuses rather than a fix on one page.
+      // The reuse is the half a reader should notice: a tuned interaction that is inherited rather
+      // than reimplemented is the same build-once pattern as the registry and the token resolver
+      // below, on a customer surface instead of on tooling.
+      // "designed the interaction" rather than "designed the animation" — the animation is the visible
+      // part and the design was the whole interaction. Costs one printed line; the sheet had 2.5 free.
+      'Cut add-to-cart latency from 300ms to under 50ms with optimistic updates, and designed ' +
+        'the interaction as a component every add-to-cart surface reuses.',
       'Shipped the first Rio Design Tokens, the token layer the Amazon app themes from.',
     ],
     more: [
+      // The design half, at screen length. The printed bullet has room for "designed the interaction
+      // as a component every add-to-cart surface reuses" and no room for WHY that mattered — which is
+      // the feasibility argument: motion design and runtime cost decided together, in one head, so the
+      // curve chosen was already a curve that shipped. That is the whole case for the engineer doing
+      // the design rather than receiving a spec, and it is the only place on this site where the
+      // "I design and I build" claim is demonstrated on a customer surface instead of on tooling.
+      'No designer was assigned to that interaction, so I designed it — the choreography, the easing ' +
+        'curves and the timing — and reviewed it with a principal designer. The part a handed-over ' +
+        'spec cannot carry is feasibility: what the motion should say and what holds up at frame rate ' +
+        'on a busy page were the same decision, made once. It launched on the homepage and Buy Again.',
       'Rio Design Tokens is what makes the app themeable, consistent and accessible at once \u2014 ' +
         'one source of truth for colour, type and spacing across iOS, Android and web, instead of ' +
         'three teams agreeing by hand.',
