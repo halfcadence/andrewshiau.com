@@ -127,21 +127,62 @@ import LockedRow from '../components/LockedRow.astro';
              rendered "github ↗ ↗" — and the canelé link is internal so it gets none.
              `/writing/canele/` is a page that already exists (the explainer /work/aping/ and
              /work/explain/ both embed), so the word is a real link rather than a claim.
-             THE BAND NAMES ARE EXPANDED FROM THE HANDLES — `panavallenato` and `_baobella` —
-             and that is a guess at their display spelling, flagged on the chooser and still
-             unverified. If either band spells it differently, this is the line to fix. -->
+             THE BAND NAMES ARE CONFIRMED BY THEIR MEMBER, not derived from the handles.
+             They shipped for one deploy as `Pana Vallenato` and `Baobella`, expanded from
+             `panavallenato` and `_baobella` — Baobella was right and the other was not: it is
+             **Vallenato Panamericano**, which the handle contracts rather than abbreviates, so
+             no amount of care with the URL would have produced it. The name is a fact about
+             someone else's band; it can only be checked by asking, which is why it shipped
+             flagged as a guess rather than silently. -->
+        <!-- The `(…)` pair holds the two names, so the sentence still reads as one fact with its
+             sources attached — see the note on the row above for why they are links at all. -->
+        <!-- The sentence's shape is load-bearing at this length: `Vallenato Panamericano` is 22
+             characters against `Pana Vallenato`'s 14, so the value is one line longer on the
+             phone than the version measured over the chooser. Re-measured after the change
+             rather than assumed — the panel is the one block whose height is permanently on
+             screen, so a name change is a layout change here.
+             AND THE NAME HOLDS ITSELF TOGETHER — `Vallenato&nbsp;Panamericano`. Measured, at
+             every width including 1280: the two words broke across lines, so the band read
+             "Vallenato /" then "Panamericano ↗" with the link's underline split in half and the
+             external-link glyph orphaned onto the second line beside the wrong word. A band's
+             name is one object; a line break inside it makes it look like two list items, which
+             is the same class of error as the `,` that shipped with no space after it — the
+             difference between what the markup says and what a line-breaker does to it.
+             The `&nbsp;` is INSIDE the anchor, so the whole name is one unbreakable run and the
+             `↗` that `a[target]` appends stays attached to it. This is why `Baobella` needs no
+             such treatment (one word cannot break) and why the fix belongs on the name rather
+             than on `.pv` — `white-space:nowrap` on the value would stop the SENTENCE wrapping
+             and blow the 62ch measure out to a horizontal scroll.
+             The cost is one more line in the panel at narrow widths, because 22 unbreakable
+             characters can no longer be split across the fold. Verified at 320: the value takes
+             the extra line and the document still does not overflow (320 = 320). -->
         <div class="prow">
           <span class="pk">Also</span>
-          <!-- THE COMMA CARRIES ITS OWN SPACE — `,&nbsp;` and not a newline after it.
-               Caught by reading the LIVE html, not the source: the build's comment-stripping and
-               minify pass collapses the whitespace between the two anchors, so
-               `Pana Vallenato</a>,\n<a …>Baobella` shipped as `Pana Vallenato</a>,<a…` and the
-               rendered line read "Pana Vallenato,Baobella". A newline is a space in HTML right up
-               until something normalises it away, which is why the separator has to be a
-               character rather than a line break. Both anchors stay on their own source lines for
-               readability; the significant space is now explicit. -->
+          <!-- THE COMMA CARRIES ITS OWN SPACE, AND IT IS A BREAKABLE ONE — `&#32;`, not `&nbsp;`.
+               Two separate bugs met on this line and the second was caused by the fix for the
+               first, which is why the history is here.
+               1. The space vanished. Astro's `compressHTML` (on by default — it isn't set in
+                  astro.config.mjs) collapses the whitespace between the two anchors, so
+                  `…</a>,\n<a …>Baobella` shipped as `…</a>,<a…` and the line rendered
+                  "Vallenato Panamericano,Baobella". A newline IS a space in HTML right up until
+                  something normalises it away, so the separator has to be a character.
+               2. `&nbsp;` fixed that and broke 320px. With `Vallenato&nbsp;Panamericano` holding
+                  the name together, a NON-breaking space after the comma chained the two into one
+                  unbreakable 32-character run — `Vallenato Panamericano, Baobella` with no legal
+                  break anywhere in it. Measured on the built page: 364px of content in a 320px
+                  window, a horizontal scroll on a small phone. The name alone is 213px and fits
+                  a 308px column with room; it was the WELD that overflowed, not the name.
+               `&#32;` is a literal space written as an entity: the compressor leaves it alone
+               because it is a character reference rather than whitespace, and the line-breaker
+               treats it as an ordinary space because that is what it decodes to. So the comma
+               keeps its space and the two names stay independently breakable.
+               Verified at 320/340/360/375/390/500/1280 after the change — no overflow at any of
+               them, and the name still never splits. -->
+          <!-- Both anchors stay on their own source lines for readability; every space that
+               matters on this line is now an explicit character, because a newline here is not
+               one. -->
           <span class="pv">Playing in two Seattle bands
-            (<a href="https://www.instagram.com/panavallenato/" target="_blank" rel="noopener">Pana Vallenato</a>,&nbsp;<a
+            (<a href="https://www.instagram.com/panavallenato/" target="_blank" rel="noopener">Vallenato&nbsp;Panamericano</a>,&#32;<a
               href="https://www.instagram.com/_baobella/" target="_blank" rel="noopener">Baobella</a>) and baking <a
               href="/writing/canele/">canelés</a>.</span>
         </div>
