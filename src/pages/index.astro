@@ -92,8 +92,58 @@ import LockedRow from '../components/LockedRow.astro';
                one surface the tool builds against; what it actually builds against is a set of
                design systems, and naming the surface undersold the scope by a factor of the
                number of systems. -->
-          <span class="pv">Design systems at Amazon, building a vibe design tool for Amazon
-            design systems.</span>
+          <!-- ONE CLAUSE (chooser: andrewshiau-mobile-meta-and-currently, Q2/02 — annotation:
+               "/proofs for this i think it reads a bit clumsy").
+               It read "Design systems at Amazon, building a vibe design tool for Amazon design
+               systems." Twelve words that said DESIGN SYSTEMS twice and AMAZON twice: the second
+               clause restated the first and then added the tool, so one of the two was carried
+               entirely by the other. That is the clumsiness — not a word choice, a duplicated
+               noun. The comma made it worse by joining them into one sentence whose participle
+               has no subject ("Design systems…, building…" — who is building?).
+               What the shorter version drops is "I work on design systems" as a standing claim.
+               A reader gets it from the tool's subject, the h1 above already says frontend
+               engineer, and three case studies plus /resume/ say it outright — so the row spends
+               its line on the one fact that is only here: what I am doing now. Five wordings
+               were rendered at phone scale and this is the one with every noun appearing once.
+               Also two lines on the phone instead of three, in the panel that never leaves the
+               screen — which is height THE BOX spends to stay pinned. -->
+          <span class="pv">Building a vibe design tool for Amazon's design systems.</span>
+        </div>
+        <!-- THE SECOND ROW — the facts that aren't work (chooser Q3/03; annotation: "maybe we can
+             add like. also, playing in two seattle bands (link to instas …) and baking caneles").
+             ITS OWN ROW, NOT APPENDED TO `Currently`. The cheaper option was one more sentence in
+             the row above, and it was rejected by looking: a label reading `Currently` covering
+             both the job and the bands makes the label vague, and the row then answers two
+             questions at once. `Also` is a different ask, so it gets the device the panel already
+             has — a second `.prow`, no new class, no new mechanism. The alternative shape (a row
+             per fact, `Playing` and `Baking`) put a one-word value under its own label, which is
+             a lot of structure for a pastry.
+             It costs ~112px of the pinned panel, which is the real trade and the reason this was
+             a chooser rather than a call: the panel is the one block whose height is permanently
+             on screen. Placed after `Currently` and before `Contact`, so reading order stays
+             what-I-do → who-I-am-otherwise → how-to-reach-me.
+             THE LINKS BEHAVE BY THEMSELVES. Both Instagram links take the `↗` that
+             `a[target]` appends in CSS — not written by hand, which is the bug that once
+             rendered "github ↗ ↗" — and the canelé link is internal so it gets none.
+             `/writing/canele/` is a page that already exists (the explainer /work/aping/ and
+             /work/explain/ both embed), so the word is a real link rather than a claim.
+             THE BAND NAMES ARE EXPANDED FROM THE HANDLES — `panavallenato` and `_baobella` —
+             and that is a guess at their display spelling, flagged on the chooser and still
+             unverified. If either band spells it differently, this is the line to fix. -->
+        <div class="prow">
+          <span class="pk">Also</span>
+          <!-- THE COMMA CARRIES ITS OWN SPACE — `,&nbsp;` and not a newline after it.
+               Caught by reading the LIVE html, not the source: the build's comment-stripping and
+               minify pass collapses the whitespace between the two anchors, so
+               `Pana Vallenato</a>,\n<a …>Baobella` shipped as `Pana Vallenato</a>,<a…` and the
+               rendered line read "Pana Vallenato,Baobella". A newline is a space in HTML right up
+               until something normalises it away, which is why the separator has to be a
+               character rather than a line break. Both anchors stay on their own source lines for
+               readability; the significant space is now explicit. -->
+          <span class="pv">Playing in two Seattle bands
+            (<a href="https://www.instagram.com/panavallenato/" target="_blank" rel="noopener">Pana Vallenato</a>,&nbsp;<a
+              href="https://www.instagram.com/_baobella/" target="_blank" rel="noopener">Baobella</a>) and baking <a
+              href="/writing/canele/">canelés</a>.</span>
         </div>
       </div>
 

@@ -1089,9 +1089,36 @@ figure.demo.hang video{width:100%}
    thing. The 2px ink rule that opened it and the hairline under it are both gone. */
 .pin .pled{margin-top:var(--group)}
 .pin .prow{display:block;max-width:62ch}
+/* TWO ROWS NOW, so the ledger needs an interval between them (chooser Q3/03 — the `Also` row).
+   `--group`, which is what the page uses between two groups everywhere else, and it is the same
+   value `.pin .pfoot` takes below: a label-and-value pair is one object, and 14px binds the pair
+   while 56px separates one pair from the next. That 1:2 is the mechanism the label rule relies on
+   (see `line-height:1.2` above), so a smaller gap here would make the two rows read as one
+   four-line block with two labels in it. Stated as `+`, so a one-row ledger is unaffected —
+   every case-study panel still renders a single `.prow` with no interval to collapse. */
+.pin .prow + .prow{margin-top:var(--group)}
 /* THE LABEL, one device: `Currently`, `Contact`, `Elsewhere` — 11px tracked caps, faint. */
 .pin .pk,.pin .pfoot{display:block;margin-bottom:var(--tight)}
 .pin .pv{color:var(--dim)}
+/* LINKS INSIDE THE VALUE — the `Also` row's two bands and the canelé explainer (chooser Q3/03).
+   This is the first `.pv` that contains a link, and without the rule they would take the bare
+   `a{color:var(--accent)}` default: accent AT REST, which breaks the site's one link idiom
+   (`--line` underline, ink type, accent on hover — see ONE LINK TREATMENT above) and makes the
+   only coloured thing on the panel something that isn't responding to the reader.
+   `p a` doesn't reach them, and that is the trap this rule exists for: the idiom is written
+   against `p a`, but `.pv` is a `<span>`, so a link in the ledger silently falls out of the
+   system that every other link on the site is in. Same reason `.colo a` exists — the colophon's
+   values are spans too — and this is character-for-character that rule, applied to the panel.
+   Copying it rather than widening `.colo a`'s selector to cover both: they are two different
+   blocks, and one selector spanning them would mean a later change to either has to be checked
+   against the other. Ink at rest also keeps the value legible as prose — three accent-coloured
+   phrases in a two-line sentence would read as a list of links rather than a sentence with
+   links in it. `--dim` from `.pv` is deliberately NOT inherited here: a link is an ink-weight
+   object in this system, which is what separates it from the sentence around it. */
+.pin .pv a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);
+  text-decoration-thickness:1px;text-underline-offset:4px;
+  transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
+.pin .pv a:hover{color:var(--accent);text-decoration-color:var(--ink)}
 
 .pin .pfoot{margin-top:var(--group)}
 /* Contact and Elsewhere, side by side — two groups of alternatives, which is what the pair
@@ -1297,14 +1324,48 @@ figure.demo.hang video{width:100%}
    something to select. The visual order is a layout concern; the reading order isn't. */
 .entry .em{display:flex;flex-direction:row-reverse;align-items:center;
   justify-content:flex-start;gap:8px;color:var(--faint);margin:0;flex:none;text-align:right}
-/* WRAPPED, the meta lands on its own line and is indented to the TITLE's edge (`3ch` — the
-   numeral plus its space, the same indent the gate uses), so the row still reads as one object
-   rather than as two unrelated lines. `flex-basis:100%` forces the wrap to happen at the meta
-   rather than mid-marker, which is what was splitting the glyph from its own word at 390px.
-   ≤560px, measured: that is where "PowerPoint Pen Toolbox" plus "Prototype study" plus the
-   glyph stops fitting one line at 15px in a 9px cell. */
-@media(max-width:560px){
-  .entry .em{flex:0 0 100%;justify-content:flex-end;text-align:left;padding-left:3ch}
+/* WRAPPED, the meta lands on its own line — and the breakpoint is 457px, not 560
+   (chooser: andrewshiau-mobile-meta-and-currently, Q1/02).
+   THE 3CH INDENT IS GONE, AND SO IS ~100PX OF THE RANGE THIS RULE USED TO COVER.
+   Annotation: "i dont love this indent on new line treatment it reads kind of lazy and
+   unconsidered … 1. removing completely 2. something with better alignment. this is on
+   mobile. on desktop its ok." It read unconsidered because it was answering a problem that
+   wasn't present at the width it was seen at, and the measurement is the whole argument:
+     the widest row — "PowerPoint Pen Toolbox" + "Prototype study" + the glyph — needs
+     402px of column: 27 numeral + 198 title + 16 leader floor + 135 meta + 18 glyph + 8 gap.
+     `.wrap` pads 28px either side, so the column is `viewport − 56` and 402px of column is
+     a 458px viewport. At the annotated 500px the column is 444 — 42px of slack.
+   So ≤560 fired about 100px early and bought a second line on all nine rows for nothing.
+   Verified in the live browser at 500px, both ways: with the meta forced back onto the line
+   every row was ONE line and `scrollWidth` stayed at 500 against a `clientWidth` of 500 —
+   no overflow, which is the failure the wrap exists to prevent. The old comment claimed 560
+   was measured; it was measured at 390px, where the wrap IS needed, and then generalised.
+   The threshold was found by shrinking the column and watching which row broke first:
+   402 holds, 400 wraps PowerPoint, 360 wraps Stores Designer, 340 wraps the Method row.
+   Hence `max-width:458px` — stated as the measurement rather than rounded to a friendly
+   number that would be wrong by 20px in one direction.
+   IT WAS 457, AND 458 IS A ONE-PIXEL BUG THE BUILT PAGE CAUGHT. Swept 456–470 against the
+   deployed CSS: at 458 the widest row wraps on its OWN — `flex-wrap` runs out of room a
+   pixel before the query fires — and with the query still inactive the meta keeps
+   `justify-content:flex-start`, so the marker landed at x=189 in the middle of the line
+   while the other eight sat at the right edge. One row, one width, and it is exactly the
+   ragged thing this rule exists to prevent. The wrap and the alignment that handles a wrap
+   have to switch on at the SAME width, so the query starts where the first natural wrap
+   does. Verified after the change: 459 and up → 0 wrapped, 458 and below → 9 wrapped and
+   every marker on the right edge, no overflow at any width down to 320.
+   `flex-basis:100%` still forces the wrap at the meta rather than mid-marker, which is what
+   was splitting the glyph from its own word at 390px.
+   AND THE WRAPPED LINE IS RIGHT-ALIGNED NOW (chooser Q1/04's alignment, kept for the range
+   where the wrap survives). `padding-left:3ch` put the meta on the title's axis, which was
+   wrong twice over: the Method row carries no numeral, so its title starts at the page's
+   edge and the "aligned" meta hung 3 characters INSIDE the title it was supposed to sit
+   under — visible in the annotation's own screenshot. And the alignment the row is actually
+   built on is the right edge: the leader (`.ends`) exists to push the marker there, and at
+   every width above this breakpoint nine markers form a column at the right margin. Keeping
+   that column through the wrap means the phone gets the same device the desktop has, so
+   nothing has to justify a 3ch offset to a moving target. */
+@media(max-width:458px){
+  .entry .em{flex:0 0 100%;justify-content:flex-start;text-align:right;padding-left:0}
 }
 /* No `·`. The separator earns its place between two words; here the glyph IS the boundary,
    and `row-reverse` would in any case put the dot on the wrong side of the pair. */
