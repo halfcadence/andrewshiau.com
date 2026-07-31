@@ -1363,9 +1363,60 @@ figure.demo.hang video{width:100%}
    built on is the right edge: the leader (`.ends`) exists to push the marker there, and at
    every width above this breakpoint nine markers form a column at the right margin. Keeping
    that column through the wrap means the phone gets the same device the desktop has, so
-   nothing has to justify a 3ch offset to a moving target. */
+   nothing has to justify a 3ch offset to a moving target.
+   ── AND BELOW THIS WIDTH THE ROW DOESN'T WRAP AT ALL ANY MORE. THE ARTIFACT NOUN GOES AND THE
+   MARK STAYS (annotation: "what if the mobile site put only the icon rather than agent spec +
+   icon so it wouldn't need a second row"). Right, and it is the better trade at this width:
+   MEASURED — with `.smeta` out, the row holds ONE line down to a 260px column, which is a
+   316px viewport. No phone in use is narrower (the iPhone SE/mini floor is 320), so the wrap
+   this rule was written for stops happening at any width a reader actually has. The declaration
+   above is kept rather than deleted: it is what handles a 300px window and a 200% page zoom,
+   where the title alone finally runs out of room.
+   WHAT IT COSTS, stated because it is a real loss and not a free win: the artifact type —
+   `Agent spec`, `Design system tool`, `Photo set` — is the one fact in the meta column, and on
+   the phone it is now unavailable rather than merely quiet. The mark that replaces it carries a
+   DIFFERENT fact (which half of the practice), so this is not a shorter version of the same
+   thing. The reason it is acceptable here and not on the desktop: every row's type is stated
+   again, in full, in the ledger at the top of the page it links to (`metaOf` in
+   experiments.ts asserts they are character-for-character identical), so the phone reader loses
+   nine labels and no information — and gains nine rows that read as one line each, which is
+   what an index is for. The desktop keeps both because it has the room; nothing about the
+   desktop row changes.
+   `visibility:hidden` + `width:0`, NOT `display:none`. Same reasoning as `.sw` twenty lines
+   below: `display:none` drops a node from the accessibility tree, and this text is the only
+   place the artifact type is spoken on this page. Hidden-but-present, it still reaches a screen
+   reader and still answers a find-in-page; sized to nothing, the flex row measures the glyph
+   alone, so the mark lands exactly where a marker-only row should put it.
+   `.side + .smeta::before` is already suppressed on index rows (see below), so there is no
+   orphaned `·` to clean up — the separator that would have been left behind by removing the
+   word it separates was never rendered here in the first place.
+   AND `.em` GOES BACK TO `flex:none` HERE — hiding the word is only half the change, and
+   shipping the other half without this was a measured bug. `flex:0 0 100%` FORCES the meta onto
+   its own line whether or not it has anything visible in it, so with just the mark left the row
+   still spent a second line, on 18px of glyph: 32 line-boxes across the nine rows at 458px
+   against 23 at 459px. The icon-only row was longer than the row it was meant to shorten, which
+   is the opposite of the ask. `flex:none` puts the mark back on the title's line and the leader
+   pushes it to the right edge, exactly as it does above the breakpoint.
+   NOTHING FORCES A WRAP ANY MORE, and that is deliberate rather than an omission: `.entry` is
+   still `flex-wrap:wrap` with `min-width:0` on the title, so at a width where even the title
+   plus an 18px mark cannot fit — a 200% zoom, a 320px window with the longest title — the mark
+   drops to its own line on its own. The rule states where it lands in that case and lets the
+   flexbox decide when the case has arrived, instead of asserting a wrap at a width where there
+   is 200px of room. That inversion is the whole lesson of this breakpoint: the old ≤560 rule
+   also asserted a wrap the content didn't need.
+   `margin-left:auto` IS WHAT PUTS THE DROPPED MARK ON THE RIGHT, and it replaces a
+   `text-align:right` that could not do it. Caught in the 320px render, where "PowerPoint Pen
+   Toolbox" — the longest title — pushes the mark to a second line: `text-align` aligns INLINE
+   content inside a box, and `.em` is a flex ITEM whose box is only as wide as its content, so
+   there was no slack inside it to align and the mark sat at the left margin under the title.
+   Every other row was unaffected, so this is one row at one width, which is exactly how the
+   3ch-indent defect this rule replaced also presented. `auto` margin absorbs the free space in
+   the flex LINE, which is where the space actually is. `text-align:right` is kept alongside it
+   for the range above where `.smeta` is visible and there IS inline content to align. */
 @media(max-width:458px){
-  .entry .em{flex:0 0 100%;justify-content:flex-start;text-align:right;padding-left:0}
+  .entry .em{flex:none;justify-content:flex-start;text-align:right;padding-left:0;
+    margin-left:auto}
+  .entry .em .smeta{visibility:hidden;width:0;overflow:hidden;white-space:nowrap}
 }
 /* No `·`. The separator earns its place between two words; here the glyph IS the boundary,
    and `row-reverse` would in any case put the dot on the wrong side of the pair. */
