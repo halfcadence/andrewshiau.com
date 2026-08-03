@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import PanelHead from '../components/PanelHead.astro';
 import spec from '../../method/method.md?raw';
 import builderSpec from '../../method/builder.md?raw';
+import pageSource from './method.astro?raw';
 
 // Hand-written copy for a reader, ASSERTED against the spec (chooser pick 04-03). The
 // alternative was rendering method.md through a markdown renderer: zero drift, but it
@@ -11,9 +12,19 @@ import builderSpec from '../../method/builder.md?raw';
 // edited, and the sentences it shares with the spec are checked at build time. A typo in
 // the spec breaks the build; that is the intended behaviour.
 //
-// Boundary of what this checks: the one sentence this page still quotes verbatim, not the
-// tone of the paragraphs around it. Whitespace is collapsed because the markdown wraps
-// mid-sentence.
+// Boundary of what this checks: the sentences listed in SHARED, each named with its source
+// file — not the tone of the paragraphs around them. Whitespace is collapsed because the
+// markdown wraps mid-sentence.
+//
+// IT CHECKS BOTH DIRECTIONS. spec→needle catches the spec drifting away from the page;
+// page→needle catches the page LOSING the copy, which is the failure that produced this
+// check in the first place (the A/A half shipped and the red half went missing from `src/`
+// entirely). Verified in both directions: perturbing a character inside a needle in
+// builder.md throws, and replacing the item-3 text with "DELETED THE WHOLE CLAIM." while
+// leaving SHARED untouched used to build clean and deploy a page with neither claim on it.
+// The page side reads this file's own source, so the needle has to be present as source
+// text — which is why the needles are written in the STRAIGHT-quote form the markdown uses
+// and the page's rendered curly forms are irrelevant to it.
 //
 // The thesis sentence used to be checked here too. It came out when the opening paragraphs
 // were reset in plain first person: the page now states the same idea as procedure ("I ask
@@ -36,20 +47,39 @@ import builderSpec from '../../method/builder.md?raw';
 // against the root spec would have been a check that cannot pass, and leaving it unasserted
 // would have been a page sentence with nothing behind it. Each entry names its own file, so
 // the failure message says which file to edit.
-const SHARED: Array<[string, string, string]> = [
+// [source file, its text, the needle in the SPEC, the needle on the PAGE]. The two needles
+// differ where the page says the same thing in first person, which is most of them: the spec
+// is written as instruction ("so watch it fail"), the page as practice ("so I watch it fail").
+// Each needle is the LOAD-BEARING CLAUSE, not the premise. The check used to match only
+// 'A check that has only ever passed proves nothing' — so builder.md could be edited to read
+// 'so do not bother watching it fail' and the build stayed green with the page still printing
+// the opposite. Verified: that edit produced 0 [ERROR] lines and a clean `Complete!`.
+const SHARED: Array<[string, string, string, string]> = [
   ['method/method.md', spec,
-    'It encodes judgment — how to decide — so a fresh agent can run the procedures rather than recite the facts.'],
-  // Straight quotes and straight apostrophes: the needle is copied out of the markdown, never
-  // out of the rendered page. The curly forms this page prints are not in the source files and
-  // fail the check.
+    'It encodes judgment — how to decide — so a fresh agent can run the procedures rather than recite the facts.',
+    'It encodes <b>how to decide</b>, so a fresh agent can run the procedures rather than recite the facts.'],
+  // Straight quotes and straight apostrophes: the spec needle is copied out of the markdown,
+  // never out of the rendered page. The curly forms this page prints are not in the source
+  // files and fail the check.
   ['method/builder.md', builderSpec,
-    'A check that has only ever passed proves nothing'],
+    'proves nothing, so watch it fail against the unfixed code',
+    'proves nothing, so I watch it fail against the unfixed code'],
   ['method/builder.md', builderSpec,
+    'A/A is the arm that must not move; when it moves, the comparator is reading noise',
     'A/A is the arm that must not move'],
 ];
-for (const [file, src, s] of SHARED) {
-  if (!src.replace(/\s+/g, ' ').includes(s)) {
-    throw new Error(file + ' no longer contains a sentence /method/ quotes:\n  ' + s);
+// The page side reads this file's own source, so the frontmatter — which contains the SHARED
+// array itself — MUST be stripped first. Without it every needle matches its own declaration
+// and the page-side direction is a tautology, which is the same defect as an A/A arm that
+// compares a file to itself.
+const BODY = pageSource.slice(pageSource.indexOf('---', 3) + 3).replace(/\s+/g, ' ');
+for (const [file, src, specNeedle, pageNeedle] of SHARED) {
+  if (!src.replace(/\s+/g, ' ').includes(specNeedle)) {
+    throw new Error(file + ' no longer contains a sentence /method/ quotes:\n  ' + specNeedle);
+  }
+  if (!BODY.includes(pageNeedle)) {
+    throw new Error('/method/ no longer prints the sentence it asserts against ' + file
+      + ' — the claim was deleted from the page, not from the spec:\n  ' + pageNeedle);
   }
 }
 ---
