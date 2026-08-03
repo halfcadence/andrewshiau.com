@@ -6,3 +6,4 @@ dist/
 npm-debug.log*
 Résumé — Andrew Shiau.pdf
 *.pdf
+tests/e2e/fixtures/

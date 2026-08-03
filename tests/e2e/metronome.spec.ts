@@ -1,0 +1,85 @@
+import { test, expect } from '@playwright/test';
+
+// The metronome's e2e truth is the ?e2e hook: the page records every scheduled
+// tick with its audio-clock time and voice. DOM polling can't see 10 ms of
+// scheduling jitter; the tick log can.
+
+test('ticks land on the audio-clock grid at the set tempo', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  await page.getByTestId('bpm').fill('120');
+  await page.getByTestId('bpm').blur();
+  await page.getByTestId('metro-toggle').click();
+  await page.waitForTimeout(3000);
+  await page.getByTestId('metro-toggle').click();
+
+  const ticks: Array<{ time: number; voice: string; n: number }> =
+    await page.evaluate(() => (window as any).__mt.ticks);
+
+  // 3 s at 120 bpm ≈ 6 quarters (plus the lookahead's head start).
+  expect(ticks.length).toBeGreaterThanOrEqual(5);
+
+  // Spacing: every gap is 0.5 s on the AUDIO clock, exact to the float — the
+  // scheduler computes times, it doesn't accumulate them.
+  for (let i = 1; i < ticks.length; i++) {
+    expect(ticks[i].time - ticks[i - 1].time).toBeCloseTo(0.5, 3);
+  }
+  // No duplicates, strictly ordered.
+  const ns = ticks.map((t) => t.n);
+  expect(new Set(ns).size).toBe(ns.length);
+});
+
+test('4/4 with eighths: voices cycle down/sub/beat/sub…', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  await page.getByTestId('bpm').fill('160');
+  await page.getByTestId('bpm').blur();
+  await page.locator('#mt-sub-seg button[data-sub="2"]').click();
+  await page.getByTestId('metro-toggle').click();
+  await page.waitForTimeout(3200);
+  await page.getByTestId('metro-toggle').click();
+
+  const ticks: Array<{ voice: string; n: number }> =
+    await page.evaluate(() => (window as any).__mt.ticks);
+  expect(ticks.length).toBeGreaterThanOrEqual(8);
+
+  // 4 beats × 2 subdivisions = 8 ticks per bar: down at 0, beat at even, sub at odd.
+  for (const t of ticks) {
+    const pos = t.n % 8;
+    const want = pos === 0 ? 'down' : pos % 2 === 0 ? 'beat' : 'sub';
+    expect(t.voice).toBe(want);
+  }
+});
+
+test('tap tempo sets the bpm field', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  const tap = page.getByTestId('tap');
+  // Four taps ~500 ms apart → ~120 bpm. Wall-clock taps carry jitter, so the
+  // assertion is a band, not a value.
+  for (let i = 0; i < 4; i++) {
+    await tap.click();
+    if (i < 3) await page.waitForTimeout(500);
+  }
+  const bpm = Number(await page.getByTestId('bpm').inputValue());
+  expect(bpm).toBeGreaterThan(100);
+  expect(bpm).toBeLessThan(140);
+});
+
+test('beat indicator shows the bar length that was chosen', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  await page.locator('#mt-beats-seg button[data-beats="3"]').click();
+  await page.getByTestId('metro-toggle').click();
+  await page.waitForTimeout(1500);
+  // 3 visible dots, 4 hidden.
+  const visible = await page.locator('#mt-beatrow circle:not(.off)').count();
+  expect(visible).toBe(3);
+  await page.getByTestId('metro-toggle').click();
+});
+
+test('settings persist across a reload', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  await page.getByTestId('bpm').fill('144');
+  await page.getByTestId('bpm').blur();
+  await page.locator('#mt-beats-seg button[data-beats="5"]').click();
+  await page.reload();
+  await expect(page.getByTestId('bpm')).toHaveValue('144');
+  await expect(page.locator('#mt-beats-seg button[data-beats="5"]')).toHaveAttribute('aria-pressed', 'true');
+});

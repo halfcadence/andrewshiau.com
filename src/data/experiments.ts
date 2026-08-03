@@ -212,6 +212,21 @@ export const experiments: Entry[] = [
   },
   {
     n: '05',
+    title: 'Metrotuner',
+    blurb:
+      'A chromatic tuner and a metronome on one page. Pitch detection runs in the ' +
+      'browser; the microphone signal never leaves it.',
+    // 'Web instrument', not 'Web app' — every meta value names a kind of artifact
+    // ("Agent skill", "Static site"), and "app" is the one noun that describes nothing.
+    meta: 'Web instrument',
+    href: '/metrotuner/',
+    // `both`: the pitch detector and the lookahead scheduler are engineering with
+    // asserted accuracy bounds; the meter, the one-hue in-tune state and the controls
+    // are design decisions made on a proof sheet.
+    side: 'both',
+  },
+  {
+    n: '06',
     title: 'Photography',
     blurb:
       'Shot with iPhones, a Fuji X100, and a Leica Q.',
