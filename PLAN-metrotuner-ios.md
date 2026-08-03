@@ -21,7 +21,7 @@ Before comparing frameworks, the four facts that constrain every option:
 
 1. **Mic in a webview works.** WKWebView supports `navigator.mediaDevices.getUserMedia`
    since iOS 14.3 (verified against webkit.org). Capacitor 8 targets iOS 15+, so every
-   supported device has it. The existing autocorrelation tuner runs unmodified in the
+   supported device has it. The existing MPM tuner runs unmodified in the
    webview, in the foreground.
 2. **Foreground metronome timing in a webview is fine.** The lookahead scheduler already
    schedules clicks on `AudioContext.currentTime`, which is sample-accurate once
@@ -52,7 +52,7 @@ native to justify the app's existence. That asymmetry drives the recommendation.
 
 ### Option A — Capacitor 8 wrapping the existing page
 
-- **Carries over:** effectively everything. The TS source, the autocorrelation, the UI,
+- **Carries over:** effectively everything. The TS source, the pitch detector, the UI,
   the reference tone mode, the A4 calibration. Capacitor serves the built bundle from a
   local custom scheme inside WKWebView; zero-dependency vanilla TS is the best possible
   input for this — no framework adapter work.
@@ -71,7 +71,7 @@ native to justify the app's existence. That asymmetry drives the recommendation.
 
 ### Option B — React Native
 
-- **Carries over:** the math and the logic only — autocorrelation, note mapping, scheduler
+- **Carries over:** the math and the logic only — pitch detection, note mapping, scheduler
   arithmetic, calibration. All UI is rewritten in RN components. Web Audio does not exist
   in RN; the audio layer is rebuilt on a third-party package (e.g. Software Mansion's
   `react-native-audio-api`, which reimplements the Web Audio API natively — status as of
@@ -85,7 +85,7 @@ native to justify the app's existence. That asymmetry drives the recommendation.
 
 ### Option C — Native SwiftUI + AVAudioEngine rewrite
 
-- **Carries over:** the algorithms as pseudocode. Autocorrelation is ~100 lines and ports
+- **Carries over:** the algorithms as pseudocode. The MPM detector is ~100 lines and ports
   to Swift in an evening (or gets replaced by Accelerate/vDSP calls). The metronome
   becomes *simpler* than the web version: `AVAudioPlayerNode.scheduleBuffer(at:)` gives
   sample-accurate future scheduling directly; the lookahead hack exists only because Web
