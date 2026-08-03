@@ -20,7 +20,7 @@ test('446 Hz mic reads A4 SHARP (+); calibrated to 446 it reads in tune', async 
 
   // The rendered cents string carries the sign the user reads.
   await expect(page.getByTestId('cents')).toHaveText(/^\+/);
-  await expect(page.locator('#mt-needle')).not.toHaveClass(/intune/);
+  await expect(page.getByTestId('note')).not.toHaveClass(/intune/);
 
   // ── the A/B pair: at A4=446 the same input is 0 cents ──
   await page.getByTestId('a4').fill('446');
@@ -30,5 +30,5 @@ test('446 Hz mic reads A4 SHARP (+); calibrated to 446 it reads in tune', async 
   const r2 = await page.evaluate(() => (window as any).__mt.reading);
   expect(r2.name).toBe('A');
   expect(Math.abs(r2.cents)).toBeLessThan(3);
-  await expect(page.locator('#mt-needle')).toHaveClass(/intune/);
+  await expect(page.getByTestId('note')).toHaveClass(/intune/);
 });

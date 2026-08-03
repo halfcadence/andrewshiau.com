@@ -55,21 +55,16 @@ import PanelHead from '../components/PanelHead.astro';
         <figure class="mt-gauge c1-12" aria-hidden="true">
           <!-- The meter. ±50 cents maps to ±60°; ticks at 0 and ±25/±50. All strokes
                currentColor so the drawing flips with the scheme, like MarkFigure. -->
+          <!-- CHOOSER PICKS APPLIED (metrotuner-appearance, 2026-08-03): Q1/05 "dot on
+               the arc" — the needle line and the ±25/±50 ticks are gone; the site's disc
+               alone rides the arc, the mark's own vocabulary doing the pointing. Q2/02
+               "the invert" — in tune, the note reading flips to selection colours (see
+               .mrn.intune); the dot stays ink, so colour is never the state's carrier. -->
           <svg viewBox="0 0 320 184" id="mt-dial">
-            <!-- the arc -->
             <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--line)" stroke-width="1.5"/>
-            <!-- cents ticks: ±50 at ±60°, ±25 at ±30°, centre at 0° -->
-            <line x1="50.9" y1="97" x2="57.9" y2="101"   stroke="var(--faint)" stroke-width="1.5"/>
-            <line x1="97"   y1="50.9" x2="101" y2="57.9" stroke="var(--faint)" stroke-width="1.5"/>
-            <line x1="223"  y1="50.9" x2="219" y2="57.9" stroke="var(--faint)" stroke-width="1.5"/>
-            <line x1="269.1" y1="97" x2="262.1" y2="101" stroke="var(--faint)" stroke-width="1.5"/>
-            <!-- the centre tick — id'd because the in-tune state doubles its weight -->
             <line id="mt-tick" x1="160" y1="26" x2="160" y2="42" stroke="var(--ink)" stroke-width="1.5"/>
-            <!-- the needle: a line with the site's disc at its tip. Rotated by CSS
-                 transform so the motion rides --ease like everything else. -->
             <g id="mt-needle" class="rest">
-              <line x1="160" y1="160" x2="160" y2="44" stroke="currentColor" stroke-width="1.5"/>
-              <circle cx="160" cy="44" r="4.5" fill="currentColor"/>
+              <circle cx="160" cy="34" r="6" fill="currentColor"/>
             </g>
           </svg>
         </figure>
@@ -195,20 +190,20 @@ import PanelHead from '../components/PanelHead.astro';
      field's underline is `.f input`'s own writing line). */
   .mt-gauge{max-width:44ch;margin:0}
   .mt-gauge svg{display:block;width:100%;height:auto;color:var(--ink)}
-  /* The needle rides the one easing. Rest = no signal: faint, straight up. */
+  /* The dot rides the one easing. Rest = no signal: faint, dead centre. */
   #mt-needle{transform-origin:160px 160px;transform-box:view-box;
     transition:transform var(--dur) var(--ease),color var(--dur) var(--ease)}
   #mt-needle.rest{color:var(--line)}
   #mt-needle.live{color:var(--ink)}
-  /* IN TUNE is a state resolving, the same colour role as the quiz's correct answer —
-     and never colour alone: the centre tick doubles its weight at the same moment. */
-  #mt-needle.intune{color:var(--accent)}
-  #mt-tick{transition:stroke-width var(--dur-fast) var(--ease)}
-  .mt-gauge .tuned #mt-tick{stroke-width:3.5}
 
   .mt-read{display:flex;align-items:baseline;gap:2ch;max-width:44ch}
   .mt-read .ends{flex:1}
-  .mrn{color:var(--ink)}
+  /* IN TUNE is the invert (chooser Q2/02): the note reading takes the selection
+     colours — ink field, paper text — the site's strongest non-colour state. The
+     padding is carved out of the margin so the text itself never moves. */
+  .mrn{color:var(--ink);padding:0 .5ch;margin-left:-.5ch;
+    transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
+  .mrn.intune{background:var(--ink);color:var(--paper)}
   .mrc{color:var(--ink)}
   .mrh{color:var(--faint)}
 
@@ -327,7 +322,6 @@ import PanelHead from '../components/PanelHead.astro';
   const hzEl = $('mt-hz');
   const srEl = $('mt-sr');
   const needle = document.getElementById('mt-needle')!;
-  const dialFig = document.querySelector('.mt-gauge')!;
   const micBtn = $('mt-mic') as unknown as HTMLButtonElement;
   const hintEl = $('mt-hint');
 
@@ -353,9 +347,8 @@ import PanelHead from '../components/PanelHead.astro';
     needle.style.transform = `rotate(${deg}deg)`;
     const tuned = Math.abs(c) <= IN_TUNE_CENTS;
     needle.classList.remove('rest');
-    needle.classList.toggle('intune', tuned);
-    needle.classList.toggle('live', !tuned);
-    dialFig.classList.toggle('tuned', tuned);
+    needle.classList.add('live');
+    noteEl.classList.toggle('intune', tuned);
     if (E2E) hook.reading = { ...r };
   }
 
@@ -364,12 +357,12 @@ import PanelHead from '../components/PanelHead.astro';
     // signal — hold the reading briefly so the needle doesn't flap.
     if (++quietFrames < 6) return;
     noteEl.textContent = '—';
+    noteEl.classList.remove('intune');
     centsEl.textContent = '–';
     hzEl.textContent = '';
     needle.style.transform = 'rotate(0deg)';
     needle.classList.add('rest');
-    needle.classList.remove('live', 'intune');
-    dialFig.classList.remove('tuned');
+    needle.classList.remove('live');
     if (E2E) hook.reading = null;
   }
 

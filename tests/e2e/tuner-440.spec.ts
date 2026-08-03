@@ -20,9 +20,8 @@ test('440 Hz mic reads A4 at 0 cents; recalibrating to 446 moves it flat', async
   expect(Math.abs(r1.cents)).toBeLessThan(3);
   expect(Math.abs(r1.freq - 440)).toBeLessThan(1);
 
-  // The needle carries the in-tune state (accent + heavier centre tick).
-  await expect(page.locator('#mt-needle')).toHaveClass(/intune/);
-  await expect(page.locator('.mt-gauge')).toHaveClass(/tuned/);
+  // The in-tune state is the invert on the note reading (chooser Q2/02).
+  await expect(page.getByTestId('note')).toHaveClass(/intune/);
 
   // ── control arm: calibration change must MOVE the reading ──
   await page.getByTestId('a4').fill('446');
@@ -35,7 +34,7 @@ test('440 Hz mic reads A4 at 0 cents; recalibrating to 446 moves it flat', async
   // the in-tune band. Direction asserted, not just difference.
   expect(r2.cents).toBeLessThan(-15);
   expect(r2.cents).toBeGreaterThan(-35);
-  await expect(page.locator('#mt-needle')).not.toHaveClass(/intune/);
+  await expect(page.getByTestId('note')).not.toHaveClass(/intune/);
 });
 
 test('stopping the tuner releases the microphone and clears the reading', async ({ page }) => {
