@@ -69,8 +69,22 @@
   --accent:var(--design);
   --on-accent:#ffffff;   /* type on a filled --accent field: 12.61:1 */
   --guide:rgba(20,48,107,0.06);
-  /* dot cursor, in the accent hue — one token so it flips with the scheme */
-  --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%2314306b"/></svg>');
+  /* ── THE DOT CURSOR IS INK NOW, NOT THE ACCENT (chooser: andrewshiau-cursor-options, 03).
+     The drawing is unchanged — an 18px filled disc, hotspot dead centre. What changed is the
+     fill, and it is the colour rule catching up with the pointer.
+     MEASURED ON THE LIVE INDEX, and the finding is the reason the hue had to go: `cursor` here
+     is declared on `body`, so it INHERITS, and an inherited cursor loses to any cursor the UA
+     declares on the element itself. So the disc never reached the 20 links (they keep the
+     native pointing hand) or the password field (it keeps its I-beam), and it painted the other
+     65 of 181 elements — the paper, the headings, the prose. The accent hue was appearing on
+     everything a reader CANNOT act on and on nothing they can: the exact inverse of the one job
+     colour has on this site (Q4/05).
+     `--ink`, therefore, not `--design`, and the token still flips with the scheme.
+     What this does NOT fix, stated because a partial fix reported as a whole one is the
+     expensive mistake: the disc still replaces the I-BEAM over 62ch of body copy, so the prose
+     still doesn't advertise that it is selectable. That was option 02's win (delete the cursor
+     entirely) and it was not the pick — the delight stays, the misused hue doesn't. */
+  --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23141412"/></svg>');
   /* THE ONE SIZE, and its leading. A token because "15px" appearing in forty rules is
      forty chances to drift; `--step` appearing in forty rules is one number.
      28px of leading on 15px type is 1.87 — loose for a UI and correct for a document.
@@ -146,7 +160,10 @@
     --design:#6ea8ff;    /* 7.64:1 on dark paper */
     --on-accent:#141413; /* type on the lifted field: 7.64:1 (white would be 2.6) */
     --guide:rgba(110,168,255,0.08);
-    --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%236ea8ff"/></svg>');
+    /* the disc, in the dark colourway's ink — see the light block for why it is no longer the
+       hue. `#f0efe8` is `--ink` here; the value is inlined because a data-URI cannot read a
+       custom property. */
+    --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23f0efe8"/></svg>');
   }
 }
 *{box-sizing:border-box}
@@ -158,7 +175,8 @@ html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:var(--mono);font-size:var(--step);line-height:var(--lead);font-weight:400;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-  /* dot cursor — the accent as the pointer */
+  /* dot cursor — an ink disc, and it INHERITS: links and the field keep their native cursors,
+     because a UA-declared cursor beats an inherited one. See `--cursor` for the measurement. */
   cursor:var(--cursor) 9 9, auto}
 /* text highlight — pure invert (ink on paper → paper on ink) */
 ::selection{background:var(--ink);color:var(--paper)}

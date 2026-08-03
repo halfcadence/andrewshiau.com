@@ -285,7 +285,8 @@ The duality did not go away — it stopped being a hue.
   correct-answer quiz state in the explainers. The three that are gone with the rules: the
   lead top-rule of a group, the big set number, and the flagship `.entry.accent` rule.
   A coloured mark that is not interactive is now a **slop finding** — on a page where colour
-  appears only under the cursor, anything else in the hue reads as a link that won't click.
+  appears only in response to the reader's pointer, anything else in the hue reads as a link
+  that won't click. (The pointer itself is ink, not the hue — see Easter eggs.)
   Because `--accent: var(--design)`, changing the hue moves every interactive role in one
   line — never find-and-replace it.
 - **`--build` is a NAME with no colour of its own.** It is `var(--design)`, so the two tokens
@@ -822,8 +823,17 @@ The composition primitives, chosen from the base-blocks + link-style choosers:
 Kept because they're subtle and on-system. Don't add more without reason.
 
 - `::selection` → pure invert (`--ink` bg, `--paper` text).
-- Cursor → a filled dot SVG data-URI in `--design`; it's the `--cursor` token, so it flips
-  with the scheme. It is deliberately **not** kept in sync with the mark: the design half of
+- Cursor → a filled dot SVG data-URI in **`--ink`**; it's the `--cursor` token, so it flips
+  with the scheme. **It MUST NOT be the accent** (chooser: `andrewshiau-cursor-options`, 03).
+  It was `--design` until measured on the live index: `cursor` is declared on `body`, so it
+  inherits, and an inherited cursor loses to a UA-declared one — the disc never reached the
+  **20 links** (native pointing hand) or the password field (I-beam), and painted the other
+  **65 of 181 elements**: paper, headings, prose. The interaction hue was on everything a
+  reader cannot act on and nothing they can, which is Q4/05 running backwards.
+  Still unfixed, on purpose: the disc replaces the **I-beam over 62ch of body copy**, so prose
+  does not advertise that it is selectable. Deleting the cursor entirely was option 02 and was
+  not the pick.
+  It is deliberately **not** kept in sync with the mark: the design half of
   the figure is a hollow ring now, and an 18px ring drawn at cursor weight reads as a smudge
   or disappears over busy ground. The cursor's job is to be visible, not to be the logo.
 - The case-study marker (`.smark-home .mark`) → 90° rotate on hover. It is the one drawing
