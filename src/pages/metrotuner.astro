@@ -35,96 +35,123 @@ import MarkFigure from '../components/MarkFigure.astro';
 
     <div class="mt-pages" id="mt-pages">
       <!-- ── TUNER, the left half / first page ─────────────────────────────── -->
+      <!-- THE CORNERS (chooser: metrotuner-round4, Q1/03): the instrument dead
+           centre, one group per corner, the empty middle IS the composition. The
+           tuner owns two groups, so it uses the two bottom corners and its top
+           corners stay empty — air is placed, not filled. -->
       <section class="mt-half" aria-label="Tuner">
-        <figure class="mt-gauge" aria-hidden="true">
-          <!-- Round-1 picks (metrotuner-appearance): Q1/05 the disc alone rides the
-               arc; Q2/02 in tune, the note reading inverts (see .mrn.intune). -->
-          <svg viewBox="0 0 320 184" id="mt-dial">
-            <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--line)" stroke-width="1.5"/>
-            <line id="mt-tick" x1="160" y1="26" x2="160" y2="42" stroke="var(--ink)" stroke-width="1.5"/>
-            <g id="mt-needle" class="rest">
-              <circle cx="160" cy="34" r="6" fill="currentColor"/>
-            </g>
-          </svg>
-        </figure>
+        <div class="mt-mid">
+          <figure class="mt-gauge" aria-hidden="true">
+            <!-- Round-1 picks (metrotuner-appearance): Q1/05 the disc alone rides the
+                 arc; Q2/02 in tune, the note reading inverts (see .mrn.intune). -->
+            <svg viewBox="0 0 320 184" id="mt-dial">
+              <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+              <line id="mt-tick" x1="160" y1="26" x2="160" y2="42" stroke="var(--ink)" stroke-width="1.5"/>
+              <g id="mt-needle" class="rest">
+                <circle cx="160" cy="34" r="6" fill="currentColor"/>
+              </g>
+            </svg>
+          </figure>
 
-        <div class="mt-read">
-          <span class="mrn" id="mt-note" data-testid="note">—</span>
-          <span class="ends"></span>
-          <span class="mrc" id="mt-cents" data-testid="cents">–</span>
-          <span class="mrh" id="mt-hz" data-testid="hz"></span>
+          <div class="mt-read">
+            <span class="mrn" id="mt-note" data-testid="note">—</span>
+            <span class="ends"></span>
+            <span class="mrc" id="mt-cents" data-testid="cents">–</span>
+            <span class="mrh" id="mt-hz" data-testid="hz"></span>
+          </div>
+          <div id="mt-sr" class="visually-hidden" role="status" aria-live="polite"></div>
         </div>
-        <div id="mt-sr" class="visually-hidden" role="status" aria-live="polite"></div>
 
-        <div class="mt-row">
-          <button type="button" class="tbtn" id="mt-mic" data-testid="mic-toggle" aria-pressed="false">start the tuner</button>
-        </div>
-        <div class="mt-hint" id="mt-hint">uses the microphone, on this device only</div>
-
-        <!-- The tone and its note are ONE fact — what to play. The calibration left
-             this row for the foot (chooser: metrotuner-controls, Q2/03): A4 tunes the
-             whole instrument, tuner grid and tone alike, so it sits between the
-             halves rather than inside one. -->
-        <div class="mt-row">
-          <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
-          <span class="mt-seg" role="group" aria-label="Reference note">
-            <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
-            <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
-            <button type="button" class="tbtn gly" id="mt-note-up" aria-label="Reference note up">›</button>
-          </span>
+        <div class="mt-crow">
+          <div class="mt-cl">
+            <button type="button" class="tbtn" id="mt-mic" data-testid="mic-toggle" aria-pressed="false">start the tuner</button>
+            <div class="mt-hint" id="mt-hint">uses the microphone, on this device only</div>
+          </div>
+          <!-- The tone and its note are ONE fact — what to play. The calibration left
+               for the foot (chooser: metrotuner-controls, Q2/03): A4 tunes the whole
+               instrument, so it sits between the halves rather than inside one. -->
+          <div class="mt-cr">
+            <span class="mt-row">
+              <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
+              <span class="mt-seg" role="group" aria-label="Reference note">
+                <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
+                <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
+                <button type="button" class="tbtn gly" id="mt-note-up" aria-label="Reference note up">›</button>
+              </span>
+            </span>
+          </div>
         </div>
       </section>
 
       <!-- ── METRONOME, the right half / second page ───────────────────────── -->
+      <!-- THE CORNERS (Q1/03): meter in the top corners, transport and tempo in the
+           bottom ones, the beat row alone in the middle. -->
       <section class="mt-half" aria-label="Metronome">
-        <div class="mt-beats" aria-hidden="true">
-          <svg viewBox="0 0 224 32" id="mt-beatrow">
-            <circle cx="16"  cy="16" r="6" />
-            <circle cx="48"  cy="16" r="6" />
-            <circle cx="80"  cy="16" r="6" />
-            <circle cx="112" cy="16" r="6" />
-            <circle cx="144" cy="16" r="6" />
-            <circle cx="176" cy="16" r="6" />
-            <circle cx="208" cy="16" r="6" />
-          </svg>
+        <div class="mt-crow">
+          <div class="mt-cl">
+            <span class="mt-lb">beats</span>
+            <span class="mt-seg" role="group" aria-label="Beats per bar" id="mt-beats-seg">
+              {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                <button type="button" class="tbtn seg" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'}>{n}</button>
+              ))}
+            </span>
+          </div>
+          <!-- THE GLYPHS (chooser: metrotuner-round4, Q2/04 — "the favicon's
+               diagonal"): the subdivision is the mark's own vocabulary. One disc for
+               quarters; the favicon pair for eighths; three and four heads down the
+               45° stair, joined by the mark's trimmed rule (13.54→18.46 per step, the
+               same geometry MarkFigure carries). Hollow until chosen, filled when
+               chosen — ring-becomes-disc, so selection is never colour alone. The
+               word rides aria-label; the drawing does the sighted naming. -->
+          <div class="mt-cr">
+            <span class="mt-lb">subdivide</span>
+            <span class="nseg" role="group" aria-label="Subdivision" id="mt-sub-seg">
+              <button type="button" class="nbtn" data-sub="1" aria-pressed="true" aria-label="Quarters">
+                <svg viewBox="0 0 32 32" style="height:26px" aria-hidden="true"><circle cx="16" cy="16" r="7.2"/></svg>
+              </button>
+              <button type="button" class="nbtn" data-sub="2" aria-pressed="false" aria-label="Eighths">
+                <svg viewBox="0 0 32 32" style="height:26px" aria-hidden="true"><line x1="13.54" y1="13.54" x2="18.46" y2="18.46"/><circle cx="10" cy="10" r="5"/><circle cx="22" cy="22" r="5"/></svg>
+              </button>
+              <button type="button" class="nbtn" data-sub="3" aria-pressed="false" aria-label="Triplets">
+                <svg viewBox="0 0 44 44" style="height:34px" aria-hidden="true"><line x1="13.54" y1="13.54" x2="18.46" y2="18.46"/><line x1="25.54" y1="25.54" x2="30.46" y2="30.46"/><circle cx="10" cy="10" r="5"/><circle cx="22" cy="22" r="5"/><circle cx="34" cy="34" r="5"/></svg>
+              </button>
+              <button type="button" class="nbtn" data-sub="4" aria-pressed="false" aria-label="Sixteenths">
+                <svg viewBox="0 0 56 56" style="height:42px" aria-hidden="true"><line x1="13.54" y1="13.54" x2="18.46" y2="18.46"/><line x1="25.54" y1="25.54" x2="30.46" y2="30.46"/><line x1="37.54" y1="37.54" x2="42.46" y2="42.46"/><circle cx="10" cy="10" r="5"/><circle cx="22" cy="22" r="5"/><circle cx="34" cy="34" r="5"/><circle cx="46" cy="46" r="5"/></svg>
+              </button>
+            </span>
+          </div>
         </div>
 
-        <div class="mt-row">
-          <button type="button" class="tbtn" id="mt-run" data-testid="metro-toggle" aria-pressed="false">start the metronome</button>
-          <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
+        <div class="mt-mid">
+          <div class="mt-beats" aria-hidden="true">
+            <svg viewBox="0 0 224 32" id="mt-beatrow">
+              <circle cx="16"  cy="16" r="6" />
+              <circle cx="48"  cy="16" r="6" />
+              <circle cx="80"  cy="16" r="6" />
+              <circle cx="112" cy="16" r="6" />
+              <circle cx="144" cy="16" r="6" />
+              <circle cx="176" cy="16" r="6" />
+              <circle cx="208" cy="16" r="6" />
+            </svg>
+          </div>
         </div>
 
-        <div class="mt-row">
-          <span class="f mt-bpm">
-            <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
-            <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
-                   min="20" max="320" step="1" value="96" aria-label="Beats per minute" />
-            <button type="button" class="tbtn gly" id="mt-bpm-up" aria-label="Faster">+</button>
-            <span class="mt-lb">bpm</span>
-          </span>
-        </div>
-
-        <div class="mt-row">
-          <span class="mt-lb">beats</span>
-          <span class="mt-seg" role="group" aria-label="Beats per bar" id="mt-beats-seg">
-            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-              <button type="button" class="tbtn seg" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'}>{n}</button>
-            ))}
-          </span>
-        </div>
-
-        <div class="mt-row">
-          <span class="mt-lb">subdivide</span>
-          <span class="mt-seg" role="group" aria-label="Subdivision" id="mt-sub-seg">
-            {[
-              { v: 1, l: 'quarters' },
-              { v: 2, l: 'eighths' },
-              { v: 3, l: 'triplets' },
-              { v: 4, l: 'sixteenths' },
-            ].map((s) => (
-              <button type="button" class="tbtn seg" data-sub={s.v} aria-pressed={s.v === 1 ? 'true' : 'false'}>{s.l}</button>
-            ))}
-          </span>
+        <div class="mt-crow">
+          <div class="mt-cl">
+            <span class="mt-row">
+              <button type="button" class="tbtn" id="mt-run" data-testid="metro-toggle" aria-pressed="false">start the metronome</button>
+              <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
+            </span>
+          </div>
+          <div class="mt-cr">
+            <span class="f mt-bpm">
+              <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
+              <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
+                     min="20" max="320" step="1" value="96" aria-label="Beats per minute" />
+              <button type="button" class="tbtn gly" id="mt-bpm-up" aria-label="Faster">+</button>
+              <span class="mt-lb">bpm</span>
+            </span>
+          </div>
         </div>
       </section>
     </div>
@@ -184,8 +211,20 @@ import MarkFigure from '../components/MarkFigure.astro';
   /* EQUAL HALVES (chooser Q2/01): each instrument centres in its half; the gutter
      between them is the boundary — no rule, per the system. */
   .mt-pages{flex:1;min-height:0;display:flex}
+  /* THE CORNERS (chooser metrotuner-round4, Q1/03): the half is three bands — a
+     corner row, the middle, a corner row. The instrument alone owns the middle; each
+     control group owns a corner; the empty middle is the composition. */
   .mt-half{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:var(--lead);padding:0 var(--gutter)}
+    justify-content:space-between;gap:var(--lead);
+    padding:var(--lead) var(--gutter)}
+  .mt-mid{flex:1;min-height:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:var(--lead)}
+  /* A corner row: left group flush left, right group flush right. The tuner has no
+     top groups, so its first band is simply absent and the middle grows upward. */
+  .mt-crow{flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+    gap:var(--lead) 4ch;flex-wrap:wrap}
+  .mt-cl{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+  .mt-cr{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 
   /* THE SWIPE (chooser Q3/02). Under 900px — the width where .duo stacks — the
      halves become two full-width snap pages. CSS scroll-snap is the whole gesture:
@@ -213,9 +252,30 @@ import MarkFigure from '../components/MarkFigure.astro';
   .mrc{color:var(--ink)}
   .mrh{color:var(--faint)}
 
-  .mt-row{display:flex;align-items:center;gap:3ch;flex-wrap:wrap;justify-content:center}
+  .mt-row{display:flex;align-items:center;gap:3ch;flex-wrap:wrap}
   .mt-hint{color:var(--faint)}
   .mt-lb{color:var(--faint)}
+
+  /* THE NOTE GLYPHS (chooser metrotuner-round4, Q2/04). Drawn in the mark's own
+     vocabulary: r-5 heads at the 1.8 stroke descending the 45° diagonal, the trimmed
+     rule between them. Hollow = offered, filled = chosen — the same signal the mark
+     carries, so selection is never colour alone. Hover takes the interaction hue.
+     Bottom-aligned: the stair grows up-right, so the four sit on one floor. */
+  .nseg{display:inline-flex;align-items:flex-end;gap:3ch}
+  .nbtn{background:transparent;border:0;padding:6px 4px;margin:0;color:var(--ink);
+    cursor:pointer;border-radius:0;display:flex;align-items:flex-end;min-height:44px;
+    min-width:44px;justify-content:center}
+  .nbtn svg{display:block;width:auto}
+  .nbtn circle{stroke:currentColor;stroke-width:1.8;fill:none;color:var(--faint);
+    transition:color var(--dur-fast) var(--ease)}
+  .nbtn line{stroke:currentColor;stroke-width:1.5;color:var(--faint);
+    transition:color var(--dur-fast) var(--ease)}
+  .nbtn[aria-pressed="true"] circle{fill:currentColor;color:var(--ink)}
+  .nbtn[aria-pressed="true"] line{color:var(--ink)}
+  .nbtn[aria-pressed="true"]{cursor:default}
+  .nbtn:not([aria-pressed="true"]):hover circle,
+  .nbtn:not([aria-pressed="true"]):hover line{color:var(--accent)}
+  .nbtn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
   .mt-refnote{color:var(--ink);min-width:4ch;text-align:center;display:inline-block}
 
   .tbtn{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;
