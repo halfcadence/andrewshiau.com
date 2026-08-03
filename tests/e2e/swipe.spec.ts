@@ -62,6 +62,6 @@ test('desktop control: both halves on screen, no dots', async ({ page }) => {
   expect(metro!.x + metro!.width).toBeLessThanOrEqual(1441);
   expect(Math.abs(tuner!.width - metro!.width)).toBeLessThan(10);
   await expect(page.getByTestId('dot-tuner')).toBeHidden();
-  // The way to the case study is the one word at the foot.
-  await expect(page.locator('.mt-about a')).toHaveAttribute('href', '/work/metrotuner/');
+  // The way out is the mark, linking home (the writeup is on the index now).
+  await expect(page.getByTestId('home-mark')).toHaveAttribute('href', '/');
 });

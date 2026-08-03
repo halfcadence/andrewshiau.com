@@ -8,9 +8,9 @@ import PanelHead from '../../components/PanelHead.astro';
 // word at the instrument's foot.
 //
 // TYPE B (skill shape): dek → a named head over the argument → the facts colophon.
-// The href passed to PanelHead is the ENTRY's href — metaOf/sideOf key on
-// experiments.ts, where the entry points at the instrument. This page is about that
-// artifact; it is not a second artifact.
+// The href passed to PanelHead is the ENTRY's href in experiments.ts, which points
+// HERE now — the index row opens the writeup, and the instrument is one click
+// further ("open the instrument" under the dek).
 ---
 
 <Layout
@@ -18,7 +18,7 @@ import PanelHead from '../../components/PanelHead.astro';
   description="How the browser tuner and metronome were built: McLeod pitch detection, a lookahead scheduler, and a test suite with a fake microphone."
 >
   <div class="grid">
-    <PanelHead href="/metrotuner/" title="Metrotuner">
+    <PanelHead href="/work/metrotuner/" title="Metrotuner">
       <div class="frow">
         <div class="fm">Pitch</div>
         <div class="ftx">McLeod pitch method, asserted to half a cent in the unit suite</div>

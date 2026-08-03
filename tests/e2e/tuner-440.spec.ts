@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// The mic permission is GRANTED at the context level — the state a returning
+// visitor is in, and what the open-started resume gate queries. The fake-UI flag
+// alone auto-accepts prompts but leaves permissions.query reading 'prompt', which
+// the gate correctly refuses to auto-start into (found red: resume never fired).
+test.use({ permissions: ['microphone'] });
+
 // Fake mic = a 440 Hz sine (project `tuner-440`). At the default A4=440 this must
 // read A4, ~0 cents, needle centred — AND the same input must read ~-23 cents when
 // the calibration moves to 446. The second half is the control arm: it proves the
@@ -35,6 +41,25 @@ test('440 Hz mic reads A4 at 0 cents; recalibrating to 446 moves it flat', async
   expect(r2.cents).toBeLessThan(-15);
   expect(r2.cents).toBeGreaterThan(-35);
   await expect(page.getByTestId('note')).not.toHaveClass(/intune/);
+});
+
+test('open started: a tuner left running resumes on reload; one stopped stays stopped', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  await page.getByTestId('mic-toggle').click();
+  await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });
+
+  // Leave with the tuner RUNNING → it must come back listening on its own.
+  // (The fake-UI flag makes the permission 'granted', which is the gate.)
+  await page.reload();
+  await expect(page.getByTestId('mic-toggle')).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
+  await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });
+
+  // Stop it BY CHOICE, reload → it must stay stopped (the control arm: the resume
+  // flag follows the reader's last decision, not merely the last state).
+  await page.getByTestId('mic-toggle').click();
+  await page.reload();
+  await page.waitForTimeout(1200);
+  await expect(page.getByTestId('mic-toggle')).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('stopping the tuner releases the microphone and clears the reading', async ({ page }) => {

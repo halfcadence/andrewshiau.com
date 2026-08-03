@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import MarkFigure from '../components/MarkFigure.astro';
 
 // THE INSTRUMENT SCREEN. This URL is the thing itself now, and the writeup lives at
 // /work/metrotuner/ (chooser: metrotuner-two-pages, Q1/02 "instrument first" — the
@@ -147,7 +148,14 @@ import Layout from '../layouts/Layout.astro';
           </svg>
         </button>
       </div>
-      <div class="mt-about"><a href="/work/metrotuner/">about</a></div>
+      <!-- THE MARK IS THE WAY OUT (user call, 2026-08-03: "no about link but put my
+           site icon and make it also link home"). Same wrapper class as the
+           case-study marker, so it inherits the 90° hover turn from global.css and
+           the two drawings can't drift. The writeup is reachable from the index row,
+           which points at /work/metrotuner/ now. -->
+      <a class="smark-home mt-home" href="/" aria-label="Andrew Shiau — home" data-testid="home-mark">
+        <MarkFigure side="both" />
+      </a>
     </div>
   </div>
 </Layout>
@@ -236,10 +244,10 @@ import Layout from '../layouts/Layout.astro';
   .mt-dots button{background:transparent;border:0;padding:15px;margin:-10px;
     color:var(--ink);cursor:pointer;border-radius:0;display:block}
   .mt-dots button:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
-  .mt-about a{color:var(--faint);text-decoration:underline;
-    text-decoration-color:var(--line);text-underline-offset:4px;
-    transition:color var(--dur-fast) var(--ease),text-decoration-color var(--dur-fast) var(--ease)}
-  .mt-about a:hover{color:var(--accent);text-decoration-color:var(--ink)}
+  /* The mark at the foot: 26px like the case-study marker, ink, the rotate comes
+     from .smark-home in global.css. Padding squares the tap target off at 44px. */
+  .mt-home{padding:9px;margin:-6px}
+  .mt-home :global(.mark){width:26px;height:26px}
 
   .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;
     clip:rect(0 0 0 0);white-space:nowrap}
@@ -379,6 +387,7 @@ import Layout from '../layouts/Layout.astro';
       return;
     }
     micStream = stream;
+    store.set('mt:tuneron', '1');
     const src = ac.createMediaStreamSource(micStream);
     analyser = ac.createAnalyser();
     analyser.fftSize = 2048;
@@ -401,8 +410,11 @@ import Layout from '../layouts/Layout.astro';
     }, 66);
   }
 
-  function stopTuner() {
+  // `remember=false` is the pagehide path: the mic must stop, but the reader did
+  // not choose to stop — so the flag survives and the tuner resumes on return.
+  function stopTuner(remember = true) {
     micRequest++; // invalidate any getUserMedia still waiting on the prompt
+    if (remember) store.set('mt:tuneron', '0');
     if (tunerTimer !== null) { clearInterval(tunerTimer); tunerTimer = null; }
     micStream?.getTracks().forEach((t) => t.stop());
     micStream = null;
@@ -416,6 +428,22 @@ import Layout from '../layouts/Layout.astro';
   }
 
   micBtn.addEventListener('click', () => (micStream ? stopTuner() : startTuner()));
+
+  // OPEN STARTED (user ask, 2026-08-03). Two conditions, both required: the tuner
+  // was running when the reader left, AND the browser will grant the mic silently.
+  // Never auto-start into a permission prompt — a dialog nobody asked for is the
+  // hostile version of convenient. Chrome allows the AudioContext to run when
+  // audio capture is active, so no gesture is needed once the stream is granted.
+  // The metronome stays off on arrival: sound on load without a gesture is blocked
+  // by autoplay policy, and would be wrong anyway.
+  try {
+    if (store.get('mt:tuneron') === '1' && navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: 'microphone' as PermissionName })
+        .then((p) => { if (p.state === 'granted' && !micStream) startTuner(); })
+        .catch(() => {});
+    }
+  } catch {}
 
   // ── reference tone ────────────────────────────────────────────────────────
   const toneBtn = $('mt-tone') as unknown as HTMLButtonElement;
@@ -645,5 +673,6 @@ import Layout from '../layouts/Layout.astro';
 
   // Leaving the page: stop everything. A tab that keeps a mic open after
   // navigation shows a recording indicator for a page that no longer exists.
-  addEventListener('pagehide', () => { stopTuner(); stopMetro(); stopTone(); });
+  // `stopTuner(false)`: the mic stops, the resume flag survives — see OPEN STARTED.
+  addEventListener('pagehide', () => { stopTuner(false); stopMetro(); stopTone(); });
 </script>

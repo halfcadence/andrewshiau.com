@@ -219,7 +219,11 @@ export const experiments: Entry[] = [
     // 'Web instrument', not 'Web app' — every meta value names a kind of artifact
     // ("Agent skill", "Static site"), and "app" is the one noun that describes nothing.
     meta: 'Web instrument',
-    href: '/metrotuner/',
+    // The WRITEUP, not the instrument (user call, 2026-08-03): the index is a list of
+    // case studies, so its row opens the story like every other row; the instrument
+    // is one click further ("open the instrument"), and the instrument's own mark
+    // links home. /metrotuner/ itself stays live and is where the sheet's Q1/02 put it.
+    href: '/work/metrotuner/',
     // `both`: the pitch detector and the lookahead scheduler are engineering with
     // asserted accuracy bounds; the meter, the one-hue in-tune state and the controls
     // are design decisions made on a proof sheet.
