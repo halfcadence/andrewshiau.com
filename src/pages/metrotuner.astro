@@ -61,18 +61,16 @@ import MarkFigure from '../components/MarkFigure.astro';
         </div>
         <div class="mt-hint" id="mt-hint">uses the microphone, on this device only</div>
 
+        <!-- The tone and its note are ONE fact — what to play. The calibration left
+             this row for the foot (chooser: metrotuner-controls, Q2/03): A4 tunes the
+             whole instrument, tuner grid and tone alike, so it sits between the
+             halves rather than inside one. -->
         <div class="mt-row">
           <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
           <span class="mt-seg" role="group" aria-label="Reference note">
             <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
             <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
             <button type="button" class="tbtn gly" id="mt-note-up" aria-label="Reference note up">›</button>
-          </span>
-          <span class="f mt-a4">
-            <label for="mt-a4" class="mt-lb">A4</label>
-            <input id="mt-a4" data-testid="a4" type="number" inputmode="decimal"
-                   min="400" max="480" step="1" value="440" aria-label="A4 calibration in hertz" />
-            <span class="mt-lb">Hz</span>
           </span>
         </div>
       </section>
@@ -136,6 +134,17 @@ import MarkFigure from '../components/MarkFigure.astro';
          they are buttons: a swipe needs a click-shaped fallback for keyboards and
          for anyone who doesn't guess the gesture. -->
     <div class="mt-foot">
+      <!-- CALIBRATION LIVES HERE (chooser: metrotuner-controls, Q2/03) — the one
+           setting that tunes the WHOLE instrument, placed between the halves it
+           tunes. Same #mt-a4 control, same wiring; only its address changed. -->
+      <div class="mt-cal">
+        <span class="f mt-a4">
+          <label for="mt-a4" class="mt-lb">A4</label>
+          <input id="mt-a4" data-testid="a4" type="number" inputmode="decimal"
+                 min="400" max="480" step="1" value="440" aria-label="A4 calibration in hertz" />
+          <span class="mt-lb">Hz</span>
+        </span>
+      </div>
       <div class="mt-dots" id="mt-dots">
         <button type="button" data-goto="0" aria-label="Tuner" data-testid="dot-tuner">
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
@@ -239,6 +248,7 @@ import MarkFigure from '../components/MarkFigure.astro';
      on screen and an indicator would point at nothing), the word out under them. */
   .mt-foot{flex:none;display:flex;flex-direction:column;align-items:center;
     gap:4px;padding:0 var(--gutter) var(--lead)}
+  .mt-cal{display:flex;align-items:center;gap:1ch}
   .mt-dots{display:none;gap:16px}
   @media (max-width: 900px){ .mt-dots{display:flex} }
   .mt-dots button{background:transparent;border:0;padding:15px;margin:-10px;
