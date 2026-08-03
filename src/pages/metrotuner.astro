@@ -100,9 +100,9 @@ import PanelHead from '../components/PanelHead.astro';
         <div class="mt-row c1-12">
           <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
           <span class="mt-seg" role="group" aria-label="Reference note">
-            <button type="button" class="tbtn" id="mt-note-down" aria-label="Reference note down">‹</button>
+            <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
             <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
-            <button type="button" class="tbtn" id="mt-note-up" aria-label="Reference note up">›</button>
+            <button type="button" class="tbtn gly" id="mt-note-up" aria-label="Reference note up">›</button>
           </span>
           <span class="f mt-a4">
             <label for="mt-a4" class="mt-lb">A4</label>
@@ -139,10 +139,10 @@ import PanelHead from '../components/PanelHead.astro';
           <button type="button" class="tbtn" id="mt-run" data-testid="metro-toggle" aria-pressed="false">start the metronome</button>
           <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
           <span class="f mt-bpm">
-            <button type="button" class="tbtn" id="mt-bpm-down" aria-label="Slower">−</button>
+            <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
             <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
                    min="20" max="320" step="1" value="96" aria-label="Beats per minute" />
-            <button type="button" class="tbtn" id="mt-bpm-up" aria-label="Faster">+</button>
+            <button type="button" class="tbtn gly" id="mt-bpm-up" aria-label="Faster">+</button>
             <span class="mt-lb">bpm</span>
           </span>
         </div>
@@ -229,6 +229,10 @@ import PanelHead from '../components/PanelHead.astro';
      and the affordance now reads "stop"). The label also flips, so colour and underline
      are never the only signal. */
   .tbtn[aria-pressed="true"]:not(.seg){text-decoration-color:var(--accent)}
+  /* The glyph steppers (‹ › − +) are one character wide — ~9px, a 44px-tall sliver.
+     min-width squares the target off; text-decoration only underlines the glyph, so
+     the wider hit area adds no visible mark. */
+  .tbtn.gly{min-width:44px;text-align:center}
   /* Segmented options: the chosen one is a fact (ink, no underline); the rest are
      offers (faint, underlined). Value does the hierarchy — same rule as the ledger. */
   .tbtn.seg{color:var(--faint)}
@@ -376,10 +380,21 @@ import PanelHead from '../components/PanelHead.astro';
     srEl.textContent = t === '—' ? '' : `${t}, ${centsEl.textContent} cents`;
   }, 1000);
 
+  // THE PERMISSION RACE. getUserMedia can sit unresolved for as long as the prompt
+  // is up, and during that window micStream is still null — so a second click used
+  // to route back into startTuner and open a SECOND stream; the first one's
+  // reference was overwritten and its tracks never stopped: a leaked live mic and
+  // a recording indicator no button on the page could turn off. Every start bumps
+  // the request id and every stop invalidates it; a stream that resolves for a
+  // stale id is stopped on arrival instead of adopted.
+  let micRequest = 0;
+
   async function startTuner() {
+    const req = ++micRequest;
     const ac = audio();
+    let stream: MediaStream;
     try {
-      micStream = await navigator.mediaDevices.getUserMedia({
+      stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
@@ -387,9 +402,16 @@ import PanelHead from '../components/PanelHead.astro';
         },
       });
     } catch {
-      hintEl.textContent = 'microphone refused — allow it in the address bar and try again';
+      if (req === micRequest) {
+        hintEl.textContent = 'microphone refused — allow it in the address bar and try again';
+      }
       return;
     }
+    if (req !== micRequest || micStream) {
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    micStream = stream;
     const src = ac.createMediaStreamSource(micStream);
     analyser = ac.createAnalyser();
     analyser.fftSize = 2048;
@@ -413,6 +435,7 @@ import PanelHead from '../components/PanelHead.astro';
   }
 
   function stopTuner() {
+    micRequest++; // invalidate any getUserMedia still waiting on the prompt
     if (tunerTimer !== null) { clearInterval(tunerTimer); tunerTimer = null; }
     micStream?.getTracks().forEach((t) => t.stop());
     micStream = null;
@@ -493,9 +516,15 @@ import PanelHead from '../components/PanelHead.astro';
   const beatRow = document.getElementById('mt-beatrow')!;
   const beatDots = Array.from(beatRow.querySelectorAll('circle'));
 
+  // Persisted values are VALIDATED, not trusted: localStorage outlives the code
+  // that wrote it, and a `mt:beats` of 9 (or "NaN") would feed the scheduler a bar
+  // no segment button can represent — the restore would select nothing and the
+  // indicator would count beats the row doesn't draw.
   let bpm = clampBpm(Number(store.get('mt:bpm')) || 96);
-  let beatsPerBar = Number(store.get('mt:beats')) || 4;
-  let subdivision = Number(store.get('mt:sub')) || 1;
+  let beatsPerBar = Number(store.get('mt:beats'));
+  if (!Number.isInteger(beatsPerBar) || beatsPerBar < 1 || beatsPerBar > 7) beatsPerBar = 4;
+  let subdivision = Number(store.get('mt:sub'));
+  if (![1, 2, 3, 4].includes(subdivision)) subdivision = 1;
   bpmInput.value = String(bpm);
 
   // THE VOICES. Three sine pings a fifth-ish apart — G6 opens the bar, C6 marks the
