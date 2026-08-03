@@ -1,65 +1,43 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import PanelHead from '../components/PanelHead.astro';
 
-// THE INSTRUMENT PAGE. A chromatic tuner and a metronome, all client-side Web Audio:
-// the engine lives in src/lib/metrotuner/ as pure modules (unit-tested on synthesized
-// buffers — the pitch detector is asserted to 0.5 cents), and this page is the thin
-// glue that wires them to the mic, the speaker, and the document.
+// THE INSTRUMENT SCREEN. This URL is the thing itself now, and the writeup lives at
+// /work/metrotuner/ (chooser: metrotuner-two-pages, Q1/02 "instrument first" — the
+// index row opens the instrument; the case study moved in with the other eight,
+// reachable from the one word at the foot of this screen).
 //
-// ARCHITECTURE, and why it is the boring one: no framework, no island, no worker.
-// The site ships ~0 kb of JS elsewhere; a tuner needs one analyser read every few
-// frames and a metronome needs one lookahead interval — neither justifies a runtime.
-// The one real architectural decision is the split between pure math (imported,
-// tested) and side effects (here, exercised by the e2e suite with a fake mic).
+// THE SHAPE IS A SCREEN, NOT THE DOCUMENT. Q2/01 "equal halves": on a wide viewport
+// the tuner and the metronome each centre in half the screen, both running — two
+// instruments, one practice, the same argument .duo makes on /method/. Q3/02 "swipe":
+// under 900px the halves become two snap-scroll pages, and the indicator is the
+// site's own pair — ring and disc, the disc marking where you are. 900 because that
+// is the width where .duo stacks; this page's halves give at the same width the
+// site's one other side-by-side does.
 //
-// The gauge is the DailyUI-004 sketch reset in this site's system: a hairline
-// semicircle, a needle with a disc at its tip (the site's own mark vocabulary), the
-// note on the left and the signed cents on the right. Colour keeps its one job —
-// the needle takes the accent only when the note RESOLVES in tune, the same state
-// role the quiz's correct answer has. The resolve is never colour alone: the centre
-// tick doubles its weight at the same moment.
+// The one deviation this page is allowed: it escapes .wrap's 1120px measure (the
+// `:has(#mt-app)` rule below, global but shipped only in this page's chunk). A screen
+// split into viewport halves cannot live inside a document measure. Everything else —
+// tokens, type, the link idiom, the control styles — is the site's, unchanged.
+//
+// The engine is unchanged from the one-page version: pure modules in
+// src/lib/metrotuner/ (unit-tested to half a cent), this file is the glue. The ?e2e
+// hook and every data-testid survive, so the fake-mic suite runs against this screen
+// exactly as it ran against the document page.
 ---
 
 <Layout
   title="Metrotuner — Andrew Shiau"
   description="A chromatic tuner and a metronome in the browser. Pitch detection runs on-device; the microphone signal never leaves the page."
 >
-  <div class="grid">
-    <PanelHead href="/metrotuner/" title="Metrotuner">
-      <div class="frow">
-        <div class="fm">Pitch</div>
-        <div class="ftx">McLeod pitch method, asserted to half a cent in the unit suite</div>
-      </div>
-      <div class="frow">
-        <div class="fm">Microphone</div>
-        <div class="ftx">Read in the page and discarded. Nothing is recorded or sent.</div>
-      </div>
-    </PanelHead>
+  <div id="mt-app">
+    <h1 class="visually-hidden">Metrotuner</h1>
 
-    <div class="feed">
-      <div class="grid">
-        <p class="dek c1-12">
-          A chromatic tuner and a metronome. Start the tuner and play a note; the
-          needle reads the offset in cents. The metronome takes a typed tempo or a
-          tapped one.
-        </p>
-      </div>
-
-      <!-- ── TUNER ─────────────────────────────────────────────────────────── -->
-      <div class="grid sect">
-        <div class="c1-12"><h2>Tuner</h2></div>
-      </div>
-
-      <div class="grid">
-        <figure class="mt-gauge c1-12" aria-hidden="true">
-          <!-- The meter. ±50 cents maps to ±60°; ticks at 0 and ±25/±50. All strokes
-               currentColor so the drawing flips with the scheme, like MarkFigure. -->
-          <!-- CHOOSER PICKS APPLIED (metrotuner-appearance, 2026-08-03): Q1/05 "dot on
-               the arc" — the needle line and the ±25/±50 ticks are gone; the site's disc
-               alone rides the arc, the mark's own vocabulary doing the pointing. Q2/02
-               "the invert" — in tune, the note reading flips to selection colours (see
-               .mrn.intune); the dot stays ink, so colour is never the state's carrier. -->
+    <div class="mt-pages" id="mt-pages">
+      <!-- ── TUNER, the left half / first page ─────────────────────────────── -->
+      <section class="mt-half" aria-label="Tuner">
+        <figure class="mt-gauge" aria-hidden="true">
+          <!-- Round-1 picks (metrotuner-appearance): Q1/05 the disc alone rides the
+               arc; Q2/02 in tune, the note reading inverts (see .mrn.intune). -->
           <svg viewBox="0 0 320 184" id="mt-dial">
             <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--line)" stroke-width="1.5"/>
             <line id="mt-tick" x1="160" y1="26" x2="160" y2="42" stroke="var(--ink)" stroke-width="1.5"/>
@@ -68,31 +46,21 @@ import PanelHead from '../components/PanelHead.astro';
             </g>
           </svg>
         </figure>
-      </div>
 
-      <div class="grid">
-        <!-- The reading, as one document line: note · cents · Hz. aria-live would
-             announce twenty times a second; #mt-sr below is the 1 Hz spoken copy. -->
-        <div class="mt-read c1-12">
+        <div class="mt-read">
           <span class="mrn" id="mt-note" data-testid="note">—</span>
           <span class="ends"></span>
           <span class="mrc" id="mt-cents" data-testid="cents">–</span>
           <span class="mrh" id="mt-hz" data-testid="hz"></span>
         </div>
         <div id="mt-sr" class="visually-hidden" role="status" aria-live="polite"></div>
-      </div>
 
-      <div class="grid">
-        <div class="mt-row c1-12">
+        <div class="mt-row">
           <button type="button" class="tbtn" id="mt-mic" data-testid="mic-toggle" aria-pressed="false">start the tuner</button>
-          <span class="mt-hint" id="mt-hint">uses the microphone, on this device only</span>
         </div>
-      </div>
+        <div class="mt-hint" id="mt-hint">uses the microphone, on this device only</div>
 
-      <!-- Reference tone + calibration share a row: both are statements about what
-           "in tune" means, and both feed the same math the needle reads. -->
-      <div class="grid">
-        <div class="mt-row c1-12">
+        <div class="mt-row">
           <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
           <span class="mt-seg" role="group" aria-label="Reference note">
             <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
@@ -106,17 +74,11 @@ import PanelHead from '../components/PanelHead.astro';
             <span class="mt-lb">Hz</span>
           </span>
         </div>
-      </div>
+      </section>
 
-      <!-- ── METRONOME ─────────────────────────────────────────────────────── -->
-      <div class="grid sect">
-        <div class="c1-12"><h2>Metronome</h2></div>
-      </div>
-
-      <div class="grid">
-        <!-- The beat row: the site's ring/disc vocabulary — ring = a beat in the
-             bar, disc = the beat sounding now. Hidden circles beyond the meter. -->
-        <div class="mt-beats c1-12" aria-hidden="true">
+      <!-- ── METRONOME, the right half / second page ───────────────────────── -->
+      <section class="mt-half" aria-label="Metronome">
+        <div class="mt-beats" aria-hidden="true">
           <svg viewBox="0 0 224 32" id="mt-beatrow">
             <circle cx="16"  cy="16" r="6" />
             <circle cx="48"  cy="16" r="6" />
@@ -127,12 +89,13 @@ import PanelHead from '../components/PanelHead.astro';
             <circle cx="208" cy="16" r="6" />
           </svg>
         </div>
-      </div>
 
-      <div class="grid">
-        <div class="mt-row c1-12">
+        <div class="mt-row">
           <button type="button" class="tbtn" id="mt-run" data-testid="metro-toggle" aria-pressed="false">start the metronome</button>
           <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
+        </div>
+
+        <div class="mt-row">
           <span class="f mt-bpm">
             <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
             <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
@@ -141,10 +104,8 @@ import PanelHead from '../components/PanelHead.astro';
             <span class="mt-lb">bpm</span>
           </span>
         </div>
-      </div>
 
-      <div class="grid">
-        <div class="mt-row c1-12">
+        <div class="mt-row">
           <span class="mt-lb">beats</span>
           <span class="mt-seg" role="group" aria-label="Beats per bar" id="mt-beats-seg">
             {[1, 2, 3, 4, 5, 6, 7].map((n) => (
@@ -152,10 +113,8 @@ import PanelHead from '../components/PanelHead.astro';
             ))}
           </span>
         </div>
-      </div>
 
-      <div class="grid">
-        <div class="mt-row c1-12">
+        <div class="mt-row">
           <span class="mt-lb">subdivide</span>
           <span class="mt-seg" role="group" aria-label="Subdivision" id="mt-sub-seg">
             {[
@@ -168,74 +127,92 @@ import PanelHead from '../components/PanelHead.astro';
             ))}
           </span>
         </div>
-      </div>
+      </section>
+    </div>
 
-      <!-- ── COLOPHON (Type B: what it is made of, read after the work) ───────── -->
-      <div class="grid sect">
-        <div class="c1-12 colo">
-          <div><span class="ck">Pitch detection</span>McLeod pitch method on a 2048-sample window — normalized square difference, key-maxima picking, parabolic interpolation. Unit-tested to half a cent from C2 to C8, plucked-string harmonics included.</div>
-          <div><span class="ck">Timing</span>A lookahead scheduler on the audio clock. setInterval wakes it; the audio thread keeps time.</div>
-          <div><span class="ck">Sounds</span>Three synthesized sine pings — G6 for the downbeat, C6 for the beat, G5 under it. No samples.</div>
-          <div><span class="ck">Privacy</span>The microphone signal is analysed in the page and discarded. Nothing is recorded, stored, or sent.</div>
-          <div><span class="ck">Apparatus</span>Web Audio API and 0 dependencies. 39 unit tests on the math; an end-to-end suite plays known sines into a fake microphone and asserts the reading, its direction, and the calibration control.</div>
-        </div>
+    <!-- The foot: the page indicator (phone only) and the one word out. The dots are
+         the mark's vocabulary — disc = the page on screen, ring = the other — and
+         they are buttons: a swipe needs a click-shaped fallback for keyboards and
+         for anyone who doesn't guess the gesture. -->
+    <div class="mt-foot">
+      <div class="mt-dots" id="mt-dots">
+        <button type="button" data-goto="0" aria-label="Tuner" data-testid="dot-tuner">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" fill="currentColor" data-dot/>
+          </svg>
+        </button>
+        <button type="button" data-goto="1" aria-label="Metronome" data-testid="dot-metro">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5" data-dot/>
+          </svg>
+        </button>
       </div>
+      <div class="mt-about"><a href="/work/metrotuner/">about</a></div>
     </div>
   </div>
 </Layout>
 
+<style is:global>
+  /* THE ONE ESCAPE. This page is a screen, and a screen split into viewport halves
+     cannot sit inside the document's 1120px measure. `:has(#mt-app)` scopes the
+     override to exactly this page — the rule ships in this page's CSS chunk and the
+     selector matches nothing anywhere else. */
+  .wrap:has(#mt-app){max-width:none;padding:0}
+  main:has(#mt-app) > .grid:first-child{margin-top:0}
+</style>
+
 <style>
-  /* The instrument's own devices. Everything here is page-scoped; the tokens are the
-     site's. No new font-size, no borders (the SVG hairlines are drawings, and the A4
-     field's underline is `.f input`'s own writing line). */
-  .mt-gauge{max-width:44ch;margin:0}
+  #mt-app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+
+  /* EQUAL HALVES (chooser Q2/01): each instrument centres in its half; the gutter
+     between them is the boundary — no rule, per the system. */
+  .mt-pages{flex:1;min-height:0;display:flex}
+  .mt-half{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:var(--lead);padding:0 var(--gutter)}
+
+  /* THE SWIPE (chooser Q3/02). Under 900px — the width where .duo stacks — the
+     halves become two full-width snap pages. CSS scroll-snap is the whole gesture:
+     no JS touch handling, the browser's own physics. */
+  @media (max-width: 900px){
+    .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+    .mt-pages::-webkit-scrollbar{display:none}
+    .mt-half{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
+  }
+
+  .mt-gauge{width:min(320px,80vw);margin:0}
   .mt-gauge svg{display:block;width:100%;height:auto;color:var(--ink)}
-  /* The dot rides the one easing. Rest = no signal: faint, dead centre. */
   #mt-needle{transform-origin:160px 160px;transform-box:view-box;
     transition:transform var(--dur) var(--ease),color var(--dur) var(--ease)}
   #mt-needle.rest{color:var(--line)}
   #mt-needle.live{color:var(--ink)}
 
-  .mt-read{display:flex;align-items:baseline;gap:2ch;max-width:44ch}
+  .mt-read{display:flex;align-items:baseline;gap:2ch;width:min(320px,80vw)}
   .mt-read .ends{flex:1}
-  /* IN TUNE is the invert (chooser Q2/02): the note reading takes the selection
-     colours — ink field, paper text — the site's strongest non-colour state. The
-     padding is carved out of the margin so the text itself never moves. */
+  /* IN TUNE is the invert (round-1 pick Q2/02): selection colours on the reading.
+     The padding is carved out of the margin so the text never moves. */
   .mrn{color:var(--ink);padding:0 .5ch;margin-left:-.5ch;
     transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
   .mrn.intune{background:var(--ink);color:var(--paper)}
   .mrc{color:var(--ink)}
   .mrh{color:var(--faint)}
 
-  .mt-row{display:flex;align-items:center;gap:3ch;flex-wrap:wrap;margin-top:var(--lead)}
+  .mt-row{display:flex;align-items:center;gap:3ch;flex-wrap:wrap;justify-content:center}
   .mt-hint{color:var(--faint)}
   .mt-lb{color:var(--faint)}
   .mt-refnote{color:var(--ink);min-width:4ch;text-align:center;display:inline-block}
 
-  /* Text buttons, in the site's one link idiom: ink type on a --line underline, hover
-     sends the underline to ink and the text to the accent. Square, 44px targets. */
   .tbtn{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;
     border-radius:0;min-height:44px;cursor:pointer;
     text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px;
     transition:color var(--dur-fast) var(--ease),text-decoration-color var(--dur-fast) var(--ease)}
   .tbtn:hover{color:var(--accent);text-decoration-color:var(--ink)}
   .tbtn:focus-visible{outline:0;color:var(--accent);text-decoration-color:var(--ink)}
-  /* A toggle that is ON is a fact: ink, no underline (the underline is the affordance,
-     and the affordance now reads "stop"). The label also flips, so colour and underline
-     are never the only signal. */
   .tbtn[aria-pressed="true"]:not(.seg){text-decoration-color:var(--accent)}
-  /* The glyph steppers (‹ › − +) are one character wide — ~9px, a 44px-tall sliver.
-     min-width squares the target off; text-decoration only underlines the glyph, so
-     the wider hit area adds no visible mark. */
   .tbtn.gly{min-width:44px;text-align:center}
-  /* Segmented options: the chosen one is a fact (ink, no underline); the rest are
-     offers (faint, underlined). Value does the hierarchy — same rule as the ledger. */
   .tbtn.seg{color:var(--faint)}
   .tbtn.seg[aria-pressed="true"]{color:var(--ink);text-decoration:none;cursor:default}
-  .mt-seg{display:inline-flex;align-items:center;gap:1.5ch}
+  .mt-seg{display:inline-flex;align-items:center;gap:1.5ch;flex-wrap:wrap;justify-content:center}
 
-  /* Numeric fields ride `.f input` (the site's one control) but a 3–5 digit number
-     doesn't need to grow like the gate's password field. */
   .mt-a4, .mt-bpm{display:inline-flex;align-items:center;gap:1ch}
   .mt-a4 input, .mt-bpm input{flex:0 0 auto;width:6ch;text-align:center;
     -moz-appearance:textfield;appearance:textfield}
@@ -243,38 +220,45 @@ import PanelHead from '../components/PanelHead.astro';
   .mt-bpm input::-webkit-outer-spin-button, .mt-bpm input::-webkit-inner-spin-button{
     -webkit-appearance:none;margin:0}
 
-  .mt-beats{max-width:28ch;margin:0}
-  .mt-beats svg{display:block;width:min(224px,100%);height:auto}
-  /* ring = a beat in the bar; disc = the one sounding. The site's own vocabulary. */
+  .mt-beats{width:min(224px,60vw);margin:0}
+  .mt-beats svg{display:block;width:100%;height:auto}
   #mt-beatrow circle{fill:none;stroke:var(--faint);stroke-width:1.5;
     transition:fill var(--dur-fast) var(--ease)}
   #mt-beatrow circle.on{fill:var(--ink);stroke:var(--ink)}
   #mt-beatrow circle.off{display:none}
 
-  /* The colophon's rows breathe by --lead — measured, without this the next row's
-     label sat flush against the previous row's last line. */
-  .colo > div + div{margin-top:var(--lead)}
-  .colo > div{max-width:62ch}
+  /* The foot: dots centre (phone only — on the wide screen both pages are already
+     on screen and an indicator would point at nothing), the word out under them. */
+  .mt-foot{flex:none;display:flex;flex-direction:column;align-items:center;
+    gap:4px;padding:0 var(--gutter) var(--lead)}
+  .mt-dots{display:none;gap:16px}
+  @media (max-width: 900px){ .mt-dots{display:flex} }
+  .mt-dots button{background:transparent;border:0;padding:15px;margin:-10px;
+    color:var(--ink);cursor:pointer;border-radius:0;display:block}
+  .mt-dots button:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .mt-about a{color:var(--faint);text-decoration:underline;
+    text-decoration-color:var(--line);text-underline-offset:4px;
+    transition:color var(--dur-fast) var(--ease),text-decoration-color var(--dur-fast) var(--ease)}
+  .mt-about a:hover{color:var(--accent);text-decoration-color:var(--ink)}
 
   .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;
     clip:rect(0 0 0 0);white-space:nowrap}
 
   @media (prefers-reduced-motion: reduce){
     #mt-needle{transition:none}
-    #mt-tick{transition:none}
     #mt-beatrow circle{transition:none}
+    .mrn{transition:none}
   }
 </style>
 
 <script>
   import { detectPitch } from '../lib/metrotuner/pitch';
   import { freqToReading, midiToFreq, NOTE_NAMES, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/metrotuner/notes';
-  import { Scheduler, clampBpm, BPM_MIN, BPM_MAX, type Tick } from '../lib/metrotuner/metronome';
+  import { Scheduler, clampBpm, type Tick } from '../lib/metrotuner/metronome';
   import { createTapTempo } from '../lib/metrotuner/tap';
 
   // ONE AudioContext for tuner, tone and metronome, created on the first gesture —
-  // browsers refuse both getUserMedia and audio playback without one, so nothing
-  // here runs before a click.
+  // browsers refuse both getUserMedia and audio playback without one.
   let ctx: AudioContext | null = null;
   const audio = (): AudioContext => {
     if (!ctx) ctx = new AudioContext();
@@ -285,16 +269,12 @@ import PanelHead from '../components/PanelHead.astro';
   const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
     document.getElementById(id) as T;
 
-  // E2E HOOK, inert in normal use: `?e2e` makes the page record what it did —
-  // scheduled ticks and the latest reading — so the suite can assert timing against
-  // the real audio clock instead of scraping the DOM on a timer. Capped so a
-  // forgotten tab can't grow a log forever.
+  // E2E HOOK, inert in normal use: `?e2e` makes the page record what it did.
   const E2E = new URLSearchParams(location.search).has('e2e');
   const hook: { ticks: Tick[]; reading: unknown; toneHz: number | null } =
     { ticks: [], reading: null, toneHz: null };
   if (E2E) (window as any).__mt = hook;
 
-  // ── persisted settings ────────────────────────────────────────────────────
   const store = {
     get(k: string): string | null { try { return localStorage.getItem(k); } catch { return null; } },
     set(k: string, v: string) { try { localStorage.setItem(k, v); } catch {} },
@@ -329,7 +309,7 @@ import PanelHead from '../components/PanelHead.astro';
   let analyser: AnalyserNode | null = null;
   let tunerTimer: number | null = null;
   const buf = new Float32Array(2048);
-  // Median-of-5 smoothing: one bad window (a chair scrape) can't kick the needle.
+  // Median-of-5 smoothing: one bad window (a chair scrape) can't kick the reading.
   const recent: number[] = [];
   let quietFrames = 0;
 
@@ -353,8 +333,7 @@ import PanelHead from '../components/PanelHead.astro';
   }
 
   function renderSilence() {
-    // A couple of empty windows is a breath between notes, not the end of the
-    // signal — hold the reading briefly so the needle doesn't flap.
+    // A couple of empty windows is a breath between notes; hold briefly.
     if (++quietFrames < 6) return;
     noteEl.textContent = '—';
     noteEl.classList.remove('intune');
@@ -366,20 +345,15 @@ import PanelHead from '../components/PanelHead.astro';
     if (E2E) hook.reading = null;
   }
 
-  // The spoken copy of the reading, at most once a second — a live region on the
-  // 15 Hz readout would be a firehose.
+  // The spoken copy of the reading, at most once a second.
   setInterval(() => {
     const t = noteEl.textContent;
     srEl.textContent = t === '—' ? '' : `${t}, ${centsEl.textContent} cents`;
   }, 1000);
 
-  // THE PERMISSION RACE. getUserMedia can sit unresolved for as long as the prompt
-  // is up, and during that window micStream is still null — so a second click used
-  // to route back into startTuner and open a SECOND stream; the first one's
-  // reference was overwritten and its tracks never stopped: a leaked live mic and
-  // a recording indicator no button on the page could turn off. Every start bumps
-  // the request id and every stop invalidates it; a stream that resolves for a
-  // stale id is stopped on arrival instead of adopted.
+  // THE PERMISSION RACE: a stop click during a pending prompt must not leave the
+  // resolved stream's tracks live. Request ids invalidate a stale resolution; a
+  // stream that arrives for a dead request is stopped on sight.
   let micRequest = 0;
 
   async function startTuner() {
@@ -447,6 +421,7 @@ import PanelHead from '../components/PanelHead.astro';
   const toneBtn = $('mt-tone') as unknown as HTMLButtonElement;
   const refNoteEl = $('mt-refnote');
   let refMidi = Number(store.get('mt:ref')) || 69; // A4
+  if (!Number.isInteger(refMidi) || refMidi < 36 || refMidi > 96) refMidi = 69;
   let toneOsc: OscillatorNode | null = null;
   let toneGain: GainNode | null = null;
 
@@ -456,10 +431,7 @@ import PanelHead from '../components/PanelHead.astro';
   }
   refLabel();
 
-  // ONE function owns the oscillator's frequency AND the e2e hook's copy of it —
-  // two call sites each setting both is how the hook and the sound drift apart
-  // (it did: the hook kept 440 after the reference stepped to A♯4, caught red by
-  // the tone spec).
+  // ONE function owns the oscillator's frequency AND the hook's copy of it.
   function retune() {
     const f = midiToFreq(refMidi, a4);
     if (toneOsc) toneOsc.frequency.setValueAtTime(f, audio().currentTime);
@@ -510,9 +482,7 @@ import PanelHead from '../components/PanelHead.astro';
   const beatDots = Array.from(beatRow.querySelectorAll('circle'));
 
   // Persisted values are VALIDATED, not trusted: localStorage outlives the code
-  // that wrote it, and a `mt:beats` of 9 (or "NaN") would feed the scheduler a bar
-  // no segment button can represent — the restore would select nothing and the
-  // indicator would count beats the row doesn't draw.
+  // that wrote it.
   let bpm = clampBpm(Number(store.get('mt:bpm')) || 96);
   let beatsPerBar = Number(store.get('mt:beats'));
   if (!Number.isInteger(beatsPerBar) || beatsPerBar < 1 || beatsPerBar > 7) beatsPerBar = 4;
@@ -520,18 +490,14 @@ import PanelHead from '../components/PanelHead.astro';
   if (![1, 2, 3, 4].includes(subdivision)) subdivision = 1;
   bpmInput.value = String(bpm);
 
-  // THE VOICES. Three sine pings a fifth-ish apart — G6 opens the bar, C6 marks the
-  // beat, G5 sits under the subdivisions at half the level. An exponential decay is
-  // the whole instrument; anything longer smears at 200 bpm.
+  // THE VOICES. Three sine pings — G6 opens the bar, C6 marks the beat, G5 sits
+  // under the subdivisions at half the level.
   const VOICES = {
     down: { freq: 1568.0, gain: 0.5, dur: 0.09 },
     beat: { freq: 1046.5, gain: 0.4, dur: 0.07 },
     sub:  { freq: 784.0,  gain: 0.18, dur: 0.05 },
   } as const;
 
-  // Ticks the scheduler has placed but the clock hasn't reached — the beat row's
-  // indicator reads from this queue so the dot lands when the sound does, not when
-  // it was scheduled.
   const pending: Tick[] = [];
 
   function click(t: Tick) {
@@ -563,7 +529,6 @@ import PanelHead from '../components/PanelHead.astro';
   }
   drawBeats(-1);
 
-  // The indicator loop: pop ticks as the clock passes them, light the dot on beats.
   function indicate() {
     if (!scheduler.running) return;
     const now = audio().currentTime;
@@ -610,14 +575,12 @@ import PanelHead from '../components/PanelHead.astro';
   $('mt-bpm-down').addEventListener('click', () => setBpm(bpm - 4));
   $('mt-bpm-up').addEventListener('click', () => setBpm(bpm + 4));
 
-  // Tap tempo, on the page's own clock.
   const tap = createTapTempo();
   $('mt-tap').addEventListener('click', () => {
     const t = tap.tap(performance.now());
     if (t !== null) setBpm(t);
   });
 
-  // Segmented rows: one listener each, state in aria-pressed.
   const wireSeg = (segId: string, attr: string, apply: (v: number) => void) => {
     const seg = document.getElementById(segId)!;
     seg.addEventListener('click', (e) => {
@@ -629,7 +592,6 @@ import PanelHead from '../components/PanelHead.astro';
       b.setAttribute('aria-pressed', 'true');
       apply(v);
     });
-    // restore persisted state
     return (v: number) => {
       seg.querySelectorAll('button').forEach((x) =>
         x.setAttribute('aria-pressed', x.getAttribute(attr) === String(v) ? 'true' : 'false'));
@@ -641,7 +603,47 @@ import PanelHead from '../components/PanelHead.astro';
   restoreSub(subdivision);
   drawBeats(-1);
 
-  // Leaving the page: stop the mic. A tab that keeps a mic open after navigation
-  // shows a recording indicator for a page that no longer exists.
+  // ── the swipe indicator (chooser Q3/02) ──────────────────────────────────
+  // The pages are a CSS snap-scroller; JS only keeps the dots honest and gives the
+  // gesture a click-shaped fallback. The disc is the page on screen, the ring is
+  // the other one — the same outline-vs-fill signal the site's mark carries.
+  const pages = document.getElementById('mt-pages')!;
+  const dotBtns = Array.from(document.querySelectorAll('#mt-dots button'));
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function drawPageDots() {
+    const idx = pages.clientWidth ? Math.round(pages.scrollLeft / pages.clientWidth) : 0;
+    dotBtns.forEach((b, i) => {
+      const c = b.querySelector('[data-dot]')!;
+      if (i === idx) {
+        c.setAttribute('fill', 'currentColor');
+        c.removeAttribute('stroke');
+      } else {
+        c.setAttribute('fill', 'none');
+        c.setAttribute('stroke', 'currentColor');
+        c.setAttribute('stroke-width', '1.5');
+      }
+    });
+  }
+
+  let scrollRaf = 0;
+  pages.addEventListener('scroll', () => {
+    if (scrollRaf) return;
+    scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; drawPageDots(); });
+  }, { passive: true });
+
+  dotBtns.forEach((b) => {
+    b.addEventListener('click', () => {
+      const i = Number(b.getAttribute('data-goto'));
+      pages.scrollTo({
+        left: i * pages.clientWidth,
+        behavior: still.matches ? 'auto' : 'smooth',
+      });
+    });
+  });
+  drawPageDots();
+
+  // Leaving the page: stop everything. A tab that keeps a mic open after
+  // navigation shows a recording indicator for a page that no longer exists.
   addEventListener('pagehide', () => { stopTuner(); stopMetro(); stopTone(); });
 </script>

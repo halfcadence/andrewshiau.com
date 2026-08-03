@@ -1,0 +1,129 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PanelHead from '../../components/PanelHead.astro';
+
+// THE CASE STUDY, moved in with the other eight (chooser: metrotuner-two-pages,
+// Q1/02 "instrument first"). /metrotuner/ is the instrument now; this page is the
+// writeup, and the one place the two meet is the link under the dek and the "about"
+// word at the instrument's foot.
+//
+// TYPE B (skill shape): dek → a named head over the argument → the facts colophon.
+// The href passed to PanelHead is the ENTRY's href — metaOf/sideOf key on
+// experiments.ts, where the entry points at the instrument. This page is about that
+// artifact; it is not a second artifact.
+---
+
+<Layout
+  title="Metrotuner — Andrew Shiau"
+  description="How the browser tuner and metronome were built: McLeod pitch detection, a lookahead scheduler, and a test suite with a fake microphone."
+>
+  <div class="grid">
+    <PanelHead href="/metrotuner/" title="Metrotuner">
+      <div class="frow">
+        <div class="fm">Pitch</div>
+        <div class="ftx">McLeod pitch method, asserted to half a cent in the unit suite</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Microphone</div>
+        <div class="ftx">Read in the page and discarded. Nothing is recorded or sent.</div>
+      </div>
+    </PanelHead>
+
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">
+          A chromatic tuner and a metronome, side by side on one screen. Pitch
+          detection runs in the browser; the microphone signal never leaves it.
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="c1-12">
+          <p><a href="/metrotuner/">Open the instrument</a> — the tuner reads the
+          offset in cents, the metronome takes a typed tempo or a tapped one, and on
+          a phone you swipe between them.</p>
+        </div>
+      </div>
+
+      <!-- TYPE B beat 2: a named head over the argument. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The detector that failed first</h2>
+          <div class="sbody">
+            <p>
+              The obvious pitch detector is autocorrelation, and it failed its own
+              tests. The raw correlation tapers with lag, which dragged a <b>65 Hz</b>
+              sine <b>22 cents</b> sharp; normalizing the taper out made every multiple
+              of the true period score the same, and the picker grabbed nine times the
+              period — a reading three octaves flat.
+            </p>
+            <p>
+              What shipped is the <b>McLeod pitch method</b>: a normalized square
+              difference bounded to ±1 at every lag, with the first key maximum within
+              10% of the best taken as the period. On synthesized buffers it reads
+              within <b>0.25 cents</b> from C2 to C8, including a plucked-string case
+              where the second harmonic carries more energy than the fundamental — the
+              case that makes FFT-peak tuners read a low E as an octave up.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Testing an instrument without an instrument</h2>
+          <div class="sbody">
+            <p>
+              The unit suite runs the math on synthesized buffers: <b>39</b> assertions
+              covering the note grid, the scheduler, tap tempo, and the detector's
+              accuracy bounds. Direction is asserted, not just magnitude — a tuner with
+              a flipped sign passes every "about 23 cents" check and tunes every string
+              the wrong way.
+            </p>
+            <p>
+              The end-to-end suite plays known sine waves into Chromium's fake
+              microphone: <b>440 Hz</b> must read A4 at 0 cents, <b>446 Hz</b> must
+              read sharp with a plus sign, and recalibrating A4 to 446 must move the
+              same input to 0 — the control that proves the calibration is wired
+              through rather than merely stored. The metronome's ticks are asserted on
+              the audio clock, where the scheduler computes times instead of
+              accumulating them.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>One screen, two instruments</h2>
+          <div class="sbody">
+            <p>
+              The instrument page escapes the site's document measure — the one page
+              that does. On a wide screen the tuner and metronome centre in equal
+              halves, both running. Under 900px the halves become two swipe pages, and
+              the indicator is the site's own pair: a disc for the page on screen, a
+              ring for the other. Every treatment was picked from a proof sheet where
+              the options ran live off one simulated signal.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TYPE B close: the facts colophon, read after the work. -->
+      <div class="grid sect">
+        <div class="c1-12 colo">
+          <div><span class="ck">Pitch detection</span>McLeod pitch method on a 2048-sample window — normalized square difference, key-maxima picking, parabolic interpolation.</div>
+          <div><span class="ck">Timing</span>A lookahead scheduler on the audio clock. setInterval wakes it; the audio thread keeps time.</div>
+          <div><span class="ck">Sounds</span>Three synthesized sine pings — G6 for the downbeat, C6 for the beat, G5 under it. No samples.</div>
+          <div><span class="ck">Privacy</span>The microphone signal is analysed in the page and discarded. Nothing is recorded, stored, or sent.</div>
+          <div><span class="ck">Apparatus</span>Web Audio API and 0 dependencies. 39 unit tests on the math; 14 end-to-end tests against a fake microphone, re-run against the live site after every deploy.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .colo > div + div{margin-top:var(--lead)}
+  .colo > div{max-width:62ch}
+</style>
