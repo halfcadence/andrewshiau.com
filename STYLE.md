@@ -830,9 +830,15 @@ Kept because they're subtle and on-system. Don't add more without reason.
   **20 links** (native pointing hand) or the password field (I-beam), and painted the other
   **65 of 181 elements**: paper, headings, prose. The interaction hue was on everything a
   reader cannot act on and nothing they can, which is Q4/05 running backwards.
-  Still unfixed, on purpose: the disc replaces the **I-beam over 62ch of body copy**, so prose
-  does not advertise that it is selectable. Deleting the cursor entirely was option 02 and was
-  not the pick.
+  **The disc is the cursor over PAPER only.** A second pass gave type its I-beam back —
+  `:is(p,h1,h2,h3,li,dd,dt,code,blockquote,figcaption,span):not(a *){cursor:auto}`. Without it
+  the disc replaced the text cursor over every paragraph and the document did not advertise that
+  it is selectable: a pointer that hides an affordance is a regression with a nice drawing.
+  **`:not(a *)` is load-bearing** — the unscoped selector strips the pointing hand off
+  `.entry .eh` and `.entry .en`, because every index row is an `<a>` whose title is a `<span>`.
+  Measured, not reasoned: nine rows read as unclickable at the pixel a reader aims for. `span`
+  is in the list on purpose, for the ledger and colophon values (an email, a date) that a reader
+  copies.
   It is deliberately **not** kept in sync with the mark: the design half of
   the figure is a hollow ring now, and an 18px ring drawn at cursor weight reads as a smudge
   or disappears over busy ground. The cursor's job is to be visible, not to be the logo.

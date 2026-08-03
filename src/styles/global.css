@@ -80,10 +80,10 @@
      everything a reader CANNOT act on and on nothing they can: the exact inverse of the one job
      colour has on this site (Q4/05).
      `--ink`, therefore, not `--design`, and the token still flips with the scheme.
-     What this does NOT fix, stated because a partial fix reported as a whole one is the
-     expensive mistake: the disc still replaces the I-BEAM over 62ch of body copy, so the prose
-     still doesn't advertise that it is selectable. That was option 02's win (delete the cursor
-     entirely) and it was not the pick — the delight stays, the misused hue doesn't. */
+     THE I-BEAM IS BACK TOO, in a second pass — see the `:is(…):not(a *)` rule under `body`.
+     The disc's scope is now PAPER: margins, gutters, the empty modules. Type gets the browser's
+     text cursor, links keep the hand, the field keeps its I-beam. So the drawing appears where
+     it reads and where a bare arrow said nothing, and it no longer hides an affordance. */
   --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23141412"/></svg>');
   /* THE ONE SIZE, and its leading. A token because "15px" appearing in forty rules is
      forty chances to drift; `--step` appearing in forty rules is one number.
@@ -178,6 +178,26 @@ body{margin:0;background:var(--paper);color:var(--ink);
   /* dot cursor — an ink disc, and it INHERITS: links and the field keep their native cursors,
      because a UA-declared cursor beats an inherited one. See `--cursor` for the measurement. */
   cursor:var(--cursor) 9 9, auto}
+/* ── THE I-BEAM COMES BACK OVER TYPE. This is the other half of the cursor fix, and it closes
+   the cost the ink disc was still carrying: the disc replaced the text cursor over every
+   paragraph on the site, so a document of 15px mono did not advertise that it is selectable.
+   A pointer that hides an affordance is not a delight, it is a regression with a nice drawing.
+   The disc's job survives — it is the cursor over PAPER: the margins, the grid, the empty
+   modules, which is where a bare pointer says nothing anyway and where the drawing reads.
+   Over type the browser's own I-beam is the correct mark, and it is free.
+   `:not(a *)` IS THE WHOLE RULE, and it was found by measuring rather than by reasoning. The
+   naive selector (the same list, unscoped) computed `auto` on `.entry .eh`, `.entry .en` and
+   `.smeta` — every index row is an `<a>` whose title is a `<span>`, so it stripped the pointing
+   hand off the site's most-used link and left it on the anchor's own thin padding. Nine rows
+   would have looked unclickable at the exact pixel a reader aims for. `:not(a *)` excludes any
+   descendant of a link, so a link's text keeps the hand and a paragraph's text gets the I-beam.
+   `span` is IN the list on purpose: the ledger (`.pk`/`.pv`) and the colophon (`.ck`/`.cv`) are
+   spans holding real facts a reader may want to copy — an email address, a date. Excluding them
+   would have left the two most copyable strings on the site un-selectable-looking.
+   Verified on the live index with the rule injected: prose/h1/h2/ledger/colophon → `auto`;
+   `.entry .eh`, `.entry .en`, the marker SVG and all 20 links → `pointer`; `.f input` → `text`;
+   `main` and `.wrap` → still the disc. */
+:is(p,h1,h2,h3,li,dd,dt,code,blockquote,figcaption,span):not(a *){cursor:auto}
 /* text highlight — pure invert (ink on paper → paper on ink) */
 ::selection{background:var(--ink);color:var(--paper)}
 .wrap{max-width:var(--measure);margin:0 auto;padding:0 var(--gutter) calc(var(--unit)*5);position:relative}
@@ -2258,8 +2278,13 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
   .quiz .q{display:block}
   .quiz .qn{color:var(--ink);margin-bottom:var(--tight)}
 }
+/* `cursor:pointer`, not `inherit`. It WAS `inherit`, and that was consistent while the disc was
+   the cursor over everything — the option looked like the rest of the page. It isn't consistent
+   now: the disc means PAPER, type means I-beam, and a quiz option is neither. It is the one
+   thing on an explainer page a reader has to click, and under `inherit` it advertised itself as
+   paper. Same defect as the missing I-beam, other direction. `:disabled` below still overrides. */
 .quiz .opt{display:block;width:100%;text-align:left;font:inherit;color:var(--dim);
-  background:none;border:0;padding:0 0 0 3ch;margin:0;cursor:inherit;
+  background:none;border:0;padding:0 0 0 3ch;margin:0;cursor:pointer;
   transition:padding-left var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
 .quiz .opt:hover:not(:disabled){color:var(--accent);padding-left:calc(3ch + 1ch)}
 .quiz .opt:disabled{cursor:default}
