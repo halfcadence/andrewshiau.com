@@ -45,7 +45,7 @@ import MarkFigure from '../components/MarkFigure.astro';
             <!-- Round-1 picks (metrotuner-appearance): Q1/05 the disc alone rides the
                  arc; Q2/02 in tune, the note reading inverts (see .mrn.intune). -->
             <svg viewBox="0 0 320 184" id="mt-dial">
-              <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+              <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--faint)" stroke-width="1.5"/>
               <line id="mt-tick" x1="160" y1="26" x2="160" y2="42" stroke="var(--ink)" stroke-width="1.5"/>
               <g id="mt-needle" class="rest">
                 <circle cx="160" cy="34" r="6" fill="currentColor"/>
@@ -619,10 +619,18 @@ import MarkFigure from '../components/MarkFigure.astro';
     { now: () => audio().currentTime, play: click },
   );
 
+  // The visible dots are RE-CENTRED for the bar length. Hiding circles 5–7 left the
+  // SVG at full width, so a 4-beat row sat 48px left of its half's axis while the
+  // dial opposite was centred to the half-pixel (audit 2026-08-03, finding 2). The
+  // positions are computed, not the box: N dots at 32-unit pitch, centred on 112.
   function drawBeats(current: number) {
     beatDots.forEach((c, i) => {
-      c.classList.toggle('off', i >= beatsPerBar);
+      const visible = i < beatsPerBar;
+      c.classList.toggle('off', !visible);
       c.classList.toggle('on', i === current);
+      if (visible) {
+        c.setAttribute('cx', String(112 + (i - (beatsPerBar - 1) / 2) * 32));
+      }
     });
   }
   drawBeats(-1);
