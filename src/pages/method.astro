@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import PanelHead from '../components/PanelHead.astro';
 import spec from '../../method/method.md?raw';
+import builderSpec from '../../method/builder.md?raw';
 
 // Hand-written copy for a reader, ASSERTED against the spec (chooser pick 04-03). The
 // alternative was rendering method.md through a markdown renderer: zero drift, but it
@@ -29,13 +30,26 @@ import spec from '../../method/method.md?raw';
 // and the build fails if the page quotes a sentence the file no longer contains. That is the
 // check doing its job — it is what stops the site's copy of the spec drifting from the spec an
 // agent actually loads. Edit `method/method.md` first, then this string.
-const SHARED = [
-  'It encodes judgment — how to decide — so a fresh agent can run the procedures rather than recite the facts.',
+//
+// TWO SOURCES NOW, because the Build column quotes the builder side. The red/green claim in
+// item 3 lives in `method/builder.md`, which `method.md` does not contain — asserting it
+// against the root spec would have been a check that cannot pass, and leaving it unasserted
+// would have been a page sentence with nothing behind it. Each entry names its own file, so
+// the failure message says which file to edit.
+const SHARED: Array<[string, string, string]> = [
+  ['method/method.md', spec,
+    'It encodes judgment — how to decide — so a fresh agent can run the procedures rather than recite the facts.'],
+  // Straight quotes and straight apostrophes: the needle is copied out of the markdown, never
+  // out of the rendered page. The curly forms this page prints are not in the source files and
+  // fail the check.
+  ['method/builder.md', builderSpec,
+    'A check that has only ever passed proves nothing'],
+  ['method/builder.md', builderSpec,
+    'A/A is the arm that must not move'],
 ];
-const flat = spec.replace(/\s+/g, ' ');
-for (const s of SHARED) {
-  if (!flat.includes(s)) {
-    throw new Error('method/method.md no longer contains a sentence /method/ quotes:\n  ' + s);
+for (const [file, src, s] of SHARED) {
+  if (!src.replace(/\s+/g, ' ').includes(s)) {
+    throw new Error(file + ' no longer contains a sentence /method/ quotes:\n  ' + s);
   }
 }
 ---
@@ -140,8 +154,14 @@ for (const s of SHARED) {
                 both hypotheses.</li>
               <li><b>Verify the change is in the live artifact</b> before trusting a
                 result. A failure against a stale bundle is a false negative.</li>
-              <li><b>Pair every change with a control.</b> A/B proves the change took;
-                A/A proves nothing else moved.</li>
+              <!-- Item 3 carries BOTH lanes, because the one-clause version ("A/B proves the
+                   change took; A/A proves nothing else moved") published the A/A half and left
+                   the reader with "I verify" meaning "the test passed" — the claim the rest of
+                   this column exists to refuse. Both sentences are asserted against
+                   `method/builder.md` above; that file was edited first. -->
+              <li><b>Pair every change with a control.</b> A check that has only ever
+                passed proves nothing, so I watch it fail against the unfixed code. A/A is
+                the arm that must not move.</li>
               <li>A visual signal when it renders, a trace when it doesn’t — the cheapest
                 observation that can actually fail.</li>
               <li><b>Report the boundary</b> of what was tested, and what wasn’t.</li>

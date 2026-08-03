@@ -12,8 +12,10 @@ run where it ships and moved a signal in the expected direction.
 2. **Verify the change is actually in the live artifact** before trusting a result.
    A green build does not mean the change is present. A failure observed against a stale
    bundle is a false negative, and chasing one is the most expensive mistake available.
-3. **Pair every change with a control.** A/B proves the change took; A/A proves nothing
-   else moved. Assert the **direction** of the signal, not merely that output exists.
+3. **Pair every change with a control.** A check that has only ever passed proves nothing,
+   so watch it fail against the unfixed code. A/A is the arm that must not move; when it
+   moves, the comparator is reading noise and the A/B result goes with it. Assert the
+   **direction** of the signal, and record both arms.
 4. **Prefer a visual signal when it renders, a trace when it doesn't.** Pick the
    cheapest observation that can actually fail.
 5. **Report the boundary of what was tested.** Say which case was exercised and which
@@ -26,8 +28,9 @@ run where it ships and moved a signal in the expected direction.
   instead of erroring" is.
 - **Reproduce before fixing.** A fix for an unreproduced bug is a guess with a commit
   message.
-- **Red → green on a fresh fixture.** A test that never failed proves nothing. And a
-  test that passes on a warm fixture but was never tried cold hasn't covered the case.
+- **Red → green on a fresh fixture.** A test that passes on a warm fixture but was never
+  tried cold hasn't covered the case. Give each arm its own fixture instance: state carried
+  over from an earlier run produces a red that belongs to the history, not to the code.
 - **Prefer the smallest cause that explains all the symptoms.** Two independent bugs is
   the fallback hypothesis, not the first one.
 - **Distinguish latency from failure.** "It stopped responding" is usually a slow path,
