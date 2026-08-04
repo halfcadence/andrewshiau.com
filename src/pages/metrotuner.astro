@@ -221,8 +221,12 @@ import Layout from '../layouts/Layout.astro';
      the middle. */
   .mt-pages{flex:1;min-height:0;display:flex;gap:var(--group);
     padding:var(--group) var(--group) var(--lead)}
+  /* THE HAIRLINE (chooser metrotuner-reactive, Q1/02): 1px --line — the embed
+     frame's own weight, the weakest mark the system has. The case is not
+     interactive, so it must be the quietest line on the screen; at 1.5px ink it was
+     tying with the pendulum's own stroke. Near-invisible in dark is the point. */
   .mt-half{flex:1 1 50%;min-width:0;position:relative;
-    border:1.5px solid var(--ink);
+    border:1px solid var(--line);
     display:flex;flex-direction:column;justify-content:flex-end;gap:0;
     padding:var(--lead) var(--gutter)}
   .mt-plate{position:absolute;top:-14px;left:24px;background:var(--paper);
