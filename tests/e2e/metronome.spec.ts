@@ -75,11 +75,18 @@ test('the pendulum swings while running and parks when stopped', async ({ page }
   await expect(page.locator('#mt-pend')).toHaveClass(/live/);
 
   await page.getByTestId('metro-toggle').click();
-  await page.waitForTimeout(200);
-  // Stopped: parked upright, faint.
+  // The sweep under way FINISHES into an end (nit 1) — allow up to a full beat at
+  // 120bpm plus slack, then assert it rests at ±54°, not mid-air and not centre.
+  await page.waitForTimeout(900);
   const parked = await page.locator('#mt-pend').getAttribute('style');
-  expect(parked).toContain('rotate(0deg)');
+  expect(parked).toMatch(/rotate\((-?54|54)deg\)/);
   await expect(page.locator('#mt-pend')).toHaveClass(/rest/);
+});
+
+test('idle, the pendulum rests at the left end — not centre', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  const style = await page.locator('#mt-pend').getAttribute('style');
+  expect(style).toContain('rotate(-54deg)');
 });
 
 test('settings persist across a reload', async ({ page }) => {
