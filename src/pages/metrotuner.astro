@@ -84,11 +84,11 @@ import Layout from '../layouts/Layout.astro';
 
         <div class="mt-cfoot">
           <span class="mt-fl">
-            <button type="button" class="tbtn" id="mt-mic" data-testid="mic-toggle" aria-pressed="false">start the tuner</button>
+            <button type="button" class="tbtn fixw" id="mt-mic" data-testid="mic-toggle" aria-pressed="false" style="--w:15ch">start the tuner</button>
             <span class="mt-hint" id="mt-hint">uses the microphone, on this device only</span>
           </span>
           <span class="mt-fr">
-            <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
+            <button type="button" class="tbtn fixw" id="mt-tone" data-testid="tone-toggle" aria-pressed="false" style="--w:9ch">play tone</button>
             <span class="mt-seg" role="group" aria-label="Reference note">
               <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
               <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
@@ -147,8 +147,11 @@ import Layout from '../layouts/Layout.astro';
           <figure class="mt-gauge" aria-hidden="true">
             <svg viewBox="0 0 320 184" id="mt-metro-fig">
               <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--faint)" stroke-width="1.5"/>
-              <line id="mt-tickL" x1="34" y1="146" x2="34" y2="160" stroke="var(--ink)" stroke-width="1.5"/>
-              <line id="mt-tickR" x1="286" y1="146" x2="286" y2="160" stroke="var(--ink)" stroke-width="1.5"/>
+              <!-- The end ticks are STRIKE FLASHES, not rail furniture (user nit 3,
+                   2026-08-04): invisible at rest, they appear only in the strike
+                   window. The rail is a clean arc otherwise. -->
+              <line id="mt-tickL" x1="34" y1="146" x2="34" y2="160" stroke="var(--ink)" stroke-width="0"/>
+              <line id="mt-tickR" x1="286" y1="146" x2="286" y2="160" stroke="var(--ink)" stroke-width="0"/>
               <g id="mt-pend" class="rest">
                 <line x1="160" y1="160" x2="160" y2="44" stroke="currentColor" stroke-width="1.5"/>
                 <circle cx="160" cy="44" r="6" fill="currentColor"/>
@@ -160,7 +163,7 @@ import Layout from '../layouts/Layout.astro';
 
         <div class="mt-cfoot">
           <span class="mt-fl">
-            <button type="button" class="tbtn" id="mt-run" data-testid="metro-toggle" aria-pressed="false">start the metronome</button>
+            <button type="button" class="tbtn fixw" id="mt-run" data-testid="metro-toggle" aria-pressed="false" style="--w:19ch">start the metronome</button>
             <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
           </span>
           <span class="mt-fr">
@@ -181,17 +184,15 @@ import Layout from '../layouts/Layout.astro';
          they are buttons: a swipe needs a click-shaped fallback for keyboards and
          for anyone who doesn't guess the gesture. -->
     <div class="mt-foot">
+      <!-- WORDS, NOT DOTS (user nit, 2026-08-04: "the two dots are not clear").
+           The pages are NAMED now — tuner · metronome — current page ink, the other
+           faint+underlined (the segment idiom). The swipe still works; these are its
+           click-shaped fallback, and with the pages named at the foot the engraved
+           plate labels became redundant on the phone (they were already hidden). -->
       <div class="mt-dots" id="mt-dots">
-        <button type="button" data-goto="0" aria-label="Tuner" data-testid="dot-tuner">
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <circle cx="7" cy="7" r="5" fill="currentColor" data-dot/>
-          </svg>
-        </button>
-        <button type="button" data-goto="1" aria-label="Metronome" data-testid="dot-metro">
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5" data-dot/>
-          </svg>
-        </button>
+        <button type="button" data-goto="0" data-testid="dot-tuner" class="pgword">tuner</button>
+        <span class="mt-lb" aria-hidden="true">·</span>
+        <button type="button" data-goto="1" data-testid="dot-metro" class="pgword">metronome</button>
       </div>
       <!-- THE MARK IS GONE (user call, 2026-08-04: "just delete the mark, it's not
            really part of this tool"). The instrument carries no site chrome at all;
@@ -315,6 +316,12 @@ import Layout from '../layouts/Layout.astro';
   .tbtn:focus-visible{outline:0;color:var(--accent);text-decoration-color:var(--ink)}
   .tbtn[aria-pressed="true"]:not(.seg){text-decoration-color:var(--accent)}
   .tbtn.gly{min-width:44px;text-align:center}
+  /* THE REFLOW FIX (user nit, 2026-08-04): a transport's label flips between
+     start/stop (or play/stop) and the two strings differ in width, so every toggle
+     used to reflow the whole foot line. Reserve the LONGER string's width per
+     button (--w set inline, in ch — exact in a monospace face) and keep the text
+     flush left; nothing moves but the word. */
+  .tbtn.fixw{min-width:var(--w);text-align:left}
   .tbtn.seg{color:var(--faint)}
   .tbtn.seg[aria-pressed="true"]{color:var(--ink);text-decoration:none;cursor:default}
   .mt-seg{display:inline-flex;align-items:center;gap:1.5ch;flex-wrap:wrap;justify-content:center}
@@ -332,11 +339,18 @@ import Layout from '../layouts/Layout.astro';
      the whole band collapses and the cases keep the height. */
   .mt-foot{display:none;flex:none;flex-direction:column;align-items:center;
     gap:4px;padding:0 var(--gutter) var(--lead)}
-  .mt-dots{display:flex;gap:16px}
+  .mt-dots{display:flex;gap:1.5ch;align-items:baseline}
   @media (max-width: 900px){ .mt-foot{display:flex} }
-  .mt-dots button{background:transparent;border:0;padding:15px;margin:-10px;
-    color:var(--ink);cursor:pointer;border-radius:0;display:block}
-  .mt-dots button:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  /* The page words (user nit 2026-08-04, the dots were unclear): current = ink, no
+     underline (a fact); the other = faint, underlined (an offer) — the segment
+     idiom. 44px targets via padding. */
+  .pgword{font:inherit;background:transparent;border:0;padding:10px 0;margin:-10px 0;
+    border-radius:0;cursor:pointer;color:var(--faint);
+    text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px;
+    transition:color var(--dur-fast) var(--ease)}
+  .pgword.cur{color:var(--ink);text-decoration:none;cursor:default}
+  .pgword:not(.cur):hover{color:var(--accent)}
+  .pgword:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
   .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;
     clip:rect(0 0 0 0);white-space:nowrap}
 
@@ -564,6 +578,7 @@ import Layout from '../layouts/Layout.astro';
     toneGain.gain.exponentialRampToValueAtTime(0.12, ac.currentTime + 0.06);
     toneOsc.connect(toneGain).connect(ac.destination);
     toneOsc.start();
+    toneBtn.textContent = 'stop tone';
     toneBtn.setAttribute('aria-pressed', 'true');
     if (E2E) hook.toneHz = toneOsc.frequency.value;
   }
@@ -575,6 +590,7 @@ import Layout from '../layouts/Layout.astro';
     toneOsc.stop(ac.currentTime + 0.2);
     toneOsc = null;
     toneGain = null;
+    toneBtn.textContent = 'play tone';
     toneBtn.setAttribute('aria-pressed', 'false');
     if (E2E) hook.toneHz = null;
   }
@@ -683,8 +699,8 @@ import Layout from '../layouts/Layout.astro';
       // The strike: fatten the tick at the end the bob just left/reached.
       const nearEnd = s.phase < 0.12 ? -s.dir : s.phase > 0.88 ? s.dir : 0;
       const heavy = lastBeat!.voice === 'down' ? '5' : '3.5';
-      tickL.setAttribute('stroke-width', nearEnd === -1 ? heavy : '1.5');
-      tickR.setAttribute('stroke-width', nearEnd === 1 ? heavy : '1.5');
+      tickL.setAttribute('stroke-width', nearEnd === -1 ? heavy : '0');
+      tickR.setAttribute('stroke-width', nearEnd === 1 ? heavy : '0');
     }
     raf = requestAnimationFrame(swing);
   }
@@ -709,8 +725,8 @@ import Layout from '../layouts/Layout.astro';
     pend.style.transform = `rotate(${deg}deg)`;
     pend.classList.add('rest');
     pend.classList.remove('live');
-    tickL.setAttribute('stroke-width', '1.5');
-    tickR.setAttribute('stroke-width', '1.5');
+    tickL.setAttribute('stroke-width', '0');
+    tickR.setAttribute('stroke-width', '0');
   }
   restPendulum(PARK_LEFT);
 
@@ -739,8 +755,8 @@ import Layout from '../layouts/Layout.astro';
             const beatIndex = Math.round(t.time / (60 / bpm));
             const heavy = t.voice === 'down' ? '5' : '3.5';
             const left = beatIndex % 2 === 0;
-            tickL.setAttribute('stroke-width', left ? heavy : '1.5');
-            tickR.setAttribute('stroke-width', left ? '1.5' : heavy);
+            tickL.setAttribute('stroke-width', left ? heavy : '0');
+            tickR.setAttribute('stroke-width', left ? '0' : heavy);
           }
         }
         raf = requestAnimationFrame(tickOnly);
@@ -829,19 +845,10 @@ import Layout from '../layouts/Layout.astro';
   const dotBtns = Array.from(document.querySelectorAll('#mt-dots button'));
   const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  // The page WORDS (nit, 2026-08-04): current page ink, the other faint+underlined.
   function drawPageDots() {
     const idx = pages.clientWidth ? Math.round(pages.scrollLeft / pages.clientWidth) : 0;
-    dotBtns.forEach((b, i) => {
-      const c = b.querySelector('[data-dot]')!;
-      if (i === idx) {
-        c.setAttribute('fill', 'currentColor');
-        c.removeAttribute('stroke');
-      } else {
-        c.setAttribute('fill', 'none');
-        c.setAttribute('stroke', 'currentColor');
-        c.setAttribute('stroke-width', '1.5');
-      }
-    });
+    dotBtns.forEach((b, i) => b.classList.toggle('cur', i === idx));
   }
 
   let scrollRaf = 0;

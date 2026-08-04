@@ -6,34 +6,29 @@ import { test, expect } from '@playwright/test';
 
 test.use({ viewport: { width: 390, height: 720 } });
 
-test('phone: dots navigate between tuner and metronome, disc marks the page', async ({ page }) => {
+test('phone: the page words navigate; the current page reads ink', async ({ page }) => {
   await page.goto('/metrotuner/');
 
-  // Page 1 is the tuner; both dots visible, first is the disc.
+  // Page 1 is the tuner; both words visible, "tuner" is current.
   await expect(page.getByTestId('dot-tuner')).toBeVisible();
-  const fill0 = await page.getByTestId('dot-tuner').locator('[data-dot]').getAttribute('fill');
-  expect(fill0).toBe('currentColor');
+  await expect(page.getByTestId('dot-tuner')).toHaveClass(/cur/);
 
   // The metronome half exists but is off-screen to the right.
   const metroBefore = await page.locator('.mt-half[aria-label="Metronome"]').boundingBox();
   expect(metroBefore!.x).toBeGreaterThanOrEqual(390);
 
-  // Click the metronome dot → the pages scroll, the disc moves.
+  // Click "metronome" → the pages scroll, the current word moves.
   await page.getByTestId('dot-metro').click();
   await page.waitForTimeout(700); // smooth scroll settles
   const metroAfter = await page.locator('.mt-half[aria-label="Metronome"]').boundingBox();
   expect(Math.abs(metroAfter!.x)).toBeLessThan(30);
+  await expect(page.getByTestId('dot-metro')).toHaveClass(/cur/);
+  await expect(page.getByTestId('dot-tuner')).not.toHaveClass(/cur/);
 
-  const fillMetro = await page.getByTestId('dot-metro').locator('[data-dot]').getAttribute('fill');
-  expect(fillMetro).toBe('currentColor');
-  const fillTuner = await page.getByTestId('dot-tuner').locator('[data-dot]').getAttribute('fill');
-  expect(fillTuner).toBe('none');
-
-  // A real swipe (drag the scroller) navigates back and the dots follow.
+  // A real swipe (drag the scroller) navigates back and the words follow.
   await page.locator('#mt-pages').evaluate((el) => el.scrollTo({ left: 0, behavior: 'auto' }));
   await page.waitForTimeout(300);
-  const fillBack = await page.getByTestId('dot-tuner').locator('[data-dot]').getAttribute('fill');
-  expect(fillBack).toBe('currentColor');
+  await expect(page.getByTestId('dot-tuner')).toHaveClass(/cur/);
 });
 
 test('phone: the metronome still runs while the tuner page is shown', async ({ page }) => {
