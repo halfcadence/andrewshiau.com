@@ -34,22 +34,30 @@ import MarkFigure from '../components/MarkFigure.astro';
     <h1 class="visually-hidden">Metrotuner</h1>
 
     <div class="mt-pages" id="mt-pages">
-      <!-- ── TUNER, the left half / first page ─────────────────────────────── -->
-      <!-- THE CORNERS (chooser: metrotuner-round4, Q1/03): the instrument dead
-           centre, one group per corner, the empty middle IS the composition. The
-           tuner owns two groups, so it uses the two bottom corners and its top
-           corners stay empty — air is placed, not filled. -->
+      <!-- ── TUNER, the left case / first page ─────────────────────────────── -->
+      <!-- THE CASE (chooser: metrotuner-pendulum, Q2/01): a square hairline case per
+           instrument, its name on the frame like an engraved plate — the site's box
+           rule holds by the embed-frame argument: inside is a machine, the border
+           says where it starts. On the phone NO case is drawn: the viewport's own
+           edges are the frame. THE FOOT LINE (Q3/01): every control in one line
+           along the case's bottom edge; the hero owns the middle. -->
       <section class="mt-half" aria-label="Tuner">
+        <span class="mt-plate" aria-hidden="true">tuner</span>
         <div class="mt-mid">
           <figure class="mt-gauge" aria-hidden="true">
-            <!-- Round-1 picks (metrotuner-appearance): Q1/05 the disc alone rides the
-                 arc; Q2/02 in tune, the note reading inverts (see .mrn.intune). -->
+            <!-- THE ARM AND BOB (chooser: metrotuner-pendulum, Q1/02) — the Wittner
+                 silhouette: pivot, hairline arm, the disc as the bob. This REVERSES
+                 round-1's dot-only pick, deliberately: the arm is the pendulum's,
+                 not the meter's, and both instruments carry it so deflection and
+                 swing read as one mechanic. The invert (Q2/02) is unchanged. -->
             <svg viewBox="0 0 320 184" id="mt-dial">
               <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--faint)" stroke-width="1.5"/>
               <line id="mt-tick" x1="160" y1="26" x2="160" y2="42" stroke="var(--ink)" stroke-width="1.5"/>
               <g id="mt-needle" class="rest">
-                <circle cx="160" cy="34" r="6" fill="currentColor"/>
+                <line x1="160" y1="160" x2="160" y2="44" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="160" cy="44" r="6" fill="currentColor"/>
               </g>
+              <circle cx="160" cy="160" r="2.5" fill="var(--ink)"/>
             </svg>
           </figure>
 
@@ -62,49 +70,76 @@ import MarkFigure from '../components/MarkFigure.astro';
           <div id="mt-sr" class="visually-hidden" role="status" aria-live="polite"></div>
         </div>
 
-        <div class="mt-crow">
-          <div class="mt-cl">
+        <div class="mt-cfoot">
+          <span class="mt-fl">
             <button type="button" class="tbtn" id="mt-mic" data-testid="mic-toggle" aria-pressed="false">start the tuner</button>
-            <div class="mt-hint" id="mt-hint">uses the microphone, on this device only</div>
-          </div>
-          <!-- The tone and its note are ONE fact — what to play. The calibration left
-               for the foot (chooser: metrotuner-controls, Q2/03): A4 tunes the whole
-               instrument, so it sits between the halves rather than inside one. -->
-          <div class="mt-cr">
-            <span class="mt-row">
-              <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
-              <span class="mt-seg" role="group" aria-label="Reference note">
-                <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
-                <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
-                <button type="button" class="tbtn gly" id="mt-note-up" aria-label="Reference note up">›</button>
-              </span>
+            <span class="mt-hint" id="mt-hint">uses the microphone, on this device only</span>
+          </span>
+          <span class="mt-fr">
+            <button type="button" class="tbtn" id="mt-tone" data-testid="tone-toggle" aria-pressed="false">tone</button>
+            <span class="mt-seg" role="group" aria-label="Reference note">
+              <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
+              <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
+              <button type="button" class="tbtn gly" id="mt-note-up" aria-label="Reference note up">›</button>
             </span>
-          </div>
+          </span>
         </div>
       </section>
 
-      <!-- ── METRONOME, the right half / second page ───────────────────────── -->
-      <!-- THE CORNERS (Q1/03): meter in the top corners, transport and tempo in the
-           bottom ones, the beat row alone in the middle. -->
+      <!-- ── METRONOME, the right case / second page ───────────────────────── -->
+      <!-- THE PENDULUM (chooser: metrotuner-pendulum, Q1/02 "arm and bob"): the
+           metronome's figure is the TUNER'S DRAWING IN MOTION — same arc, same arm,
+           same bob, sweeping end to end once per beat with the end tick filling on
+           the strike. Still vs moving is the whole distinction between the two
+           instruments. The beat-ring row this replaces carried bar position; the
+           strike now carries it — the downbeat's tick strikes heavier. -->
       <section class="mt-half" aria-label="Metronome">
-        <div class="mt-crow">
-          <div class="mt-cl">
+        <span class="mt-plate" aria-hidden="true">metronome</span>
+        <div class="mt-mid">
+          <figure class="mt-gauge" aria-hidden="true">
+            <svg viewBox="0 0 320 184" id="mt-metro-fig">
+              <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--faint)" stroke-width="1.5"/>
+              <line id="mt-tickL" x1="34" y1="146" x2="34" y2="160" stroke="var(--ink)" stroke-width="1.5"/>
+              <line id="mt-tickR" x1="286" y1="146" x2="286" y2="160" stroke="var(--ink)" stroke-width="1.5"/>
+              <g id="mt-pend" class="rest">
+                <line x1="160" y1="160" x2="160" y2="44" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="160" cy="44" r="6" fill="currentColor"/>
+              </g>
+              <circle cx="160" cy="160" r="2.5" fill="var(--ink)"/>
+            </svg>
+          </figure>
+        </div>
+
+        <!-- THE FOOT LINE (Q3/01): transport and tempo on the first line; meter on
+             the second. The stated cost of this pick is density — two lines is the
+             wrap, not a third band. -->
+        <div class="mt-cfoot">
+          <span class="mt-fl">
+            <button type="button" class="tbtn" id="mt-run" data-testid="metro-toggle" aria-pressed="false">start the metronome</button>
+            <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
+          </span>
+          <span class="mt-fr">
+            <span class="f mt-bpm">
+              <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
+              <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
+                     min="20" max="320" step="1" value="96" aria-label="Beats per minute" />
+              <button type="button" class="tbtn gly" id="mt-bpm-up" aria-label="Faster">+</button>
+              <span class="mt-lb">bpm</span>
+            </span>
+          </span>
+        </div>
+        <div class="mt-cfoot mt-cfoot2">
+          <span class="mt-fl">
             <span class="mt-lb">beats</span>
             <span class="mt-seg" role="group" aria-label="Beats per bar" id="mt-beats-seg">
               {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                 <button type="button" class="tbtn seg" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'}>{n}</button>
               ))}
             </span>
-          </div>
-          <!-- THE GLYPHS (chooser: metrotuner-round4, Q2/04 — "the favicon's
-               diagonal"): the subdivision is the mark's own vocabulary. One disc for
-               quarters; the favicon pair for eighths; three and four heads down the
-               45° stair, joined by the mark's trimmed rule (13.54→18.46 per step, the
-               same geometry MarkFigure carries). Hollow until chosen, filled when
-               chosen — ring-becomes-disc, so selection is never colour alone. The
-               word rides aria-label; the drawing does the sighted naming. -->
-          <div class="mt-cr">
-            <span class="mt-lb">subdivide</span>
+          </span>
+          <!-- THE GLYPHS (metrotuner-round4, Q2/04): the favicon's diagonal, hollow
+               until chosen — unchanged, just relocated to the foot. -->
+          <span class="mt-fr">
             <span class="nseg" role="group" aria-label="Subdivision" id="mt-sub-seg">
               <button type="button" class="nbtn" data-sub="1" aria-pressed="true" aria-label="Quarters">
                 <svg viewBox="0 0 32 32" style="height:26px" aria-hidden="true"><circle cx="16" cy="16" r="7.2"/></svg>
@@ -119,39 +154,7 @@ import MarkFigure from '../components/MarkFigure.astro';
                 <svg viewBox="0 0 56 56" style="height:42px" aria-hidden="true"><line x1="13.54" y1="13.54" x2="18.46" y2="18.46"/><line x1="25.54" y1="25.54" x2="30.46" y2="30.46"/><line x1="37.54" y1="37.54" x2="42.46" y2="42.46"/><circle cx="10" cy="10" r="5"/><circle cx="22" cy="22" r="5"/><circle cx="34" cy="34" r="5"/><circle cx="46" cy="46" r="5"/></svg>
               </button>
             </span>
-          </div>
-        </div>
-
-        <div class="mt-mid">
-          <div class="mt-beats" aria-hidden="true">
-            <svg viewBox="0 0 224 32" id="mt-beatrow">
-              <circle cx="16"  cy="16" r="6" />
-              <circle cx="48"  cy="16" r="6" />
-              <circle cx="80"  cy="16" r="6" />
-              <circle cx="112" cy="16" r="6" />
-              <circle cx="144" cy="16" r="6" />
-              <circle cx="176" cy="16" r="6" />
-              <circle cx="208" cy="16" r="6" />
-            </svg>
-          </div>
-        </div>
-
-        <div class="mt-crow">
-          <div class="mt-cl">
-            <span class="mt-row">
-              <button type="button" class="tbtn" id="mt-run" data-testid="metro-toggle" aria-pressed="false">start the metronome</button>
-              <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
-            </span>
-          </div>
-          <div class="mt-cr">
-            <span class="f mt-bpm">
-              <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
-              <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
-                     min="20" max="320" step="1" value="96" aria-label="Beats per minute" />
-              <button type="button" class="tbtn gly" id="mt-bpm-up" aria-label="Faster">+</button>
-              <span class="mt-lb">bpm</span>
-            </span>
-          </div>
+          </span>
         </div>
       </section>
     </div>
@@ -208,31 +211,40 @@ import MarkFigure from '../components/MarkFigure.astro';
 <style>
   #mt-app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 
-  /* EQUAL HALVES (chooser Q2/01): each instrument centres in its half; the gutter
-     between them is the boundary — no rule, per the system. */
-  .mt-pages{flex:1;min-height:0;display:flex}
-  /* THE CORNERS (chooser metrotuner-round4, Q1/03): the half is three bands — a
-     corner row, the middle, a corner row. The instrument alone owns the middle; each
-     control group owns a corner; the empty middle is the composition. */
-  .mt-half{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;
-    justify-content:space-between;gap:var(--lead);
+  /* THE CASES (chooser metrotuner-pendulum, Q2/01): each instrument in a square
+     hairline case, its name interrupting the top frame like an engraved plate —
+     sanctioned by the embed-frame argument: inside is a machine. THE FOOT LINE
+     (Q3/01): controls in a line along the case's bottom edge; the figure alone owns
+     the middle. */
+  .mt-pages{flex:1;min-height:0;display:flex;gap:var(--group);
+    padding:var(--group) var(--group) var(--lead)}
+  .mt-half{flex:1 1 50%;min-width:0;position:relative;
+    border:1.5px solid var(--ink);
+    display:flex;flex-direction:column;justify-content:flex-end;gap:0;
     padding:var(--lead) var(--gutter)}
+  .mt-plate{position:absolute;top:-14px;left:24px;background:var(--paper);
+    padding:0 1ch;color:var(--faint)}
   .mt-mid{flex:1;min-height:0;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:var(--lead)}
-  /* A corner row: left group flush left, right group flush right. The tuner has no
-     top groups, so its first band is simply absent and the middle grows upward. */
-  .mt-crow{flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+  /* A foot line: left group flush left, right group flush right, one baseline. */
+  .mt-cfoot{flex:none;display:flex;align-items:baseline;justify-content:space-between;
     gap:var(--lead) 4ch;flex-wrap:wrap}
-  .mt-cl{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
-  .mt-cr{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .mt-fl{display:inline-flex;align-items:baseline;gap:2ch;flex-wrap:wrap}
+  .mt-fr{display:inline-flex;align-items:baseline;gap:2ch;flex-wrap:wrap}
+  .mt-cfoot2{margin-top:2px}
 
-  /* THE SWIPE (chooser Q3/02). Under 900px — the width where .duo stacks — the
-     halves become two full-width snap pages. CSS scroll-snap is the whole gesture:
-     no JS touch handling, the browser's own physics. */
+  /* THE SWIPE (metrotuner-two-pages Q3/02). Under 900px the cases become two
+     full-width snap pages — and the case VANISHES (metrotuner-pendulum Q2, the
+     mobile rule): the viewport's own edges are the frame, so drawing one inside
+     them would be a frame in a frame. The plate goes with it; the page dots name
+     the pages. */
   @media (max-width: 900px){
-    .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+    .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+      gap:0;padding:0}
     .mt-pages::-webkit-scrollbar{display:none}
-    .mt-half{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
+    .mt-half{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;
+      border:0;padding:var(--lead) var(--gutter)}
+    .mt-plate{display:none}
   }
 
   .mt-gauge{width:min(320px,80vw);margin:0}
@@ -241,6 +253,12 @@ import MarkFigure from '../components/MarkFigure.astro';
     transition:transform var(--dur) var(--ease),color var(--dur) var(--ease)}
   #mt-needle.rest{color:var(--line)}
   #mt-needle.live{color:var(--ink)}
+  /* The pendulum: same figure, no CSS transition — its motion is the rAF cosine
+     (a transition would fight the per-frame transform). Rest = faint, upright. */
+  #mt-pend{transform-origin:160px 160px;transform-box:view-box}
+  #mt-pend.rest{color:var(--line)}
+  #mt-pend.live{color:var(--ink)}
+  #mt-tickL, #mt-tickR{transition:stroke-width var(--dur-fast) var(--ease)}
 
   .mt-read{display:flex;align-items:baseline;gap:2ch;width:min(320px,80vw)}
   .mt-read .ends{flex:1}
@@ -297,13 +315,6 @@ import MarkFigure from '../components/MarkFigure.astro';
   .mt-bpm input::-webkit-outer-spin-button, .mt-bpm input::-webkit-inner-spin-button{
     -webkit-appearance:none;margin:0}
 
-  .mt-beats{width:min(224px,60vw);margin:0}
-  .mt-beats svg{display:block;width:100%;height:auto}
-  #mt-beatrow circle{fill:none;stroke:var(--faint);stroke-width:1.5;
-    transition:fill var(--dur-fast) var(--ease)}
-  #mt-beatrow circle.on{fill:var(--ink);stroke:var(--ink)}
-  #mt-beatrow circle.off{display:none}
-
   /* The foot: dots centre (phone only — on the wide screen both pages are already
      on screen and an indicator would point at nothing), the word out under them. */
   .mt-foot{flex:none;display:flex;flex-direction:column;align-items:center;
@@ -324,7 +335,6 @@ import MarkFigure from '../components/MarkFigure.astro';
 
   @media (prefers-reduced-motion: reduce){
     #mt-needle{transition:none}
-    #mt-beatrow circle{transition:none}
     .mrn{transition:none}
   }
 </style>
@@ -576,8 +586,9 @@ import MarkFigure from '../components/MarkFigure.astro';
   // ── metronome ─────────────────────────────────────────────────────────────
   const runBtn = $('mt-run') as unknown as HTMLButtonElement;
   const bpmInput = $('mt-bpm') as unknown as HTMLInputElement;
-  const beatRow = document.getElementById('mt-beatrow')!;
-  const beatDots = Array.from(beatRow.querySelectorAll('circle'));
+  const pend = document.getElementById('mt-pend')!;
+  const tickL = document.getElementById('mt-tickL')!;
+  const tickR = document.getElementById('mt-tickR')!;
 
   // Persisted values are VALIDATED, not trusted: localStorage outlives the code
   // that wrote it.
@@ -619,45 +630,94 @@ import MarkFigure from '../components/MarkFigure.astro';
     { now: () => audio().currentTime, play: click },
   );
 
-  // The visible dots are RE-CENTRED for the bar length. Hiding circles 5–7 left the
-  // SVG at full width, so a 4-beat row sat 48px left of its half's axis while the
-  // dial opposite was centred to the half-pixel (audit 2026-08-03, finding 2). The
-  // positions are computed, not the box: N dots at 32-unit pitch, centred on 112.
-  function drawBeats(current: number) {
-    beatDots.forEach((c, i) => {
-      const visible = i < beatsPerBar;
-      c.classList.toggle('off', !visible);
-      c.classList.toggle('on', i === current);
-      if (visible) {
-        c.setAttribute('cx', String(112 + (i - (beatsPerBar - 1) / 2) * 32));
-      }
-    });
-  }
-  drawBeats(-1);
+  // THE SWING (chooser metrotuner-pendulum, Q1/02). The pendulum sweeps the arc
+  // once per BEAT, synchronized to the scheduler's own tick times: the animation
+  // reads the last played beat's audio-clock time and phase-locks a cosine to it,
+  // so the bob strikes an end exactly when the click sounds — the sound and the
+  // drawing share one clock, not two approximations of one.
+  // Odd/even beats alternate direction; the end tick fattens on the strike, and
+  // the DOWNBEAT's strike fattens more — bar position lives in the strike now that
+  // the ring row is gone.
+  const SWEEP_DEG = 54;
+  let lastBeat: Tick | null = null;   // the beat tick most recently PLAYED (clock-passed)
+  let raf = 0;
 
-  function indicate() {
+  function swing() {
     if (!scheduler.running) return;
     const now = audio().currentTime;
     while (pending.length && pending[0].time <= now) {
       const t = pending.shift()!;
-      if (t.voice !== 'sub') drawBeats(t.beatInBar);
+      if (t.voice !== 'sub') lastBeat = t;
     }
-    requestAnimationFrame(indicate);
+    if (lastBeat) {
+      const secPerBeat = 60 / bpm;
+      const phase = (now - lastBeat.time) / secPerBeat; // 0..1 within this beat
+      // Even beat indices sweep left→right, odd sweep back. cos gives the real
+      // pendulum's ease at the extremes.
+      const beatIndex = Math.round(lastBeat.time / secPerBeat);
+      const dir = beatIndex % 2 === 0 ? 1 : -1;
+      const deg = -dir * Math.cos(Math.min(1, Math.max(0, phase)) * Math.PI) * SWEEP_DEG;
+      pend.style.transform = `rotate(${deg}deg)`;
+      // The strike: fatten the tick at the end the bob just left/reached.
+      const nearEnd = phase < 0.12 ? -dir : phase > 0.88 ? dir : 0;
+      const heavy = lastBeat.voice === 'down' ? '5' : '3.5';
+      tickL.setAttribute('stroke-width', nearEnd === -1 ? heavy : '1.5');
+      tickR.setAttribute('stroke-width', nearEnd === 1 ? heavy : '1.5');
+    }
+    raf = requestAnimationFrame(swing);
   }
+
+  function parkPendulum() {
+    cancelAnimationFrame(raf);
+    pend.style.transform = 'rotate(0deg)';
+    pend.classList.add('rest');
+    pend.classList.remove('live');
+    tickL.setAttribute('stroke-width', '1.5');
+    tickR.setAttribute('stroke-width', '1.5');
+  }
+  parkPendulum();
+
+  // Reduced motion: the pendulum parks and the end ticks alone carry the beat —
+  // a stroke-width change is a state, not a motion.
+  const stillPend = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   function startMetro() {
     audio();
     pending.length = 0;
+    lastBeat = null;
     scheduler.start();
     runBtn.textContent = 'stop the metronome';
     runBtn.setAttribute('aria-pressed', 'true');
-    requestAnimationFrame(indicate);
+    pend.classList.remove('rest');
+    pend.classList.add('live');
+    if (stillPend.matches) {
+      // ticks only: poll the queue on a coarse interval, no sweep
+      const tickOnly = () => {
+        if (!scheduler.running) return;
+        const now = audio().currentTime;
+        while (pending.length && pending[0].time <= now) {
+          const t = pending.shift()!;
+          if (t.voice !== 'sub') {
+            const beatIndex = Math.round(t.time / (60 / bpm));
+            const heavy = t.voice === 'down' ? '5' : '3.5';
+            const left = beatIndex % 2 === 0;
+            tickL.setAttribute('stroke-width', left ? heavy : '1.5');
+            tickR.setAttribute('stroke-width', left ? '1.5' : heavy);
+          }
+        }
+        raf = requestAnimationFrame(tickOnly);
+      };
+      raf = requestAnimationFrame(tickOnly);
+    } else {
+      raf = requestAnimationFrame(swing);
+    }
   }
 
   function stopMetro() {
     scheduler.stop();
     pending.length = 0;
-    drawBeats(-1);
+    lastBeat = null;
+    parkPendulum();
     runBtn.textContent = 'start the metronome';
     runBtn.setAttribute('aria-pressed', 'false');
   }
@@ -669,7 +729,6 @@ import MarkFigure from '../components/MarkFigure.astro';
     store.set('mt:bpm', String(bpm));
     store.set('mt:beats', String(beatsPerBar));
     store.set('mt:sub', String(subdivision));
-    drawBeats(-1);
   }
 
   const setBpm = (v: number) => {
@@ -707,7 +766,6 @@ import MarkFigure from '../components/MarkFigure.astro';
   const restoreSub = wireSeg('mt-sub-seg', 'data-sub', (v) => { subdivision = v; applySpec(); });
   restoreBeats(beatsPerBar);
   restoreSub(subdivision);
-  drawBeats(-1);
 
   // ── the swipe indicator (chooser Q3/02) ──────────────────────────────────
   // The pages are a CSS snap-scroller; JS only keeps the dots honest and gives the

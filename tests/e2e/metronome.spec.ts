@@ -63,15 +63,23 @@ test('tap tempo sets the bpm field', async ({ page }) => {
   expect(bpm).toBeLessThan(140);
 });
 
-test('beat indicator shows the bar length that was chosen', async ({ page }) => {
+test('the pendulum swings while running and parks when stopped', async ({ page }) => {
   await page.goto('/metrotuner/?e2e');
-  await page.locator('#mt-beats-seg button[data-beats="3"]').click();
   await page.getByTestId('metro-toggle').click();
-  await page.waitForTimeout(1500);
-  // 3 visible dots, 4 hidden.
-  const visible = await page.locator('#mt-beatrow circle:not(.off)').count();
-  expect(visible).toBe(3);
+  await page.waitForTimeout(900);
+  // Running: the rotation changes between frames (the swing is rAF-driven).
+  const r1 = await page.locator('#mt-pend').getAttribute('style');
+  await page.waitForTimeout(200);
+  const r2 = await page.locator('#mt-pend').getAttribute('style');
+  expect(r1).not.toBe(r2);
+  await expect(page.locator('#mt-pend')).toHaveClass(/live/);
+
   await page.getByTestId('metro-toggle').click();
+  await page.waitForTimeout(200);
+  // Stopped: parked upright, faint.
+  const parked = await page.locator('#mt-pend').getAttribute('style');
+  expect(parked).toContain('rotate(0deg)');
+  await expect(page.locator('#mt-pend')).toHaveClass(/rest/);
 });
 
 test('settings persist across a reload', async ({ page }) => {
