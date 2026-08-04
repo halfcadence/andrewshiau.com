@@ -212,7 +212,9 @@ export const experiments: Entry[] = [
   },
   {
     n: '05',
-    title: 'Metrotuner',
+    // 'Practice room' (name chooser 2026-08-04, Q1/05): names the use, not the
+    // tools. The URL keeps /metrotuner/ — descriptive where an address should be.
+    title: 'Practice room',
     blurb:
       'A chromatic tuner and a metronome on one page. Pitch detection runs in the ' +
       'browser; the microphone signal never leaves it.',
