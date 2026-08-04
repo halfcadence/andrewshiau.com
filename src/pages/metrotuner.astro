@@ -169,6 +169,13 @@ import Layout from '../layouts/Layout.astro';
           <span class="mt-fl">
             <button type="button" class="tbtn fixw" id="mt-run" data-testid="metro-toggle" aria-pressed="false" style="--w:19ch">start the metronome</button>
             <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
+            <!-- THE ACCENT TOGGLE (the control every language mock carried; shipped
+                 in the document idiom the user kept). The word names the setting,
+                 the disc states it: filled = beat 1 accented, hollow = every beat
+                 equal. Ring→disc is the site's selection vocabulary. -->
+            <button type="button" class="tbtn acc" id="mt-accent" data-testid="accent-toggle" aria-pressed="true">
+              <span class="mt-lb">accent 1&nbsp;</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle id="mt-accdot" cx="6" cy="6" r="4.2" fill="currentColor" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
           </span>
           <span class="mt-fr">
             <span class="f mt-bpm">
@@ -317,6 +324,10 @@ import Layout from '../layouts/Layout.astro';
   .tbtn:focus-visible{outline:0;color:var(--accent);text-decoration-color:var(--ink)}
   .tbtn[aria-pressed="true"]:not(.seg){text-decoration-color:var(--accent)}
   .tbtn.gly{min-width:44px;text-align:center}
+  /* The accent toggle: word + disc on one baseline; no underline on the label part
+     (the whole thing is the button; the disc is the state). */
+  .tbtn.acc{text-decoration:none;display:inline-flex;align-items:center}
+  .tbtn.acc:hover .mt-lb{color:var(--accent)}
   /* THE REFLOW FIX (user nit, 2026-08-04): a transport's label flips between
      start/stop (or play/stop) and the two strings differ in width, so every toggle
      used to reflow the whole foot line. Reserve the LONGER string's width per
@@ -651,9 +662,27 @@ import Layout from '../layouts/Layout.astro';
 
   const pending: Tick[] = [];
 
+  // THE ACCENT SETTING. Off, the downbeat is demoted to an ordinary beat — in the
+  // click voice AND in the strike weight — one flag read at the two places the
+  // downbeat is special, so sound and drawing can't disagree.
+  let accentOn = store.get('mt:accent') !== '0';
+  const accBtn = $('mt-accent') as unknown as HTMLButtonElement;
+  const accDot = document.getElementById('mt-accdot')!;
+  function paintAccent() {
+    accBtn.setAttribute('aria-pressed', accentOn ? 'true' : 'false');
+    accDot.setAttribute('fill', accentOn ? 'currentColor' : 'none');
+  }
+  paintAccent();
+  accBtn.addEventListener('click', () => {
+    accentOn = !accentOn;
+    store.set('mt:accent', accentOn ? '1' : '0');
+    paintAccent();
+  });
+  const effVoice = (t: Tick) => (t.voice === 'down' && !accentOn ? 'beat' : t.voice);
+
   function click(t: Tick) {
     const ac = audio();
-    const v = VOICES[t.voice];
+    const v = VOICES[effVoice(t)];
     const osc = ac.createOscillator();
     const g = ac.createGain();
     osc.type = 'sine';
@@ -715,7 +744,7 @@ import Layout from '../layouts/Layout.astro';
       pend.style.transform = `rotate(${s.deg}deg)`;
       // The strike: fatten the tick at the end the bob just left/reached.
       const nearEnd = s.phase < 0.12 ? -s.dir : s.phase > 0.88 ? s.dir : 0;
-      const heavy = lastBeat!.voice === 'down' ? '5' : '3.5';
+      const heavy = effVoice(lastBeat!) === 'down' ? '5' : '3.5';
       tickL.setAttribute('stroke-width', nearEnd === -1 ? heavy : '0');
       tickR.setAttribute('stroke-width', nearEnd === 1 ? heavy : '0');
     }
@@ -770,7 +799,7 @@ import Layout from '../layouts/Layout.astro';
           const t = pending.shift()!;
           if (t.voice !== 'sub') {
             const beatIndex = Math.round(t.time / (60 / bpm));
-            const heavy = t.voice === 'down' ? '5' : '3.5';
+            const heavy = effVoice(t) === 'down' ? '5' : '3.5';
             const left = beatIndex % 2 === 0;
             tickL.setAttribute('stroke-width', left ? heavy : '0');
             tickR.setAttribute('stroke-width', left ? '0' : heavy);
