@@ -114,31 +114,35 @@ import Layout from '../layouts/Layout.astro';
              the mark's own o-o-o. Click the Nth circle: filled up to N. Beats and
              subdivision share the device, and the string is 7 long for both — yes,
              septuplets; the engine never cared. -->
+        <!-- THE RULED MEASURE (chooser: metrotuner-meter-final, Q1/02; judge 9.2).
+             Digits 1–7 are the scale, one hairline under them is the quantity —
+             stated once, differently per meaning: the BEATS rule grows with the bar
+             (its left tick is the accented downbeat), the SUBDIVIDE rule is FIXED at
+             one beat's length and gets cut into n dashes. Extent vs granularity.
+             The digits are the buttons (20×44 targets); the rules are drawn by
+             drawRules() because stroke-dasharray with round gaps can't guarantee n
+             visually equal dashes at every width. -->
         <div class="mt-ctop">
           <span class="mt-fl">
             <span class="mt-lb">beats</span>
-            <span class="mt-string" role="group" aria-label="Beats per bar" id="mt-beats-seg">
-              {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                <>
-                  {n > 1 && <i class="str" aria-hidden="true"></i>}
-                  <button type="button" class="sbtn" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'} aria-label={`${n} beats per bar`}>
-                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/></svg>
-                  </button>
-                </>
-              ))}
+            <span class="mt-rm" id="mt-beats-seg" role="group" aria-label="Beats per bar">
+              <span class="rm-digits">
+                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                  <button type="button" class="rbtn" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'} aria-label={`${n} beats per bar`}>{n}</button>
+                ))}
+              </span>
+              <svg class="rm-rule" width="140" height="8" viewBox="0 0 140 8" aria-hidden="true" data-rule="grow"></svg>
             </span>
           </span>
           <span class="mt-fr">
             <span class="mt-lb">subdivide</span>
-            <span class="mt-string" role="group" aria-label="Subdivision" id="mt-sub-seg">
-              {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                <>
-                  {n > 1 && <i class="str" aria-hidden="true"></i>}
-                  <button type="button" class="sbtn" data-sub={n} aria-pressed={n === 1 ? 'true' : 'false'} aria-label={`${n} per beat`}>
-                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4.2"/></svg>
-                  </button>
-                </>
-              ))}
+            <span class="mt-rm" id="mt-sub-seg" role="group" aria-label="Subdivision">
+              <span class="rm-digits">
+                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                  <button type="button" class="rbtn" data-sub={n} aria-pressed={n === 1 ? 'true' : 'false'} aria-label={`${n} per beat`}>{n}</button>
+                ))}
+              </span>
+              <svg class="rm-rule" width="140" height="8" viewBox="0 0 140 8" aria-hidden="true" data-rule="cut"></svg>
             </span>
           </span>
         </div>
@@ -249,21 +253,18 @@ import Layout from '../layouts/Layout.astro';
      up to it: N filled discs = N beats (or N per beat). One device for both meters.
      Each circle's TARGET is 32×44 (the 12px drawing centred in it) — the mobile
      tapping fix (nit 3) without the string sprawling past a phone's width. */
-  .mt-string{display:inline-flex;align-items:center}
-  .sbtn{background:transparent;border:0;padding:0;margin:0;color:var(--faint);
-    cursor:pointer;border-radius:0;min-width:30px;min-height:44px;
-    display:inline-flex;align-items:center;justify-content:center;
-    transition:color var(--dur-fast) var(--ease)}
-  .sbtn svg{display:block}
-  .sbtn circle{fill:none;stroke:currentColor;stroke-width:1.5;
-    transition:fill var(--dur-fast) var(--ease)}
-  .sbtn.on{color:var(--ink)}
-  .sbtn.on circle{fill:currentColor}
-  .sbtn:not(.on):hover{color:var(--accent)}
-  .sbtn:focus-visible{outline:1px solid var(--accent);outline-offset:-2px}
-  .str{width:8px;border-top:1.5px solid var(--faint);flex:none;
-    transition:border-color var(--dur-fast) var(--ease)}
-  .str.on{border-color:var(--ink)}
+  /* THE RULED MEASURE. The digits are the scale and the buttons; the hairline
+     under them is the value. Digits inside the value read ink (beats) / the value
+     digit alone reads ink (subdivide); the rest faint. */
+  .mt-rm{display:inline-flex;flex-direction:column;align-items:flex-start}
+  .rm-digits{display:inline-flex}
+  .rbtn{font:inherit;background:transparent;border:0;padding:8px 0 0;margin:0;
+    border-radius:0;cursor:pointer;color:var(--faint);width:20px;min-height:36px;
+    text-align:left;transition:color var(--dur-fast) var(--ease)}
+  .rbtn.on{color:var(--ink)}
+  .rbtn:not(.on):hover{color:var(--accent)}
+  .rbtn:focus-visible{outline:1px solid var(--accent);outline-offset:-2px}
+  .rm-rule{display:block;margin-top:-2px}
 
   /* THE SWIPE (metrotuner-two-pages Q3/02). Under 900px the cases become two
      full-width snap pages — and the case VANISHES (metrotuner-pendulum Q2, the
@@ -477,9 +478,25 @@ import Layout from '../layouts/Layout.astro';
           autoGainControl: false,
         },
       });
-    } catch {
+    } catch (err) {
+      // THE MOBILE MIC BUG (user report, 2026-08-04: "not sure how to accept the
+      // listening on mobile"). Two real causes were hiding in this catch:
+      // (1) the old hint said "allow it in the address bar" — desktop-Chrome
+      //     guidance; iOS has no address-bar permission UI at all, so the message
+      //     described a control that does not exist on the phone;
+      // (2) iOS Safari NEVER re-prompts after a denial — getUserMedia rejects
+      //     NotAllowedError instantly with no dialog, so tapping again looks like
+      //     the button silently failing. The way back is the aA menu → Website
+      //     Settings → Microphone (or Settings → Safari).
+      // So the message is now derived from the error NAME and the platform.
       if (req === micRequest) {
-        hintEl.textContent = 'microphone refused — allow it in the address bar and try again';
+        const touch = matchMedia('(hover: none)').matches;
+        const name = (err as DOMException)?.name ?? '';
+        hintEl.textContent =
+          name === 'NotFoundError' ? 'no microphone found on this device'
+          : name === 'NotReadableError' ? 'the microphone is busy in another app — close it and try again'
+          : touch ? 'microphone blocked — open the aA (or ⋯) menu → website settings → allow microphone, then reload'
+          : 'microphone refused — allow it in the address bar and try again';
       }
       return;
     }
@@ -806,21 +823,36 @@ import Layout from '../layouts/Layout.astro';
     if (t !== null) setBpm(t);
   });
 
-  // THE STRING (user nit 2): the value is a COUNT, so the display is a fill — click
-  // the Nth circle and everything up to it fills, with the joining rules going ink
-  // alongside. aria-pressed marks the Nth (the value); .on paints the fill.
-  const wireString = (segId: string, attr: string, apply: (v: number) => void) => {
+  // THE RULED MEASURE (metrotuner-meter-final Q1/02). The digits are the buttons;
+  // one hairline under them is the value — GROW for beats (the rule extends to
+  // digit N, a 2.5px tick at its left terminus = the downbeat), CUT for subdivide
+  // (the rule spans one fixed beat and is cut into n equal dashes). Digits paint
+  // ink inside the value (grow) / the value digit alone (cut).
+  const PITCH = 20; // one digit cell, px — matches .rbtn width
+  const wireRuled = (segId: string, attr: string, kind: 'grow' | 'cut', apply: (v: number) => void) => {
     const seg = document.getElementById(segId)!;
+    const rule = seg.querySelector('.rm-rule')!;
     const paint = (v: number) => {
       seg.querySelectorAll('button').forEach((x) => {
         const n = Number(x.getAttribute(attr));
         x.setAttribute('aria-pressed', n === v ? 'true' : 'false');
-        x.classList.toggle('on', n <= v);
+        x.classList.toggle('on', kind === 'grow' ? n <= v : n === v);
       });
-      seg.querySelectorAll('.str').forEach((s, i) => {
-        // rule i joins circle i+1 to i+2 (1-based): ink while fully inside the fill
-        s.classList.toggle('on', i + 2 <= v);
-      });
+      let h = '';
+      if (kind === 'grow') {
+        const x2 = (v - 1) * PITCH + 10;
+        h = `<line x1="1.5" y1="1" x2="1.5" y2="8" stroke="var(--ink)" stroke-width="2.5"/>`
+          + `<line x1="1" y1="4" x2="${x2}" y2="4" stroke="var(--ink)" stroke-width="1.5"/>`;
+      } else {
+        const W = 6 * PITCH + 10; // one beat = the full scale width, fixed
+        const gap = 3;
+        const segw = (W - (v - 1) * gap) / v;
+        for (let k = 0; k < v; k++) {
+          const x = 1 + k * (segw + gap);
+          h += `<line x1="${x}" y1="4" x2="${x + segw}" y2="4" stroke="var(--ink)" stroke-width="1.5"/>`;
+        }
+      }
+      rule.innerHTML = h;
     };
     seg.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest('button');
@@ -832,8 +864,8 @@ import Layout from '../layouts/Layout.astro';
     });
     return paint;
   };
-  const restoreBeats = wireString('mt-beats-seg', 'data-beats', (v) => { beatsPerBar = v; applySpec(); });
-  const restoreSub = wireString('mt-sub-seg', 'data-sub', (v) => { subdivision = v; applySpec(); });
+  const restoreBeats = wireRuled('mt-beats-seg', 'data-beats', 'grow', (v) => { beatsPerBar = v; applySpec(); });
+  const restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'cut', (v) => { subdivision = v; applySpec(); });
   restoreBeats(beatsPerBar);
   restoreSub(subdivision);
 
