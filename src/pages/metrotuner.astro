@@ -85,7 +85,6 @@ import Layout from '../layouts/Layout.astro';
         <div class="mt-cfoot">
           <span class="mt-fl">
             <button type="button" class="tbtn fixw" id="mt-mic" data-testid="mic-toggle" aria-pressed="false" style="--w:15ch">start the tuner</button>
-            <span class="mt-hint" id="mt-hint">uses the microphone, on this device only</span>
           </span>
           <span class="mt-fr">
             <button type="button" class="tbtn fixw" id="mt-tone" data-testid="tone-toggle" aria-pressed="false" style="--w:9ch">play tone</button>
@@ -96,6 +95,11 @@ import Layout from '../layouts/Layout.astro';
             </span>
           </span>
         </div>
+        <!-- The hint holds ITS OWN reserved line (annotation 2026-08-04: "hate how
+             the layout changes when starting/stopping"): swapping between the
+             28-char idle text and 9-char 'listening' used to reflow the whole foot
+             row. One block line of fixed height; only the words change. -->
+        <div class="mt-hintline"><span class="mt-hint" id="mt-hint">uses the microphone, on this device only</span></div>
       </section>
 
       <!-- ── METRONOME, the right case / second page ───────────────────────── -->
@@ -133,6 +137,12 @@ import Layout from '../layouts/Layout.astro';
               </span>
               <svg class="rm-rule" width="140" height="8" viewBox="0 0 140 8" aria-hidden="true" data-rule="grow"></svg>
             </span>
+            <!-- ACCENT LIVES WITH BEATS (annotation: "shouldnt this control be close
+                 to 'beats'") — it is a property of beat 1, a meter fact, so it sits
+                 on the meter line, not with transport. -->
+            <button type="button" class="tbtn acc" id="mt-accent" data-testid="accent-toggle" aria-pressed="true">
+              <span class="mt-lb">accent 1&nbsp;</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle id="mt-accdot" cx="6" cy="6" r="4.2" fill="currentColor" stroke="currentColor" stroke-width="1.5"/></svg>
+            </button>
           </span>
           <span class="mt-fr">
             <span class="mt-lb">subdivide</span>
@@ -168,15 +178,9 @@ import Layout from '../layouts/Layout.astro';
         <div class="mt-cfoot">
           <span class="mt-fl">
             <button type="button" class="tbtn fixw" id="mt-run" data-testid="metro-toggle" aria-pressed="false" style="--w:19ch">start the metronome</button>
-            <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
-            <!-- THE ACCENT TOGGLE (the control every language mock carried; shipped
-                 in the document idiom the user kept). The word names the setting,
-                 the disc states it: filled = beat 1 accented, hollow = every beat
-                 equal. Ring→disc is the site's selection vocabulary. -->
-            <button type="button" class="tbtn acc" id="mt-accent" data-testid="accent-toggle" aria-pressed="true">
-              <span class="mt-lb">accent 1&nbsp;</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle id="mt-accdot" cx="6" cy="6" r="4.2" fill="currentColor" stroke="currentColor" stroke-width="1.5"/></svg>
-            </button>
           </span>
+          <!-- TAP SITS WITH BPM (annotation: "shouldnt this be next to bpm") — tap
+               is a way of SETTING the tempo, so it joins the tempo group. -->
           <span class="mt-fr">
             <span class="f mt-bpm">
               <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
@@ -185,6 +189,7 @@ import Layout from '../layouts/Layout.astro';
               <button type="button" class="tbtn gly" id="mt-bpm-up" aria-label="Faster">+</button>
               <span class="mt-lb">bpm</span>
             </span>
+            <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
           </span>
         </div>
       </section>
@@ -244,7 +249,7 @@ import Layout from '../layouts/Layout.astro';
   .mt-plate{position:absolute;top:-14px;left:24px;background:var(--paper);
     padding:0 1ch;color:var(--faint)}
   .mt-mid{flex:1;min-height:0;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:var(--lead)}
+    align-items:center;justify-content:center;gap:var(--lead);cursor:pointer}
   /* A foot line: left group flush left, right group flush right, one baseline.
      The top line is the same device at the case's other edge (user nit 2): spec
      controls up top, played controls at the foot. */
@@ -312,6 +317,7 @@ import Layout from '../layouts/Layout.astro';
 
   .mt-row{display:flex;align-items:center;gap:3ch;flex-wrap:wrap}
   .mt-hint{color:var(--faint)}
+  .mt-hintline{flex:none;min-height:28px;margin-top:2px}
   .mt-lb{color:var(--faint)}
 
   .mt-refnote{color:var(--ink);min-width:4ch;text-align:center;display:inline-block}
@@ -558,6 +564,16 @@ import Layout from '../layouts/Layout.astro';
 
   micBtn.addEventListener('click', () => (micStream ? stopTuner() : startTuner()));
 
+  // THE FIGURE IS THE SWITCH TOO (annotations 2026-08-04: "a click/tap anywhere
+  // around the tuner/metronome center should start/stop it"). The dial and the
+  // pendulum are the biggest things on screen; making them the transport gives the
+  // phone a target you cannot miss. The buttons remain — the figure is a shortcut,
+  // not a replacement, and it is presentation-only markup so it stays aria-hidden
+  // (the named buttons carry the accessible contract).
+  document.getElementById('mt-dial')?.closest('.mt-mid')?.addEventListener('click', () => {
+    micStream ? stopTuner() : startTuner();
+  });
+
   // OPEN STARTED (user ask, 2026-08-03). Two conditions, both required: the tuner
   // was running when the reader left, AND the browser will grant the mic silently.
   // Never auto-start into a permission prompt — a dialog nobody asked for is the
@@ -579,7 +595,11 @@ import Layout from '../layouts/Layout.astro';
   const refNoteEl = $('mt-refnote');
   let refMidi = Number(store.get('mt:ref')) || 69; // A4
   if (!Number.isInteger(refMidi) || refMidi < 36 || refMidi > 96) refMidi = 69;
-  let toneOsc: OscillatorNode | null = null;
+  // THE ORGAN PAIR (timbre chooser pick, 2026-08-04): the fundamental plus one
+  // octave partial at −12 dB — the two-rank flute organ. Fills out without buzz,
+  // and the octave makes unisons easier to hear against a real instrument.
+  let toneOsc: OscillatorNode | null = null;   // the fundamental — the hook reads this one
+  let toneOsc2: OscillatorNode | null = null;  // the octave partial
   let toneGain: GainNode | null = null;
 
   function refLabel() {
@@ -588,27 +608,38 @@ import Layout from '../layouts/Layout.astro';
   }
   refLabel();
 
-  // ONE function owns the oscillator's frequency AND the hook's copy of it.
+  // ONE function owns both oscillators' frequencies AND the hook's copy.
   function retune() {
     const f = midiToFreq(refMidi, a4);
-    if (toneOsc) toneOsc.frequency.setValueAtTime(f, audio().currentTime);
+    const now = audio().currentTime;
+    if (toneOsc) toneOsc.frequency.setValueAtTime(f, now);
+    if (toneOsc2) toneOsc2.frequency.setValueAtTime(f * 2, now);
     if (E2E) hook.toneHz = toneOsc ? f : null;
   }
 
   function startTone() {
     const ac = audio();
+    const f = midiToFreq(refMidi, a4);
     toneOsc = ac.createOscillator();
-    toneGain = ac.createGain();
     toneOsc.type = 'sine';
-    toneOsc.frequency.value = midiToFreq(refMidi, a4);
-    // Soft attack — a sine that starts at full gain clicks.
+    toneOsc.frequency.value = f;
+    toneOsc2 = ac.createOscillator();
+    toneOsc2.type = 'sine';
+    toneOsc2.frequency.value = f * 2;
+    const g2 = ac.createGain();
+    g2.gain.value = 0.25; // the octave rank, −12 dB
+    toneGain = ac.createGain();
+    // Soft attack — a tone that starts at full gain clicks.
     toneGain.gain.setValueAtTime(0.0001, ac.currentTime);
     toneGain.gain.exponentialRampToValueAtTime(0.12, ac.currentTime + 0.06);
-    toneOsc.connect(toneGain).connect(ac.destination);
+    toneOsc.connect(toneGain);
+    toneOsc2.connect(g2).connect(toneGain);
+    toneGain.connect(ac.destination);
     toneOsc.start();
+    toneOsc2.start();
     toneBtn.textContent = 'stop tone';
     toneBtn.setAttribute('aria-pressed', 'true');
-    if (E2E) hook.toneHz = toneOsc.frequency.value;
+    if (E2E) hook.toneHz = f;
   }
 
   function stopTone() {
@@ -616,7 +647,9 @@ import Layout from '../layouts/Layout.astro';
     const ac = audio();
     toneGain.gain.setTargetAtTime(0.0001, ac.currentTime, 0.03);
     toneOsc.stop(ac.currentTime + 0.2);
+    toneOsc2?.stop(ac.currentTime + 0.2);
     toneOsc = null;
+    toneOsc2 = null;
     toneGain = null;
     toneBtn.textContent = 'play tone';
     toneBtn.setAttribute('aria-pressed', 'false');
@@ -829,6 +862,9 @@ import Layout from '../layouts/Layout.astro';
   }
 
   runBtn.addEventListener('click', () => (scheduler.running ? stopMetro() : startMetro()));
+  document.getElementById('mt-metro-fig')?.closest('.mt-mid')?.addEventListener('click', () => {
+    scheduler.running ? stopMetro() : startMetro();
+  });
 
   function applySpec() {
     scheduler.setSpec({ bpm, beatsPerBar, subdivision });
