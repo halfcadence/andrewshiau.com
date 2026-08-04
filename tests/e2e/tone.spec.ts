@@ -11,14 +11,15 @@ test('tone plays the reference note at the set calibration', async ({ page }) =>
   let hz = await page.evaluate(() => (window as any).__mt.toneHz);
   expect(hz).toBeCloseTo(440, 1);
 
-  // Step the reference up a semitone: A4 → A♯4 = 466.16 Hz.
-  await page.locator('#mt-note-up').click();
+  // Step the reference up a semitone: A4 → A♯4 = 466.16 Hz. The value IS the
+  // control now (steppers chooser Q1/02): click steps up, shift-click steps down.
+  await page.getByTestId('refnote').click();
   await expect(page.getByTestId('refnote')).toHaveText('A♯4');
   hz = await page.evaluate(() => (window as any).__mt.toneHz);
   expect(hz).toBeCloseTo(466.16, 0);
 
-  // Back to A4, recalibrate to 442 — the tone must move with it.
-  await page.locator('#mt-note-down').click();
+  // Back to A4 (shift-click), recalibrate to 442 — the tone must move with it.
+  await page.getByTestId('refnote').click({ modifiers: ['Shift'] });
   await page.getByTestId('a4').fill('442');
   await page.getByTestId('a4').blur();
   hz = await page.evaluate(() => (window as any).__mt.toneHz);

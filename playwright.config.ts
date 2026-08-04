@@ -46,6 +46,6 @@ export default defineConfig({
     mkProject('tuner-440', 'sine-440.wav', /tuner-440\.spec\.ts/),
     mkProject('tuner-446', 'sine-446.wav', /tuner-446\.spec\.ts/),
     mkProject('tuner-196', 'sine-196.wav', /tuner-196\.spec\.ts/),
-    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts/),
+    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts/),
   ],
 });

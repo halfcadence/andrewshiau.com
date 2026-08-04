@@ -88,11 +88,16 @@ import Layout from '../layouts/Layout.astro';
           </span>
           <span class="mt-fr">
             <button type="button" class="tbtn fixw" id="mt-tone" data-testid="tone-toggle" aria-pressed="false" style="--w:9ch">play tone</button>
-            <span class="mt-seg" role="group" aria-label="Reference note">
-              <button type="button" class="tbtn gly" id="mt-note-down" aria-label="Reference note down">‹</button>
-              <span class="mt-refnote" id="mt-refnote" data-testid="refnote">A4</span>
-              <button type="button" class="tbtn gly" id="mt-note-up" aria-label="Reference note up">›</button>
-            </span>
+            <!-- THE VALUE IS THE CONTROL (steppers chooser Q1/02, 2026-08-04): the
+                 chevrons are gone — "A4" itself is the button. Click steps up,
+                 shift-click steps down, VERTICAL DRAG scrubs (the primary gesture
+                 on touch, where modifier clicks don't exist), arrow keys step when
+                 focused. touch-action:none keeps the page's swipe-scroller from
+                 stealing the drag — without it the horizontal snap pages eat any
+                 touch that wanders sideways. -->
+            <button type="button" class="tbtn scrubv" id="mt-refnote" data-testid="refnote"
+              aria-label="Reference note — click to raise, shift-click to lower, drag vertically to scrub"
+              title="click +1 · shift-click −1 · drag ↕">A4</button>
           </span>
         </div>
         <!-- The hint holds ITS OWN reserved line (annotation 2026-08-04: "hate how
@@ -179,14 +184,19 @@ import Layout from '../layouts/Layout.astro';
           <span class="mt-fl">
             <button type="button" class="tbtn fixw" id="mt-run" data-testid="metro-toggle" aria-pressed="false" style="--w:19ch">start the metronome</button>
           </span>
-          <!-- TAP SITS WITH BPM (annotation: "shouldnt this be next to bpm") — tap
-               is a way of SETTING the tempo, so it joins the tempo group. -->
+          <!-- THE SCRUB VALUE (steppers chooser Q2/02): the −/+ are gone — the
+               number is the control. Drag HORIZONTALLY to scrub (1 bpm per 4px;
+               the DAW gesture, and the primary one on touch), click/tap to type,
+               arrow keys fine-step. The drag is wired on a wrapping span because
+               an <input> eats pointermove for text selection; the input inside
+               keeps typing and the numeric keyboard. touch-action:none on the
+               wrapper — the horizontal drag would otherwise fight the page's
+               horizontal snap-scroller directly. TAP stays beside it (it sets the
+               tempo too). -->
           <span class="mt-fr">
-            <span class="f mt-bpm">
-              <button type="button" class="tbtn gly" id="mt-bpm-down" aria-label="Slower">−</button>
+            <span class="f mt-bpm scrubwrap" id="mt-bpm-scrub" title="drag ↔ to scrub · click to type">
               <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
-                     min="20" max="320" step="1" value="96" aria-label="Beats per minute" />
-              <button type="button" class="tbtn gly" id="mt-bpm-up" aria-label="Faster">+</button>
+                     min="20" max="320" step="1" value="96" aria-label="Beats per minute — drag horizontally to scrub, or type" />
               <span class="mt-lb">bpm</span>
             </span>
             <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
@@ -334,6 +344,11 @@ import Layout from '../layouts/Layout.astro';
      (the whole thing is the button; the disc is the state). */
   .tbtn.acc{text-decoration:none;display:inline-flex;align-items:center}
   .tbtn.acc:hover .mt-lb{color:var(--accent)}
+  /* Scrub controls: the value IS the control. ns/ew cursors advertise the drag;
+     touch-action:none stops the swipe-scroller from stealing it. */
+  .tbtn.scrubv{cursor:ns-resize;touch-action:none;min-width:4ch;text-align:center}
+  .scrubwrap{cursor:ew-resize;touch-action:none}
+  .scrubwrap input{cursor:ew-resize}
   /* THE REFLOW FIX (user nit, 2026-08-04): a transport's label flips between
      start/stop (or play/stop) and the two strings differ in width, so every toggle
      used to reflow the whole foot line. Reserve the LONGER string's width per
@@ -608,6 +623,36 @@ import Layout from '../layouts/Layout.astro';
   }
   refLabel();
 
+  // THE VALUE IS THE CONTROL (Q1/02). One element, four inputs:
+  // click +1 · shift-click −1 · vertical drag scrubs (8px per semitone; the
+  // primary touch gesture) · ArrowUp/Down when focused. A drag suppresses the
+  // click that follows it (pointerup fires click), else every scrub also steps.
+  {
+    let dragY: number | null = null;
+    let dragStart = 0;
+    let dragged = false;
+    refNoteEl.addEventListener('pointerdown', (e) => {
+      dragY = e.clientY; dragStart = refMidi; dragged = false;
+      (refNoteEl as HTMLElement).setPointerCapture(e.pointerId);
+    });
+    refNoteEl.addEventListener('pointermove', (e) => {
+      if (dragY === null) return;
+      const d = Math.round((dragY - e.clientY) / 8);
+      if (d !== 0) dragged = true;
+      const m = Math.min(96, Math.max(36, dragStart + d));
+      if (m !== refMidi) { refMidi = m; store.set('mt:ref', String(refMidi)); refLabel(); if (toneOsc) retune(); }
+    });
+    refNoteEl.addEventListener('pointerup', () => { dragY = null; });
+    refNoteEl.addEventListener('click', (e) => {
+      if (dragged) { dragged = false; return; }
+      stepRef(e.shiftKey ? -1 : 1);
+    });
+    refNoteEl.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') { e.preventDefault(); stepRef(1); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); stepRef(-1); }
+    });
+  }
+
   // ONE function owns both oscillators' frequencies AND the hook's copy.
   function retune() {
     const f = midiToFreq(refMidi, a4);
@@ -664,8 +709,7 @@ import Layout from '../layouts/Layout.astro';
     refLabel();
     if (toneOsc) retune();
   };
-  $('mt-note-down').addEventListener('click', () => stepRef(-1));
-  $('mt-note-up').addEventListener('click', () => stepRef(1));
+
 
   // ── metronome ─────────────────────────────────────────────────────────────
   const runBtn = $('mt-run') as unknown as HTMLButtonElement;
@@ -879,8 +923,38 @@ import Layout from '../layouts/Layout.astro';
     applySpec();
   };
   bpmInput.addEventListener('change', () => setBpm(Number(bpmInput.value)));
-  $('mt-bpm-down').addEventListener('click', () => setBpm(bpm - 4));
-  $('mt-bpm-up').addEventListener('click', () => setBpm(bpm + 4));
+
+  // THE SCRUB VALUE (Q2/02). Horizontal drag on the wrapper scrubs 1 bpm per 4px;
+  // a clean tap/click falls through to the input for typing (numeric keyboard on
+  // touch). The wrapper hosts the drag because an <input> consumes pointermove
+  // for its own text selection.
+  {
+    const wrap = document.getElementById('mt-bpm-scrub')!;
+    let dragX: number | null = null;
+    let dragStart = 0;
+    let dragged = false;
+    wrap.addEventListener('pointerdown', (e) => {
+      dragX = e.clientX; dragStart = bpm; dragged = false;
+      wrap.setPointerCapture(e.pointerId);
+    });
+    wrap.addEventListener('pointermove', (e) => {
+      if (dragX === null) return;
+      const d = Math.round((e.clientX - dragX) / 4);
+      if (d !== 0) dragged = true;
+      const v = clampBpm(dragStart + d);
+      if (v !== bpm) { bpm = v; bpmInput.value = String(bpm); applySpec(); }
+    });
+    wrap.addEventListener('pointerup', () => { dragX = null; });
+    // after a drag, the input must not focus (that would pop the keyboard on
+    // touch mid-scrub); a clean tap focuses it as normal.
+    wrap.addEventListener('click', (e) => {
+      if (dragged) { dragged = false; e.preventDefault(); bpmInput.blur(); }
+    }, true);
+    bpmInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') { e.preventDefault(); setBpm(bpm + 1); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); setBpm(bpm - 1); }
+    });
+  }
 
   const tap = createTapTempo();
   $('mt-tap').addEventListener('click', () => {
