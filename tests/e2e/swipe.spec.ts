@@ -62,6 +62,6 @@ test('desktop control: both halves on screen, no dots', async ({ page }) => {
   expect(metro!.x + metro!.width).toBeLessThanOrEqual(1441);
   expect(Math.abs(tuner!.width - metro!.width)).toBeLessThan(10);
   await expect(page.getByTestId('dot-tuner')).toBeHidden();
-  // The way out is the mark, linking home (the writeup is on the index now).
-  await expect(page.getByTestId('home-mark')).toHaveAttribute('href', '/');
+  // The instrument carries no site chrome: the mark is deleted (2026-08-04).
+  await expect(page.getByTestId('home-mark')).toHaveCount(0);
 });

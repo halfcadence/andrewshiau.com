@@ -1,6 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import MarkFigure from '../components/MarkFigure.astro';
 
 // THE INSTRUMENT SCREEN. This URL is the thing itself now, and the writeup lives at
 // /work/metrotuner/ (chooser: metrotuner-two-pages, Q1/02 "instrument first" — the
@@ -194,14 +193,11 @@ import MarkFigure from '../components/MarkFigure.astro';
           </svg>
         </button>
       </div>
-      <!-- THE MARK IS THE WAY OUT (user call, 2026-08-03: "no about link but put my
-           site icon and make it also link home"). Same wrapper class as the
-           case-study marker, so it inherits the 90° hover turn from global.css and
-           the two drawings can't drift. The writeup is reachable from the index row,
-           which points at /work/metrotuner/ now. -->
-      <a class="smark-home mt-home" href="/" aria-label="Andrew Shiau — home" data-testid="home-mark">
-        <MarkFigure side="both" />
-      </a>
+      <!-- THE MARK IS GONE (user call, 2026-08-04: "just delete the mark, it's not
+           really part of this tool"). The instrument carries no site chrome at all;
+           the way home is the browser and the index that linked here. The foot now
+           exists ONLY on the phone, for the page dots — on desktop there is nothing
+           left to hold and it collapses. -->
     </div>
   </div>
 </Layout>
@@ -328,18 +324,15 @@ import MarkFigure from '../components/MarkFigure.astro';
 
   /* The foot: dots centre (phone only — on the wide screen both pages are already
      on screen and an indicator would point at nothing), the word out under them. */
-  .mt-foot{flex:none;display:flex;flex-direction:column;align-items:center;
+  /* The foot holds only the page dots now, which are a phone device — on desktop
+     the whole band collapses and the cases keep the height. */
+  .mt-foot{display:none;flex:none;flex-direction:column;align-items:center;
     gap:4px;padding:0 var(--gutter) var(--lead)}
-  .mt-dots{display:none;gap:16px}
-  @media (max-width: 900px){ .mt-dots{display:flex} }
+  .mt-dots{display:flex;gap:16px}
+  @media (max-width: 900px){ .mt-foot{display:flex} }
   .mt-dots button{background:transparent;border:0;padding:15px;margin:-10px;
     color:var(--ink);cursor:pointer;border-radius:0;display:block}
   .mt-dots button:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
-  /* The mark at the foot: 26px like the case-study marker, ink, the rotate comes
-     from .smark-home in global.css. Padding squares the tap target off at 44px. */
-  .mt-home{padding:9px;margin:-6px}
-  .mt-home :global(.mark){width:26px;height:26px}
-
   .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;
     clip:rect(0 0 0 0);white-space:nowrap}
 
