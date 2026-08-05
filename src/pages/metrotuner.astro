@@ -188,16 +188,33 @@ import Layout from '../layouts/Layout.astro';
                    its FIRST item, so a mark row above the digits would become the
                    row's baseline and the beats meter would sit lower than
                    `subdivide`. This rides in the 8px the digits already carry as
-                   top padding, absolutely placed, so it adds no layout at all. -->
-              <svg class="rm-acc" id="mt-acc-mark" width="9" height="8" viewBox="0 0 9 8"
-                   aria-hidden="true"><polyline points="1,1 7,4 1,7" /></svg>
+                   top padding, absolutely placed, so it adds no layout at all.
+                   AND THE MARK IS A BUTTON ("i want to control the accent by clicking
+                   it"). It shipped as a bare <svg> — the state was drawn where the eye
+                   goes and the CONTROL was still the 140px rule below, so the one thing
+                   that looks like the accent was the one thing that didn't toggle it.
+                   Now both work: this button and the rule are two targets on one state.
+                   `aria-hidden` is gone with the promotion — a control cannot be hidden
+                   from the accessibility tree — and the label lives here, so the rule
+                   below drops its own (two buttons announcing "Accent the first beat"
+                   would read as two separate settings). -->
+              <button type="button" class="rm-accbtn" id="mt-acc" data-testid="accent-mark"
+                      aria-pressed="true" aria-label="Accent the first beat">
+                <svg class="rm-acc" id="mt-acc-mark" width="9" height="8" viewBox="0 0 9 8"
+                     aria-hidden="true"><polyline points="1,1 7,4 1,7" /></svg>
+              </button>
               <span class="rm-digits">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                   <button type="button" class="rbtn" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'} aria-label={`${n} beats per bar`}>{n}</button>
                 ))}
               </span>
+              <!-- The rule stays a target for the same state (a 140px one, which is
+                   what makes it findable on a phone), but it is no longer the only one
+                   and no longer the announced one: `aria-labelledby` points at the mark
+                   button so a screen reader hears ONE "Accent the first beat" control
+                   rather than two settings that happen to agree. -->
               <button type="button" class="rm-rulebtn" id="mt-accent" data-testid="accent-toggle"
-                aria-pressed="true" aria-label="Accent the first beat">
+                aria-pressed="true" aria-labelledby="mt-acc">
                 <svg class="rm-rule" width="140" height="9" viewBox="0 0 140 9" aria-hidden="true" data-rule="grow"></svg>
               </button>
             </span>
@@ -374,7 +391,31 @@ import Layout from '../layouts/Layout.astro';
        the mark out of the digits.
      `overflow:visible` on the segment is what makes this safe; if that ever changes,
      the mark needs its own room instead. */
-  .rm-acc{position:absolute;left:0;top:0;fill:none;
+  /* THE MARK IS THE BUTTON. The absolute positioning moves to the BUTTON — the svg
+     inside it goes back to static, or the two would both be out of flow and the button
+     would collapse to a 0x0 box that cannot be clicked.
+     The target: the mark is 9x8px, far under any tap floor, so the button carries
+     padding out to 24px — WCAG 2.5.8's minimum — with matching negative margins so
+     the ink stays exactly where the measured geometry put it. NOT 44px here, and that
+     is deliberate: a 44px box centred on the digit 1 would overlap the digit 2 button
+     beside it and swallow clicks meant for the meter. The 140px rule below is the
+     large target for touch; this one is the precise one for a pointer, and between
+     them the state has both. Verified by hit-testing both, and the digits. */
+  .rm-accbtn{position:absolute;left:0;top:0;z-index:1;
+    background:transparent;border:0;border-radius:0;cursor:pointer;
+    padding:8px;margin:-8px;display:block;line-height:0}
+  .rm-accbtn:focus-visible{outline:1px solid var(--accent);outline-offset:1px}
+  /* HOVER IS THE ACCENT HUE, NOT INK — and that is a correction, not a preference.
+     `:hover{stroke:var(--ink)}` made the OFF mark render the exact colour the ON mark
+     uses, so while the pointer sat on the control the state was unreadable: measured,
+     off-with-pointer and on-with-pointer both computed rgb(20,20,18). You cannot see
+     what you just toggled without moving the mouse away, on the one control whose
+     whole job is to show its state.
+     The hue is the right answer because interaction is what the accent hue means
+     everywhere else on this site, and it is orthogonal to the ink/faint axis the state
+     lives on — so hover and state can both be read at once. */
+  .rm-accbtn:hover .rm-acc{stroke:var(--accent)}
+  .rm-acc{display:block;fill:none;
     stroke:var(--faint);stroke-width:1.4;stroke-linecap:square;
     transition:stroke var(--dur-fast) var(--ease)}
   .rm-acc.on{stroke:var(--ink);stroke-width:1.8}
@@ -1054,16 +1095,33 @@ import Layout from '../layouts/Layout.astro';
   // state is drawn BY the rule — the downbeat tick's height and the digit 1's
   // weight. restoreBeats (defined with the meters, below) reads accentOn; clicks
   // happen long after evaluation, so the forward reference is safe.
-  const accBtn = $('mt-accent') as unknown as HTMLButtonElement;
+  // TWO TARGETS, ONE STATE ("i want to control the accent by clicking it"). The mark
+  // shipped as a bare <svg>: the state was drawn where the eye goes while the control
+  // was the rule below it, so the one thing that looks like the accent was the one
+  // thing that did not toggle it. Both are buttons now and both drive `accentOn`.
+  //
+  // An ARRAY, not two handlers. Two copies of "flip the flag, persist it, repaint"
+  // is how the two targets would drift out of agreement — one of them getting a
+  // fix the other doesn't is the shape of that bug.
+  const accBtns = [$('mt-acc'), $('mt-accent')] as unknown as HTMLButtonElement[];
   function paintAccent() {
-    accBtn.setAttribute('aria-pressed', accentOn ? 'true' : 'false');
+    for (const b of accBtns) b.setAttribute('aria-pressed', accentOn ? 'true' : 'false');
     restoreBeats(beatsPerBar);
   }
-  accBtn.addEventListener('click', () => {
-    accentOn = !accentOn;
-    store.set('mt:accent', accentOn ? '1' : '0');
-    paintAccent();
-  });
+  for (const b of accBtns) {
+    b.addEventListener('click', (e) => {
+      // The mark button sits INSIDE `#mt-beats-seg`, whose delegated click handler
+      // reads `data-beats` off the closest button to set the bar length. This button
+      // has no `data-beats`, so wireRuled() already ignores it — but stopping
+      // propagation makes that independent of wireRuled's internals rather than
+      // relying on them. Without it, adding a data- attribute here later would
+      // silently start changing the meter.
+      e.stopPropagation();
+      accentOn = !accentOn;
+      store.set('mt:accent', accentOn ? '1' : '0');
+      paintAccent();
+    });
+  }
   const effVoice = (t: Tick) => (t.voice === 'down' && !accentOn ? 'beat' : t.voice);
 
   function click(t: Tick) {

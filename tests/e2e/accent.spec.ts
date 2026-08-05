@@ -159,3 +159,94 @@ test('the control labels are lowercase; the READOUT keeps its case', async ({ pa
   // The readout, for contrast: the reference-tone button still names a real note.
   await expect(page.getByTestId('refnote')).toHaveText('A4');
 });
+
+test('CLICKING THE MARK toggles the accent, and the rule agrees', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  // The mark shipped as a bare <svg>: the state was drawn where the eye goes while the
+  // control was the 140px rule below it, so the one thing that LOOKS like the accent
+  // was the one thing that did not toggle it. ("i want to control the accent by
+  // clicking it".) Both are buttons now, on one state.
+  const mark = page.getByTestId('accent-mark');
+  const rule = page.getByTestId('accent-toggle');
+  await expect(mark).toHaveAttribute('aria-pressed', 'true');
+
+  await mark.click();
+  await expect(mark).toHaveAttribute('aria-pressed', 'false');
+  await expect(rule, 'the rule reflects the same state').toHaveAttribute('aria-pressed', 'false');
+
+  // and the other target still drives it
+  await rule.click();
+  await expect(mark).toHaveAttribute('aria-pressed', 'true');
+  await expect(rule).toHaveAttribute('aria-pressed', 'true');
+
+  // it persists like the rule's clicks always did
+  await mark.click();
+  await page.reload();
+  await expect(page.getByTestId('accent-mark')).toHaveAttribute('aria-pressed', 'false', { timeout: 5000 });
+  await page.getByTestId('accent-mark').click();
+});
+
+test('the mark is what a click on the `>` actually hits', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  // A button that exists but sits under something else is the bug this catches — the
+  // svg is absolutely positioned inside it, so a z-index or stacking mistake would
+  // leave the visible glyph unclickable while every aria assertion above still passed.
+  const hit = await page.evaluate(() => {
+    const m = document.getElementById('mt-acc-mark')!.getBoundingClientRect();
+    return document.elementFromPoint(m.x + 4, m.y + 4)!.closest('button')?.id ?? 'NONE';
+  });
+  expect(hit).toBe('mt-acc');
+});
+
+test('the mark button clears 24px and does not swallow the digits', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  const box = (await page.getByTestId('accent-mark').boundingBox())!;
+  // The glyph is 9x8px, under any tap floor, so the button pads out to WCAG 2.5.8's
+  // 24px. NOT 44px: a 44px box centred on the digit 1 would overlap the digit 2 button
+  // and eat clicks meant for the meter. The 140px rule is the large touch target.
+  expect(box.width).toBeGreaterThanOrEqual(24);
+  expect(box.height).toBeGreaterThanOrEqual(24);
+
+  const d2 = (await page.locator('#mt-beats-seg .rbtn[data-beats="2"]').boundingBox())!;
+  expect(box.x + box.width, 'the mark does not reach the digit 2 target').toBeLessThanOrEqual(d2.x + 1);
+
+  // and the meter still sets the bar length — the mark sits inside `#mt-beats-seg`,
+  // whose delegated handler reads data-beats off the closest button
+  await page.locator('#mt-beats-seg .rbtn[data-beats="3"]').click();
+  await expect(page.locator('#mt-beats-seg .rbtn[data-beats="3"]')).toHaveAttribute('aria-pressed', 'true');
+  // clicking the MARK must not change the bar length
+  await page.getByTestId('accent-mark').click();
+  await expect(page.locator('#mt-beats-seg .rbtn[data-beats="3"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('accent-mark').click();
+});
+
+test('the accent state stays readable while the pointer is ON the mark', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  const mark = page.locator('#mt-acc-mark');
+  const btn = page.getByTestId('accent-mark');
+  const style = () => mark.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { stroke: cs.stroke, width: cs.strokeWidth };
+  });
+
+  // THE BUG THIS EXISTS FOR: the first hover rule was `stroke:var(--ink)`, which made
+  // the OFF mark render the exact colour the ON mark uses. Measured, off-with-pointer
+  // and on-with-pointer both computed rgb(20,20,18) — so on the one control whose job
+  // is to show its state, you could not see what you had just toggled without moving
+  // the mouse away. Hover is the accent hue now, which is orthogonal to the ink/faint
+  // axis the state lives on.
+  await btn.hover();
+  await page.waitForTimeout(250);
+  const onHover = await style();
+
+  await btn.click();
+  await page.waitForTimeout(250);
+  const offHover = await style();
+
+  expect(
+    onHover.stroke !== offHover.stroke || onHover.width !== offHover.width,
+    'on and off must differ WHILE hovered',
+  ).toBe(true);
+
+  await btn.click();
+});
