@@ -412,13 +412,29 @@ import Layout from '../layouts/Layout.astro';
     grid-template-rows:
       [case-top]  var(--lead)           /* the case's own top air */
       [spec]      calc(var(--lead) * 2) /* a4 | beats + subdivide */
-      [figure]    minmax(0, 1fr)        /* the instrument; everything else is fixed */
+      [slack-a]   minmax(0, 1fr)        /* placed air, above the instrument */
+      [figure]    auto                  /* the drawing, at its own height */
       [read]      var(--lead)           /* the tuner's reading; empty on the metronome */
       [transport] var(--lead)           /* the bare verb — THE REPORTED ROW */
+      [slack-b]   minmax(0, 1fr)        /* placed air, below it */
       [foot]      var(--lead)           /* played controls: tone/ref | bpm/tap */
       [hint]      var(--lead)           /* errors; empty on the metronome */
       [case-bot]  var(--lead)           /* the case's own bottom air */
       [case-end]}
+  /* THE SLACK IS TWO ROWS, AND THAT IS THE POINT (found by looking at the render, not at
+     the numbers). The first version gave the FIGURE row all the leftover — `figure:
+     minmax(0,1fr)` — and centred the drawing inside it. The alignment was correct and the
+     composition was wrong: the figure row was 588px tall for a 158px drawing, so the
+     tuner's readout — its own row, below — sat 215px UNDER the dial it describes, and
+     `start` another 28px under that. Three rows that are one figure group read as three
+     unrelated things.
+     Now the slack is placed as air ABOVE and BELOW the group, in equal `1fr` rows, and the
+     group's three rows sit against each other: dial, reading, verb. Measured after:
+     dial→readout gap 0px, and both instruments' transports still land on one row (Δ0.00).
+     `figure: auto` rather than a lead count so the drawing sets its own height — it is an
+     svg with a fixed aspect ratio whose width comes from the column span, so pinning its
+     row to n leads would either crop it or open a gap inside the group. The air that is on
+     the ladder is the slack rows; the figure is a figure. */
   /* The desktop MAIN grid (⌥G): 12 columns over the screen the two cases
      compose on. Drawn to the padding box so the cases' outer edges land on
      column edges; the per-case overlays draw their own 12 inside. */
@@ -488,7 +504,7 @@ import Layout from '../layouts/Layout.astro';
      resolved the collision by inventing an implicit column for the foot line. Ending the
      span at the `foot` LINE gives it exactly figure + read + transport, the three rows it
      draws. Found by reading the placement off the built page, not from the source. */
-  .mt-mid{grid-row:figure / foot;display:grid;grid-template-rows:subgrid;
+  .mt-mid{grid-row:figure / slack-b;display:grid;grid-template-rows:subgrid;
     grid-template-columns:minmax(0, 1fr);
     min-height:0;cursor:pointer}
   /* THE CAPTION (transport-placement Q1/05): the transport under the figure it
@@ -550,9 +566,11 @@ import Layout from '../layouts/Layout.astro';
     .mt-pages{grid-template-rows:
       [case-top]  var(--lead)
       [spec]      calc(var(--lead) * 4)  /* two stacked meters, two leads each */
-      [figure]    minmax(0, 1fr)
+      [slack-a]   minmax(0, 1fr)
+      [figure]    auto
       [read]      var(--lead)
       [transport] var(--lead)
+      [slack-b]   minmax(0, 1fr)
       [foot]      var(--lead)
       [hint]      var(--lead)
       [case-bot]  var(--lead)
@@ -707,14 +725,37 @@ import Layout from '../layouts/Layout.astro';
        cannot move an inherited row line, so the air must be rows, and it is. */
     .mt-half{scroll-snap-align:start;scroll-snap-stop:always;
       border:0;padding:0 var(--gutter)}
-    .mt-half::before{content:"";position:absolute;inset:var(--lead);
+    /* HALF A LEAD, and one lead was tried first and was wrong — found by looking at the
+       render, not the number. The ladder's `case-top` row is one lead and the side padding
+       is `--gutter`, which is also one lead, so a frame one lead in from the viewport
+       landed exactly ON the content's box and `a4 440 hz` printed across the frame's top
+       edge (measured: 0px clearance top and both sides). A frame cannot use the same
+       interval as the content it contains. At `--lead / 2` — the same relation `--tight`
+       has to `--lead` in the site's space scale — content clears it by 14px on all four
+       sides. */
+    .mt-half::before{content:"";position:absolute;inset:calc(var(--lead) / 2);
       border:1px solid var(--line);pointer-events:none}
-    .mt-plate{display:block;top:calc(var(--lead) - 14px);
-      left:calc(var(--lead) + var(--gutter) - 1ch)}
+    /* The plate still straddles the frame's top edge: half a lead down, less half its own
+       28px line box, and in from the frame by the content's gutter. */
+    .mt-plate{display:block;top:calc(var(--lead) / 2 - 14px);
+      left:calc(var(--gutter) - 1ch)}
     /* The per-case overlay is DELETED on the phone rather than re-inset: the parent draws
        the rows, so a second grid over one case would be the two-grids-at-once problem
        this pass exists to remove. */
     .mt-half::after{display:none}
+    /* AND SO THE FIGURE TAKES THE CONTENT WIDTH HERE. With no column grid on the phone,
+       a 6-of-12 span is not a smaller version of the desktop rule — it is arithmetic on a
+       grid that does not exist (at 360px the track computes NEGATIVE, since 11 gutters of
+       28px already exceed the 304px of content). The desktop rule's 240px floor was
+       therefore deciding the phone's figure size, and it decided it SMALLER than the page
+       shipped with: 240px against mainline's `min(320px,80vw)` = 312px at 390. Measured
+       cost of that mistake: the pendulum's arc chord went 246 → 189px, a 23% shorter
+       swing, on the viewport where the swing is the whole instrument.
+       At 100% the figure is as wide as the case allows — 334px at 390, 304 at 360 — which
+       is wider than what shipped and needs no floor, because the content width is already
+       the largest honest number. The readout follows it so the note still sits under the
+       dial's left end. */
+    .mt-gauge, .mt-read{width:100%}
   }
 
   /* THE GRID (round16, user ask: "is there an internal grid system we can press
@@ -749,11 +790,27 @@ import Layout from '../layouts/Layout.astro';
      `--mt-track` is derived exactly as STYLE.md derives the document's `--track` (n
      columns and n-1 gutters share the content width). Six because at the measure it is
      the closest whole span to the 320px the drawing was designed at: 6 columns of a
-     636px case = 292px against 320, so the figure is ~9% smaller on a wide screen and
-     lands on band edges at EVERY width instead of one.
-     THE FLOOR is why `max` is here: at phone widths six columns is under 200px and the
-     pendulum needs its swing to read, so `min(100%, ...)` degrades it to "as wide as it
-     can be" rather than "too small to read". The drawing is untouched — same viewBox. */
+     636px case = 275px against 320, so the figure is ~14% smaller on a wide screen and
+     its edges land on track edges — verified at 1440, cols 3 → 9, 0.00px off.
+     WHERE THIS HOLDS, STATED EXACTLY, because the first version of this comment claimed
+     "every width" and that was false. A twelve-column grid needs eleven gutters, so
+     `12 × 0 + 11 × 28 = 308px` of gutter is the minimum content width at which a track is
+     even positive. The case's content is that wide only when the case is ~364px, i.e. on
+     a DESKTOP viewport of ~1300 and up (two cases plus three `--group`s). Below that the
+     track collapses toward zero and six columns stops being a meaningful width — at 1024
+     it is 171px, at 360 the track is NEGATIVE. So:
+       · ≥1300px wide — the figure is exactly six columns. This is the claim.
+       · 901–1299   — six columns is under the drawing's floor, so the floor wins and the
+                      figure is NOT on a track edge. Accepted: at those widths the case is
+                      narrow enough that the columns are thinner than the gutters between
+                      them, and a 12-column grid inside a 400px box is a fiction whether or
+                      not something is aligned to it.
+       · ≤900px     — the phone, which has no column grid at all (the per-case overlay is
+                      `display:none` there and the parent draws rows only), so the figure
+                      takes the content width. See the mobile rule below.
+     THE FLOOR IS THE DRAWING, not a round number: 320px is the width the pendulum was
+     drawn at, and its arc chord is 252 of those 320. Below ~240px the swing stops reading
+     as a swing. `min(100%, …)` keeps it inside the case at every width. */
   .mt-gauge{--mt-cols:6;
     --mt-track:calc((100% - var(--gutter) * 11) / 12);
     --mt-figw:calc(var(--mt-track) * var(--mt-cols) + var(--gutter) * (var(--mt-cols) - 1));

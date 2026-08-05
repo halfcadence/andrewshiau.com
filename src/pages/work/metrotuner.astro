@@ -81,19 +81,86 @@ import PanelHead from '../../components/PanelHead.astro';
           <h2>What the tests assert</h2>
           <div class="sbody">
             <p>
-              The unit suite runs the math on synthesized buffers: <b>39</b> tests over
+              The unit suite runs the math on synthesized buffers: <b>62</b> tests over
               the note grid, the scheduler, tap tempo, and the detector's bounds. They
               check the sign of the reading as well as its size. A tuner with a flipped
               sign passes every "about 23 cents" assertion and sends you the wrong way
               on every string.
             </p>
             <p>
-              The <b>22</b> end-to-end tests play known sine waves into Chromium's fake
+              The <b>50</b> end-to-end tests play known sine waves into Chromium's fake
               microphone, one browser per input frequency, because the fake mic is a
               launch flag. 440 Hz must read A4 at 0 cents. 446 Hz must read sharp with
               a plus sign. Recalibrating A4 to 446 must then move that same input to 0,
               which is the control arm: a calibration that is stored but never reaches
               the detector passes the first two and fails this one.
+            </p>
+            <p>
+              The bleed test is the one that taught me most, because <b>three</b> versions
+              of it passed against the broken tuner before one could fail. The fake
+              microphone plays a file and cannot hear the page's speaker, so the test
+              builds the room: every click also routes into a gain node the test wires
+              back to the analyser. Version one fed it the steady 440 Hz sine the other
+              tuner tests use — a continuous tone masks the click, so the bug never
+              appeared. Version two used a pulsed note and caught the first bug, then
+              passed the broken fix, because a clean synthetic room has no noise floor
+              and a click in silence reads exactly on its own frequency. Version three
+              added noise and compared against a quiet baseline, which the noise made
+              wide enough to swallow the leak.
+            </p>
+            <p>
+              What finally worked was giving up on note names. Both logs — every sound
+              scheduled, every reading painted — carry audio-clock timestamps, so the
+              assertion is arithmetic: no reading may be painted from a window the
+              speaker was sounding in. That holds whatever the click smears to. A test
+              that names the wrong answers can only catch the ones you thought of.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Added 2026-08-05 from the user's report: "when metronome is playing it
+           triggers tuner". The beat belongs here, after the detector section, because
+           it is the same subject — what the detector will believe — and it is the one
+           case where being GOOD at finding pitch is the defect. -->
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The tuner heard the metronome</h2>
+          <div class="sbody">
+            <p>
+              Run both at once with the speakers up and the tuner reads the metronome.
+              The click is a pure sine, so it is the easiest thing in the room to find
+              the pitch of: handed one, the detector returns its frequency to
+              within <b>0.1 cents</b> — still dead on at a tenth of the level. Between notes
+              the readout printed <b>C6</b> on the beat and <b>G6</b> on the downbeat,
+              perfectly in tune, and from <b>140 bpm</b> up it never cleared, because
+              the dash needs six consecutive silent frames and a beat at 140 leaves
+              five. The tuner was working. That was the problem.
+            </p>
+            <p>
+              The page knows what its own speaker is doing, so the tuner now drops any
+              reading taken while a click it scheduled was sounding. A dropped frame
+              draws nothing, which means the last real reading stands — the right
+              answer for a beat that interrupts a held note.
+            </p>
+            <p>
+              The first version of that gate also required the pitch to be near the
+              click's own frequency, on the theory that throwing away good frames is
+              wasteful. Deploying it is what proved it wrong: the live tuner still
+              printed C6, now at <b>1021 Hz</b> — the 1046.5 Hz click, <b>35 cents</b> off
+              and outside the window. A microphone has a noise
+              floor, and noise moves the period the detector locks onto: the same
+              click reads <b>25 to 46 cents</b> off under a quiet hiss, and with a
+              room tone in the window it smears past <b>900 cents</b> or drops to a
+              subharmonic. No tolerance
+              contains that. The time is exact, so the frequency test was deleted —
+              one constant and one branch fewer than the version that was cleverer.
+            </p>
+            <p>
+              The cost is stated rather than hidden: each tick blinds the tuner for
+              about <b>150 ms</b>, so at fast subdivisions — 200 bpm in sixteenths, a
+              tick every 75 ms — the readout holds its last value instead of tracking.
+              That limit is a test, so it cannot quietly change.
             </p>
           </div>
         </div>
@@ -152,7 +219,8 @@ import PanelHead from '../../components/PanelHead.astro';
           <div><span class="ck">Timing</span>A lookahead scheduler on the audio clock. setInterval wakes it; the audio thread keeps time.</div>
           <div><span class="ck">Sounds</span>Three synthesized sine pings. G6 opens the bar, C6 marks the beat, G5 sits under it. No samples.</div>
           <div><span class="ck">Privacy</span>The microphone signal is read in the page and discarded. Nothing is recorded, stored, or sent.</div>
-          <div><span class="ck">Apparatus</span>Web Audio API, no runtime dependencies. 39 unit tests on the math; 22 end-to-end tests against a fake microphone, re-run against the live site after every deploy.</div>
+          <div><span class="ck">Bleed</span>The tuner disowns any reading taken while the metronome's own click was sounding, by timestamp rather than by pitch.</div>
+          <div><span class="ck">Apparatus</span>Web Audio API, no runtime dependencies. 62 unit tests on the math; 50 end-to-end tests against a fake microphone, re-run against the live site after every deploy.</div>
         </div>
       </div>
     </div>
