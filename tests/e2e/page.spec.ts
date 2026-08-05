@@ -87,3 +87,23 @@ test('the rest of the site does not carry the install head', async ({ page }) =>
   await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(0);
 });
+
+// THE SUBDOMAIN + THE APP'S OWN FAVICON (2026-08-05). The instrument page links its
+// own diagonal favicon set, not the site's ring-rule-disc; the favicon swap script
+// must derive its base from the link (an is:inline script can't read frontmatter),
+// so the assertion pins the href it derives from.
+test('the instrument carries its own favicon set', async ({ page, request }) => {
+  await page.goto('/practice-room/');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/practice-room/favicon.svg');
+  await expect(page.locator('#favico')).toHaveAttribute('href', /\/practice-room\/favicon(-dark)?\.ico/);
+  for (const f of ['favicon.svg', 'favicon.ico', 'favicon-dark.ico']) {
+    const r = await request.get(`/practice-room/${f}`);
+    expect(r.status()).toBe(200);
+    const body = await r.body();
+    expect(body.length).toBeGreaterThan(50);
+    expect(body.subarray(0, 15).toString()).not.toContain('<!DOCTYPE');
+  }
+  // The homepage keeps the site's.
+  await page.goto('/');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+});
