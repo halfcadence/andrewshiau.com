@@ -180,16 +180,25 @@ test('at an ordinary tempo the tuner still tracks between clicks', async ({ page
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.locator('[data-sub="2"]').click();
-  await page.getByTestId('metro-toggle').click();
 
+  // COUNT THE PAINTS, NOT THE SCREEN. This assertion used to sample the readout text and
+  // require 20 samples of A4 — which a tuner that goes TOTALLY BLIND the moment the
+  // metronome starts passes with a perfect score, because a frozen "A4" reads exactly
+  // like a live one. Proven, not supposed: a sabotage gate returning true whenever the
+  // scheduler runs passed the old assertion. A held reading paints nothing, so the honest
+  // measure is renders logged while the metronome ran.
+  const before = await page.evaluate(() => (window as any).__mt.renders.length);
+  await page.getByTestId('metro-toggle').click();
   const seen = await watchReadout(page, 6500);
+  const painted = await page.evaluate((b) =>
+    (window as any).__mt.renders.length - b, before);
   await page.getByTestId('metro-toggle').click();
 
-  // Two phrases of the fixture are 2.4s of played note inside 6.5s. Sampling at 40ms that
-  // is ~60 samples of A4 if nothing were gated; require a third of them to prove the
-  // readout is LIVE rather than a stuck value.
-  expect(seen.filter((s) => s === PLAYED).length,
-    'the tuner went blind while the metronome ran').toBeGreaterThan(20);
+  // 6.5s at a 66ms read cadence is ~98 frames; the fixture sounds for 2.4s of it (~36
+  // frames) and a tick at 120bpm/eighths blinds ~150ms of every 250ms. So a live tuner
+  // paints on the order of 15-20 frames. Ten is the floor that separates painting from
+  // frozen without pinning the exact ratio.
+  expect(painted, 'the tuner went blind while the metronome ran').toBeGreaterThan(10);
   const junk = seen.filter((s) => s !== PLAYED && s !== '—');
   expect(junk, `unexpected readings: ${[...new Set(junk)].join(', ')}`).toEqual([]);
 });
