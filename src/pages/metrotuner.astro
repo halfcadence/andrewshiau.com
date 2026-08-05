@@ -112,16 +112,14 @@ import Layout from '../layouts/Layout.astro';
                 <circle class="disc" cy="6" r="3.2"/>
               </svg><span class="w">play tone</span>
             </button>
-            <!-- THE VALUE IS THE CONTROL (steppers chooser Q1/02, 2026-08-04): the
-                 chevrons are gone — "A4" itself is the button. Click steps up,
-                 shift-click steps down, VERTICAL DRAG scrubs (the primary gesture
-                 on touch, where modifier clicks don't exist), arrow keys step when
-                 focused. touch-action:none keeps the page's swipe-scroller from
-                 stealing the drag — without it the horizontal snap pages eat any
-                 touch that wanders sideways. -->
+            <!-- THE VALUE IS THE CONTROL (steppers Q1/02), drag now HORIZONTAL
+                 (round16, user: values scrub left-to-right — one drag axis for every
+                 value, right = higher like a keyboard). Click steps up, shift-click
+                 down, arrows step when focused. touch-action:none keeps the page's
+                 swipe-scroller from stealing the drag. -->
             <button type="button" class="tbtn scrubv" id="mt-refnote" data-testid="refnote"
-              aria-label="Reference note — click to raise, shift-click to lower, drag vertically to scrub"
-              title="click +1 · shift-click −1 · drag ↕"><span class="w">A4</span></button>
+              aria-label="Reference note — click to raise, shift-click to lower, drag horizontally to scrub"
+              title="click +1 · shift-click −1 · drag ↔"><span class="w">A4</span></button>
           </span>
         </div>
         <!-- The hint holds ITS OWN reserved line (annotation 2026-08-04: "hate how
@@ -311,12 +309,15 @@ import Layout from '../layouts/Layout.astro';
   /* A foot line: left group flush left, right group flush right, one baseline.
      The top line is the same device at the case's other edge (user nit 2): spec
      controls up top, played controls at the foot. */
+  /* ONE BASELINE PER ROW (round16 nit: "text doesn't align — the numbers on
+     beats/subdivide, bpm and tap"). Both control lines align on the TYPE
+     baseline, and every composite control is built so its first-baseline IS its
+     text's: the meters put the digits first (a column flex baselines on its
+     first item), the latches align their track to the baseline (below). */
   .mt-cfoot, .mt-ctop{flex:none;display:flex;align-items:baseline;justify-content:space-between;
     gap:var(--lead) 4ch;flex-wrap:wrap}
-  .mt-ctop{align-items:center}
   .mt-fl{display:inline-flex;align-items:baseline;gap:2ch;flex-wrap:wrap}
   .mt-fr{display:inline-flex;align-items:baseline;gap:2ch;flex-wrap:wrap}
-  .mt-ctop .mt-fl, .mt-ctop .mt-fr{align-items:center}
 
   /* THE STRING (user nit 2): circles joined by trimmed rules — o-o-o-o-o-o-o, the
      mark's own vocabulary at meter scale. Click the Nth circle and the string fills
@@ -354,10 +355,34 @@ import Layout from '../layouts/Layout.astro';
     .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
       gap:0;padding:0}
     .mt-pages::-webkit-scrollbar{display:none}
+    /* THE CASE STAYS ON THE PHONE (round16, reversing the round-7 mobile rule):
+       the hairline box reads as the instrument's identity, so each page draws
+       its frame INSET via ::before (the snap pages themselves must stay
+       full-width and border-free or the scroller's geometry shifts). The plate
+       comes back with it, centred on the frame's top edge. */
     .mt-half{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;
-      border:0;padding:var(--lead) var(--gutter)}
-    .mt-plate{display:none}
+      border:0;padding:calc(var(--lead) + 10px) var(--gutter)}
+    .mt-half::before{content:"";position:absolute;inset:14px 12px;
+      border:1px solid var(--line);pointer-events:none}
+    .mt-plate{display:block;top:0;left:28px}
+    /* the grid overlay tracks the frame, not the page edge */
+    .mt-half::after{inset:calc(var(--lead) + 10px) var(--gutter)}
   }
+
+  /* THE GRID (round16, user ask: "is there an internal grid system we can press
+     g for?"): 12 columns + 28px baseline rows over each case's CONTENT box,
+     toggled with the G key. The overlay draws the grid the case claims: columns
+     across the padding box's content, rows on --lead. It is diagnostic chrome —
+     accent at low opacity, pointer-events:none, session-only. */
+  .mt-half::after{content:"";position:absolute;inset:var(--lead) var(--gutter);
+    pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
+    background:
+      repeating-linear-gradient(to bottom,
+        color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead)),
+      repeating-linear-gradient(to right,
+        color-mix(in srgb, var(--accent) 30%, transparent) 0 1px, transparent 1px calc(100% / 12));
+    background-clip:content-box}
+  .mt-half.gridded::after{opacity:1}
 
   .mt-gauge{width:min(320px,80vw);margin:0}
   .mt-gauge svg{display:block;width:100%;height:auto;color:var(--ink)}
@@ -406,8 +431,12 @@ import Layout from '../layouts/Layout.astro';
   .tbtn:hover{color:var(--accent)}
   .tbtn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
 
-  .tbtn.latch, .tbtn.mom{display:inline-flex;align-items:center;gap:1ch}
-  .tbtn .tk{flex:none;display:block;overflow:visible}
+  /* Baseline-aligned so the WORD sets the button's baseline in its row; the
+     track (an svg whose baseline is its bottom edge) is nudged 2px down to sit
+     optically centred on the x-height. align-items:center made every latch's
+     baseline the svg's bottom edge — "bpm" and "tap" drifting apart was this. */
+  .tbtn.latch, .tbtn.mom{display:inline-flex;align-items:baseline;gap:1ch}
+  .tbtn .tk{flex:none;display:block;overflow:visible;transform:translateY(2px)}
   .latch .tk .run{stroke:var(--line);stroke-width:1}
   .latch .tk .pk{fill:none;stroke:var(--faint);stroke-width:1.2}
   /* The disc: ink at the near pocket (off), ACCENT at the far pocket (latched).
@@ -427,7 +456,7 @@ import Layout from '../layouts/Layout.astro';
      control. While a scrub is live the digits read accent; that flash, the
      resize cursor and the title are the affordance. */
   .scrubbing input, .tbtn.scrubv.scrubbing .w{color:var(--accent)}
-  .tbtn.scrubv{cursor:ns-resize;touch-action:none;min-width:4ch;text-align:center}
+  .tbtn.scrubv{cursor:ew-resize;touch-action:none;min-width:4ch;text-align:center}
   .scrubwrap{cursor:ew-resize;touch-action:none}
   .scrubwrap input{cursor:ew-resize}
   /* THE REFLOW FIX (user nit, 2026-08-04), moved onto the WORD: the label swaps
@@ -734,22 +763,22 @@ import Layout from '../layouts/Layout.astro';
   // primary touch gesture) · ArrowUp/Down when focused. A drag suppresses the
   // click that follows it (pointerup fires click), else every scrub also steps.
   {
-    let dragY: number | null = null;
+    let dragX: number | null = null;
     let dragStart = 0;
     let dragged = false;
     refNoteEl.addEventListener('pointerdown', (e) => {
-      dragY = e.clientY; dragStart = refMidi; dragged = false;
+      dragX = e.clientX; dragStart = refMidi; dragged = false;
       refNoteEl.classList.add('scrubbing');
       (refNoteEl as HTMLElement).setPointerCapture(e.pointerId);
     });
     refNoteEl.addEventListener('pointermove', (e) => {
-      if (dragY === null) return;
-      const d = Math.round((dragY - e.clientY) / 8);
+      if (dragX === null) return;
+      const d = Math.round((e.clientX - dragX) / 8);
       if (d !== 0) dragged = true;
       const m = Math.min(96, Math.max(36, dragStart + d));
       if (m !== refMidi) { refMidi = m; store.set('mt:ref', String(refMidi)); refLabel(); if (toneOsc) retune(); }
     });
-    refNoteEl.addEventListener('pointerup', () => { dragY = null; refNoteEl.classList.remove('scrubbing'); });
+    refNoteEl.addEventListener('pointerup', () => { dragX = null; refNoteEl.classList.remove('scrubbing'); });
     refNoteEl.addEventListener('click', (e) => {
       if (dragged) { dragged = false; return; }
       stepRef(e.shiftKey ? -1 : 1);
@@ -1141,6 +1170,16 @@ import Layout from '../layouts/Layout.astro';
   const restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'dashext', (v) => { subdivision = v; applySpec(); });
   paintAccent(); // draws the beats rule too (restoreBeats inside), with the persisted accent state
   restoreSub(subdivision);
+
+  // THE GRID KEY (round16): G toggles the 12-column + baseline overlay on both
+  // cases. Skipped while typing in a field — "g" belongs to the input there.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'g' && e.key !== 'G') return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target as HTMLElement;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    document.querySelectorAll('.mt-half').forEach((h) => h.classList.toggle('gridded'));
+  });
 
   // ── the swipe indicator (chooser Q3/02) ──────────────────────────────────
   // The pages are a CSS snap-scroller; JS only keeps the dots honest and gives the

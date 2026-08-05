@@ -5,17 +5,18 @@ import { test, expect } from '@playwright/test';
 // carried is answered by drag-as-primary + touch-action:none, and these tests drive
 // the same pointer path a finger takes.
 
-test('the reference note scrubs on vertical drag', async ({ page }) => {
+test('the reference note scrubs on horizontal drag', async ({ page }) => {
   await page.goto('/metrotuner/?e2e');
   const note = page.getByTestId('refnote');
   await expect(note).toHaveText('A4');
 
   const box = (await note.boundingBox())!;
   const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
-  // drag UP 32px = +4 semitones (8px per step): A4 → C♯5
+  // drag RIGHT 32px = +4 semitones (8px per step): A4 → C♯5 — one axis for
+  // every value now (round16), right = higher like a keyboard
   await page.mouse.move(cx, cy);
   await page.mouse.down();
-  await page.mouse.move(cx, cy - 32, { steps: 8 });
+  await page.mouse.move(cx + 32, cy, { steps: 8 });
   await page.mouse.up();
   await expect(note).toHaveText('C♯5');
 
