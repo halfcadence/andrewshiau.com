@@ -51,9 +51,15 @@ test('the `>` mark states the accent, as a real rendered colour change', async (
   // test compared a settled `on` against a mid-tween `rgb(93,92,85)` and failed. That
   // intermediate value is itself proof the transition runs; it is just not the thing
   // being asserted. 250ms clears 140ms with room for scheduling.
+  // FILL, not stroke. The state moved to fill with pick Q1/03 (filled vs hollow) and
+  // both states are now ink — so a stroke-only reader would see no difference at all
+  // and this test would pass while asserting nothing. It is the fill that changes.
   const stroke = async () => {
     await page.waitForTimeout(250);
-    return mark.evaluate((el) => getComputedStyle(el).stroke);
+    return mark.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return cs.fill + ' / ' + cs.strokeWidth;
+    });
   };
   await expect(acc).toHaveAttribute('aria-pressed', 'true');
   const on = await stroke();
@@ -62,13 +68,13 @@ test('the `>` mark states the accent, as a real rendered colour change', async (
   await expect(acc).toHaveAttribute('aria-pressed', 'false');
   const off = await stroke();
 
-  // Not "a class toggled" — the RENDERED stroke must differ. A class-only assertion
-  // would still pass if the CSS rule that colours it were deleted.
+  // Not "a class toggled" — the RENDERED paint must differ. A class-only assertion
+  // would still pass if the CSS that draws the difference were deleted.
   expect(on).not.toBe(off);
 
   await acc.click();
   await expect(acc).toHaveAttribute('aria-pressed', 'true');
-  expect(await stroke(), 'and it returns to the on colour').toBe(on);
+  expect(await stroke(), 'and it returns to the on paint').toBe(on);
 });
 
 test('the accent mark adds no layout — both meters keep one baseline', async ({ page }) => {
@@ -288,4 +294,105 @@ test('the rule button still shows hover feedback after the tick was deleted', as
   await page.getByTestId('accent-toggle').hover();
   const hovered = await stroke();
   expect(hovered, 'hovering the rule changes the line colour').not.toBe(rest);
+});
+
+test('the mark is FILLED when accented and HOLLOW when not', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  const mark = page.locator('#mt-acc-mark');
+  const btn = page.getByTestId('accent-mark');
+  const paint = () => mark.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { fill: cs.fill, stroke: cs.stroke };
+  });
+
+  // Pick Q1/03. The two states used to differ only by colour value (--ink vs --faint,
+  // measured 3.54:1) plus 0.4px of stroke on a 9px glyph — "unfort rly similar". The
+  // difference is fill now, which is a categorical channel rather than a scalar one.
+  await expect(btn).toHaveAttribute('aria-pressed', 'true');
+  await page.mouse.move(4, 4);          // nothing hovered, so this is the rest state
+  await page.waitForTimeout(250);
+  const on = await paint();
+  expect(on.fill, 'accented: the wedge is solid').not.toBe('none');
+
+  await btn.click();
+  // MOVE THE POINTER OFF before measuring. Playwright leaves the mouse where it
+  // clicked, so the mark stays hovered — and hover paints the accent hue. The first
+  // version of this test read rgb(20,48,107) for the hollow stroke and failed against
+  // ink; the navy was correct, it was just measuring the hover state.
+  await page.mouse.move(4, 4);
+  await page.waitForTimeout(250);
+  const off = await paint();
+  expect(off.fill, 'unaccented: the wedge is an outline').toBe('none');
+
+  // BOTH STATES ARE INK. Dimming the hollow one would stack a value difference on top
+  // of the fill difference and re-import the contrast problem into the state that is
+  // meant to read as "here, but not accented".
+  expect(off.stroke, 'the hollow state is still ink, not faint').toBe(on.stroke);
+
+  // the glyph must be a closed shape — a polyline cannot be filled convincingly
+  await expect(mark.locator('polygon')).toHaveCount(1);
+  await expect(mark.locator('polyline')).toHaveCount(0);
+
+  await btn.click();
+});
+
+test('the accent toggle AUDITIONS the voice it just chose', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  // Pick Q2/02. The accent was already audible, but only once the metronome was running
+  // and only when the bar came round — so setting the switch while stopped told you
+  // nothing. Now the toggle plays the tick it changes: G6 (1568 Hz) on, C6 (1046.5) off.
+  //
+  // Recorded by patching createOscillator, because an assertion on "a sound played"
+  // that does not check the FREQUENCY would pass if both states played the same ping —
+  // which is exactly the failure the option exists to avoid.
+  await page.evaluate(() => {
+    (window as any).__pings = [];
+    const OC = window.AudioContext;
+    const orig = OC.prototype.createOscillator;
+    OC.prototype.createOscillator = function (this: AudioContext) {
+      const osc = orig.call(this);
+      const start = osc.start.bind(osc);
+      osc.start = function (t?: number) {
+        (window as any).__pings.push(osc.frequency.value);
+        return start(t);
+      };
+      return osc;
+    };
+  });
+
+  const pings = () => page.evaluate(() => (window as any).__pings);
+  const reset = () => page.evaluate(() => ((window as any).__pings = []));
+
+  // ON -> OFF plays the ordinary beat
+  await reset();
+  await page.getByTestId('accent-mark').click();
+  await page.waitForTimeout(200);
+  expect(await pings(), 'switching OFF auditions C6').toEqual([1046.5]);
+
+  // OFF -> ON plays the accented downbeat
+  await reset();
+  await page.getByTestId('accent-mark').click();
+  await page.waitForTimeout(200);
+  expect(await pings(), 'switching ON auditions G6').toEqual([1568]);
+
+  // and the RULE — the other target for the same state — auditions too
+  await reset();
+  await page.getByTestId('accent-toggle').click();
+  await page.waitForTimeout(200);
+  expect(await pings(), 'the rule target auditions as well').toEqual([1046.5]);
+  await page.getByTestId('accent-toggle').click();
+});
+
+test('the audition does not pollute the tick log', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  // `ping` is the sound; `click` is the sound PLUS the scheduler's bookkeeping. An
+  // audition must not push to the ?e2e tick log or the pending queue — a toggle's
+  // preview is not a tick, and logging it would corrupt every tick assertion in this
+  // suite. This is what stops someone "simplifying" the audition to call click().
+  const ticks = () => page.evaluate(() => (window as any).__mt.ticks.length);
+  expect(await ticks()).toBe(0);
+  await page.getByTestId('accent-mark').click();
+  await page.getByTestId('accent-mark').click();
+  await page.waitForTimeout(200);
+  expect(await ticks(), 'auditioning logged no ticks').toBe(0);
 });

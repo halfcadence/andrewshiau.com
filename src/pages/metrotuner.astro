@@ -101,24 +101,26 @@ import Layout from '../layouts/Layout.astro';
             <span class="mrh" id="mt-hz" data-testid="hz"></span>
           </div>
           <div id="mt-sr" class="visually-hidden" role="status" aria-live="polite"></div>
-        </div>
-
-        <div class="mt-cfoot">
-          <span class="mt-fl">
-            <!-- TRACK GRAMMAR: a TOGGLE is a two-pocket track — one disc, two
-                 resting places, latched = the disc at the far pocket in accent.
-                 ONE label that swaps (user refinement on the sheet's pick: the
-                 second printed word was redundant; the swap + the disc's berth
-                 say it). The word keeps the fixw reservation so nothing reflows. -->
-            <button type="button" class="tbtn latch fixw" id="mt-mic" data-testid="mic-toggle" aria-pressed="false" style="--w:15ch">
+          <!-- THE BARE VERB (chooser metrotuner-transport-placement, Q1/05): the
+               transport is the figure's CAPTION — one word plus the latch, centred
+               under the instrument it drives. The figure supplies the noun; the
+               full name lives on aria-label. The latch stops propagation because
+               it sits inside .mt-mid, which is itself a start/stop click target —
+               without it every press would toggle twice and net to nothing. -->
+          <div class="mt-cap">
+            <button type="button" class="tbtn latch" id="mt-mic" data-testid="mic-toggle"
+              aria-pressed="false" aria-label="start the tuner">
               <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
                 <line class="run" x1="4" y1="6" x2="22" y2="6"/>
                 <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
                 <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
                 <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w">start the tuner</span>
+              </svg><span class="w fixw" style="--w:5ch">start</span>
             </button>
-          </span>
+          </div>
+        </div>
+
+        <div class="mt-cfoot">
           <span class="mt-fr">
             <button type="button" class="tbtn latch fixw" id="mt-tone" data-testid="tone-toggle" aria-pressed="false" style="--w:9ch">
               <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
@@ -200,8 +202,19 @@ import Layout from '../layouts/Layout.astro';
                    would read as two separate settings). -->
               <button type="button" class="rm-accbtn" id="mt-acc" data-testid="accent-mark"
                       aria-pressed="true" aria-label="Accent the first beat">
+                <!-- A CLOSED POLYGON, not an open polyline (chooser
+                     metrotuner-accent-clarity, pick Q1/03 "filled vs hollow"). The two
+                     states were too close: "the strong vs weak accent mark are unfort
+                     rly similar". They differed only by colour value — measured 3.54:1
+                     between --ink and --faint — plus 0.4px of stroke, on a 9x8px glyph,
+                     and value is the weakest channel at that size. Now the accented
+                     mark is a SOLID wedge and the unaccented one is the same wedge
+                     outlined: the filled/hollow pair the site already uses for the page
+                     dots and the toggle berths, so it borrows a distinction the reader
+                     has met rather than inventing one. A polyline cannot be filled
+                     convincingly, hence the polygon. -->
                 <svg class="rm-acc" id="mt-acc-mark" width="9" height="8" viewBox="0 0 9 8"
-                     aria-hidden="true"><polyline points="1,1 7,4 1,7" /></svg>
+                     aria-hidden="true"><polygon points="1,0.5 8,4 1,7.5" /></svg>
               </button>
               <span class="rm-digits">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
@@ -254,19 +267,21 @@ import Layout from '../layouts/Layout.astro';
               <circle cx="160" cy="160" r="2.5" fill="var(--ink)"/>
             </svg>
           </figure>
-        </div>
-
-        <div class="mt-cfoot">
-          <span class="mt-fl">
-            <button type="button" class="tbtn latch fixw" id="mt-run" data-testid="metro-toggle" aria-pressed="false" style="--w:19ch">
+          <!-- The bare verb (Q1/05), same as the tuner's: the metronome's caption. -->
+          <div class="mt-cap">
+            <button type="button" class="tbtn latch" id="mt-run" data-testid="metro-toggle"
+              aria-pressed="false" aria-label="start the metronome">
               <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
                 <line class="run" x1="4" y1="6" x2="22" y2="6"/>
                 <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
                 <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
                 <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w">start the metronome</span>
+              </svg><span class="w fixw" style="--w:5ch">start</span>
             </button>
-          </span>
+          </div>
+        </div>
+
+        <div class="mt-cfoot">
           <!-- THE SCRUB VALUE (steppers chooser Q2/02): the −/+ are gone — the
                number is the control. Drag HORIZONTALLY to scrub (1 bpm per 4px;
                the DAW gesture, and the primary one on touch), type in the field,
@@ -352,6 +367,9 @@ import Layout from '../layouts/Layout.astro';
     padding:0 1ch;color:var(--faint)}
   .mt-mid{flex:1;min-height:0;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:var(--lead);cursor:pointer}
+  /* THE CAPTION (transport-placement Q1/05): the transport under the figure it
+     drives, centred — the figure supplies the noun, the caption is the verb. */
+  .mt-cap{display:flex;justify-content:center}
   /* A foot line: left group flush left, right group flush right, one baseline.
      The top line is the same device at the case's other edge (user nit 2): spec
      controls up top, played controls at the foot. */
@@ -405,20 +423,35 @@ import Layout from '../layouts/Layout.astro';
     background:transparent;border:0;border-radius:0;cursor:pointer;
     padding:8px;margin:-8px;display:block;line-height:0}
   .rm-accbtn:focus-visible{outline:1px solid var(--accent);outline-offset:1px}
-  /* HOVER IS THE ACCENT HUE, NOT INK — and that is a correction, not a preference.
-     `:hover{stroke:var(--ink)}` made the OFF mark render the exact colour the ON mark
-     uses, so while the pointer sat on the control the state was unreadable: measured,
-     off-with-pointer and on-with-pointer both computed rgb(20,20,18). You cannot see
-     what you just toggled without moving the mouse away, on the one control whose
-     whole job is to show its state.
-     The hue is the right answer because interaction is what the accent hue means
-     everywhere else on this site, and it is orthogonal to the ink/faint axis the state
-     lives on — so hover and state can both be read at once. */
+  /* HOVER IS THE ACCENT HUE, and it must recolour BOTH channels now. It used to set
+     `stroke` alone, which was right when stroke carried the state; with the filled/hollow
+     pair the solid state's colour lives in `fill`, so a stroke-only hover left the
+     accented mark's interior ink while its outline went navy — a two-tone glyph, and no
+     hover feedback at all on the state that is mostly fill.
+     Why the hue rather than a value change: hover is interaction, which is what this
+     site's one accent hue means everywhere else. It is also ORTHOGONAL to the fill/no-fill
+     axis the state lives on, so both read at once. (Earlier this rule was
+     `stroke:var(--ink)` and made the OFF mark render exactly the ON mark's colour —
+     measured, both computed rgb(20,20,18) — so you could not see what you had just
+     clicked without moving the mouse away.) */
   .rm-accbtn:hover .rm-acc{stroke:var(--accent)}
-  .rm-acc{display:block;fill:none;
-    stroke:var(--faint);stroke-width:1.4;stroke-linecap:square;
-    transition:stroke var(--dur-fast) var(--ease)}
-  .rm-acc.on{stroke:var(--ink);stroke-width:1.8}
+  .rm-accbtn:hover .rm-acc.on{fill:var(--accent)}
+  /* FILLED vs HOLLOW (pick Q1/03). Both states are INK — the difference is fill, not
+     value, which is the point: the old pair leaned on --ink against --faint and that is
+     3.54:1 on a 9px glyph, too little to read without comparing. Off is the wedge in
+     outline; on is the wedge solid.
+     Both stay ink deliberately. Dimming the hollow state as well would put the two
+     differences on top of each other and re-import the contrast problem into the state
+     that is supposed to be clearly "not accented, but here".
+     `stroke-width` drops from 1.4 to 1 when filled: the stroke sits centred on the path,
+     so a filled wedge at 1.4 renders visibly fatter than the outline it replaces and the
+     mark would appear to grow. At 1 the two states occupy the same optical box.
+     `paint-order:stroke fill` so the fill never eats its own outline at this size. */
+  .rm-acc{display:block;fill:none;paint-order:stroke fill;
+    stroke:var(--ink);stroke-width:1.4;stroke-linejoin:miter;
+    transition:fill var(--dur-fast) var(--ease),
+               stroke-width var(--dur-fast) var(--ease)}
+  .rm-acc.on{fill:var(--ink);stroke-width:1}
   .rm-digits{display:inline-flex}
   .rbtn{font:inherit;background:transparent;border:0;padding:8px 0 0;margin:0;
     border-radius:0;cursor:pointer;color:var(--faint);width:20px;min-height:36px;
@@ -899,7 +932,8 @@ import Layout from '../layouts/Layout.astro';
     analyser = ac.createAnalyser();
     analyser.fftSize = 2048;
     src.connect(analyser);
-    setWord(micBtn, 'stop the tuner');
+    setWord(micBtn, 'stop');
+    micBtn.setAttribute('aria-label', 'stop the tuner');
     micBtn.setAttribute('aria-pressed', 'true');
     hintEl.textContent = 'listening';
     tunerTimer = window.setInterval(() => {
@@ -929,12 +963,16 @@ import Layout from '../layouts/Layout.astro';
     recent.length = 0;
     quietFrames = 99;
     renderSilence();
-    setWord(micBtn, 'start the tuner');
+    setWord(micBtn, 'start');
+    micBtn.setAttribute('aria-label', 'start the tuner');
     micBtn.setAttribute('aria-pressed', 'false');
     hintEl.textContent = 'uses the microphone, on this device only';
   }
 
-  micBtn.addEventListener('click', () => (micStream ? stopTuner() : startTuner()));
+  micBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
+    micStream ? stopTuner() : startTuner();
+  });
 
   // THE FIGURE IS THE SWITCH TOO (annotations 2026-08-04: "a click/tap anywhere
   // around the tuner/metronome center should start/stop it"). The dial and the
@@ -1130,22 +1168,43 @@ import Layout from '../layouts/Layout.astro';
       accentOn = !accentOn;
       store.set('mt:accent', accentOn ? '1' : '0');
       paintAccent();
+      // AUDITION THE VOICE YOU JUST CHOSE (chooser metrotuner-accent-clarity, pick
+      // Q2/02). The accent was already audible — the downbeat's G6 is demoted to the
+      // beat's C6 when off — but only once the metronome was running and only when the
+      // bar came round, so setting the switch while stopped told you nothing. Now the
+      // toggle plays the tick it changes: G6 on, C6 off. Not a new sound; the
+      // instrument's own downbeat, previewed.
+      // `ping` is a function DECLARATION further down, so it is hoisted and this
+      // forward reference is safe — the click cannot fire before evaluation finishes.
+      // audio() resumes a suspended context, and a click is the gesture that permits
+      // that, so the first toggle on a cold page sounds like every later one.
+      ping(accentOn ? 'down' : 'beat', audio().currentTime + 0.01);
     });
   }
   const effVoice = (t: Tick) => (t.voice === 'down' && !accentOn ? 'beat' : t.voice);
 
-  function click(t: Tick) {
+  // ONE VOICE, ONE DEFINITION. Extracted from click() so the accent audition plays the
+  // instrument's actual downbeat rather than a second copy of the synth that could drift
+  // from it — a re-tuned tick that only re-tuned in one of two places is the bug this
+  // avoids. `ping` is the sound; `click` is the sound PLUS the scheduler's bookkeeping
+  // (the pending queue and the ?e2e tick log), which an audition must not touch: a
+  // toggle's preview is not a tick, and logging it would corrupt the tick assertions.
+  function ping(voice: keyof typeof VOICES, at: number) {
     const ac = audio();
-    const v = VOICES[effVoice(t)];
+    const v = VOICES[voice];
     const osc = ac.createOscillator();
     const g = ac.createGain();
     osc.type = 'sine';
     osc.frequency.value = v.freq;
-    g.gain.setValueAtTime(v.gain, t.time);
-    g.gain.exponentialRampToValueAtTime(0.0001, t.time + v.dur);
+    g.gain.setValueAtTime(v.gain, at);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + v.dur);
     osc.connect(g).connect(ac.destination);
-    osc.start(t.time);
-    osc.stop(t.time + v.dur + 0.02);
+    osc.start(at);
+    osc.stop(at + v.dur + 0.02);
+  }
+
+  function click(t: Tick) {
+    ping(effVoice(t), t.time);
     pending.push(t);
     if (E2E) { hook.ticks.push(t); if (hook.ticks.length > 512) hook.ticks.shift(); }
   }
@@ -1240,7 +1299,8 @@ import Layout from '../layouts/Layout.astro';
     lastBeat = null;
     firstBeatIndex = -1;
     scheduler.start();
-    setWord(runBtn, 'stop the metronome');
+    setWord(runBtn, 'stop');
+    runBtn.setAttribute('aria-label', 'stop the metronome');
     runBtn.setAttribute('aria-pressed', 'true');
     pend.classList.remove('rest');
     pend.classList.add('live');
@@ -1278,11 +1338,15 @@ import Layout from '../layouts/Layout.astro';
       // here — finishSweep's frames read it after this returns; startMetro resets it.
       finishSweep();
     }
-    setWord(runBtn, 'start the metronome');
+    setWord(runBtn, 'start');
+    runBtn.setAttribute('aria-label', 'start the metronome');
     runBtn.setAttribute('aria-pressed', 'false');
   }
 
-  runBtn.addEventListener('click', () => (scheduler.running ? stopMetro() : startMetro()));
+  runBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
+    scheduler.running ? stopMetro() : startMetro();
+  });
   document.getElementById('mt-metro-fig')?.closest('.mt-mid')?.addEventListener('click', () => {
     scheduler.running ? stopMetro() : startMetro();
   });
