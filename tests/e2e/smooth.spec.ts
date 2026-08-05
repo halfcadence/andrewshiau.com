@@ -133,15 +133,11 @@ test('the sweep is continuous — no between-frame tears', async ({ page }) => {
   await page.getByTestId('metro-toggle').click();
 
   expect(degs.length).toBeGreaterThan(60);
-  // At 150bpm one full sweep (108°) takes 400ms ≈ 24 frames — so >30°/frame is
-  // not motion, it's a tear. The one sanctioned jump is a tap's strike (the
-  // hand re-anchors the phase), so allow isolated jumps but never two in a row:
-  // a tear from bad math persists; a strike is one frame.
-  let prevJump = false;
+  // At 150bpm one full sweep (108°) takes 400ms ≈ 24 frames — so >40°/frame is
+  // not motion, it's a tear. NO exemptions since the parked takeover: taps no
+  // longer strike the arm (it finishes its sweep and rests), and the comeback
+  // relaunches from the parked end, so every frame-to-frame delta is bounded.
   for (let i = 1; i < degs.length; i++) {
-    const d = Math.abs(degs[i] - degs[i - 1]);
-    const jump = d > 40;
-    expect(jump && prevJump).toBe(false);
-    prevJump = jump;
+    expect(Math.abs(degs[i] - degs[i - 1])).toBeLessThan(40);
   }
 });
