@@ -64,6 +64,29 @@ one is banned:
 The positive rule, from Orwell: **prefer the concrete**. "Feedback was positive" became
 "What they got stuck on became the roadmap" — same length, and it says something.
 
+### Two more, found on /work/metrotuner/ (Aug 2026)
+
+The annotation was "this reads kinda ai slop do a few passes on the whole copy to fix". The four
+habits above were already clean on that page. What was actually wrong was different, and worse:
+
+5. **The apposition dodge** — a clause bolted on with `—` or `,` that renames what you just
+   said instead of adding to it. "normalizing the taper out made every multiple score the same,
+   and the picker grabbed nine times the period — a reading three octaves flat." The final clause
+   is the same fact in other words. It is the em-dash habit's smarter cousin: the punctuation is
+   defensible, the content is a second helping. It became "…so the picker took nine times the
+   period and read three octaves flat" — one clause, one fact, and now the sentence says *why*.
+   The tell is that you can delete the tail and lose nothing.
+6. **The unfalsifiable number.** "within 0.25 cents from C2 to C8" read as rigour and was
+   **false**: measured, C8 fails by 1200 cents on the plucked case and nothing asserted the range
+   at all. A specific figure is the most trusted sentence on a page and therefore the one that
+   must have a test behind it. The bound is `0.35 cents, C2 to C7` now, `pitch.test.ts` asserts
+   every chromatic step of it, and the paragraph that follows states the C8 failure and its
+   mechanism. **A number in the copy MUST have an assertion in the suite that fails if the copy
+   drifts** — this is the same rule as "verify the artifact", applied to prose.
+
+The generative version of both: prose slop and engineering slop are the same defect. A sentence
+that cannot be falsified and a test that cannot fail are the same mistake in two notations.
+
 ---
 
 ## Case-study page types
@@ -170,8 +193,6 @@ two hues became one hue with one job.
    comes from **case, colour value, and whitespace only**. `--step` and `--lead` are the tokens.
    A new font-size is a bug, not a decision. Two exceptions, both earned:
    - ~~`11px` tracked caps~~ — **GONE.** The micro-label lost both its size and its caps in the mono pass: `.fm`, `.pk`, `.ck`, `.sl` are 15px, sentence case, `--faint`. No rule in `global.css` declares `font-size:11px`, and `.lb` does not exist.
-     .pk`, captions, `.foot .fr`, the gate button). This is the ONE below-ramp step, kept
-     because caps at 15px in a monospace face are as wide as the title they label.
    - `16px` on `.f input` — below 16px iOS Safari zooms the page on focus. A size forced by a
      platform is not a ramp step.
 2. **WHITESPACE IS THE STRUCTURE.** There are no rules. No 2px group openers, no per-row
@@ -571,8 +592,23 @@ Tokens in `:root`:
 ## Link system
 
 **ONE IDIOM, and one exception.** The three treatments collapsed into one when there was one
-type size and one hue: a link is **ink type with a `--line` underline at 4px offset**, and on
-hover the **underline goes to `--ink` and the text goes to `--accent`**. That is `.entry .eh`,
+type size and one hue: a link is **ink type with a `--faint` underline at 4px offset**, and on
+hover the **underline goes to `--ink` and the text goes to `--accent`**.
+
+**The underline token is `--faint`, not `--line`** (annotation, /work/metrotuner/ in dark: "this
+link isnt obv — shouldnt it have perma underline"). It had a permanent underline; the underline
+was invisible. Measured on the built page: `--line` computed 1.30:1 against dark paper, 1.34:1
+in light. `--line` is the **hairline** token — it draws structure between blocks, where nearly
+invisible is the job. A link's underline is the affordance, and it was borrowing a token tuned
+for the opposite purpose. `--faint` is 5.60:1 dark / 4.69:1 light and already labels the index
+numerals and meta, so no new value entered the system. Picked off a four-option proof sheet
+rendered in both colourways at the real 15px Plex: `--dim` is 2.40:1 in light, so it fixes one
+colourway only; `--accent` makes the underline the loudest mark in the paragraph and revives a
+second hue role. One token changed, all **seven** underline sites with it.
+
+This overrules half of a finding filed below under "Three findings that were WRONG": `--line` at
+1.34:1 genuinely is a decorative underline under 1.4.3, so it was never a WCAG failure. It was a
+findability failure, which is a different question, and the one the reader was asking. That is `.entry .eh`,
 `.espec .eth .eh`, `.pin .pfoot a`, `.colo a`, and `.links a` — five places that each had their
 own mechanism (a `border-bottom` that filled in, a `text-decoration-color` that darkened, an
 arrow that slid 6px) doing the same job three ways.
@@ -1118,9 +1154,15 @@ them. Six were judgment calls, put to a proof sheet
 Do not re-file these. Each was raised by a persona and disproved:
 
 - **Contrast.** Every text token passes AA in both schemes: ink 16.61:1, dim 5.86:1, faint
-  4.69:1, accent 11.36:1 on paper; 15.99 / 6.93 / 5.60 / 7.64 in dark. `--line` at 1.34:1 is a
-  decorative underline on text that itself carries 16.61:1 — 1.4.3 does not apply. **`--faint`
-  has a 0.19 margin, so do not lighten it.**
+  4.69:1, accent 11.36:1 on paper; 15.99 / 6.93 / 5.60 / 7.64 in dark. **`--faint` has a 0.19
+  margin, so do not lighten it** — and it now carries the link underline as well as the labels,
+  which raises the cost of touching it.
+  ~~`--line` at 1.34:1 is a decorative underline on text that itself carries 16.61:1 — 1.4.3
+  does not apply.~~ **Half-right, and superseded** (see Link system). The WCAG reading holds: a
+  1.34:1 underline under text at 16.61:1 is decorative and breaks no criterion. But "does 1.4.3
+  apply" and "can the reader find the link" are different questions, and a later annotation
+  answered the second one no. The underline is `--faint` now. A clean audit against the standard
+  is not the same as a clean reading by a person.
 - **Focus indicators.** Nothing is unreachable. Only `.entry` and `.f input` declare a
   `:focus-visible` style; everything else falls back to the UA ring, which is a consistency gap,
   not a blocker.

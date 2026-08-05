@@ -21,7 +21,7 @@ import PanelHead from '../../components/PanelHead.astro';
     <PanelHead href="/work/metrotuner/" title="Practice room">
       <div class="frow">
         <div class="fm">Pitch</div>
-        <div class="ftx">McLeod pitch method, asserted to half a cent in the unit suite</div>
+        <div class="ftx">McLeod pitch method, asserted to half a cent from C2 to C7</div>
       </div>
       <div class="frow">
         <div class="fm">Microphone</div>
@@ -39,9 +39,9 @@ import PanelHead from '../../components/PanelHead.astro';
 
       <div class="grid">
         <div class="c1-12">
-          <p><a href="/metrotuner/">Open the instrument</a> — the tuner reads the
-          offset in cents, the metronome takes a typed tempo or a tapped one, and on
-          a phone you swipe between them.</p>
+          <p><a href="/metrotuner/">Open the instrument</a>. The tuner reads the offset
+          in cents, the metronome takes a typed tempo or a tapped one, and on a phone
+          you swipe between them.</p>
         </div>
       </div>
 
@@ -51,19 +51,26 @@ import PanelHead from '../../components/PanelHead.astro';
           <h2>The detector that failed first</h2>
           <div class="sbody">
             <p>
-              The obvious pitch detector is autocorrelation, and it failed its own
-              tests. The raw correlation tapers with lag, which dragged a <b>65 Hz</b>
-              sine <b>22 cents</b> sharp; normalizing the taper out made every multiple
-              of the true period score the same, and the picker grabbed nine times the
-              period — a reading three octaves flat.
+              The obvious pitch detector is autocorrelation, and it failed its own tests.
+              The raw correlation tapers with lag, which dragged a <b>65 Hz</b> sine <b>22
+              cents</b> sharp. Normalizing the taper out made every multiple of the
+              true period score alike, so the picker took nine times the period and read
+              three octaves flat.
             </p>
             <p>
-              What shipped is the <b>McLeod pitch method</b>: a normalized square
-              difference bounded to ±1 at every lag, with the first key maximum within
-              10% of the best taken as the period. On synthesized buffers it reads
-              within <b>0.25 cents</b> from C2 to C8, including a plucked-string case
-              where the second harmonic carries more energy than the fundamental — the
-              case that makes FFT-peak tuners read a low E as an octave up.
+              What shipped is the <b>McLeod pitch method</b>. It bounds the difference
+              function to ±1 at every lag and takes the first key maximum within 10% of
+              the best as the period. On synthesized buffers it holds within <b>0.35
+              cents</b> from C2 to C7, including a plucked string whose second harmonic
+              is louder than its fundamental. That is the case that makes FFT-peak tuners
+              read a low E an octave high.
+            </p>
+            <p>
+              It breaks one octave further up. At C8 the period is 11 samples, and on
+              the plucked case the doubled-period lobe scores 1.00 against the true
+              one's 0.88 — under the 0.9 threshold, so the picker takes the octave
+              below. Nothing this tuner is for plays a C8, so the bound is stated at C7
+              and the tests stop there.
             </p>
           </div>
         </div>
@@ -71,23 +78,22 @@ import PanelHead from '../../components/PanelHead.astro';
 
       <div class="grid sect">
         <div class="shead">
-          <h2>Testing an instrument without an instrument</h2>
+          <h2>What the tests assert</h2>
           <div class="sbody">
             <p>
-              The unit suite runs the math on synthesized buffers: <b>39</b> assertions
-              covering the note grid, the scheduler, tap tempo, and the detector's
-              accuracy bounds. Direction is asserted, not just magnitude — a tuner with
-              a flipped sign passes every "about 23 cents" check and tunes every string
-              the wrong way.
+              The unit suite runs the math on synthesized buffers: <b>39</b> tests over
+              the note grid, the scheduler, tap tempo, and the detector's bounds. They
+              check the sign of the reading as well as its size. A tuner with a flipped
+              sign passes every "about 23 cents" assertion and sends you the wrong way
+              on every string.
             </p>
             <p>
-              The end-to-end suite plays known sine waves into Chromium's fake
-              microphone: <b>440 Hz</b> must read A4 at 0 cents, <b>446 Hz</b> must
-              read sharp with a plus sign, and recalibrating A4 to 446 must move the
-              same input to 0 — the control that proves the calibration is wired
-              through rather than merely stored. The metronome's ticks are asserted on
-              the audio clock, where the scheduler computes times instead of
-              accumulating them.
+              The <b>22</b> end-to-end tests play known sine waves into Chromium's fake
+              microphone, one browser per input frequency, because the fake mic is a
+              launch flag. 440 Hz must read A4 at 0 cents. 446 Hz must read sharp with
+              a plus sign. Recalibrating A4 to 446 must then move that same input to 0,
+              which is the control arm: a calibration that is stored but never reaches
+              the detector passes the first two and fails this one.
             </p>
           </div>
         </div>
@@ -98,12 +104,12 @@ import PanelHead from '../../components/PanelHead.astro';
           <h2>One screen, two instruments</h2>
           <div class="sbody">
             <p>
-              The instrument page escapes the site's document measure — the one page
-              that does. On a wide screen the tuner and metronome centre in equal
-              halves, both running. Under 900px the halves become two swipe pages, and
-              the indicator is the site's own pair: a disc for the page on screen, a
-              ring for the other. Every treatment was picked from a proof sheet where
-              the options ran live off one simulated signal.
+              This is the only page on the site that leaves the document measure. On a
+              wide screen the tuner and metronome sit in equal halves, both running.
+              Under 900px the halves become two swipe pages, and the indicator is the
+              site's own pair: a disc for the page you are on, a ring for the other.
+              Every control treatment came off a proof sheet where the options ran live
+              on one simulated signal.
             </p>
           </div>
         </div>
@@ -112,11 +118,11 @@ import PanelHead from '../../components/PanelHead.astro';
       <!-- TYPE B close: the facts colophon, read after the work. -->
       <div class="grid sect">
         <div class="c1-12 colo">
-          <div><span class="ck">Pitch detection</span>McLeod pitch method on a 2048-sample window — normalized square difference, key-maxima picking, parabolic interpolation.</div>
+          <div><span class="ck">Pitch detection</span>McLeod pitch method on a 2048-sample window: normalized square difference, key-maxima picking, parabolic interpolation.</div>
           <div><span class="ck">Timing</span>A lookahead scheduler on the audio clock. setInterval wakes it; the audio thread keeps time.</div>
-          <div><span class="ck">Sounds</span>Three synthesized sine pings — G6 for the downbeat, C6 for the beat, G5 under it. No samples.</div>
-          <div><span class="ck">Privacy</span>The microphone signal is analysed in the page and discarded. Nothing is recorded, stored, or sent.</div>
-          <div><span class="ck">Apparatus</span>Web Audio API and 0 dependencies. 39 unit tests on the math; 14 end-to-end tests against a fake microphone, re-run against the live site after every deploy.</div>
+          <div><span class="ck">Sounds</span>Three synthesized sine pings. G6 opens the bar, C6 marks the beat, G5 sits under it. No samples.</div>
+          <div><span class="ck">Privacy</span>The microphone signal is read in the page and discarded. Nothing is recorded, stored, or sent.</div>
+          <div><span class="ck">Apparatus</span>Web Audio API, no runtime dependencies. 39 unit tests on the math; 22 end-to-end tests against a fake microphone, re-run against the live site after every deploy.</div>
         </div>
       </div>
     </div>

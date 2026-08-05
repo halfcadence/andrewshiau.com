@@ -448,9 +448,30 @@ a[target]:not(.entry):hover::after{opacity:1}
    behind type. A filled rectangle behind a word was also the last box-like device in body copy,
    which the same pass removed from `.block`.
    What is lost, honestly: a filled field is more findable mid-paragraph than an underline. The
-   trade is accepted because an underline in `--line` going to ink IS visible against 15px mono,
-   and because one idiom that always works beats two that collide. */
-p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);
+   trade is accepted because an underline going to ink IS visible against 15px mono, and because
+   one idiom that always works beats two that collide.
+   ── THE UNDERLINE TOKEN IS `--faint`, NOT `--line`. Annotation, on /work/metrotuner/ in dark
+   mode: "this link isnt obv — shouldnt it have perma underline". It had one; the underline was
+   invisible. Measured on the built page, the `Open the instrument` anchor computed
+   `text-decoration-color: rgb(43, 43, 39)` on `rgb(20, 20, 19)` paper — 1.30:1, and 1.34:1 in
+   light. `--line` is the HAIRLINE token: it draws structure between blocks, where near-invisible
+   is the point. A link's underline is not structure, it is the affordance, and it was borrowing a
+   token tuned for the opposite job.
+   `--faint` instead: 5.60:1 dark, 4.69:1 light — the same token the index numerals and meta
+   already use, so no new value enters the system. Chosen off a four-option proof sheet rendered
+   in both colourways at the real 15px Plex (`--line` / `--faint` / `--dim` / `--accent`): `--dim`
+   is 2.40:1 in light so it fixes one colourway and not the other, and `--accent` makes the
+   underline the loudest thing in the paragraph and re-introduces a second hue role that
+   interaction-only colour gave up.
+   ONE token, applied to all SEVEN underline sites at once (`p a`, `.entry .eh`, `.pin .pv a`,
+   `.pin .pfoot a`, `.colo a`, `.links a`, `.foot a`) — that is what "one idiom" is for. Hover is
+   unchanged: the underline still goes to `--ink`, which is now a smaller step and reads as a
+   darkening rather than an appearance.
+   Note for the audit: STYLE.md's contrast finding said "`--line` at 1.34:1 is a decorative
+   underline on text that carries 16.61:1 — 1.4.3 does not apply." That is still true as WCAG,
+   and it was answering a machine's question. The reader's question is whether the link is
+   findable, and the answer there was no. */
+p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
   text-underline-offset:4px;text-decoration-thickness:1px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 p a:hover{color:var(--accent);text-decoration-color:var(--ink)}
@@ -1153,7 +1174,7 @@ figure.demo.hang video{width:100%}
    phrases in a two-line sentence would read as a list of links rather than a sentence with
    links in it. `--dim` from `.pv` is deliberately NOT inherited here: a link is an ink-weight
    object in this system, which is what separates it from the sentence around it. */
-.pin .pv a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);
+.pin .pv a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
   text-decoration-thickness:1px;text-underline-offset:4px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .pin .pv a:hover{color:var(--accent);text-decoration-color:var(--ink)}
@@ -1222,7 +1243,7 @@ figure.demo.hang video{width:100%}
 .pin .pfoot a{display:block;font-size:var(--step);line-height:var(--lead);
   letter-spacing:normal;text-transform:none;
   color:var(--ink);text-decoration:underline;
-  text-decoration-color:var(--line);text-decoration-thickness:1px;text-underline-offset:4px;
+  text-decoration-color:var(--faint);text-decoration-thickness:1px;text-underline-offset:4px;
   width:fit-content;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .pin .pfoot a:hover{color:var(--accent);text-decoration-color:var(--ink)}
@@ -1304,7 +1325,7 @@ figure.demo.hang video{width:100%}
    rest, ink on hover. This is the document's one link idiom — see `.d2 .ln` in the chooser.
    A monospace underline at 4px offset sits clear of the descenders at 15/28. */
 .entry .eh{font-weight:400;margin:0;flex:0 1 auto;min-width:0;
-  text-decoration:underline;text-decoration-color:var(--line);
+  text-decoration:underline;text-decoration-color:var(--faint);
   text-decoration-thickness:1px;text-underline-offset:4px;
   transition:text-decoration-color var(--dur) var(--ease),
              padding-left var(--dur) var(--ease),color var(--dur) var(--ease)}
@@ -1649,7 +1670,7 @@ figure.demo.hang video{width:100%}
 /* The document's one link idiom, the same as `.entry .eh` and `.pin .pfoot a`. It was a
    transparent 1px bottom border that filled in on hover — a second underline mechanism for the
    same job. `text-decoration` is the one the rest of the site uses. */
-.colo a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);
+.colo a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
   text-decoration-thickness:1px;text-underline-offset:4px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .colo a:hover{color:var(--accent);text-decoration-color:var(--ink)}
@@ -2132,7 +2153,7 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
    The 2px ink rule over each one is gone, and so is the accent rule on the first: `.links` is a
    set of external links, and a coloured rule on the lead member is the "structural accent" role
    that colour gave up when its one job became interaction. The composition needs no rules. */
-.links a{text-decoration:underline;text-decoration-color:var(--line);
+.links a{text-decoration:underline;text-decoration-color:var(--faint);
   text-decoration-thickness:1px;text-underline-offset:4px;
   color:var(--ink);font-weight:500;align-self:start;
   background:none;padding:0;margin-left:0;margin-right:0;border-radius:0;
@@ -2302,7 +2323,7 @@ figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
    like every other section break on the site. It was a 2px ink border with 12px uppercase
    tracked links. */
 .foot{margin-top:var(--sect);color:var(--faint)}
-.foot a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);
+.foot a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
   text-decoration-thickness:1px;text-underline-offset:4px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .foot a:hover{color:var(--accent);text-decoration-color:var(--ink)}

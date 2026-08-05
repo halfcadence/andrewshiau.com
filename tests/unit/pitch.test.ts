@@ -90,4 +90,25 @@ describe('detectPitch', () => {
     const f = detectPitch(buf, SR);
     expect(Math.abs(centsError(f, 220))).toBeLessThan(1);
   });
+  // THE BOUND THE CASE STUDY CLAIMS, asserted so the page cannot drift from the code.
+  // /work/metrotuner/ says "within 0.35 cents from C2 to C7, including a plucked
+  // string whose second harmonic is louder than its fundamental". Every chromatic
+  // step of that range, both waveforms, is checked here. Measured worst case: 0.088
+  // cents (sine) and 0.341 (pluck), both at the top of the range.
+  //
+  // C7 and not C8 on purpose, and this is the honest edge: at C8 the period is 11
+  // samples and the pluck's doubled-period lobe scores 1.00 against the true lobe's
+  // 0.88. K_THRESHOLD is 0.9, so the picker takes the octave below and the reading is
+  // 1200 cents flat. Nothing this tuner is for plays a C8. If that range ever needs to
+  // extend, the window has to grow — the bound is a consequence of 2048 samples.
+  it('holds 0.35 cents across C2..C7, sine and pluck (the published bound)', () => {
+    for (let midi = 36; midi <= 96; midi++) {   // C2 = 36, C7 = 96
+      const truth = 440 * Math.pow(2, (midi - 69) / 12);
+      for (const buf of [sine(truth), pluck(truth)]) {
+        const f = detectPitch(buf, SR);
+        expect(f).toBeGreaterThan(0);
+        expect(Math.abs(centsError(f, truth))).toBeLessThan(0.35);
+      }
+    }
+  });
 });
