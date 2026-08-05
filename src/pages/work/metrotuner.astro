@@ -206,10 +206,51 @@ import PanelHead from '../../components/PanelHead.astro';
           <div class="embed-frame">
             <iframe src="/demo/metrotuner-tap/index.html" title="Five working metronomes, each with a different tap-while-running policy" loading="lazy"></iframe>
           </div>
-          <figcaption>Each option clicks and swings for real. A second round refined the
-            fourth: taps take the beat over, sound as they strike, and the metronome
-            returns on the downbeat your hand implied.</figcaption>
+          <figcaption>Each option clicks and swings for real. Two more rounds refined the
+            fourth: taps take the beat over and sound as they land, the arm finishes its
+            sweep and rests against its side while you tap, and the metronome returns on
+            the downbeat your hand implied.</figcaption>
         </figure>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Buttery, measured</h2>
+          <div class="sbody">
+            <p>
+              The shipped takeover still felt rough in two ways: an occasional doubled
+              click under the finger, and a stutter in the strike flashes at the arc's
+              ends. Both were clock bugs. Stopping the scheduler cannot silence clicks
+              it has already scheduled into its 100 ms lookahead — those oscillators are
+              started against the audio clock and play over the tap's own sound — and
+              the flash side was being recomputed from old beat timestamps at the new
+              tempo, so a tempo change could fire the same end twice.
+            </p>
+            <p>
+              "Feels rough" is not a bug report a test can hold, so the suite grew a
+              harness that makes smoothness a number. The page logs every sound that
+              actually reaches the speaker, with cancelled clicks removed, and a
+              per-frame sampler reads the pendulum's rotation and which end is flashing.
+              Four tests assert the feel: no two beat clicks within <b>60 ms</b> of each
+              other through a tap barrage and its comeback, the same under ten taps
+              hammered at 150 ms, flash sides in strict alternation across a mid-run
+              tempo change, and no frame-to-frame jump over <b>40°</b> — with no
+              exemptions clause.
+            </p>
+            <p>
+              Run once, the harness passed. Run six times with retries off, it failed
+              three different ways, and each failure was a real mechanism: a sweep that
+              rescaled mid-flight when the tempo changed under it, a re-anchored beat
+              landing mid-sweep and flipping the arm back toward the end it had just
+              left, and a leftover settle animation from one takeover snapping the next
+              run's arm a full 108°. A sweep now locks its duration at its own strike,
+              starts from the arm's drawn angle, absorbs beats that land mid-flight, and
+              every settle loop carries a generation counter so a stale one exits
+              instead of moving the arm. After the fourth fix the harness passed six
+              consecutive no-retry runs.
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- TYPE B close: the facts colophon, read after the work. -->
