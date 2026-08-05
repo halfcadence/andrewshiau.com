@@ -144,7 +144,10 @@ import Layout from '../layouts/Layout.astro';
              the layout changes when starting/stopping"): swapping between the
              28-char idle text and 9-char 'listening' used to reflow the whole foot
              row. One block line of fixed height; only the words change. -->
-        <div class="mt-hintline"><span class="mt-hint" id="mt-hint">uses the microphone, on this device only</span></div>
+        <!-- The hint line is ERRORS ONLY now (user: the idle privacy line was
+             ugly). The privacy fact lives on the case study; denial guidance
+             still lands here because it must appear where the tap happened. -->
+        <div class="mt-hintline"><span class="mt-hint" id="mt-hint"></span></div>
       </section>
 
       <!-- ── METRONOME, the right case / second page ───────────────────────── -->
@@ -343,6 +346,15 @@ import Layout from '../layouts/Layout.astro';
      selector matches nothing anywhere else. */
   .wrap:has(#mt-app){max-width:none;padding:0}
   main:has(#mt-app) > .grid:first-child{margin-top:0}
+  /* ⌥G on THIS page draws the instrument's grids (main 12 over .mt-pages +
+     12 per case), not the document guide — the guide's bands are the 1120px
+     measure's columns, which this screen explicitly escapes. These selectors
+     live in the is:global chunk because Astro scoping would pin the html/body
+     part to a scope class those elements never carry (found: overlay never
+     painted from the scoped block). */
+  body:has(#mt-app) .guide{display:none !important}
+  :is(html,body).showgrid .mt-half::after{opacity:1}
+  :is(html,body).showgrid .mt-pages::before{opacity:1}
 </style>
 
 <style>
@@ -354,7 +366,15 @@ import Layout from '../layouts/Layout.astro';
      (Q3/01): controls in a line along the case's bottom edge; the figure alone owns
      the middle. */
   .mt-pages{flex:1;min-height:0;display:flex;gap:var(--group);
-    padding:var(--group) var(--group) var(--lead)}
+    padding:var(--group) var(--group) var(--lead);position:relative}
+  /* The desktop MAIN grid (⌥G): 12 columns over the screen the two cases
+     compose on. Drawn to the padding box so the cases' outer edges land on
+     column edges; the per-case overlays draw their own 12 inside. */
+  .mt-pages::before{content:"";position:absolute;inset:var(--group) var(--group) var(--lead);
+    pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
+    background:repeating-linear-gradient(to right,
+      color-mix(in srgb, var(--accent) 14%, transparent) 0 1px, transparent 1px calc(100% / 12))}
+  @media (max-width: 900px){ .mt-pages::before{display:none} }
   /* THE HAIRLINE (chooser metrotuner-reactive, Q1/02): 1px --line — the embed
      frame's own weight, the weakest mark the system has. The case is not
      interactive, so it must be the quietest line on the screen; at 1.5px ink it was
@@ -516,7 +536,7 @@ import Layout from '../layouts/Layout.astro';
       repeating-linear-gradient(to right,
         color-mix(in srgb, var(--accent) 30%, transparent) 0 1px, transparent 1px calc(100% / 12));
     background-clip:content-box}
-  .mt-half.gridded::after{opacity:1}
+
 
   .mt-gauge{width:min(320px,80vw);margin:0}
   .mt-gauge svg{display:block;width:100%;height:auto;color:var(--ink)}
@@ -935,7 +955,7 @@ import Layout from '../layouts/Layout.astro';
     setWord(micBtn, 'stop');
     micBtn.setAttribute('aria-label', 'stop the tuner');
     micBtn.setAttribute('aria-pressed', 'true');
-    hintEl.textContent = 'listening';
+    hintEl.textContent = '';
     tunerTimer = window.setInterval(() => {
       analyser!.getFloatTimeDomainData(buf);
       const f = detectPitch(buf, ac.sampleRate);
@@ -966,7 +986,7 @@ import Layout from '../layouts/Layout.astro';
     setWord(micBtn, 'start');
     micBtn.setAttribute('aria-label', 'start the tuner');
     micBtn.setAttribute('aria-pressed', 'false');
-    hintEl.textContent = 'uses the microphone, on this device only';
+    hintEl.textContent = ''; // errors only — a stop clears any denial guidance
   }
 
   micBtn.addEventListener('click', (e) => {
@@ -1485,16 +1505,6 @@ import Layout from '../layouts/Layout.astro';
   const restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'dashext', (v) => { subdivision = v; applySpec(); });
   paintAccent(); // draws the beats rule too (restoreBeats inside), with the persisted accent state
   restoreSub(subdivision);
-
-  // THE GRID KEY (round16): G toggles the 12-column + baseline overlay on both
-  // cases. Skipped while typing in a field — "g" belongs to the input there.
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'g' && e.key !== 'G') return;
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const t = e.target as HTMLElement;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    document.querySelectorAll('.mt-half').forEach((h) => h.classList.toggle('gridded'));
-  });
 
   // ── the swipe indicator (chooser Q3/02) ──────────────────────────────────
   // The pages are a CSS snap-scroller; JS only keeps the dots honest and gives the
