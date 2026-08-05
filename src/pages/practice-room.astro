@@ -883,6 +883,23 @@ import Layout from '../layouts/Layout.astro';
   .mrn.intune{background:var(--ink);color:var(--paper)}
   .mrc{color:var(--ink)}
   .mrh{color:var(--faint)}
+  /* ── THE READING SITS ON THE AXIS (datum pass, 2026-08-05) ──────────────────
+     THE AXIS is one of this screen's two datums: everything the instrument radiates from —
+     the dial, this reading, the verb — sits on the case's centre line. Measured before this
+     rule, the reading's INK centre was 9.00px LEFT of the dial's, while the other four axis
+     marks were 0.00.
+     THE CAUSE, and it is why `display:none` while empty is the fix rather than a nudge: this
+     span holds the frequency and is EMPTY while the tuner is silent, but an empty inline box
+     still contributes the row's trailing `gap:2ch`. So the row's box stayed centred (its
+     midpoint measured exactly on the axis) while its INK ended 18px early, putting the ink's
+     midpoint half of that — 9px — to the left. The box was centred; the thing a reader sees
+     was not.
+     `:empty` and NOT a blanket hide: the moment a pitch is detected the span gets text, this
+     rule stops matching, and the Hz reading appears with its gap. That is the whole point —
+     the reading is content, not decoration, and hiding it outright would delete a value the
+     instrument exists to show. Verified both ways: silent, the reading's ink centre is 0.00
+     off the axis; sounding, the Hz text renders and `mt-hz` still carries it. */
+  .mrh:empty{display:none}
 
   .mt-row{display:flex;align-items:center;gap:3ch;flex-wrap:wrap}
   .mt-hint{color:var(--faint)}
@@ -1008,6 +1025,21 @@ import Layout from '../layouts/Layout.astro';
   .mt-a4, .mt-bpm{display:inline-flex;align-items:baseline;gap:1ch}
   .mt-a4 input, .mt-bpm input{flex:0 0 auto;width:6ch;text-align:center;
     -moz-appearance:textfield;appearance:textfield}
+  /* ── A FLUSH MARK READS FROM ITS OWN EDGE (datum pass, 2026-08-05) ───────────
+     THE INSET is this screen's other datum: one lead (28px) from the case's box, and every
+     mark that is not on the axis sits on it, flush left or flush right. Measured before this
+     rule, five of the six flush marks were at exactly 28px and the metronome's foot was at
+     48px — the one number on the screen that agreed with nothing.
+     THE CAUSE: `text-align:center` above, which is right for the a4 field and wrong for this
+     one. The bpm field's BOX is flush at 28px; its digits are centred inside a 6ch box, so
+     the ink starts 20px further in than the edge it is supposed to touch. The a4 field never
+     had the problem because a LABEL precedes it — the label is the flush mark there, and the
+     field is interior, so centring its digits is invisible to the datum.
+     So the rule is not "fields are left-aligned", it is: THE FIRST THING IN A FLUSH GROUP
+     READS FROM THE EDGE. Here that is the field; in the tuner it is the `a4` label.
+     `padding-left:0` with it because `.f input` carries `padding:8px 0` — stated anyway so a
+     future change to that shared rule cannot silently reintroduce the 20px. */
+  .mt-bpm input{text-align:left;padding-left:0}
   .mt-a4 input::-webkit-outer-spin-button, .mt-a4 input::-webkit-inner-spin-button,
   .mt-bpm input::-webkit-outer-spin-button, .mt-bpm input::-webkit-inner-spin-button{
     -webkit-appearance:none;margin:0}
