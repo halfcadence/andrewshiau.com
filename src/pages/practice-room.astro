@@ -1683,13 +1683,33 @@ import Layout from '../layouts/Layout.astro';
   // length and the strike flashes stuttered or fired the same side twice.
   // Now: flip once per beat as it PLAYS. Nothing else can move it.
   let sweepDir = 1;                   // +1 = sweeping left→right
-  let sweepSeed = 1;                  // the first sweep's direction on (re)start
+  // THE IN-FLIGHT SWEEP KEEPS THE TEMPO IT STARTED AT (2026-08-05). sweepAt divided
+  // `now - lastBeat.time` by the CURRENT 60/bpm, so changing tempo mid-sweep re-scaled a
+  // beat that had already begun: same anchor, new denominator, so the phase jumped and the
+  // arm teleported. Measured on the deployed page — the arm ran 48.8 → 51.7 → 25.1 → 54,
+  // a one-frame snap backwards 27° and then a return to the same end, i.e. it hit that end
+  // twice. Pre-existing (reproduced 3/3 on the commit before the end ticks were deleted);
+  // the old flash test could not see it because a flash lasts many frames and hides a
+  // one-frame jump. Captured per beat instead, so a tempo change takes effect on the NEXT
+  // sweep — which is also what the scheduler does with the click.
+  let sweepSec = 0.5;                 // seconds per sweep, frozen at the beat that started it
+  // THE ARM'S DRAWN ANGLE IS THE STATE OF RECORD (2026-08-05). Direction used to be a
+  // counter that flipped once per beat, which is only continuous if the arm is exactly at
+  // the end the previous sweep aimed at. It often is not — a tap lands mid-arc, a comeback
+  // seeds from a dir that has already been flipped, a completed sweep starts the next one
+  // from the far end. Every one of those drew a ~108° snap (measured; present on the commit
+  // before this too, at 6/6 under an 8-tap load — the old end-tick flash hid it because a
+  // flash lasts many frames and cannot show a one-frame jump).
+  // A sweep with direction d runs from -d·54 to +d·54, so the sweep that CONTINUES from
+  // the arm's current angle is d = -sign(deg). One expression, used by every path.
+  let lastDeg = PARK_LEFT;            // the angle last painted
+  const dirFrom = (deg: number) => (deg >= 0 ? -1 : 1);
   let raf = 0;
 
   function sweepAt(now: number): { deg: number; dir: number; phase: number } | null {
     if (!lastBeat) return null;
-    const secPerBeat = 60 / bpm;
-    const phase = Math.min(1, Math.max(0, (now - lastBeat.time) / secPerBeat));
+    // sweepSec, not 60/bpm: the sweep under way is measured against the tempo it began at.
+    const phase = Math.min(1, Math.max(0, (now - lastBeat.time) / sweepSec));
     const deg = -sweepDir * Math.cos(phase * Math.PI) * SWEEP_DEG;
     return { deg, dir: sweepDir, phase };
   }
@@ -1700,12 +1720,13 @@ import Layout from '../layouts/Layout.astro';
     while (pending.length && pending[0].time <= now) {
       const t = pending.shift()!;
       if (t.voice !== 'sub') {
-        sweepDir = lastBeat === null ? sweepSeed : -sweepDir;
+        sweepDir = dirFrom(lastDeg);
         lastBeat = t;
+        sweepSec = 60 / bpm;   // this sweep's duration, fixed now
       }
     }
     const s = sweepAt(now);
-    if (s) pend.style.transform = `rotate(${s.deg}deg)`;
+    if (s) { lastDeg = s.deg; pend.style.transform = `rotate(${s.deg}deg)`; }
     raf = requestAnimationFrame(swing);
   }
 
@@ -1718,6 +1739,7 @@ import Layout from '../layouts/Layout.astro';
     const settle = () => {
       const cur = sweepAt(audio().currentTime);
       if (!cur || cur.phase >= 1) { restPendulum((s.dir) * SWEEP_DEG); return; }
+      lastDeg = cur.deg;
       pend.style.transform = `rotate(${cur.deg}deg)`;
       raf = requestAnimationFrame(settle);
     };
@@ -1726,6 +1748,7 @@ import Layout from '../layouts/Layout.astro';
 
   function restPendulum(deg: number) {
     cancelAnimationFrame(raf);
+    lastDeg = deg;
     pend.style.transform = `rotate(${deg}deg)`;
     pend.classList.add('rest');
     pend.classList.remove('live');
@@ -1736,11 +1759,10 @@ import Layout from '../layouts/Layout.astro';
   // a stroke-width change is a state, not a motion.
   const stillPend = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  function startMetro(seedDir = 1) {
+  function startMetro() {
     audio();
     pending.length = 0;
     lastBeat = null;
-    sweepSeed = seedDir;
     scheduler.start();
     setWord(runBtn, 'stop');
     runBtn.setAttribute('aria-label', 'stop the metronome');
@@ -1760,9 +1782,11 @@ import Layout from '../layouts/Layout.astro';
         while (pending.length && pending[0].time <= now) {
           const t = pending.shift()!;
           if (t.voice !== 'sub') {
-            sweepDir = lastBeat === null ? sweepSeed : -sweepDir;
+            sweepDir = dirFrom(lastDeg);
             lastBeat = t;
-            pend.style.transform = `rotate(${sweepDir * SWEEP_DEG}deg)`;
+            sweepSec = 60 / bpm;
+            lastDeg = sweepDir * SWEEP_DEG;
+            pend.style.transform = `rotate(${lastDeg}deg)`;
           }
         }
         raf = requestAnimationFrame(stepOnly);
@@ -1870,8 +1894,23 @@ import Layout from '../layouts/Layout.astro';
     // direction per tap so the arm swings hand-to-hand.
     ping(effVoice({ voice: 'beat' } as Tick), now + 0.005);
     const secPerBeat = 60 / bpm;
-    sweepDir = lastBeat === null ? 1 : -sweepDir;
+    // THE TAP'S DIRECTION COMES FROM WHERE THE ARM IS, not from flipping the last one.
+    // A new sweep is drawn from -dir·54, so a blind flip is only continuous if the arm
+    // happens to be sitting at that end — and it may not be: a tap can land mid-arc.
+    // (It used to be masked. The tap changes tempo first, and while the in-flight sweep
+    // was measured against the CURRENT bpm, a faster tempo clamped its phase to 1, which
+    // parked the arm at an end before the flip. Freezing sweepSec per sweep removed that
+    // accident and turned it into a visible 107° snap, caught by the tear assertion.)
+    // Reading the drawn angle gives continuity AND the hand-to-hand alternation the
+    // takeover wants: at +54 the next sweep runs +54 → −54, so dir = −sign(deg).
+    // Continuity means the new sweep STARTS where the arm now IS. A sweep with direction d
+    // starts at -d·54, so the arm sitting at deg wants d = -sign(deg). Read the drawn angle,
+    // don't flip blindly: a tap can land anywhere in the arc, and at the moment a sweep has
+    // just completed the previous direction is NOT the one to invert — that was the 107°
+    // snap (dir stayed +1 while the arm sat at +54, so the next frame drew -54).
+    sweepDir = dirFrom(lastDeg);
     lastBeat = { n: 0, time: now, voice: 'beat', beatInBar: 0 };
+    sweepSec = secPerBeat;   // the hand's interval owns the sweep it just struck
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(conductSwing);
     // the handover: one tapped interval of silence, then the downbeat. The
@@ -1882,7 +1921,7 @@ import Layout from '../layouts/Layout.astro';
       resumeTimer = null;
       if (!conducting) return;
       conducting = false;
-      startMetro(-sweepDir);     // nextN = 0 → the first click IS the downbeat
+      startMetro();              // nextN = 0 → the first click IS the downbeat
     }, secPerBeat * 1000);
   };
   // the conductor's swing: same cosine as swing(), but no scheduler queue —
@@ -1890,7 +1929,7 @@ import Layout from '../layouts/Layout.astro';
   function conductSwing() {
     if (!conducting) return;
     const s = sweepAt(audio().currentTime);
-    if (s) pend.style.transform = `rotate(${s.deg}deg)`;
+    if (s) { lastDeg = s.deg; pend.style.transform = `rotate(${s.deg}deg)`; }
     raf = requestAnimationFrame(conductSwing);
   }
   // THE SNAP: .hit scales the ring to 1.9x instantly (transition:none), removing it

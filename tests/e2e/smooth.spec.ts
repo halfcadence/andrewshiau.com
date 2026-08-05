@@ -26,20 +26,40 @@ async function soundGaps(page: import('@playwright/test').Page) {
 function startSampler(page: import('@playwright/test').Page) {
   return page.evaluate(() => {
     const w = window as any;
-    w.__smooth = { degs: [] as number[], sides: [] as string[] };
+    w.__smooth = { degs: [] as number[], ends: [] as string[] };
     const pend = document.getElementById('mt-pend')!;
-    const tickL = document.getElementById('mt-tickL')!;
-    const tickR = document.getElementById('mt-tickR')!;
-    let lastSide = '';
+    // THE END TICKS ARE GONE (2026-08-05), so the sampler reads the ARM's own reversals
+    // instead of two flashing marks. This mattered more than swapping one assertion: the
+    // old sampler took `document.getElementById('mt-tickL')!` and threw on the first
+    // frame once the element was deleted, which starved the SWEEP test of samples — it
+    // failed with 1 deg instead of 60 and read like a sweep regression rather than a
+    // harness break. An end is recorded when the arm turns round: the sign of its travel
+    // flips. Same alternation contract, one element.
+    // A REVERSAL MUST HAPPEN AT AN END, and that qualifier is the whole test. Counting
+    // sign changes alone scores a TELEPORT as a reversal: an arm that runs −54→+54 then
+    // snaps back to −54 changes sign at the snap, so a naive detector logs a flawless
+    // R,L,R,L… and the assertion passes on an arm that never swings back. Proven with a
+    // sabotage that pins sweepDir — it produced exactly that teleport and 12 clean
+    // alternating "ends". So a reversal counts only if the arm was NEAR the end it turned
+    // at (|deg| within 6° of the 54° extreme); a mid-arc jump is not an end, it is a tear,
+    // and the sweep-continuity test owns it.
+    const SWEEP = 54, NEAR = 6;
+    let prev: number | null = null;
+    let dir = 0;
     const sample = () => {
       const m = /rotate\((-?[\d.]+)deg\)/.exec(pend.getAttribute('style') || '');
-      if (m) w.__smooth.degs.push(Number(m[1]));
-      const l = Number(tickL.getAttribute('stroke-width')) > 0;
-      const r = Number(tickR.getAttribute('stroke-width')) > 0;
-      const side = l && r ? 'both' : l ? 'L' : r ? 'R' : '';
-      // record flash ONSETS only — a flash lasts many frames
-      if (side && side !== lastSide) w.__smooth.sides.push(side);
-      if (side) lastSide = side; else lastSide = '';
+      if (m) {
+        const deg = Number(m[1]);
+        w.__smooth.degs.push(deg);
+        if (prev !== null && deg !== prev) {
+          const d = Math.sign(deg - prev);
+          if (dir !== 0 && d !== 0 && d !== dir && Math.abs(Math.abs(prev) - SWEEP) <= NEAR) {
+            w.__smooth.ends.push(prev > 0 ? 'R' : 'L');
+          }
+          if (d !== 0) dir = d;
+        }
+        prev = deg;
+      }
       w.__smooth.raf = requestAnimationFrame(sample);
     };
     w.__smooth.raf = requestAnimationFrame(sample);
@@ -50,7 +70,7 @@ async function readSampler(page: import('@playwright/test').Page) {
   return page.evaluate(() => {
     const w = window as any;
     cancelAnimationFrame(w.__smooth.raf);
-    return { degs: w.__smooth.degs as number[], sides: w.__smooth.sides as string[] };
+    return { degs: w.__smooth.degs as number[], ends: w.__smooth.ends as string[] };
   });
 }
 
@@ -91,7 +111,11 @@ test('rapid re-tapping never stacks sounds or timers', async ({ page }) => {
   for (const g of gaps) expect(g).toBeGreaterThan(SOUND_GAP_MS);
 });
 
-test('the strike flashes alternate sides — never the same end twice', async ({ page }) => {
+test('the arm alternates ends — never the same end twice', async ({ page }) => {
+  // The end ticks that used to carry this assertion are deleted; the ARM's reversals carry
+  // it now. The property under test is unchanged and is the one the sweep-parity bug broke:
+  // a pendulum that hits the same end twice in a row is not swinging, and a mid-run tempo
+  // change is exactly where the old clock-derived parity produced it.
   await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('140');
   await page.getByTestId('bpm').blur();
@@ -104,13 +128,12 @@ test('the strike flashes alternate sides — never the same end twice', async ({
   await page.getByTestId('bpm').blur();
   await page.waitForTimeout(2500);
 
-  const { sides } = await readSampler(page);
+  const { ends } = await readSampler(page);
   await page.getByTestId('metro-toggle').click();
 
-  expect(sides.length).toBeGreaterThan(5);
-  for (const s of sides) expect(s).not.toBe('both');
-  for (let i = 1; i < sides.length; i++) {
-    expect(`${sides[i - 1]}→${sides[i]}`).not.toMatch(/^(L→L|R→R)$/);
+  expect(ends.length, 'the arm never reversed — is it swinging?').toBeGreaterThan(5);
+  for (let i = 1; i < ends.length; i++) {
+    expect(`${ends[i - 1]}→${ends[i]}`).not.toMatch(/^(L→L|R→R)$/);
   }
 });
 
