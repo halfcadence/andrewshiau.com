@@ -1093,11 +1093,20 @@ import Layout from '../layouts/Layout.astro';
   const tapBtn = $('mt-tap');
   // The strike flash: .hit fills the ring instantly (transition:none), removing it
   // lets the 300ms fill drain — the reward per strike, and the proof nothing holds.
+  // TAP FIRES ON PRESS (convention audit, 2026-08-04): hardware switches close on
+  // press and touch apps listen on touchstart — measuring on click/up folds each
+  // press's duration (50–150ms, variable) into the intervals being averaged.
   tapBtn.addEventListener('pointerdown', () => {
     tapBtn.classList.add('hit');
     setTimeout(() => tapBtn.classList.remove('hit'), 60);
+    const t = tap.tap(performance.now());
+    if (t !== null) setBpm(t);
   });
-  tapBtn.addEventListener('click', () => {
+  // Keyboard taps arrive as click with detail 0 (no pointer); they are the one
+  // path that must still count — a pointer's own click has detail ≥ 1 and already
+  // counted on the press.
+  tapBtn.addEventListener('click', (e) => {
+    if (e.detail !== 0) return;
     const t = tap.tap(performance.now());
     if (t !== null) setBpm(t);
   });
