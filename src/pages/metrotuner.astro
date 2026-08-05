@@ -730,12 +730,23 @@ import Layout from '../layouts/Layout.astro';
   // A scrub that updates the field but not the value would otherwise pass.
   const hook: { ticks: Tick[]; reading: unknown; toneHz: number | null;
                 sounds: { at: number; voice: string }[];
-                readonly a4: number; readonly bpm: number } = {
+                bleed: GainNode | null; gated: number;
+                readonly a4: number; readonly bpm: number;
+                readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
     ticks: [], reading: null, toneHz: null, sounds: [],
+    // THE ROOM, for the bleed test. Headless Chrome's fake microphone plays a WAV; it
+    // cannot hear the page's speaker, so the acoustic path that causes the bug does
+    // not exist in CI. Set `bleed` to a GainNode and every ping() also routes into it
+    // — the TEST then connects that node to the analyser, at a chosen attenuation.
+    // The topology lives in the test; the page only offers the tap. `gated` counts
+    // frames the tuner disowned, so a green can be told from a gate that never fired.
+    bleed: null, gated: 0,
     get a4() { return a4; },
     get bpm() { return bpm; },
+    get ctx() { return ctx; },
+    get mic() { return analyser; },
   };
   if (E2E) (window as any).__mt = hook;
 
@@ -870,6 +881,46 @@ import Layout from '../layouts/Layout.astro';
 
   const IN_TUNE_CENTS = 3;
 
+  // THE METRONOME IS NOT AN INSTRUMENT (user report 2026-08-05: "when metronome is
+  // playing it triggers tuner"). The click is a pure sine at a known frequency, the
+  // mic hears it out of the speaker, and the tuner reads the metronome. Measured, not
+  // assumed: handed a synthesized click buffer shaped exactly as ping() shapes one,
+  // detectPitch returns that click's own frequency to within 0.1 cents — at full
+  // level and at a tenth of it. It only falls under the clarity gate at 0.05.
+  //
+  // So between notes the readout shows C6, G6 and G5 on the beat; and from 140 bpm up
+  // it never clears, because returning the dash needs six consecutive silent frames
+  // and a beat at 140 leaves five. The instrument reads as broken while it clicks.
+  //
+  // The page knows what its own speaker is doing, so the gate is a CONJUNCTION of the
+  // two facts it holds: the analyser's window overlaps a click THIS PAGE scheduled,
+  // AND the frequency just detected is that click's. Either half alone is wrong — a
+  // time-only gate blinds the tuner at 200 bpm with subdivisions, where the blocked
+  // span (click + room tail + one analyser window) is longer than the gap between
+  // ticks; a frequency-only notch would refuse to tune a real G5 forever.
+  //
+  // The cost, stated because it is real: a note within 30 cents of 784, 1046.5 or
+  // 1568 Hz can't be read while the metronome runs. Detuning the click voices off the
+  // note grid would remove even that, except the grid MOVES with the calibration — a
+  // frequency sitting between notes at a4=440 is a note at a4=453 — so no fixed click
+  // frequency is never a note. The gate is the mechanism; the notch isn't.
+  const BLEED_TAIL = 0.06;    // seconds of room after the click's own envelope ends
+  const BLEED_CENTS = 30;     // measured: a click-locked reading lands within 20 cents
+
+  // What the speaker is sounding, by audio-clock span. ping() fills it; a cancelled
+  // lookahead click must be removed, or it gates a window it never sounded in.
+  const sounding: { from: number; to: number; freq: number }[] = [];
+
+  function ownClick(freq: number, now: number, sampleRate: number): boolean {
+    const winFrom = now - buf.length / sampleRate;
+    while (sounding.length && sounding[0].to < winFrom) sounding.shift();
+    for (const s of sounding) {
+      if (s.from > now || s.to < winFrom) continue;              // no overlap
+      if (Math.abs(1200 * Math.log2(freq / s.freq)) <= BLEED_CENTS) return true;
+    }
+    return false;
+  }
+
   function renderReading(freq: number) {
     const r = freqToReading(freq, a4);
     if (!r) return renderSilence();
@@ -962,6 +1013,12 @@ import Layout from '../layouts/Layout.astro';
     tunerTimer = window.setInterval(() => {
       analyser!.getFloatTimeDomainData(buf);
       const f = detectPitch(buf, ac.sampleRate);
+      // OUR OWN CLICK IS NOT A READING. Drop the frame whole: it must not enter the
+      // median ring (one gated frame would poison the next five) and must not count
+      // as silence either (six of those and a held note flips to the dash). Nothing
+      // renders, so the last real reading stands — which is what a musician wants
+      // from the beat that interrupted their note.
+      if (f > 0 && ownClick(f, ac.currentTime, ac.sampleRate)) { if (E2E) hook.gated++; return; }
       if (f > 0) {
         recent.push(f);
         if (recent.length > 5) recent.shift();
@@ -1222,11 +1279,19 @@ import Layout from '../layouts/Layout.astro';
     g.gain.setValueAtTime(v.gain, at);
     g.gain.exponentialRampToValueAtTime(0.0001, at + v.dur);
     osc.connect(g).connect(ac.destination);
+    if (E2E && hook.bleed) g.connect(hook.bleed); // the test's synthetic room
     osc.start(at);
     osc.stop(at + v.dur + 0.02);
+    lastSoundAt = Math.max(lastSoundAt, at);
+    // Tell the tuner what the speaker is about to do, so it can disown the sound.
+    // Registered here rather than in click() because EVERY ping reaches the room —
+    // the scheduler's clicks, a tap's strike, the accent audition.
+    sounding.push({ from: at, to: at + v.dur + BLEED_TAIL, freq: v.freq });
+    if (sounding.length > 64) sounding.shift();
     if (E2E) { hook.sounds.push({ at, voice }); if (hook.sounds.length > 512) hook.sounds.shift(); }
     return { osc, g };
   }
+  let lastSoundAt = 0;
 
   // Clicks scheduled into the lookahead but not yet PLAYED. scheduler.stop()
   // cannot silence them — the oscillators are already started against the audio
@@ -1244,6 +1309,9 @@ import Layout from '../layouts/Layout.astro';
           h.osc.stop();
         } catch {}
         if (E2E) hook.sounds = hook.sounds.filter((x) => x.at !== h.at);
+        // A click that never sounds must not gate the tuner's window either.
+        const i = sounding.findIndex((s) => s.from === h.at);
+        if (i >= 0) sounding.splice(i, 1);
       }
     }
     liveClicks.length = 0;

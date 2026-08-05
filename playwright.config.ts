@@ -24,6 +24,11 @@ const mkProject = (name: string, wavFile: string | null, testMatch: string | Reg
   },
 });
 
+// The preview port is an env var so two sessions (or a red arm and a green arm) can run
+// the suite at once instead of one silently reusing the other's server — which would make
+// a build under test read as green off a bundle it never produced.
+const PORT = process.env.E2E_PORT || '4321';
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 45_000,
@@ -32,18 +37,22 @@ export default defineConfig({
   // shared devbox add jitter the assertions would have to absorb.
   workers: 1,
   use: {
-    baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:4321',
+    baseURL: process.env.E2E_BASE_URL || `http://127.0.0.1:${PORT}`,
   },
   webServer: process.env.E2E_BASE_URL
     ? undefined // testing against a deployed URL (the live-verify pass)
     : {
-        command: 'npm run preview',
-        url: 'http://127.0.0.1:4321',
+        command: `npm run preview -- --port ${PORT}`,
+        url: `http://127.0.0.1:${PORT}`,
         reuseExistingServer: false,
         timeout: 30_000,
       },
   projects: [
     mkProject('tuner-440', 'sine-440.wav', /tuner-440\.spec\.ts/),
+    // The bleed test needs a PULSED input, not a steady one: a continuous tone masks the
+    // click, so the bug cannot appear (a steady-sine version of this test passed against
+    // the unfixed page). The rests are where the metronome gets read as a note.
+    mkProject('bleed', 'pulse-440.wav', /bleed\.spec\.ts/),
     mkProject('tuner-446', 'sine-446.wav', /tuner-446\.spec\.ts/),
     mkProject('tuner-196', 'sine-196.wav', /tuner-196\.spec\.ts/),
     mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts/),
