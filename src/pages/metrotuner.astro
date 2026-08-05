@@ -729,8 +729,11 @@ import Layout from '../layouts/Layout.astro';
   // assert the calibration actually moved rather than that the input's text changed.
   // A scrub that updates the field but not the value would otherwise pass.
   const hook: { ticks: Tick[]; reading: unknown; toneHz: number | null;
+                sounds: { at: number; voice: string }[];
                 readonly a4: number; readonly bpm: number } = {
-    ticks: [], reading: null, toneHz: null,
+    // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
+    // clicks later cancelled. The smoothness harness asserts spacing on it.
+    ticks: [], reading: null, toneHz: null, sounds: [],
     get a4() { return a4; },
     get bpm() { return bpm; },
   };
@@ -1221,10 +1224,35 @@ import Layout from '../layouts/Layout.astro';
     osc.connect(g).connect(ac.destination);
     osc.start(at);
     osc.stop(at + v.dur + 0.02);
+    if (E2E) { hook.sounds.push({ at, voice }); if (hook.sounds.length > 512) hook.sounds.shift(); }
+    return { osc, g };
+  }
+
+  // Clicks scheduled into the lookahead but not yet PLAYED. scheduler.stop()
+  // cannot silence them — the oscillators are already started against the audio
+  // clock — so anything that stops the metronome mid-lookahead must cancel these
+  // or up to 100ms of orphaned clicks play over whatever comes next. That WAS
+  // the "weird double tap": the tap's own ping plus a doomed lookahead click.
+  const liveClicks: { at: number; osc: OscillatorNode; g: GainNode }[] = [];
+  function cancelFutureClicks() {
+    const now = audio().currentTime;
+    for (const h of liveClicks) {
+      if (h.at > now) {
+        try {
+          h.g.gain.cancelScheduledValues(0);
+          h.g.gain.setValueAtTime(0.0001, now);
+          h.osc.stop();
+        } catch {}
+        if (E2E) hook.sounds = hook.sounds.filter((x) => x.at !== h.at);
+      }
+    }
+    liveClicks.length = 0;
   }
 
   function click(t: Tick) {
-    ping(effVoice(t), t.time);
+    const h = ping(effVoice(t), t.time);
+    liveClicks.push({ at: t.time, osc: h.osc, g: h.g });
+    if (liveClicks.length > 32) liveClicks.splice(0, liveClicks.length - 32);
     pending.push(t);
     if (E2E) { hook.ticks.push(t); if (hook.ticks.length > 512) hook.ticks.shift(); }
   }
@@ -1249,20 +1277,22 @@ import Layout from '../layouts/Layout.astro';
   const SWEEP_DEG = 54;
   const PARK_LEFT = -SWEEP_DEG;
   let lastBeat: Tick | null = null;   // the beat tick most recently PLAYED (clock-passed)
-  let firstBeatIndex = -1;            // parity anchor: the FIRST sweep leaves the left park
+  // THE DIRECTION IS A COUNTER (glitch fix, 2026-08-05). It used to be derived
+  // from Math.round(lastBeat.time / secPerBeat) against a first-beat anchor —
+  // clock arithmetic at the CURRENT tempo, so any mid-run tempo change (typed,
+  // scrubbed, tapped) re-derived the parity of old timestamps under a new beat
+  // length and the strike flashes stuttered or fired the same side twice.
+  // Now: flip once per beat as it PLAYS. Nothing else can move it.
+  let sweepDir = 1;                   // +1 = sweeping left→right
+  let sweepSeed = 1;                  // the first sweep's direction on (re)start
   let raf = 0;
 
   function sweepAt(now: number): { deg: number; dir: number; phase: number } | null {
     if (!lastBeat) return null;
     const secPerBeat = 60 / bpm;
     const phase = Math.min(1, Math.max(0, (now - lastBeat.time) / secPerBeat));
-    // Parity is anchored to the run's first beat, not to absolute time: the bob
-    // rests at the LEFT end, so sweep 0 must go left→right whatever the clock says.
-    const beatIndex = Math.round(lastBeat.time / secPerBeat);
-    if (firstBeatIndex === -1) firstBeatIndex = beatIndex;
-    const dir = (beatIndex - firstBeatIndex) % 2 === 0 ? 1 : -1;
-    const deg = -dir * Math.cos(phase * Math.PI) * SWEEP_DEG;
-    return { deg, dir, phase };
+    const deg = -sweepDir * Math.cos(phase * Math.PI) * SWEEP_DEG;
+    return { deg, dir: sweepDir, phase };
   }
 
   function swing() {
@@ -1270,7 +1300,10 @@ import Layout from '../layouts/Layout.astro';
     const now = audio().currentTime;
     while (pending.length && pending[0].time <= now) {
       const t = pending.shift()!;
-      if (t.voice !== 'sub') lastBeat = t;
+      if (t.voice !== 'sub') {
+        sweepDir = lastBeat === null ? sweepSeed : -sweepDir;
+        lastBeat = t;
+      }
     }
     const s = sweepAt(now);
     if (s) {
@@ -1313,11 +1346,11 @@ import Layout from '../layouts/Layout.astro';
   // a stroke-width change is a state, not a motion.
   const stillPend = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  function startMetro() {
+  function startMetro(seedDir = 1) {
     audio();
     pending.length = 0;
     lastBeat = null;
-    firstBeatIndex = -1;
+    sweepSeed = seedDir;
     scheduler.start();
     setWord(runBtn, 'stop');
     runBtn.setAttribute('aria-label', 'stop the metronome');
@@ -1332,9 +1365,10 @@ import Layout from '../layouts/Layout.astro';
         while (pending.length && pending[0].time <= now) {
           const t = pending.shift()!;
           if (t.voice !== 'sub') {
-            const beatIndex = Math.round(t.time / (60 / bpm));
+            sweepDir = lastBeat === null ? sweepSeed : -sweepDir;
+            lastBeat = t;
             const heavy = effVoice(t) === 'down' ? '5' : '3.5';
-            const left = beatIndex % 2 === 0;
+            const left = sweepDir === 1; // the strike leaves this end
             tickL.setAttribute('stroke-width', left ? heavy : '0');
             tickR.setAttribute('stroke-width', left ? '0' : heavy);
           }
@@ -1352,6 +1386,7 @@ import Layout from '../layouts/Layout.astro';
     conducting = false;
     if (resumeTimer !== null) { clearTimeout(resumeTimer); resumeTimer = null; }
     scheduler.stop();
+    cancelFutureClicks(); // the lookahead tail must not play over the silence
     pending.length = 0;
     cancelAnimationFrame(raf);
     if (stillPend.matches) {
@@ -1432,6 +1467,7 @@ import Layout from '../layouts/Layout.astro';
     if (!conducting) {
       conducting = true;
       scheduler.stop();          // your hand owns the clock now
+      cancelFutureClicks();      // …and the lookahead's clicks die with it
       pending.length = 0;
       cancelAnimationFrame(raf);
     }
@@ -1442,18 +1478,19 @@ import Layout from '../layouts/Layout.astro';
     // direction per tap so the arm swings hand-to-hand.
     ping(effVoice({ voice: 'beat' } as Tick), now + 0.005);
     const secPerBeat = 60 / bpm;
-    const prevIndex = lastBeat ? Math.round(lastBeat.time / secPerBeat) : 0;
+    sweepDir = lastBeat === null ? 1 : -sweepDir;
     lastBeat = { n: 0, time: now, voice: 'beat', beatInBar: 0 };
-    firstBeatIndex = Math.round(now / secPerBeat) - (prevIndex - firstBeatIndex + 1) % 2;
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(conductSwing);
-    // the handover: one tapped interval of silence, then the downbeat.
+    // the handover: one tapped interval of silence, then the downbeat. The
+    // comeback's first sweep CONTINUES the hand's alternation — the bob is at
+    // the end the last tap sent it to, so the seed is the opposite direction.
     if (resumeTimer !== null) clearTimeout(resumeTimer);
     resumeTimer = window.setTimeout(() => {
       resumeTimer = null;
       if (!conducting) return;
       conducting = false;
-      startMetro();              // nextN = 0 → the first click IS the downbeat
+      startMetro(-sweepDir);     // nextN = 0 → the first click IS the downbeat
     }, secPerBeat * 1000);
   };
   // the conductor's swing: same cosine as swing(), but no scheduler queue —
