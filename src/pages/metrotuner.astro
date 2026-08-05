@@ -56,12 +56,23 @@ import Layout from '../layouts/Layout.astro';
                  a drag and opens a keyboard, which is what read as confusing. The
                  handles are `.mt-hd`; they carry invisible padding to a 44px target,
                  the same device `.pgword` uses on the page words. -->
+            <!-- LOWERCASE LABELS (chooser metrotuner-meter-tap, pick Q3/02). Every
+                 other word on the instrument is lowercase — beats, subdivide, tap,
+                 play tone, start the metronome — and these two were the only capitals.
+                 One rule, no exception to remember.
+                 The cost, stated because it is real and was on the sheet: `hz` is not
+                 the SI symbol (a unit named after a person is capitalised) and `a4` is
+                 not how a note is written. Accepted on the grounds that these two are
+                 LABELS ON A CONTROL, not values in a reading — and the values do keep
+                 their case: the tuner's readout still says A4, and so does the
+                 reference-tone button. The aria-labels spell it out properly, so
+                 nothing announced to a screen reader is wrong. -->
             <span class="f mt-a4" id="mt-a4-scrub">
-              <label for="mt-a4" class="mt-lb mt-hd" title="drag ↔ to change A4">A4</label>
+              <label for="mt-a4" class="mt-lb mt-hd" title="drag ↔ to change the calibration">a4</label>
               <input id="mt-a4" data-testid="a4" type="number" inputmode="decimal"
                      min="400" max="480" step="1" value="440" title="type a value"
-                     aria-label="A4 calibration in hertz — type a value, or drag the A4 or Hz label horizontally" />
-              <span class="mt-lb mt-hd" title="drag ↔ to change A4">Hz</span>
+                     aria-label="A4 calibration in hertz — type a value, or drag the a4 or hz label horizontally" />
+              <span class="mt-lb mt-hd" title="drag ↔ to change the calibration">hz</span>
             </span>
           </span>
         </div>
@@ -168,6 +179,18 @@ import Layout from '../layouts/Layout.astro';
                  equal = a flush faint stub and a plain 1. State lives in the marks
                  the meter already draws; the only copy on the row is "beats". -->
             <span class="mt-rm" id="mt-beats-seg" role="group" aria-label="Beats per bar">
+              <!-- THE ACCENT MARK IS THE MUSIC ACCENT (chooser metrotuner-meter-tap,
+                   pick 01/03 + the user's refinement: "what if we used the music
+                   accent sign >"). Better than the acute the sheet offered — `>` over
+                   a note IS the notation for "accent this one", so it needs no
+                   explaining to anyone who reads music. Faint when off, ink when on.
+                   POSITIONED, NOT STACKED: `.mt-rm` is a column flex and baselines on
+                   its FIRST item, so a mark row above the digits would become the
+                   row's baseline and the beats meter would sit lower than
+                   `subdivide`. This rides in the 8px the digits already carry as
+                   top padding, absolutely placed, so it adds no layout at all. -->
+              <svg class="rm-acc" id="mt-acc-mark" width="9" height="8" viewBox="0 0 9 8"
+                   aria-hidden="true"><polyline points="1,1 7,4 1,7" /></svg>
               <span class="rm-digits">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                   <button type="button" class="rbtn" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'} aria-label={`${n} beats per bar`}>{n}</button>
@@ -333,7 +356,28 @@ import Layout from '../layouts/Layout.astro';
   /* THE RULED MEASURE. The digits are the scale and the buttons; the hairline
      under them is the value. Digits inside the value read ink (beats) / the value
      digit alone reads ink (subdivide); the rest faint. */
-  .mt-rm{display:inline-flex;flex-direction:column;align-items:flex-start}
+  .mt-rm{display:inline-flex;flex-direction:column;align-items:flex-start;position:relative}
+  /* THE MUSIC ACCENT `>` over the 1. `position:absolute` is doing real work here, not
+     avoiding a layout problem: `.mt-rm` baselines on its first flex item (see ONE
+     BASELINE PER ROW above), so an in-flow mark would take over the row's baseline and
+     drop the beats meter below `subdivide`. Out of flow, the digits stay first and the
+     mark rides in the 8px of top padding `.rbtn` already has.
+     GEOMETRY, MEASURED rather than eyeballed — both numbers were wrong on the first
+     pass and both were found by reading rects off the built page:
+     · `left:0` and not 5px. The digit 1's INK spans x 840–849 in a 20px cell that
+       starts at 840, so its optical centre is 844.5. The 9px svg at left:5 centred on
+       849.5 — 5px right of the digit, which read as "over the gap between 1 and 2".
+       At left:0 the svg's own 4px midpoint lands on 844, within half a pixel.
+     · `top:0`, not -1px. At -1 the mark's box started 1px ABOVE `.mt-rm`'s top edge
+       and the glyph's apex was clipped by the row above. The 8px mark fits inside the
+       8px of top padding `.rbtn` already carries, so 0 both clears the clip and keeps
+       the mark out of the digits.
+     `overflow:visible` on the segment is what makes this safe; if that ever changes,
+     the mark needs its own room instead. */
+  .rm-acc{position:absolute;left:0;top:0;fill:none;
+    stroke:var(--faint);stroke-width:1.4;stroke-linecap:square;
+    transition:stroke var(--dur-fast) var(--ease)}
+  .rm-acc.on{stroke:var(--ink);stroke-width:1.8}
   .rm-digits{display:inline-flex}
   .rbtn{font:inherit;background:transparent;border:0;padding:8px 0 0;margin:0;
     border-radius:0;cursor:pointer;color:var(--faint);width:20px;min-height:36px;
@@ -452,11 +496,28 @@ import Layout from '../layouts/Layout.astro';
   .latch[aria-pressed="true"] .tk .disc{fill:var(--accent);transform:translateX(18px)}
   .latch[aria-pressed="true"] .w{color:var(--ink)}
 
-  /* The momentary's ring: dim outline at rest; each strike fills it accent and
-     the fill drains over ~300ms — the transition runs on RELEASE of .hit. */
+  /* ── THE MOMENTARY SNAPS (chooser metrotuner-meter-tap, pick 02 "overshoot and
+     settle"). The fill-and-drain is deleted: 300ms of accent fading out of a 14px
+     circle is a small amount of ink moving slowly, which is what read as flat
+     ("the tap feels pretty unsatisfying"). What replaces it is the mechanic a real
+     key has — the response OVERSHOOTS the input and then resolves. The ring scales
+     to 1.9x in 90ms on press and settles back on the site's own easing.
+     NO COLOUR CHANGE, deliberately: the accent hue is the instrument's "active /
+     latched" signal (the toggle's disc, the digits mid-scrub), and tap latches
+     nothing. Motion says "struck"; hue would have said "on".
+     `transform-box:fill-box` + `transform-origin:center` so the scale is about the
+     ring's own centre — the SVG default origin is the viewport's top-left corner,
+     which would fling the circle down-right instead of growing it in place. */
+  .mom .tk{transform-box:fill-box;transform-origin:center;
+    transition:transform var(--dur) var(--ease)}
   .mom .tk circle{fill:transparent;stroke:var(--dim);stroke-width:1.4;
-    transition:fill 300ms var(--ease),stroke 300ms var(--ease)}
-  .mom.hit .tk circle{fill:var(--accent);stroke:var(--accent);transition:none}
+    transition:stroke var(--dur-fast) var(--ease)}
+  /* The press: bigger, and the outline goes to ink so the bigger ring is also a
+     firmer one. `transition:none` on the way IN — the snap is instant and the
+     settle is what animates, which is the asymmetry that makes it feel mechanical
+     rather than springy. */
+  .mom.hit .tk{transform:scale(1.9);transition:none}
+  .mom.hit .tk circle{stroke:var(--ink);transition:none}
 
   /* BARE NUMERAL (round15 Q2/06): the rails are gone — the number is the whole
      control. While a scrub is live the digits read accent; that flash, the
@@ -476,7 +537,7 @@ import Layout from '../layouts/Layout.astro';
      44px this page holds everywhere else (`.f input{min-height:44px}` exists for
      exactly this reason). The sheet's own option 03 padded to 31×56: tall enough,
      still 13px short across. `bpm` is the WIDEST of the three handles at 3ch;
-     `A4` and `Hz` are 2ch/18px, so the horizontal pad has to be set for the
+     `a4` and `hz` are 2ch/18px, so the horizontal pad has to be set for the
      narrowest. 14px each side takes 18px → 46px and 27px → 55px, both clear.
      Negative margins keep the visual line identical — the target grows, the
      composition does not move. */
@@ -529,6 +590,14 @@ import Layout from '../layouts/Layout.astro';
   @media (prefers-reduced-motion: reduce){
     #mt-needle{transition:none}
     .mrn{transition:none}
+    /* THE SNAP BECOMES A FLASH, not nothing. `transition:none` alone would leave the
+       ring jumping to 1.9x and back with no tween, which is a harsher motion than the
+       eased one — the opposite of the request. So the scale is dropped entirely and
+       the stroke carries the strike instead: no movement, still a per-strike response.
+       A reduced-motion user who taps a tempo still needs to know the tap registered. */
+    .mom .tk{transition:none}
+    .mom.hit .tk{transform:none}
+    .mom.hit .tk circle{stroke:var(--accent);stroke-width:2.4}
   }
 </style>
 
@@ -1191,14 +1260,26 @@ import Layout from '../layouts/Layout.astro';
 
   const tap = createTapTempo();
   const tapBtn = $('mt-tap');
-  // The strike flash: .hit fills the ring instantly (transition:none), removing it
-  // lets the 300ms fill drain — the reward per strike, and the proof nothing holds.
+  // THE SNAP: .hit scales the ring to 1.9x instantly (transition:none), removing it
+  // lets it settle back on --dur/--ease. The response overshoots the input and then
+  // resolves, which is the mechanic a real key has (chooser metrotuner-meter-tap,
+  // pick 02). 90ms held, not the old 60: at 60 the settle began before the eye had
+  // registered the peak, so the overshoot was there and unreadable.
   // TAP FIRES ON PRESS (convention audit, 2026-08-04): hardware switches close on
   // press and touch apps listen on touchstart — measuring on click/up folds each
   // press's duration (50–150ms, variable) into the intervals being averaged.
-  tapBtn.addEventListener('pointerdown', () => {
+  //
+  // THE CAP IS THE BEAT, not a constant. At 320 bpm a strike lands every 188ms, so a
+  // 90ms hold plus a 220ms settle would still be settling when the next press
+  // arrives — the ring would never return and the overshoot would stop reading as
+  // one. Held for the shorter of 90ms and a third of the current interval.
+  const strike = () => {
+    const held = Math.min(90, Math.max(24, (60000 / bpm) / 3));
     tapBtn.classList.add('hit');
-    setTimeout(() => tapBtn.classList.remove('hit'), 60);
+    setTimeout(() => tapBtn.classList.remove('hit'), held);
+  };
+  tapBtn.addEventListener('pointerdown', () => {
+    strike();
     const t = tap.tap(performance.now());
     if (t !== null) setBpm(t);
   });
@@ -1207,6 +1288,7 @@ import Layout from '../layouts/Layout.astro';
   // counted on the press.
   tapBtn.addEventListener('click', (e) => {
     if (e.detail !== 0) return;
+    strike();                            // a keyboard tap gets the snap too
     const t = tap.tap(performance.now());
     if (t !== null) setBpm(t);
   });
@@ -1227,14 +1309,21 @@ import Layout from '../layouts/Layout.astro';
         const n = Number(x.getAttribute(attr));
         x.setAttribute('aria-pressed', n === v ? 'true' : 'false');
         x.classList.toggle('on', n <= v);
-        if (kind === 'grow') x.classList.toggle('acc1', n === 1 && accentOn);
       });
+      // The `>` mark states the accent. The digit-1 weight bump is gone with the tick:
+      // three signals for one boolean was two too many, and the two subtle ones were
+      // carrying it while the obvious one did not exist.
+      if (kind === 'grow') {
+        document.getElementById('mt-acc-mark')?.classList.toggle('on', accentOn);
+      }
       const xe = (v - 1) * PITCH + 10; // the rule's terminus, under digit N
       let h = '';
       if (kind === 'grow') {
-        h = accentOn
-          ? `<line data-acc-tick x1="1.5" y1="0" x2="1.5" y2="9" stroke="var(--ink)" stroke-width="2.5"/>`
-          : `<line data-acc-tick x1="1.5" y1="3" x2="1.5" y2="6" stroke="var(--faint)" stroke-width="2.5"/>`;
+        // THE TICK NO LONGER CARRIES THE ACCENT STATE (chooser metrotuner-meter-tap,
+        // pick 03 + the `>` refinement). It was a 3px height change below the digits,
+        // which is what read as "not obvious"; the `>` above the 1 says it now. The
+        // tick stays as the rule's terminus — the bar's left edge — at one weight.
+        h = `<line x1="1.5" y1="3" x2="1.5" y2="6" stroke="var(--faint)" stroke-width="2.5"/>`;
         h += `<line x1="1" y1="4.5" x2="${xe}" y2="4.5" stroke="var(--ink)" stroke-width="1.5"/>`;
       } else {
         if (v === 1) {
