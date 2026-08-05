@@ -213,7 +213,7 @@ export const experiments: Entry[] = [
   {
     n: '05',
     // 'Practice room' (name chooser 2026-08-04, Q1/05): names the use, not the
-    // tools. The URL keeps /metrotuner/ — descriptive where an address should be.
+    // tools. The URL is /practice-room/ now too (renamed with the title, 2026-08-05).
     title: 'Practice room',
     blurb:
       'A chromatic tuner and a metronome on one page. Pitch detection runs in the ' +
@@ -224,8 +224,8 @@ export const experiments: Entry[] = [
     // The WRITEUP, not the instrument (user call, 2026-08-03): the index is a list of
     // case studies, so its row opens the story like every other row; the instrument
     // is one click further ("open the instrument"), and the instrument's own mark
-    // links home. /metrotuner/ itself stays live and is where the sheet's Q1/02 put it.
-    href: '/work/metrotuner/',
+    // links home. /practice-room/ is the instrument and is where the sheet's Q1/02 put it.
+    href: '/work/practice-room/',
     // `both`: the pitch detector and the lookahead scheduler are engineering with
     // asserted accuracy bounds; the meter, the one-hue in-tune state and the controls
     // are design decisions made on a proof sheet.

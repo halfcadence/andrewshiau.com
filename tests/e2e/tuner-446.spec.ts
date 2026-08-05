@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
 // "|cents| ≈ 23" assertion and tunes every string the wrong way.
 
 test('446 Hz mic reads A4 SHARP (+); calibrated to 446 it reads in tune', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('mic-toggle').click();
 
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });

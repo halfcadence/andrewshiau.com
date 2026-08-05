@@ -37,7 +37,7 @@ const CLICK_NOTES = ['G5', 'C6', 'G6'];
 const PLAYED = 'A4';
 
 async function startTuner(page: import('@playwright/test').Page) {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('mic-toggle').click();
   // wait for a lock on the fixture's first phrase before opening the room
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });

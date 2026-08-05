@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import PanelHead from '../../components/PanelHead.astro';
 
 // THE CASE STUDY, moved in with the other eight (chooser: metrotuner-two-pages,
-// Q1/02 "instrument first"). /metrotuner/ is the instrument now; this page is the
+// Q1/02 "instrument first"). /practice-room/ is the instrument now; this page is the
 // writeup, and the one place the two meet is the link under the dek and the "about"
 // word at the instrument's foot.
 //
@@ -18,7 +18,7 @@ import PanelHead from '../../components/PanelHead.astro';
   description="How the browser tuner and metronome were built: McLeod pitch detection, a lookahead scheduler, and a test suite with a fake microphone."
 >
   <div class="grid">
-    <PanelHead href="/work/metrotuner/" title="Practice room">
+    <PanelHead href="/work/practice-room/" title="Practice room">
       <div class="frow">
         <div class="fm">Pitch</div>
         <div class="ftx">McLeod pitch method, asserted to half a cent from C2 to C7</div>
@@ -39,7 +39,7 @@ import PanelHead from '../../components/PanelHead.astro';
 
       <div class="grid">
         <div class="c1-12">
-          <p><a href="/metrotuner/">Open the instrument</a>. The tuner reads the offset
+          <p><a href="/practice-room/">Open the instrument</a>. The tuner reads the offset
           in cents, the metronome takes a typed tempo or a tapped one, and on a phone
           you swipe between them.</p>
         </div>
@@ -201,10 +201,10 @@ import PanelHead from '../../components/PanelHead.astro';
       <div class="grid">
         <figure class="embed c1-12" style="margin-top:var(--unit)">
           <div class="esrc">
-            <a href="/demo/metrotuner-tap/index.html" target="_blank" rel="noopener">open the proof sheet full-screen</a>
+            <a href="/demo/practice-room-tap/index.html" target="_blank" rel="noopener">open the proof sheet full-screen</a>
           </div>
           <div class="embed-frame">
-            <iframe src="/demo/metrotuner-tap/index.html" title="Five working metronomes, each with a different tap-while-running policy" loading="lazy"></iframe>
+            <iframe src="/demo/practice-room-tap/index.html" title="Five working metronomes, each with a different tap-while-running policy" loading="lazy"></iframe>
           </div>
           <figcaption>Each option clicks and swings for real. Two more rounds refined the
             fourth: taps take the beat over and sound as they land, the arm finishes its

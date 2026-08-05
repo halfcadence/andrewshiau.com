@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 // A-input tests can never see.
 
 test('196 Hz mic reads G3, near 0 cents', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('mic-toggle').click();
 
   await expect(page.getByTestId('note')).toHaveText('G3', { timeout: 10_000 });

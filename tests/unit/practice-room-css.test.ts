@@ -16,7 +16,7 @@ import { join } from 'node:path';
 const DIST = join(process.cwd(), 'dist');
 
 // THIS PAGE'S OWN CSS, and not the site's. The page loads two sheets — `Layout.*.css`,
-// which is `global.css` plus Tailwind's preflight, and `metrotuner.*.css`, which is this
+// which is `global.css` plus Tailwind's preflight, and `practice-room.*.css`, which is this
 // page's scoped block. Only the second is under test: the first legitimately carries
 // Tailwind's `/*! … MIT License … */` banner, so a blanket "no comment tokens survive"
 // check against both is a false positive (it fired on the first run — the assertion was
@@ -24,13 +24,13 @@ const DIST = join(process.cwd(), 'dist');
 // Astro's scope hash is the marker that tells them apart, and it is also the thing that
 // makes the check robust to Astro changing where it puts the CSS: whichever file or
 // <style> carries `data-astro-cid-`, that is the page's block.
-function metrotunerCss(): string {
-  const page = join(DIST, 'metrotuner', 'index.html');
+function practiceRoomCss(): string {
+  const page = join(DIST, 'practice-room', 'index.html');
   let html: string;
   try {
     html = readFileSync(page, 'utf8');
   } catch {
-    throw new Error(`dist/metrotuner/index.html is missing — run \`npm run build\` first`);
+    throw new Error(`dist/practice-room/index.html is missing — run \`npm run build\` first`);
   }
   const parts: string[] = [];
   // inlined (Astro does this when the chunk is small — which is what happened WHILE the
@@ -44,13 +44,13 @@ function metrotunerCss(): string {
     if (text.includes('data-astro-cid-')) parts.push(text);
   }
   if (!parts.length) {
-    throw new Error("no scoped stylesheet found for /metrotuner/ — the page's own CSS is missing entirely");
+    throw new Error("no scoped stylesheet found for /practice-room/ — the page's own CSS is missing entirely");
   }
   return parts.join('\n');
 }
 
-describe('/metrotuner/ ships the stylesheet it was written with', () => {
-  const css = metrotunerCss();
+describe('/practice-room/ ships the stylesheet it was written with', () => {
+  const css = practiceRoomCss();
 
   // ── the parse-truncation canary ────────────────────────────────────────────
   // Every one of these is a declaration from a DIFFERENT part of the page's <style>

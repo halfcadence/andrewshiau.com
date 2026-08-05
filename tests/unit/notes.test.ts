@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   freqToMidi, midiToFreq, freqToReading, centsOff, A4_DEFAULT,
-} from '../../src/lib/metrotuner/notes';
+} from '../../src/lib/practice-room/notes';
 
 describe('freqToMidi / midiToFreq', () => {
   it('A4 = 440 Hz = MIDI 69 at default calibration', () => {

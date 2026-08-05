@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 // the oscillator's set frequency.
 
 test('tone plays the reference note at the set calibration', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('tone-toggle').click();
 
   let hz = await page.evaluate(() => (window as any).__mt.toneHz);

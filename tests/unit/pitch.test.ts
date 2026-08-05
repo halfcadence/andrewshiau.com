@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { detectPitch } from '../../src/lib/metrotuner/pitch';
-import { freqToReading } from '../../src/lib/metrotuner/notes';
+import { detectPitch } from '../../src/lib/practice-room/pitch';
+import { freqToReading } from '../../src/lib/practice-room/notes';
 
 const SR = 48000;
 const N = 2048;
@@ -91,7 +91,7 @@ describe('detectPitch', () => {
     expect(Math.abs(centsError(f, 220))).toBeLessThan(1);
   });
   // THE BOUND THE CASE STUDY CLAIMS, asserted so the page cannot drift from the code.
-  // /work/metrotuner/ says "within 0.35 cents from C2 to C7, including a plucked
+  // /work/practice-room/ says "within 0.35 cents from C2 to C7, including a plucked
   // string whose second harmonic is louder than its fundamental". Every chromatic
   // step of that range, both waveforms, is checked here. Measured worst case: 0.088
   // cents (sine) and 0.341 (pluck), both at the top of the range.

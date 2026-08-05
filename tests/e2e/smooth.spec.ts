@@ -55,7 +55,7 @@ async function readSampler(page: import('@playwright/test').Page) {
 }
 
 test('no double sounds: plain running, tap barrage, and the comeback', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();
@@ -76,7 +76,7 @@ test('no double sounds: plain running, tap barrage, and the comeback', async ({ 
 });
 
 test('rapid re-tapping never stacks sounds or timers', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('metro-toggle').click();
   await page.waitForTimeout(900);
   // hammer: 10 taps at 150ms (a nervous hand, faster than any real tempo set)
@@ -92,7 +92,7 @@ test('rapid re-tapping never stacks sounds or timers', async ({ page }) => {
 });
 
 test('the strike flashes alternate sides — never the same end twice', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('140');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();
@@ -115,7 +115,7 @@ test('the strike flashes alternate sides — never the same end twice', async ({
 });
 
 test('the sweep is continuous — no between-frame tears', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();

@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 test.use({ viewport: { width: 390, height: 720 } });
 
 test('phone: the page words navigate; the current page reads ink', async ({ page }) => {
-  await page.goto('/metrotuner/');
+  await page.goto('/practice-room/');
 
   // Page 1 is the tuner; both words visible, "tuner" is current.
   await expect(page.getByTestId('dot-tuner')).toBeVisible();
@@ -32,7 +32,7 @@ test('phone: the page words navigate; the current page reads ink', async ({ page
 });
 
 test('phone: the metronome still runs while the tuner page is shown', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('dot-metro').click();
   await page.waitForTimeout(700);
   await page.getByTestId('metro-toggle').click();
@@ -48,7 +48,7 @@ test('phone: the metronome still runs while the tuner page is shown', async ({ p
 
 test('desktop control: both halves on screen, no dots', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/metrotuner/');
+  await page.goto('/practice-room/');
   const tuner = await page.locator('.mt-half[aria-label="Tuner"]').boundingBox();
   const metro = await page.locator('.mt-half[aria-label="Metronome"]').boundingBox();
   // Equal halves, side by side, both fully in the viewport.

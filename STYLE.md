@@ -64,7 +64,7 @@ one is banned:
 The positive rule, from Orwell: **prefer the concrete**. "Feedback was positive" became
 "What they got stuck on became the roadmap" — same length, and it says something.
 
-### Two more, found on /work/metrotuner/ (Aug 2026)
+### Two more, found on /work/practice-room/ (Aug 2026)
 
 The annotation was "this reads kinda ai slop do a few passes on the whole copy to fix". The four
 habits above were already clean on that page. What was actually wrong was different, and worse:
@@ -595,7 +595,7 @@ Tokens in `:root`:
 type size and one hue: a link is **ink type with a `--faint` underline at 4px offset**, and on
 hover the **underline goes to `--ink` and the text goes to `--accent`**.
 
-**The underline token is `--faint`, not `--line`** (annotation, /work/metrotuner/ in dark: "this
+**The underline token is `--faint`, not `--line`** (annotation, /work/practice-room/ in dark: "this
 link isnt obv — shouldnt it have perma underline"). It had a permanent underline; the underline
 was invisible. Measured on the built page: `--line` computed 1.30:1 against dark paper, 1.34:1
 in light. `--line` is the **hairline** token — it draws structure between blocks, where nearly

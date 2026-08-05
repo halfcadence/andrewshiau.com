@@ -12,7 +12,7 @@ test.use({ permissions: ['microphone'] });
 // calibration is wired into the reading, not just stored.
 
 test('440 Hz mic reads A4 at 0 cents; recalibrating to 446 moves it flat', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('mic-toggle').click();
 
   // Wait for a stable reading.
@@ -44,7 +44,7 @@ test('440 Hz mic reads A4 at 0 cents; recalibrating to 446 moves it flat', async
 });
 
 test('open started: a tuner left running resumes on reload; one stopped stays stopped', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('mic-toggle').click();
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });
 
@@ -63,7 +63,7 @@ test('open started: a tuner left running resumes on reload; one stopped stays st
 });
 
 test('stopping the tuner releases the microphone and clears the reading', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const mic = page.getByTestId('mic-toggle');
   await mic.click();
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });

@@ -9,7 +9,7 @@ import { join } from 'node:path';
 //     sine 22 cents sharp
 //
 // ships as `65 Hz</b>sine` and RENDERS as "65 Hzsine". Two of those shipped on
-// /work/metrotuner/ ("65 Hzsine" and "within0.35 cents") and were found by looking at a
+// /work/practice-room/ ("65 Hzsine" and "within0.35 cents") and were found by looking at a
 // screenshot, not by the build — the build is green either way and the HTML is
 // well-formed. Prettier-style source wrapping is the trigger, so any future edit that
 // rewraps a paragraph can reintroduce it.

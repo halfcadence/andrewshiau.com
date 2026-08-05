@@ -8,7 +8,7 @@ test('page boots clean: no console errors, controls present', async ({ page }) =
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 
-  await page.goto('/metrotuner/');
+  await page.goto('/practice-room/');
   await expect(page.getByTestId('mic-toggle')).toBeVisible();
   await expect(page.getByTestId('metro-toggle')).toBeVisible();
   await expect(page.getByTestId('tone-toggle')).toBeVisible();
@@ -17,7 +17,7 @@ test('page boots clean: no console errors, controls present', async ({ page }) =
 });
 
 test('A4 calibration clamps to 400–480', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const a4 = page.getByTestId('a4');
   await a4.fill('999');
   await a4.blur();
@@ -28,7 +28,7 @@ test('A4 calibration clamps to 400–480', async ({ page }) => {
 });
 
 test('bpm clamps to 20–320', async ({ page }) => {
-  await page.goto('/metrotuner/');
+  await page.goto('/practice-room/');
   const bpm = page.getByTestId('bpm');
   await bpm.fill('999');
   await bpm.blur();
@@ -39,7 +39,7 @@ test('bpm clamps to 20–320', async ({ page }) => {
 });
 
 test('the controls are keyboard-reachable in order', async ({ page }) => {
-  await page.goto('/metrotuner/');
+  await page.goto('/practice-room/');
   // Tab from the top of the document; the mic toggle is the first control after
   // the panel's link home.
   const mic = page.getByTestId('mic-toggle');

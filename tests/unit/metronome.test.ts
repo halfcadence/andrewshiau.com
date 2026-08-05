@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { tickAt, Scheduler, clampBpm, type Tick } from '../../src/lib/metrotuner/metronome';
+import { tickAt, Scheduler, clampBpm, type Tick } from '../../src/lib/practice-room/metronome';
 
 describe('tickAt', () => {
   it('spaces quarter notes at 60/bpm', () => {

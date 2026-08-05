@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-// E2E for /metrotuner/. The server is `astro preview` on LOOPBACK ONLY — never
+// E2E for /practice-room/. The server is `astro preview` on LOOPBACK ONLY — never
 // 0.0.0.0 on this machine (see CLAUDE.md rule 1) — started by Playwright and torn
 // down with the run.
 //

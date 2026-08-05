@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
 // must now do nothing.
 
 test('the reference note scrubs on horizontal drag', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const note = page.getByTestId('refnote');
   await expect(note).toHaveText('A4');
 
@@ -41,7 +41,7 @@ const dragBy = async (page: any, locator: any, dx: number) => {
 };
 
 test('the bpm scrubs by dragging the UNIT, and still types', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const handle = page.getByTestId('bpm-handle');
   const input = page.getByTestId('bpm');
   await expect(input).toHaveValue('96');
@@ -57,7 +57,7 @@ test('the bpm scrubs by dragging the UNIT, and still types', async ({ page }) =>
 });
 
 test('dragging the NUMERAL does nothing — the field only types', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const input = page.getByTestId('bpm');
   await expect(input).toHaveValue('96');
 
@@ -68,7 +68,7 @@ test('dragging the NUMERAL does nothing — the field only types', async ({ page
 });
 
 test('the A4 label and the Hz label both scrub the calibration', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const input = page.getByTestId('a4');
   const host = page.locator('#mt-a4-scrub');
   const labels = host.locator('.mt-hd');
@@ -91,7 +91,7 @@ test('the A4 label and the Hz label both scrub the calibration', async ({ page }
 });
 
 test('the handles are keyboard operable and clamp at their range', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const handle = page.getByTestId('bpm-handle');
   const input = page.getByTestId('bpm');
 
@@ -110,7 +110,7 @@ test('the handles are keyboard operable and clamp at their range', async ({ page
 });
 
 test('every scrub handle clears the 44px tap target', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   // The measured cost of pick 03: the bare unit is 27x28px, over WCAG 2.5.8's 24px
   // floor but under the 44px this page holds everywhere else. The padding is the fix,
   // and an invisible target is exactly the kind that regresses silently — so it is

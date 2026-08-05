@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 
 // THE INSTRUMENT SCREEN. This URL is the thing itself now, and the writeup lives at
-// /work/metrotuner/ (chooser: metrotuner-two-pages, Q1/02 "instrument first" — the
+// /work/practice-room/ (chooser: metrotuner-two-pages, Q1/02 "instrument first" — the
 // index row opens the instrument; the case study moved in with the other eight,
 // reachable from the one word at the foot of this screen).
 //
@@ -20,7 +20,7 @@ import Layout from '../layouts/Layout.astro';
 // tokens, type, the link idiom, the control styles — is the site's, unchanged.
 //
 // The engine is unchanged from the one-page version: pure modules in
-// src/lib/metrotuner/ (unit-tested to half a cent), this file is the glue. The ?e2e
+// src/lib/practice-room/ (unit-tested to half a cent), this file is the glue. The ?e2e
 // hook and every data-testid survive, so the fake-mic suite runs against this screen
 // exactly as it ran against the document page.
 ---
@@ -1016,10 +1016,10 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <script>
-  import { detectPitch } from '../lib/metrotuner/pitch';
-  import { freqToReading, midiToFreq, NOTE_NAMES, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/metrotuner/notes';
-  import { Scheduler, clampBpm, type Tick } from '../lib/metrotuner/metronome';
-  import { createTapTempo } from '../lib/metrotuner/tap';
+  import { detectPitch } from '../lib/practice-room/pitch';
+  import { freqToReading, midiToFreq, NOTE_NAMES, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/practice-room/notes';
+  import { Scheduler, clampBpm, type Tick } from '../lib/practice-room/metronome';
+  import { createTapTempo } from '../lib/practice-room/tap';
 
   // ONE AudioContext for tuner, tone and metronome, created on the first gesture —
   // browsers refuse both getUserMedia and audio playback without one.

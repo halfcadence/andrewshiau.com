@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 // scheduling jitter; the tick log can.
 
 test('ticks land on the audio-clock grid at the set tempo', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();
@@ -29,7 +29,7 @@ test('ticks land on the audio-clock grid at the set tempo', async ({ page }) => 
 });
 
 test('4/4 with eighths: voices cycle down/sub/beat/sub…', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('160');
   await page.getByTestId('bpm').blur();
   await page.locator('#mt-sub-seg button[data-sub="2"]').click();
@@ -50,7 +50,7 @@ test('4/4 with eighths: voices cycle down/sub/beat/sub…', async ({ page }) => 
 });
 
 test('tap tempo sets the bpm field', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const tap = page.getByTestId('tap');
   // Four taps ~500 ms apart → ~120 bpm. Wall-clock taps carry jitter, so the
   // assertion is a band, not a value.
@@ -64,7 +64,7 @@ test('tap tempo sets the bpm field', async ({ page }) => {
 });
 
 test('the pendulum swings while running and parks when stopped', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('metro-toggle').click();
   await page.waitForTimeout(900);
   // Running: the rotation changes between frames (the swing is rAF-driven).
@@ -84,13 +84,13 @@ test('the pendulum swings while running and parks when stopped', async ({ page }
 });
 
 test('idle, the pendulum rests at the left end — not centre', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   const style = await page.locator('#mt-pend').getAttribute('style');
   expect(style).toContain('rotate(-54deg)');
 });
 
 test('settings persist across a reload', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('144');
   await page.getByTestId('bpm').blur();
   await page.locator('#mt-beats-seg button[data-beats="5"]').click();
@@ -100,7 +100,7 @@ test('settings persist across a reload', async ({ page }) => {
 });
 
 test('tapping while running takes over, then returns on the downbeat', async ({ page }) => {
-  await page.goto('/metrotuner/?e2e');
+  await page.goto('/practice-room/?e2e');
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();

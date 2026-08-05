@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createTapTempo } from '../../src/lib/metrotuner/tap';
+import { createTapTempo } from '../../src/lib/practice-room/tap';
 
 describe('tap tempo', () => {
   it('needs two taps before it says anything', () => {
