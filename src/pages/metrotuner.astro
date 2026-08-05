@@ -714,25 +714,23 @@ import Layout from '../layouts/Layout.astro';
        its frame INSET via ::before (the snap pages themselves must stay
        full-width and border-free or the scroller's geometry shifts). The plate
        comes back with it, centred on the frame's top edge. */
-    /* THE FRAME'S INSET IS ONE LEAD ON EVERY SIDE. It was `inset:14px 12px` — two
+    /* THE FRAME'S INSET IS HALF A LEAD ON EVERY SIDE. It was `inset:14px 12px` — two
        numbers on no grid and not even equal to each other — against content padding of
        `calc(var(--lead) + 10px) var(--gutter)` (another off-grid 10px), so the content's
        clearance from the frame it sits in was 24px at the top and 16px at the sides: a
-       frame whose margins disagreed with themselves. At one lead the frame is a row of
-       the ladder in from the viewport edge, and content clears it by exactly the
-       `case-top` row above and `--gutter` beside — both stated, both on grid.
-       The vertical padding goes for the same reason as on the desktop case: padding
-       cannot move an inherited row line, so the air must be rows, and it is. */
+       frame whose margins disagreed with themselves.
+       ONE LEAD WAS TRIED FIRST AND WAS WRONG, found by looking at the render rather than
+       at the number: the ladder's `case-top` row is one lead and the side padding is
+       `--gutter`, which is also one lead — so a frame one lead in from the viewport landed
+       exactly ON the content's box, and `a4 440 hz` printed across the frame's top edge
+       instead of inside it (measured: clearance 0px on the top and both sides). The frame
+       cannot use the same interval as the content it contains; it has to be inside it.
+       HALF A LEAD is that inset, and it is still derived — `--lead / 2`, the same
+       relationship `--tight` has to `--lead` in the site's space scale. Content then clears
+       the frame by 14px on all four sides (measured T/L/R 14, B 26), and the frame is the
+       one mark on this screen that sits between the viewport edge and the grid. */
     .mt-half{scroll-snap-align:start;scroll-snap-stop:always;
       border:0;padding:0 var(--gutter)}
-    /* HALF A LEAD, and one lead was tried first and was wrong — found by looking at the
-       render, not the number. The ladder's `case-top` row is one lead and the side padding
-       is `--gutter`, which is also one lead, so a frame one lead in from the viewport
-       landed exactly ON the content's box and `a4 440 hz` printed across the frame's top
-       edge (measured: 0px clearance top and both sides). A frame cannot use the same
-       interval as the content it contains. At `--lead / 2` — the same relation `--tight`
-       has to `--lead` in the site's space scale — content clears it by 14px on all four
-       sides. */
     .mt-half::before{content:"";position:absolute;inset:calc(var(--lead) / 2);
       border:1px solid var(--line);pointer-events:none}
     /* The plate still straddles the frame's top edge: half a lead down, less half its own
@@ -772,11 +770,20 @@ import Layout from '../layouts/Layout.astro';
      never show where a 6-column figure with 5 interior gutters ends — it was drawing a
      grid the CSS could not use. Now the paint is the real thing: a `--gutter`-wide gap
      between twelve `--mt-track` columns, so a span's edges are visibly track edges. */
+     HAIRLINES AT THE TRACK EDGES, not filled bands — decided by rendering both and
+     looking. Twelve filled columns at any opacity that was visible read as a striped
+     BACKGROUND rather than a guide: the eye sees alternating stripes and the thing you are
+     trying to check (does this edge land on that edge?) is the one thing the paint hides,
+     because a band's boundary is where its own tint stops rather than a mark. Two rules per
+     track is what a grid guide is: a line where the track starts and a line where it ends,
+     with the gutter empty between them. The site's document guide is the same device. */
   .mt-half::after{content:"";position:absolute;inset:0 var(--gutter);
     --mt-track:calc((100% - var(--gutter) * 11) / 12);
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
     background:repeating-linear-gradient(to right,
-      color-mix(in srgb, var(--accent) 12%, transparent) 0 var(--mt-track),
+      color-mix(in srgb, var(--accent) 40%, transparent) 0 1px,
+      transparent 1px calc(var(--mt-track) - 1px),
+      color-mix(in srgb, var(--accent) 40%, transparent) calc(var(--mt-track) - 1px) var(--mt-track),
       transparent var(--mt-track) calc(var(--mt-track) + var(--gutter)))}
 
 
