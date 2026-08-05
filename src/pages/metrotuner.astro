@@ -1270,25 +1270,7 @@ import Layout from '../layouts/Layout.astro';
     const now = audio().currentTime;
     while (pending.length && pending[0].time <= now) {
       const t = pending.shift()!;
-      if (t.voice !== 'sub') {
-        lastBeat = t;
-        // AT THE NEXT BEAT (tap chooser, pick 02): a tempo tapped while running
-        // waits here, and takes effect ON a strike — the sweep in progress
-        // always finishes at the rate it started. Parity is re-anchored so THIS
-        // beat keeps the direction it already has under the new beat length:
-        // dir was (beatIndex-firstBeatIndex)%2, and both indices change with
-        // secPerBeat, so carrying the old anchor across a tempo change is what
-        // made the arm tear.
-        if (pendingBpm !== null) {
-          const dirNow = sweepAt(now)?.dir ?? 1;
-          bpm = pendingBpm;
-          pendingBpm = null;
-          bpmInput.value = String(bpm);
-          applySpec(); // scheduler re-anchors at its last scheduled tick
-          const newIndex = Math.round(t.time / (60 / bpm));
-          firstBeatIndex = newIndex - (dirNow === 1 ? 0 : 1);
-        }
-      }
+      if (t.voice !== 'sub') lastBeat = t;
     }
     const s = sweepAt(now);
     if (s) {
@@ -1334,7 +1316,6 @@ import Layout from '../layouts/Layout.astro';
   function startMetro() {
     audio();
     pending.length = 0;
-    pendingBpm = null;
     lastBeat = null;
     firstBeatIndex = -1;
     scheduler.start();
@@ -1367,8 +1348,9 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function stopMetro() {
-    // a tempo tapped but not yet adopted survives the stop — you asked for it
-    if (pendingBpm !== null) { bpm = pendingBpm; pendingBpm = null; bpmInput.value = String(bpm); applySpec(); }
+    // stopping mid-takeover cancels the comeback — stop means stop
+    conducting = false;
+    if (resumeTimer !== null) { clearTimeout(resumeTimer); resumeTimer = null; }
     scheduler.stop();
     pending.length = 0;
     cancelAnimationFrame(raf);
@@ -1386,10 +1368,10 @@ import Layout from '../layouts/Layout.astro';
 
   runBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
-    scheduler.running ? stopMetro() : startMetro();
+    (scheduler.running || conducting) ? stopMetro() : startMetro();
   });
   document.getElementById('mt-metro-fig')?.closest('.mt-mid')?.addEventListener('click', () => {
-    scheduler.running ? stopMetro() : startMetro();
+    (scheduler.running || conducting) ? stopMetro() : startMetro();
   });
 
   function applySpec() {
@@ -1433,19 +1415,55 @@ import Layout from '../layouts/Layout.astro';
 
   const tap = createTapTempo();
   const tapBtn = $('mt-tap');
-  // Tapping over a RUNNING metronome must not retime it mid-sweep (it went
-  // visibly crazy: every tap re-anchored the grid and the parity math). The
-  // tapped tempo parks here; swing() adopts it at the next played beat. The
-  // input shows where you're headed immediately — the ENGINE turns on the beat.
-  let pendingBpm: number | null = null;
-  const applyTap = (t: number) => {
-    if (scheduler.running) {
-      pendingBpm = clampBpm(t);
-      bpmInput.value = String(pendingBpm);
-    } else {
-      setBpm(t);
+  // THE TAKEOVER (tap chooser round 2, pick 02). Tapping over a RUNNING metronome
+  // hands you the beat: the scheduler stops (its clicks would fight your hand —
+  // the round-1 sheet reproduced the tear), each tap SOUNDS the beat voice and
+  // strikes the pendulum, and one tapped interval after your last tap the
+  // metronome returns at your tempo — the comeback click is the DOWNBEAT, so
+  // your last tap phase-anchors the bar. You tapped the count-in; it plays the
+  // top. While stopped, tap is plain tap-tempo (sets the field, no takeover).
+  let conducting = false;
+  let resumeTimer: number | null = null;
+  const applyTap = (t: number | null) => {
+    if (!scheduler.running && !conducting) {
+      if (t !== null) setBpm(t);
+      return;
     }
+    if (!conducting) {
+      conducting = true;
+      scheduler.stop();          // your hand owns the clock now
+      pending.length = 0;
+      cancelAnimationFrame(raf);
+    }
+    if (t !== null) setBpm(t);
+    const now = audio().currentTime;
+    // this tap IS a beat: sound it and strike the pendulum through the same
+    // path a scheduled beat takes (lastBeat + the swing cosine), alternating
+    // direction per tap so the arm swings hand-to-hand.
+    ping(effVoice({ voice: 'beat' } as Tick), now + 0.005);
+    const secPerBeat = 60 / bpm;
+    const prevIndex = lastBeat ? Math.round(lastBeat.time / secPerBeat) : 0;
+    lastBeat = { n: 0, time: now, voice: 'beat', beatInBar: 0 };
+    firstBeatIndex = Math.round(now / secPerBeat) - (prevIndex - firstBeatIndex + 1) % 2;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(conductSwing);
+    // the handover: one tapped interval of silence, then the downbeat.
+    if (resumeTimer !== null) clearTimeout(resumeTimer);
+    resumeTimer = window.setTimeout(() => {
+      resumeTimer = null;
+      if (!conducting) return;
+      conducting = false;
+      startMetro();              // nextN = 0 → the first click IS the downbeat
+    }, secPerBeat * 1000);
   };
+  // the conductor's swing: same cosine as swing(), but no scheduler queue —
+  // lastBeat is written by the taps themselves.
+  function conductSwing() {
+    if (!conducting) return;
+    const s = sweepAt(audio().currentTime);
+    if (s) pend.style.transform = `rotate(${s.deg}deg)`;
+    raf = requestAnimationFrame(conductSwing);
+  }
   // THE SNAP: .hit scales the ring to 1.9x instantly (transition:none), removing it
   // lets it settle back on --dur/--ease. The response overshoots the input and then
   // resolves, which is the mechanic a real key has (chooser metrotuner-meter-tap,

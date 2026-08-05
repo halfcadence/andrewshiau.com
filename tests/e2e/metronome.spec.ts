@@ -99,29 +99,38 @@ test('settings persist across a reload', async ({ page }) => {
   await expect(page.locator('#mt-beats-seg button[data-beats="5"]')).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('tapping while running retimes at the next beat — no grid tear', async ({ page }) => {
+test('tapping while running takes over, then returns on the downbeat', async ({ page }) => {
   await page.goto('/metrotuner/?e2e');
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();
   await page.waitForTimeout(1200);
-  // tap ~150 bpm over the running click
+  // tap ~150 bpm over the running click — the scheduler yields to the hand.
+  // NO wait after the final tap: the comeback lands one tapped interval
+  // (~400ms) after it, and the snapshot below must beat it.
   for (let i = 0; i < 4; i++) {
     await page.getByTestId('tap').dispatchEvent('pointerdown');
-    await page.waitForTimeout(400);
+    if (i < 3) await page.waitForTimeout(400);
   }
-  await page.waitForTimeout(1500);
-  await page.getByTestId('metro-toggle').click();
+  // snapshot NOW: everything logged after this point is the comeback.
+  const ticksDuring: number = await page.evaluate(() => (window as any).__mt.ticks.length);
+  // during the takeover the transport still reads as running (stop works)
+  await expect(page.getByTestId('metro-toggle')).toHaveAttribute('aria-pressed', 'true');
 
-  // the field shows the tapped tempo (the engine adopted it on a beat)
+  // one tapped interval after the last tap it COMES BACK, at the tapped tempo,
+  // and the comeback tick is the downbeat — the bar re-anchors to the hand.
+  await page.waitForTimeout(1500);
   const bpm = Number(await page.getByTestId('bpm').inputValue());
   expect(bpm).toBeGreaterThan(130);
   expect(bpm).toBeLessThan(170);
+  const after: Array<{ time: number; voice: string }> = await page.evaluate(
+    (n) => (window as any).__mt.ticks.slice(n), ticksDuring);
+  expect(after.length).toBeGreaterThanOrEqual(2); // it did come back on its own
+  expect(after[0].voice).toBe('down');            // ...and on the downbeat
+  await page.getByTestId('metro-toggle').click();
 
-  // the tick grid never tore: times strictly increase and no n repeats —
-  // the naive retime scheduled overlapping ticks, which shows up here as
-  // duplicates and time regressions.
-  const ticks: Array<{ time: number; n: number }> =
+  // the whole log stays monotonic — takeover and comeback never overlapped
+  const ticks: Array<{ time: number }> =
     await page.evaluate(() => (window as any).__mt.ticks);
   for (let i = 1; i < ticks.length; i++) {
     expect(ticks[i].time).toBeGreaterThan(ticks[i - 1].time);
