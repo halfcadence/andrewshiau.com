@@ -250,3 +250,42 @@ test('the accent state stays readable while the pointer is ON the mark', async (
 
   await btn.click();
 });
+
+test('the beats rule is ONE straight line — no tick, no stub', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  // "can the line under beats be just a straight line". The left tick once carried the
+  // accent state as a 3px height change; the `>` took that job, leaving a stub that
+  // drew nothing. Asserting the COUNT is what stops it coming back — a second <line>
+  // here is either a resurrected tick or a new decoration.
+  const lines = page.locator('#mt-beats-seg .rm-rule line');
+  await expect(lines).toHaveCount(1);
+
+  // and it is horizontal: one y for both ends
+  const geom = await lines.first().evaluate((el) => ({
+    y1: el.getAttribute('y1'), y2: el.getAttribute('y2'),
+    x1: Number(el.getAttribute('x1')), x2: Number(el.getAttribute('x2')),
+  }));
+  expect(geom.y1).toBe(geom.y2);
+  expect(geom.x2).toBeGreaterThan(geom.x1);
+
+  // toggling the accent must not add anything back
+  await page.getByTestId('accent-mark').click();
+  await expect(page.locator('#mt-beats-seg .rm-rule line')).toHaveCount(1);
+  await page.getByTestId('accent-mark').click();
+});
+
+test('the rule button still shows hover feedback after the tick was deleted', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  // The hover rule used to select `line[data-acc-tick]`, and that tick is gone — so the
+  // selector matched nothing and the LARGER of the two accent targets silently lost its
+  // hover state. A dangling descendant selector fails quietly: the CSS still parses.
+  const line = page.locator('#mt-beats-seg .rm-rule line');
+  const stroke = async () => {
+    await page.waitForTimeout(200);
+    return line.evaluate((el) => getComputedStyle(el).stroke);
+  };
+  const rest = await stroke();
+  await page.getByTestId('accent-toggle').hover();
+  const hovered = await stroke();
+  expect(hovered, 'hovering the rule changes the line colour').not.toBe(rest);
+});

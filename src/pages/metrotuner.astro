@@ -428,14 +428,24 @@ import Layout from '../layouts/Layout.astro';
   .rbtn:focus-visible{outline:1px solid var(--accent);outline-offset:-2px}
   .rm-rule{display:block;margin-top:-2px}
   /* THE RULE IS THE SWITCH (round15 Q1/06): the beats rule sits inside a button.
-     No drawn chrome of its own — the tick and the digit "1" carry the state; the
+     No drawn chrome of its own — the `>` above the digits carries the state; the
      padding fattens the target to the full scale width x ~26px below the digits. */
   .rm-rulebtn{font:inherit;background:transparent;border:0;margin:0;cursor:pointer;
     border-radius:0;display:block;padding:0 0 14px}
   .rm-rulebtn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
-  .rm-rulebtn:hover .rm-rule line[data-acc-tick]{stroke:var(--accent)}
-  /* the accented "1": weight is the digit's half-step up */
-  .rbtn.acc1{font-weight:500}
+  /* Hover paints the RULE, and it needs `:global()` — this one was broken twice over.
+     First the selector named `line[data-acc-tick]`, a tick deleted by the straight-line
+     change, so it matched nothing. Fixing the selector was not enough: the `<line>` is
+     written by drawRules() at RUNTIME, so Astro never stamps it with this component's
+     `data-astro-cid-*`, while Astro DOES add that attribute to every compiled selector.
+     `.rm-rulebtn:hover .rm-rule line` compiles to `… line[data-astro-cid-zr2vxrvs]`,
+     which a JS-created element can never satisfy. Measured: the selector appeared to
+     match in `matches()` (which sees the source form) while the computed stroke never
+     changed. `:global()` is the escape, and it is scoped tightly by the `.rm-rulebtn`
+     ancestor so it leaks nowhere.
+     THE RULE OF THUMB THIS EARNS: any CSS aimed at markup this file's script generates
+     must be `:global()`. That covers `.rm-rule line` and `.rm-acc`'s children. */
+  .rm-rulebtn:hover .rm-rule :global(line){stroke:var(--accent)}
 
   /* THE SWIPE (metrotuner-two-pages Q3/02). Under 900px the cases become two
      full-width snap pages — and the case VANISHES (metrotuner-pendulum Q2, the
@@ -1377,12 +1387,12 @@ import Layout from '../layouts/Layout.astro';
       const xe = (v - 1) * PITCH + 10; // the rule's terminus, under digit N
       let h = '';
       if (kind === 'grow') {
-        // THE TICK NO LONGER CARRIES THE ACCENT STATE (chooser metrotuner-meter-tap,
-        // pick 03 + the `>` refinement). It was a 3px height change below the digits,
-        // which is what read as "not obvious"; the `>` above the 1 says it now. The
-        // tick stays as the rule's terminus — the bar's left edge — at one weight.
-        h = `<line x1="1.5" y1="3" x2="1.5" y2="6" stroke="var(--faint)" stroke-width="2.5"/>`;
-        h += `<line x1="1" y1="4.5" x2="${xe}" y2="4.5" stroke="var(--ink)" stroke-width="1.5"/>`;
+        // JUST A STRAIGHT LINE ("can the line under beats be just a straight line").
+        // The left tick is DELETED. It once carried the accent state as a 3px height
+        // change; the `>` took that job, which left the tick drawing nothing — a
+        // vestigial stub kept because it used to mean something. The rule's extent
+        // already states the bar length, and its left end is where it starts.
+        h = `<line x1="1" y1="4.5" x2="${xe}" y2="4.5" stroke="var(--ink)" stroke-width="1.5"/>`;
       } else {
         if (v === 1) {
           h = `<line x1="1" y1="4.5" x2="10" y2="4.5" stroke="var(--ink)" stroke-width="1.5"/>`;
