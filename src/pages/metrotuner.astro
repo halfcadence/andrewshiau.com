@@ -48,15 +48,20 @@ import Layout from '../layouts/Layout.astro';
         <div class="mt-ctop">
           <span class="mt-fr">
             <!-- BARE NUMERAL (chooser metrotuner-round15, Q2/06): the value rails
-                 are gone — the number is display and control. The affordance is the
-                 ew-resize cursor, the title, and the accent digits while scrubbing;
-                 the wager is a practice tool is used repeatedly, so the gesture
-                 amortizes. Drag anywhere on the control scrubs; typing stays. -->
-            <span class="f mt-a4 scrubwrap" id="mt-a4-scrub" title="drag ↔ to scrub · click to type">
-              <label for="mt-a4" class="mt-lb">A4</label>
+                 are gone — the number is display and control.
+                 THE DRAG IS ON THE UNIT NOW, not the whole control (chooser
+                 metrotuner-scrub-target, pick 03 "unit only, with a padded target").
+                 Figma's model: the label beside a field is the scrubber and the field
+                 only types. One surface, one verb — the numeral no longer both accepts
+                 a drag and opens a keyboard, which is what read as confusing. The
+                 handles are `.mt-hd`; they carry invisible padding to a 44px target,
+                 the same device `.pgword` uses on the page words. -->
+            <span class="f mt-a4" id="mt-a4-scrub">
+              <label for="mt-a4" class="mt-lb mt-hd" title="drag ↔ to change A4">A4</label>
               <input id="mt-a4" data-testid="a4" type="number" inputmode="decimal"
-                     min="400" max="480" step="1" value="440" aria-label="A4 calibration in hertz — drag horizontally to scrub, or type" />
-              <span class="mt-lb">Hz</span>
+                     min="400" max="480" step="1" value="440" title="type a value"
+                     aria-label="A4 calibration in hertz — type a value, or drag the A4 or Hz label horizontally" />
+              <span class="mt-lb mt-hd" title="drag ↔ to change A4">Hz</span>
             </span>
           </span>
         </div>
@@ -224,19 +229,20 @@ import Layout from '../layouts/Layout.astro';
           </span>
           <!-- THE SCRUB VALUE (steppers chooser Q2/02): the −/+ are gone — the
                number is the control. Drag HORIZONTALLY to scrub (1 bpm per 4px;
-               the DAW gesture, and the primary one on touch), click/tap to type,
-               arrow keys fine-step. The drag is wired on a wrapping span because
-               an <input> eats pointermove for text selection; the input inside
-               keeps typing and the numeric keyboard. touch-action:none on the
-               wrapper — the horizontal drag would otherwise fight the page's
-               horizontal snap-scroller directly. TAP stays beside it (it sets the
-               tempo too). -->
+               the DAW gesture, and the primary one on touch), type in the field,
+               arrow keys fine-step. THE DRAG IS ON THE UNIT (chooser
+               metrotuner-scrub-target, pick 03): "bpm" is the handle, the numeral is
+               the field. touch-action:none on the handle — the horizontal drag would
+               otherwise fight the page's horizontal snap-scroller directly. TAP stays
+               beside it (it sets the tempo too). -->
           <span class="mt-fr">
             <!-- Bare numeral here too (Q2/06) — the value is the whole control. -->
-            <span class="f mt-bpm scrubwrap" id="mt-bpm-scrub" title="drag ↔ to scrub · click to type">
+            <span class="f mt-bpm" id="mt-bpm-scrub">
               <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
-                     min="20" max="320" step="1" value="96" aria-label="Beats per minute — drag horizontally to scrub, or type" />
-              <span class="mt-lb">bpm</span>
+                     min="20" max="320" step="1" value="96" title="type a value"
+                     aria-label="Beats per minute — type a value, or drag the bpm label horizontally" />
+              <span class="mt-lb mt-hd" data-testid="bpm-handle"
+                    title="drag ↔ to change the tempo">bpm</span>
             </span>
             <!-- TRACK GRAMMAR: the MOMENTARY is a lone ring — a disc with NO track
                  has nowhere to travel; the only verb left is press. Each strike
@@ -457,8 +463,36 @@ import Layout from '../layouts/Layout.astro';
      resize cursor and the title are the affordance. */
   .scrubbing input, .tbtn.scrubv.scrubbing .w{color:var(--accent)}
   .tbtn.scrubv{cursor:ew-resize;touch-action:none;min-width:4ch;text-align:center}
-  .scrubwrap{cursor:ew-resize;touch-action:none}
-  .scrubwrap input{cursor:ew-resize}
+
+  /* ── THE UNIT IS THE HANDLE (chooser metrotuner-scrub-target, pick 03).
+     The drag used to live on the whole `.scrubwrap`, input included, so the same
+     pixels took a drag AND opened a keyboard. The user's call: "the slidy control
+     should be on the unit like bpm/Hz and maybe also on the A4, but not on the typing
+     input bc its confusing that u can type (this is how figma works)". So the unit
+     label is the scrubber and the field is only a field.
+
+     44px BY PADDING, and the number is measured not guessed. On the proof sheet
+     `bpm` rendered 27×28px bare — over WCAG 2.5.8's 24px floor but well under the
+     44px this page holds everywhere else (`.f input{min-height:44px}` exists for
+     exactly this reason). The sheet's own option 03 padded to 31×56: tall enough,
+     still 13px short across. `bpm` is the WIDEST of the three handles at 3ch;
+     `A4` and `Hz` are 2ch/18px, so the horizontal pad has to be set for the
+     narrowest. 14px each side takes 18px → 46px and 27px → 55px, both clear.
+     Negative margins keep the visual line identical — the target grows, the
+     composition does not move. */
+  .mt-hd{cursor:ew-resize;touch-action:none;
+    display:inline-block;padding:8px 14px;margin:-8px -14px}
+  /* The handle reads accent while in hand, like the digits it drives. */
+  .scrubbing .mt-hd.hot{color:var(--accent)}
+  /* Keyboard reachable: the handle is a real control, so it takes focus and the
+     arrows step it. Without this the drag would be pointer-only — the reason the
+     old wrapper could get away with no focus style is that the INPUT inside it was
+     the focusable thing, and the input is no longer the scrubber. */
+  .mt-hd:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  /* The field types. `cursor:text` is stated rather than left to the UA because the
+     element it replaced declared `ew-resize` and an inherited cursor here would be a
+     lie about what the pixels do. */
+  .mt-a4 input, .mt-bpm input{cursor:text}
   /* THE REFLOW FIX (user nit, 2026-08-04), moved onto the WORD: the label swaps
      between two widths, so the .w span reserves the longer one (--w in ch — exact
      in a monospace face); the track and the gap sit outside the reservation. */
@@ -518,8 +552,15 @@ import Layout from '../layouts/Layout.astro';
 
   // E2E HOOK, inert in normal use: `?e2e` makes the page record what it did.
   const E2E = new URLSearchParams(location.search).has('e2e');
-  const hook: { ticks: Tick[]; reading: unknown; toneHz: number | null } =
-    { ticks: [], reading: null, toneHz: null };
+  // `a4` and `bpm` are GETTERS, not fields: they read the live bindings, so a test can
+  // assert the calibration actually moved rather than that the input's text changed.
+  // A scrub that updates the field but not the value would otherwise pass.
+  const hook: { ticks: Tick[]; reading: unknown; toneHz: number | null;
+                readonly a4: number; readonly bpm: number } = {
+    ticks: [], reading: null, toneHz: null,
+    get a4() { return a4; },
+    get bpm() { return bpm; },
+  };
   if (E2E) (window as any).__mt = hook;
 
   const store = {
@@ -548,29 +589,90 @@ import Layout from '../layouts/Layout.astro';
     a4Input.value = String(a4);
   });
 
-  // The A4 rail scrubs like the bpm one: drag on the wrapper (an input eats
-  // pointermove), 1 Hz per 4px, clean tap types, post-drag click suppressed.
+  // ── SCRUB ON THE UNIT, TYPE IN THE FIELD ────────────────────────────────────
+  // One helper for all of it (chooser metrotuner-scrub-target, pick 03). It used to
+  // be two near-identical blocks wired to the two wrappers, which is what made the
+  // bpm and A4 gestures able to drift apart; now there is one definition and each
+  // control names its handles.
+  //
+  // The handle is a LABEL, not the input, so `pointermove` is ours — the old comment
+  // "an <input> eats pointermove for text selection" was the reason the drag sat on
+  // the wrapper, and moving it to the unit removes that constraint rather than
+  // working around it.
+  //
+  // No click-suppression needed either, and that deletion is the point: the old code
+  // had to swallow the post-drag click and `blur()` the input, because the drag ended
+  // on the same pixels that focus a text field. The handle cannot focus anything, so
+  // there is nothing to undo.
+  function wireScrub(opts: {
+    handles: HTMLElement[];
+    host: HTMLElement;
+    get: () => number;
+    set: (v: number) => void;
+    min: number;
+    max: number;
+    perPx?: number;
+  }) {
+    const per = opts.perPx ?? 4;
+    for (const h of opts.handles) {
+      let dragX: number | null = null;
+      let dragStart = 0;
+      h.addEventListener('pointerdown', (e) => {
+        dragX = e.clientX; dragStart = opts.get();
+        opts.host.classList.add('scrubbing');
+        h.classList.add('hot');
+        h.setPointerCapture(e.pointerId);
+        e.preventDefault();          // no text selection of the label while dragging
+      });
+      h.addEventListener('pointermove', (e) => {
+        if (dragX === null) return;
+        const d = Math.round((e.clientX - dragX) / per);
+        const v = Math.min(opts.max, Math.max(opts.min, dragStart + d));
+        if (v !== opts.get()) opts.set(v);
+      });
+      const end = () => {
+        dragX = null;
+        opts.host.classList.remove('scrubbing');
+        h.classList.remove('hot');
+      };
+      h.addEventListener('pointerup', end);
+      h.addEventListener('pointercancel', end);
+      // A handle is a control, so it answers the arrows. `tabindex` is set here rather
+      // than in the markup so a handle is only focusable when its behaviour is wired.
+      h.tabIndex = 0;
+      h.setAttribute('role', 'slider');
+      h.setAttribute('aria-valuemin', String(opts.min));
+      h.setAttribute('aria-valuemax', String(opts.max));
+      h.addEventListener('keydown', (e) => {
+        const step = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1
+          : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
+        if (!step) return;
+        e.preventDefault();
+        opts.set(Math.min(opts.max, Math.max(opts.min, opts.get() + step)));
+      });
+    }
+  }
+
   {
-    const wrap = document.getElementById('mt-a4-scrub')!;
-    let dragX: number | null = null;
-    let dragStart = 0;
-    let dragged = false;
-    wrap.addEventListener('pointerdown', (e) => {
-      dragX = e.clientX; dragStart = a4; dragged = false;
-      wrap.classList.add('scrubbing');
-      wrap.setPointerCapture(e.pointerId);
+    const host = document.getElementById('mt-a4-scrub')!;
+    // `aria-valuenow` has to track the value or a screen reader reads the start state
+    // forever. Declared BEFORE wireScrub so the setter closes over a real binding —
+    // a `var` after the call would hoist and work by luck, only because the setter
+    // does not run until a drag.
+    const syncA4Handles = () => {
+      for (const h of host.querySelectorAll('.mt-hd')) {
+        h.setAttribute('aria-valuenow', String(a4));
+        h.setAttribute('aria-valuetext', `A4 = ${a4} hertz`);
+      }
+    };
+    wireScrub({
+      host,
+      handles: Array.from(host.querySelectorAll<HTMLElement>('.mt-hd')),
+      get: () => a4,
+      set: (v) => { setA4(v); a4Input.value = String(a4); syncA4Handles(); },
+      min: A4_MIN, max: A4_MAX,
     });
-    wrap.addEventListener('pointermove', (e) => {
-      if (dragX === null) return;
-      const d = Math.round((e.clientX - dragX) / 4);
-      if (d !== 0) dragged = true;
-      const v = Math.min(A4_MAX, Math.max(A4_MIN, dragStart + d));
-      if (v !== a4) { setA4(v); a4Input.value = String(a4); }
-    });
-    wrap.addEventListener('pointerup', () => { dragX = null; wrap.classList.remove('scrubbing'); });
-    wrap.addEventListener('click', (e) => {
-      if (dragged) { dragged = false; e.preventDefault(); a4Input.blur(); }
-    }, true);
+    syncA4Handles();
   }
 
   // ── tuner ─────────────────────────────────────────────────────────────────
@@ -1062,33 +1164,25 @@ import Layout from '../layouts/Layout.astro';
   };
   bpmInput.addEventListener('change', () => setBpm(Number(bpmInput.value)));
 
-  // THE SCRUB VALUE (Q2/02). Horizontal drag on the wrapper scrubs 1 bpm per 4px;
-  // a clean tap/click falls through to the input for typing (numeric keyboard on
-  // touch). The wrapper hosts the drag because an <input> consumes pointermove
-  // for its own text selection.
+  // THE SCRUB VALUE (Q2/02), on the UNIT (metrotuner-scrub-target pick 03): "bpm" is
+  // the handle at 1 bpm per 4px, the numeral is a field that types. Same wireScrub()
+  // the A4 control uses — one definition, so the two gestures cannot drift.
   {
-    const wrap = document.getElementById('mt-bpm-scrub')!;
-    let dragX: number | null = null;
-    let dragStart = 0;
-    let dragged = false;
-    wrap.addEventListener('pointerdown', (e) => {
-      dragX = e.clientX; dragStart = bpm; dragged = false;
-      wrap.classList.add('scrubbing');
-      wrap.setPointerCapture(e.pointerId);
+    const host = document.getElementById('mt-bpm-scrub')!;
+    const syncBpmHandles = () => {
+      for (const h of host.querySelectorAll('.mt-hd')) {
+        h.setAttribute('aria-valuenow', String(bpm));
+        h.setAttribute('aria-valuetext', `${bpm} beats per minute`);
+      }
+    };
+    wireScrub({
+      host,
+      handles: Array.from(host.querySelectorAll<HTMLElement>('.mt-hd')),
+      get: () => bpm,
+      set: (v) => { bpm = v; bpmInput.value = String(bpm); applySpec(); syncBpmHandles(); },
+      min: 20, max: 320,
     });
-    wrap.addEventListener('pointermove', (e) => {
-      if (dragX === null) return;
-      const d = Math.round((e.clientX - dragX) / 4);
-      if (d !== 0) dragged = true;
-      const v = clampBpm(dragStart + d);
-      if (v !== bpm) { bpm = v; bpmInput.value = String(bpm); applySpec(); }
-    });
-    wrap.addEventListener('pointerup', () => { dragX = null; wrap.classList.remove('scrubbing'); });
-    // after a drag, the input must not focus (that would pop the keyboard on
-    // touch mid-scrub); a clean tap focuses it as normal.
-    wrap.addEventListener('click', (e) => {
-      if (dragged) { dragged = false; e.preventDefault(); bpmInput.blur(); }
-    }, true);
+    syncBpmHandles();
     bpmInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') { e.preventDefault(); setBpm(bpm + 1); }
       if (e.key === 'ArrowDown') { e.preventDefault(); setBpm(bpm - 1); }
