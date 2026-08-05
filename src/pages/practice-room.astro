@@ -28,6 +28,7 @@ import Layout from '../layouts/Layout.astro';
 <Layout
   title="Practice room — Andrew Shiau"
   description="A chromatic tuner and a metronome in the browser. Pitch detection runs on-device; the microphone signal never leaves the page."
+  installable
 >
   <div id="mt-app">
     <h1 class="visually-hidden">Practice room</h1>
@@ -258,11 +259,15 @@ import Layout from '../layouts/Layout.astro';
           <figure class="mt-gauge" aria-hidden="true">
             <svg viewBox="0 0 320 184" id="mt-metro-fig">
               <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--faint)" stroke-width="1.5"/>
-              <!-- The end ticks are STRIKE FLASHES, not rail furniture (user nit 3,
-                   2026-08-04): invisible at rest, they appear only in the strike
-                   window. The rail is a clean arc otherwise. -->
-              <line id="mt-tickL" x1="34" y1="146" x2="34" y2="160" stroke="var(--ink)" stroke-width="0"/>
-              <line id="mt-tickR" x1="286" y1="146" x2="286" y2="160" stroke="var(--ink)" stroke-width="0"/>
+              <!-- THE END TICKS ARE GONE (user, 2026-08-05: "the little accent on the
+                   side of the arc that happens on beats — I think it's actually
+                   useless"). They were right, and the reason is that the bob already
+                   says it: the strike IS the bob reaching the end of its sweep, so a
+                   mark that lights up at the same instant in the same place is the
+                   same fact drawn twice. It only carried information in the
+                   reduced-motion case, where the bob was parked — and that case now
+                   steps the bob between the ends instead, so one figure states the
+                   beat in both modes. Three elements down to one. -->
               <g id="mt-pend" class="rest">
                 <line x1="160" y1="160" x2="160" y2="44" stroke="currentColor" stroke-width="1.5"/>
                 <circle cx="160" cy="44" r="6" fill="currentColor"/>
@@ -833,7 +838,6 @@ import Layout from '../layouts/Layout.astro';
   #mt-pend{transform-origin:160px 160px;transform-box:view-box}
   #mt-pend.rest{color:var(--line)}
   #mt-pend.live{color:var(--ink)}
-  #mt-tickL, #mt-tickR{transition:stroke-width var(--dur-fast) var(--ease)}
 
   /* The readout is the figure's own width, so the note under the dial's left end and the
      Hz under its right end line up with the drawing above them. It is the `read` row,
@@ -1520,8 +1524,6 @@ import Layout from '../layouts/Layout.astro';
   const runBtn = $('mt-run') as unknown as HTMLButtonElement;
   const bpmInput = $('mt-bpm') as unknown as HTMLInputElement;
   const pend = document.getElementById('mt-pend')!;
-  const tickL = document.getElementById('mt-tickL')!;
-  const tickR = document.getElementById('mt-tickR')!;
 
   // Persisted values are VALIDATED, not trusted: localStorage outlives the code
   // that wrote it.
@@ -1703,14 +1705,7 @@ import Layout from '../layouts/Layout.astro';
       }
     }
     const s = sweepAt(now);
-    if (s) {
-      pend.style.transform = `rotate(${s.deg}deg)`;
-      // The strike: fatten the tick at the end the bob just left/reached.
-      const nearEnd = s.phase < 0.12 ? -s.dir : s.phase > 0.88 ? s.dir : 0;
-      const heavy = effVoice(lastBeat!) === 'down' ? '5' : '3.5';
-      tickL.setAttribute('stroke-width', nearEnd === -1 ? heavy : '0');
-      tickR.setAttribute('stroke-width', nearEnd === 1 ? heavy : '0');
-    }
+    if (s) pend.style.transform = `rotate(${s.deg}deg)`;
     raf = requestAnimationFrame(swing);
   }
 
@@ -1734,8 +1729,6 @@ import Layout from '../layouts/Layout.astro';
     pend.style.transform = `rotate(${deg}deg)`;
     pend.classList.add('rest');
     pend.classList.remove('live');
-    tickL.setAttribute('stroke-width', '0');
-    tickR.setAttribute('stroke-width', '0');
   }
   restPendulum(PARK_LEFT);
 
@@ -1755,8 +1748,13 @@ import Layout from '../layouts/Layout.astro';
     pend.classList.remove('rest');
     pend.classList.add('live');
     if (stillPend.matches) {
-      // ticks only: poll the queue on a coarse interval, no sweep
-      const tickOnly = () => {
+      // REDUCED MOTION STEPS THE BOB, it doesn't flash a tick. The arm jumps end to end
+      // once per beat and holds there — no sweep, no tween (the CSS kills the transition
+      // in this mode), so there is no travel to track, which is what "reduce" asks for.
+      // It used to fatten a tick at each end while the bob stayed parked; deleting the
+      // ticks would have left this mode with no beat at all, so the position carries it.
+      // Same figure as the animated mode, sampled at the beat instead of every frame.
+      const stepOnly = () => {
         if (!scheduler.running) return;
         const now = audio().currentTime;
         while (pending.length && pending[0].time <= now) {
@@ -1764,15 +1762,12 @@ import Layout from '../layouts/Layout.astro';
           if (t.voice !== 'sub') {
             sweepDir = lastBeat === null ? sweepSeed : -sweepDir;
             lastBeat = t;
-            const heavy = effVoice(t) === 'down' ? '5' : '3.5';
-            const left = sweepDir === 1; // the strike leaves this end
-            tickL.setAttribute('stroke-width', left ? heavy : '0');
-            tickR.setAttribute('stroke-width', left ? '0' : heavy);
+            pend.style.transform = `rotate(${sweepDir * SWEEP_DEG}deg)`;
           }
         }
-        raf = requestAnimationFrame(tickOnly);
+        raf = requestAnimationFrame(stepOnly);
       };
-      raf = requestAnimationFrame(tickOnly);
+      raf = requestAnimationFrame(stepOnly);
     } else {
       raf = requestAnimationFrame(swing);
     }

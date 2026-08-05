@@ -15,10 +15,16 @@ interface Props {
   title: string;
   description?: string;
   // One page sets this: /gate/, which nginx serves as the 401 body for the locked case study.
-  // A prop rather than a `<slot name="head">` because there is exactly one thing any page has
-  // ever needed to add to the head, and a named slot would invite the next person to put a
-  // second stylesheet or a tracking tag through it.
+  // A prop rather than a `<slot name="head">` because the things a page has ever needed to add
+  // to the head number two (this and `installable`, below), and a named slot would invite the
+  // next person to put a second stylesheet or a tracking tag through it.
   noindex?: boolean;
+  // One page sets this too: /practice-room/, the only page that makes sense pinned to a phone's
+  // home screen. It emits the web-app manifest + apple-touch-icon links so iOS "Add to Home
+  // Screen" installs the instrument as a standalone app (no Safari chrome). The manifest's
+  // `scope` is /practice-room/ — following a link out of scope (the "about" word) reopens the
+  // browser, which is correct: the app is the instrument, not the site.
+  installable?: boolean;
   // THE QUIZ, and it is the one piece of `Explainer.astro` worth keeping. The three explainers
   // are the only interactive thing on the site, and being able to check yourself is what makes
   // an explainer an explainer rather than an essay. Everything else that layout carried was a
@@ -32,6 +38,7 @@ const {
   title,
   description = 'Andrew Shiau — designer and builder.',
   noindex = false,
+  installable = false,
   quiz = [],
 } = Astro.props;
 
@@ -118,6 +125,22 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     </script>
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex,nofollow" />}
+    {installable && (
+      <>
+        {/* THE HOME-SCREEN INSTALL (precursor to the iOS app in PLAN-practice-room-ios.md —
+            same icon, same name, so the app can replace the pin without the user relearning
+            anything). iOS Safari reads `apple-touch-icon` for the tile — it ignores the
+            manifest's `icons` — and reads the manifest for `display: standalone`, which is
+            what removes the browser chrome. Everything else that browser reads (name,
+            start_url, scope) lives in the manifest; the icon PNGs and the manifest are
+            generated/held in public/practice-room/, icons by scripts/practice-room-icons.py.
+            The icon is OPAQUE PAPER unlike the favicon: iOS composites transparency onto
+            black, so "no background" would ship a black tile. */}
+        <link rel="manifest" href="/practice-room/manifest.json" />
+        <link rel="apple-touch-icon" href="/practice-room/icon-180.png" />
+        <meta name="apple-mobile-web-app-title" content="Practice room" />
+      </>
+    )}
 
     <!-- SOCIAL UNFURL. Before this, a link to the site pasted into Slack or a DM showed
          the title and nothing else — the first impression of a site whose whole argument

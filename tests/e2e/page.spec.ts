@@ -48,3 +48,42 @@ test('the controls are keyboard-reachable in order', async ({ page }) => {
   await page.keyboard.press('Tab');
   await expect(page.getByTestId('tone-toggle')).toBeFocused();
 });
+
+// THE HOME-SCREEN INSTALL CONTRACT (Layout's `installable` prop). What iOS actually
+// reads: `apple-touch-icon` for the tile, the manifest for standalone display. The
+// assertions fetch both referenced files and decode the icon's header — a link whose
+// target 404s (or, on this nginx, answers 200 with index.html typed text/html) is the
+// favicon-square bug again, and only checking bytes catches it.
+test('home-screen install: manifest + touch icon resolve and are real', async ({ page, request }) => {
+  await page.goto('/practice-room/');
+
+  const touchIcon = page.locator('link[rel="apple-touch-icon"]');
+  await expect(touchIcon).toHaveAttribute('href', '/practice-room/icon-180.png');
+  const iconRes = await request.get('/practice-room/icon-180.png');
+  expect(iconRes.status()).toBe(200);
+  const png = await iconRes.body();
+  // PNG magic + IHDR width/height at fixed offsets: 180×180, not an HTML fallback.
+  expect(png.subarray(0, 4).toString('hex')).toBe('89504e47');
+  expect(png.readUInt32BE(16)).toBe(180);
+  expect(png.readUInt32BE(20)).toBe(180);
+
+  const manifestLink = page.locator('link[rel="manifest"]');
+  await expect(manifestLink).toHaveAttribute('href', '/practice-room/manifest.json');
+  const mres = await request.get('/practice-room/manifest.json');
+  expect(mres.status()).toBe(200);
+  const manifest = await mres.json();
+  expect(manifest.display).toBe('standalone');
+  expect(manifest.start_url).toBe('/practice-room/');
+  expect(manifest.scope).toBe('/practice-room/');
+  for (const icon of manifest.icons) {
+    const r = await request.get(icon.src);
+    expect(r.status()).toBe(200);
+    expect((await r.body()).subarray(0, 4).toString('hex')).toBe('89504e47');
+  }
+});
+
+test('the rest of the site does not carry the install head', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(0);
+});
