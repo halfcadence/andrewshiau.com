@@ -60,3 +60,35 @@ test('desktop control: both halves on screen, no dots', async ({ page }) => {
   // The instrument carries no site chrome: the mark is deleted (2026-08-04).
   await expect(page.getByTestId('home-mark')).toHaveCount(0);
 });
+
+test('phone: the accent mark clears the plate it sits under', async ({ page }) => {
+  // User nit, 2026-08-05: "the accent is too close to the text metronome on mobile —
+  // vertically". It was worse than close: measured on the live page at 360/390/430 the
+  // plate's line box ran y 0→28 and the mark's ink y 20→28, overlapping by 8px in the same
+  // band. Two things moved opposite ways on the phone — the plate drops to straddle the
+  // inset frame while the mark reaches 8px above its own row — and only the phone put them
+  // in the same place, which is why desktop always looked right (5px clear).
+  // Asserted as a positive clearance rather than a pixel count, so the composition can be
+  // retuned without editing the test; the companion assertion is that the mark still TOUCHES
+  // the digits, because it is the accent over the 1 and must not drift off the thing it marks.
+  await page.goto('/practice-room/');
+  const pages = page.locator('#mt-pages');
+  await pages.evaluate((el) => { el.scrollLeft = el.clientWidth; });
+  await page.waitForTimeout(400);
+
+  const box = await page.evaluate(() => {
+    const plate = [...document.querySelectorAll('.mt-plate')]
+      .find((e) => e.textContent?.trim() === 'metronome')!;
+    const mark = document.getElementById('mt-acc-mark')!;
+    const digits = document.querySelector('#mt-beats-seg .rm-digits')!;
+    const p = plate.getBoundingClientRect();
+    const m = mark.getBoundingClientRect();
+    const d = digits.getBoundingClientRect();
+    return { clearance: m.top - p.bottom, markToDigits: d.top - m.bottom };
+  });
+
+  expect(box.clearance,
+    'the accent mark overlaps or crowds the "metronome" plate').toBeGreaterThanOrEqual(12);
+  expect(box.markToDigits,
+    'the mark drifted off the digits it annotates').toBeLessThanOrEqual(4);
+});

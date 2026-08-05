@@ -712,7 +712,35 @@ import Layout from '../layouts/Layout.astro';
        them moves nothing vertically. Measured before: a swipe moved the transport 28px
        and the figure 84px, so the two pages read as two different layouts. */
     .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-      grid-template-columns:repeat(2, 100%);column-gap:0;padding:0}
+      grid-template-columns:repeat(2, 100%);column-gap:0;padding:0;
+      /* THE PHONE'S TOP AIR IS TWO LEADS (user, 2026-08-05: "the accent is too close to
+         the text metronome on mobile, vertically"). Measured on the live page at 390,
+         360 and 430: the plate's line box ran y 0→28 and the accent mark's ink y 20→28,
+         so they did not merely crowd — they overlapped by 8px in the same band, ~2px
+         apart horizontally. Desktop clears by 5px and always did.
+         THE MECHANISM is that the two moved opposite ways here. The plate drops to
+         straddle the inset frame (`--lead/2 - 14px`, i.e. y 0 on the phone) while
+         `case-top` stayed one lead, and the accent mark reaches 8px ABOVE its spec row
+         by design — it rides in air the row does not own. On desktop the case is inset
+         from the page so that band is free; on the phone the case starts at the viewport
+         edge and the band is exactly where the plate now sits.
+         So the row that is short is `case-top`, and the fix is to state its real height
+         rather than nudge the mark: two leads, which is the first row's air plus the one
+         lead the mark borrows. The mark keeps its position relative to the digits — the
+         thing it annotates — and the plate keeps the frame. Nothing else on the ladder
+         moves, because only this row's height changed. */
+      grid-template-rows:
+        [case-top]  calc(var(--lead) * 2)
+        [spec]      calc(var(--lead) * 2)   /* measured: the phone's spec row is 2 leads */
+        [slack-a]   minmax(0, 1fr)
+        [figure]    auto
+        [read]      var(--lead)
+        [transport] var(--lead)
+        [slack-b]   minmax(0, 1fr)
+        [foot]      var(--lead)
+        [hint]      var(--lead)
+        [case-bot]  var(--lead)
+        [case-end]}
     .mt-pages::-webkit-scrollbar{display:none}
     /* THE CASE STAYS ON THE PHONE (round16, reversing the round-7 mobile rule):
        the hairline box reads as the instrument's identity, so each page draws
