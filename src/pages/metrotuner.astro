@@ -1270,7 +1270,25 @@ import Layout from '../layouts/Layout.astro';
     const now = audio().currentTime;
     while (pending.length && pending[0].time <= now) {
       const t = pending.shift()!;
-      if (t.voice !== 'sub') lastBeat = t;
+      if (t.voice !== 'sub') {
+        lastBeat = t;
+        // AT THE NEXT BEAT (tap chooser, pick 02): a tempo tapped while running
+        // waits here, and takes effect ON a strike — the sweep in progress
+        // always finishes at the rate it started. Parity is re-anchored so THIS
+        // beat keeps the direction it already has under the new beat length:
+        // dir was (beatIndex-firstBeatIndex)%2, and both indices change with
+        // secPerBeat, so carrying the old anchor across a tempo change is what
+        // made the arm tear.
+        if (pendingBpm !== null) {
+          const dirNow = sweepAt(now)?.dir ?? 1;
+          bpm = pendingBpm;
+          pendingBpm = null;
+          bpmInput.value = String(bpm);
+          applySpec(); // scheduler re-anchors at its last scheduled tick
+          const newIndex = Math.round(t.time / (60 / bpm));
+          firstBeatIndex = newIndex - (dirNow === 1 ? 0 : 1);
+        }
+      }
     }
     const s = sweepAt(now);
     if (s) {
@@ -1316,6 +1334,7 @@ import Layout from '../layouts/Layout.astro';
   function startMetro() {
     audio();
     pending.length = 0;
+    pendingBpm = null;
     lastBeat = null;
     firstBeatIndex = -1;
     scheduler.start();
@@ -1348,6 +1367,8 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function stopMetro() {
+    // a tempo tapped but not yet adopted survives the stop — you asked for it
+    if (pendingBpm !== null) { bpm = pendingBpm; pendingBpm = null; bpmInput.value = String(bpm); applySpec(); }
     scheduler.stop();
     pending.length = 0;
     cancelAnimationFrame(raf);
@@ -1412,6 +1433,19 @@ import Layout from '../layouts/Layout.astro';
 
   const tap = createTapTempo();
   const tapBtn = $('mt-tap');
+  // Tapping over a RUNNING metronome must not retime it mid-sweep (it went
+  // visibly crazy: every tap re-anchored the grid and the parity math). The
+  // tapped tempo parks here; swing() adopts it at the next played beat. The
+  // input shows where you're headed immediately — the ENGINE turns on the beat.
+  let pendingBpm: number | null = null;
+  const applyTap = (t: number) => {
+    if (scheduler.running) {
+      pendingBpm = clampBpm(t);
+      bpmInput.value = String(pendingBpm);
+    } else {
+      setBpm(t);
+    }
+  };
   // THE SNAP: .hit scales the ring to 1.9x instantly (transition:none), removing it
   // lets it settle back on --dur/--ease. The response overshoots the input and then
   // resolves, which is the mechanic a real key has (chooser metrotuner-meter-tap,
@@ -1433,7 +1467,7 @@ import Layout from '../layouts/Layout.astro';
   tapBtn.addEventListener('pointerdown', () => {
     strike();
     const t = tap.tap(performance.now());
-    if (t !== null) setBpm(t);
+    if (t !== null) applyTap(t);
   });
   // Keyboard taps arrive as click with detail 0 (no pointer); they are the one
   // path that must still count — a pointer's own click has detail ≥ 1 and already
@@ -1442,7 +1476,7 @@ import Layout from '../layouts/Layout.astro';
     if (e.detail !== 0) return;
     strike();                            // a keyboard tap gets the snap too
     const t = tap.tap(performance.now());
-    if (t !== null) setBpm(t);
+    if (t !== null) applyTap(t);
   });
 
   // THE RULED MEASURE, round-15 form. Digits are the buttons; the hairline under

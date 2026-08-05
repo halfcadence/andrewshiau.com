@@ -115,6 +115,35 @@ import PanelHead from '../../components/PanelHead.astro';
         </div>
       </div>
 
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Five metronomes, one bad moment</h2>
+          <div class="sbody">
+            <p>
+              Tapping a tempo over a running metronome used to tear it: every tap
+              re-anchored the tick grid mid-lookahead, and the pendulum recomputed its
+              swing against the new tempo. The fix was chosen from a sheet of five
+              working metronomes, each running the real engine with a different policy
+              for the same moment. The first is the bug, kept honest; the others turn
+              at the next beat, at the next bar, hand the beat to the tapping hand, or
+              stop. Sound on — start one and tap a faster tempo over it.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <figure class="embed c1-12" style="margin-top:var(--unit)">
+          <div class="esrc">
+            <a href="/demo/metrotuner-tap/index.html" target="_blank" rel="noopener">open the proof sheet full-screen</a>
+          </div>
+          <div class="embed-frame">
+            <iframe src="/demo/metrotuner-tap/index.html" title="Five working metronomes, each with a different tap-while-running policy" loading="lazy"></iframe>
+          </div>
+          <figcaption>Each option clicks and swings for real. The second, where the tempo
+            turns at the next beat, is what shipped.</figcaption>
+        </figure>
+      </div>
+
       <!-- TYPE B close: the facts colophon, read after the work. -->
       <div class="grid sect">
         <div class="c1-12 colo">

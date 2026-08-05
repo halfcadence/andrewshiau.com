@@ -98,3 +98,32 @@ test('settings persist across a reload', async ({ page }) => {
   await expect(page.getByTestId('bpm')).toHaveValue('144');
   await expect(page.locator('#mt-beats-seg button[data-beats="5"]')).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('tapping while running retimes at the next beat — no grid tear', async ({ page }) => {
+  await page.goto('/metrotuner/?e2e');
+  await page.getByTestId('bpm').fill('120');
+  await page.getByTestId('bpm').blur();
+  await page.getByTestId('metro-toggle').click();
+  await page.waitForTimeout(1200);
+  // tap ~150 bpm over the running click
+  for (let i = 0; i < 4; i++) {
+    await page.getByTestId('tap').dispatchEvent('pointerdown');
+    await page.waitForTimeout(400);
+  }
+  await page.waitForTimeout(1500);
+  await page.getByTestId('metro-toggle').click();
+
+  // the field shows the tapped tempo (the engine adopted it on a beat)
+  const bpm = Number(await page.getByTestId('bpm').inputValue());
+  expect(bpm).toBeGreaterThan(130);
+  expect(bpm).toBeLessThan(170);
+
+  // the tick grid never tore: times strictly increase and no n repeats —
+  // the naive retime scheduled overlapping ticks, which shows up here as
+  // duplicates and time regressions.
+  const ticks: Array<{ time: number; n: number }> =
+    await page.evaluate(() => (window as any).__mt.ticks);
+  for (let i = 1; i < ticks.length; i++) {
+    expect(ticks[i].time).toBeGreaterThan(ticks[i - 1].time);
+  }
+});
