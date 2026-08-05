@@ -128,7 +128,51 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     ['the meter digits keep their tap target', 'min-height:36px'],
     ['the figure is placed on the figure row', 'grid-row:figure'],
     ['the control rows align to the row start', 'align-self:start'],
+    // ADDED after the THIRD occurrence, which this list missed. The ⌥G column overlay
+    // shipped to production drawing nothing for a day: an orphaned `*/` in the comment
+    // above `.mt-half::after` ate the whole rule, and every check above passed — the sheet
+    // was 12kB, brace-balanced, comment-free, and the four declarations named above were
+    // all present, because none of them lived in the rule that died.
+    ['the case draws its own columns', '--mt-track'],
+    ['the parent draws the rows', 'repeating-linear-gradient'],
   ])('keeps the declaration that carries %s (%s)', (_label, decl) => {
     expect(css).toContain(decl);
+  });
+
+  // ── THE CLASS, NOT THE INSTANCES. Three times now a stray `*/` has eaten a rule, and
+  // three times the fix was to add that rule's declaration to the list above — which only
+  // ever catches the failure that already shipped. This checks the CAUSE instead, in the
+  // SOURCE, so a fourth one fails before a build is even produced.
+  // Why the built sheet cannot answer it: lightningcss strips comments entirely, so by the
+  // time the CSS is minified the evidence is gone — the only trace is a rule that silently
+  // is not there. The source is where the imbalance is visible.
+  it('has balanced CSS comments in the source, per style block', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(join(process.cwd(), 'src/pages/practice-room.astro'), 'utf8');
+    const blocks = [...src.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+    expect(blocks.length, 'expected at least one <style> block').toBeGreaterThan(0);
+
+    blocks.forEach((block, i) => {
+      let depth = 0;
+      let k = 0;
+      const problems: string[] = [];
+      while (k < block.length - 1) {
+        const two = block.slice(k, k + 2);
+        if (two === '/*') {
+          // A nested opener is also a bug: `/* … /* … */` closes early and leaves the tail
+          // as CSS content, which is the same failure wearing a different hat.
+          if (depth > 0) problems.push(`nested /* at line ${block.slice(0, k).split('\n').length}`);
+          depth++; k += 2; continue;
+        }
+        if (two === '*/') {
+          if (depth === 0) problems.push(`orphan */ at line ${block.slice(0, k).split('\n').length}`);
+          else depth--;
+          k += 2; continue;
+        }
+        k++;
+      }
+      if (depth > 0) problems.push('unterminated /* at end of block');
+      expect(problems, `style block ${i + 1}: ${problems.join(', ')}`).toEqual([]);
+    });
   });
 });
