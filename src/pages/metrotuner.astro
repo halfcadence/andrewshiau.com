@@ -358,38 +358,147 @@ import Layout from '../layouts/Layout.astro';
 </style>
 
 <style>
-  #mt-app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+  /* THE HEIGHT IS SNAPPED TO THE LEADING (grid pass, 2026-08-05). `100dvh` is whatever
+     the window happens to be, and a screen whose height is not a multiple of --lead
+     cannot put its rows on a 28px ladder — the remainder has to go somewhere, and
+     wherever it goes is off-grid. So the screen takes the largest whole number of leads
+     that fits and leaves the <=27px remainder as paper at the foot, where it is paper on
+     paper and reads as nothing.
+     This is what makes the rest exact: the ladder below is stated in leads and the
+     padding is 2+1 leads, so once the HEIGHT is a whole number of leads the flexible
+     figure row is one too, by subtraction. Measured at 1440x900: 900 -> 896 = 32 leads.
+     The bare `100dvh` first is the fallback for anything without `round()` (Chrome 125,
+     Safari 15.4, Firefox 118) — those get today's unsnapped screen rather than no
+     height at all. */
+  #mt-app{height:100dvh;height:round(down, 100dvh, var(--lead));
+    display:flex;flex-direction:column;overflow:hidden}
 
   /* THE CASES (chooser metrotuner-pendulum, Q2/01): each instrument in a square
      hairline case, its name interrupting the top frame like an engraved plate —
      sanctioned by the embed-frame argument: inside is a machine. THE FOOT LINE
      (Q3/01): controls in a line along the case's bottom edge; the figure alone owns
      the middle. */
-  .mt-pages{flex:1;min-height:0;display:flex;gap:var(--group);
-    padding:var(--group) var(--group) var(--lead);position:relative}
+  /* == ONE LADDER FOR BOTH CASES (grid pass, 2026-08-05) =====================
+     THE DEFECT, measured on the built page at 1440x900 before this change: the two
+     `start` buttons sat 7.50px apart vertically (user: "the start uui on metronome and
+     tuner are not veritcally aligned"), the two figures' pivots 48.50px apart, the two
+     foot lines 29.00px apart. At 1024x700 the same three were 28.00, 84.00 and 29.00.
+     THE MECHANISM, which is why a nudge was not the fix: each `.mt-half` was an
+     INDEPENDENT column flex whose `.mt-mid{flex:1}` absorbed whatever height that case's
+     other rows left over. The tuner's non-mid rows total 125px (45 spec + 52 foot + 28
+     hint) and the metronome's 110px (57 + 53), so the two middles were different heights
+     and each centred its own contents in its own leftover. Every alignment between the
+     two instruments was an accident of how tall the other rows happened to be — nothing
+     in the CSS related the tuner's transport to the metronome's, so nothing held them
+     together when either side's content changed. Which is what happens at 1024, where
+     the metronome's meters wrap and the gap trebles.
+     THE FIX: this element is the grid, with a NAMED ROW LADDER stated in leads, and both
+     cases are `grid-template-rows:subgrid` on it — a row is one row across the whole
+     screen, so the two instruments cannot disagree about where it is. `.mt-mid` is a
+     nested subgrid for the same reason: figure, readout and transport are rows on the
+     same ladder rather than three items centred in a leftover.
+     THE HEIGHTS ARE DERIVED. `spec` is 2 leads because the metronome's beats meter
+     measures 43px of ink (2 leads); `read`, `transport`, `foot` and `hint` are 1 lead
+     each (19px of ink apiece); `figure` takes the rest, and with the screen snapped to a
+     whole number of leads above it resolves to one too.
+     BOTH CASES DECLARE EVERY ROW, including the ones they don't fill: the metronome has
+     no readout and no hint line, and those rows stay empty on its side. That is the
+     point — the empty modules are what hold the alignment (designer.md: "the empty
+     modules are the composition"). It also retires the tuner's reserved-line hack. */
+  .mt-pages{flex:1;min-height:0;position:relative;
+    display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));
+    column-gap:var(--group);
+    padding:var(--group) var(--group) var(--lead);
+    grid-template-rows:
+      [case-top]  var(--lead)           /* the case's own top air */
+      [spec]      calc(var(--lead) * 2) /* a4 | beats + subdivide */
+      [figure]    minmax(0, 1fr)        /* the instrument; everything else is fixed */
+      [read]      var(--lead)           /* the tuner's reading; empty on the metronome */
+      [transport] var(--lead)           /* the bare verb — THE REPORTED ROW */
+      [foot]      var(--lead)           /* played controls: tone/ref | bpm/tap */
+      [hint]      var(--lead)           /* errors; empty on the metronome */
+      [case-bot]  var(--lead)           /* the case's own bottom air */
+      [case-end]}
   /* The desktop MAIN grid (⌥G): 12 columns over the screen the two cases
      compose on. Drawn to the padding box so the cases' outer edges land on
      column edges; the per-case overlays draw their own 12 inside. */
+  /* THE ROWS ARE DRAWN HERE, from the origin the ladder actually starts at, so the
+     overlay describes the ladder that exists. This is the honesty fix: the rows used to
+     be drawn per case from each case's own content-box top, and NOTHING landed on them
+     (measured: the tuner's rows missed by 1.00, 10.00, 9.50, 2.50, 2.50, 5.00, 3.00px,
+     and the two cases' ladders were 12px out of phase with each other). The instrument
+     by which the grid was judged was itself off-grid. */
   .mt-pages::before{content:"";position:absolute;inset:var(--group) var(--group) var(--lead);
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    background:repeating-linear-gradient(to right,
-      color-mix(in srgb, var(--accent) 14%, transparent) 0 1px, transparent 1px calc(100% / 12))}
-  @media (max-width: 900px){ .mt-pages::before{display:none} }
+    background:
+      repeating-linear-gradient(to bottom,
+        color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead)),
+      repeating-linear-gradient(to right,
+        color-mix(in srgb, var(--accent) 14%, transparent) 0 1px, transparent 1px calc(100% / 12))}
+  /* ON THE PHONE the overlay keeps the ROWS and drops the columns: the rows are what the
+     two swipe pages share, while "12 columns" across a two-viewport-wide scroller
+     describes nothing — at that width the pages are not two halves of one composition.
+     `inset:0` because the scroller's padding is 0 there, and an absolutely-positioned
+     ::before inside a scroll container is laid out against the scrollable padding box, so
+     it travels with the pages instead of staying stuck over page 1. */
+  @media (max-width: 900px){
+    .mt-pages::before{inset:0;
+      background:repeating-linear-gradient(to bottom,
+        color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead))}
+  }
   /* THE HAIRLINE (chooser metrotuner-reactive, Q1/02): 1px --line — the embed
      frame's own weight, the weakest mark the system has. The case is not
      interactive, so it must be the quietest line on the screen; at 1.5px ink it was
      tying with the pendulum's own stroke. Near-invisible in dark is the point. */
-  .mt-half{flex:1 1 50%;min-width:0;position:relative;
+  /* THE CASE SPANS THE WHOLE LADDER and inherits it, so its rows ARE the screen's rows.
+     The flex column and `justify-content:flex-end` are gone with it — a row's position is
+     stated once, on the parent, instead of falling out of how tall its siblings are.
+     THE VERTICAL PADDING IS GONE, and that is the substantive part: padding on a subgrid
+     item does NOT move the inherited row lines (verified by probe — with and without
+     vertical padding every interior row's y is identical to 0.00px), so keeping it would
+     have pushed content off the very ladder it inherited. The air is now the `case-top`
+     and `case-bot` ROWS — the same 28px, held by the grid where the composition can see
+     it. Horizontal padding stays: it insets content from the hairline on the axis the
+     ladder says nothing about.
+     THE COLUMN AXIS IS DECLARED, one column, and that is a fix not a formality: with rows
+     named and columns left to `auto`, grid auto-placement is free to INVENT an implicit
+     second column, and it did — measured, the case computed `grid-template-columns:
+     414px 164px` and the metronome's foot line was placed in the second one, 414px to the
+     right of everything else, which forced its spec row to wrap. One explicit column
+     means every row spans the case's whole content width and nothing can be placed
+     beside anything. (The twelve columns are what content aligns to INSIDE a row — the
+     figure's six — not tracks these rows sit in.) */
+  .mt-half{min-width:0;position:relative;
     border:1px solid var(--line);
-    display:flex;flex-direction:column;justify-content:flex-end;gap:0;
-    padding:var(--lead) var(--gutter)}
+    grid-row:case-top / case-end;
+    display:grid;grid-template-rows:subgrid;
+    grid-template-columns:minmax(0, 1fr);
+    padding:0 var(--gutter)}
   .mt-plate{position:absolute;top:-14px;left:24px;background:var(--paper);
     padding:0 1ch;color:var(--faint)}
-  .mt-mid{flex:1;min-height:0;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:var(--lead);cursor:pointer}
+  /* THE MIDDLE IS THREE ROWS, not a centred leftover. It spans figure -> read ->
+     transport and passes the ladder through, so the tuner's readout and BOTH transports
+     sit on rows the other case also has. The figure centres itself INSIDE its own row,
+     which is the one place centring is still right: a 184px drawing in a taller row is a
+     figure in a module, not a row whose height nobody stated.
+     `cursor:pointer` stays — the middle is the start/stop click target — and it now
+     covers exactly the three rows the instrument occupies rather than all the slack.
+     THE SPAN ENDS AT `foot`, NOT `hint` — an off-by-one that mattered: `figure / hint`
+     includes the `foot` track, so `.mt-mid` and `.mt-cfoot` both claimed it, and grid
+     resolved the collision by inventing an implicit column for the foot line. Ending the
+     span at the `foot` LINE gives it exactly figure + read + transport, the three rows it
+     draws. Found by reading the placement off the built page, not from the source. */
+  .mt-mid{grid-row:figure / foot;display:grid;grid-template-rows:subgrid;
+    grid-template-columns:minmax(0, 1fr);
+    min-height:0;cursor:pointer}
   /* THE CAPTION (transport-placement Q1/05): the transport under the figure it
      drives, centred — the figure supplies the noun, the caption is the verb. */
-  .mt-cap{display:flex;justify-content:center}
+  /* IT IS THE `transport` ROW, on both cases — the one the user's report named. The
+     44px button is taller than the 28px row, so it is placed by its BASELINE and allowed
+     to overhang the row's box symmetrically: the tap target keeps its full 44px while the
+     WORD, which is what the eye aligns, sits on the row. No height is shrunk anywhere —
+     WCAG 2.5.5 is untouched. */
+  .mt-cap{grid-row:transport;display:flex;justify-content:center;align-self:center}
   /* A foot line: left group flush left, right group flush right, one baseline.
      The top line is the same device at the case's other edge (user nit 2): spec
      controls up top, played controls at the foot. */
@@ -398,10 +507,60 @@ import Layout from '../layouts/Layout.astro';
      baseline, and every composite control is built so its first-baseline IS its
      text's: the meters put the digits first (a column flex baselines on its
      first item), the latches align their track to the baseline (below). */
-  .mt-cfoot, .mt-ctop{flex:none;display:flex;align-items:baseline;justify-content:space-between;
-    gap:var(--lead) 4ch;flex-wrap:wrap}
+  /* Each control line is a ROW of the ladder. `flex-wrap` stays — a narrow case must
+     still wrap rather than overflow — but a wrap no longer moves anything in the OTHER
+     case, which is what made 1024px three times worse than 1440 (the metronome's meters
+     wrapped, its middle shrank, and the two instruments slid 84px apart). A wrapped row
+     overflows its own row box into the figure's slack instead. */
+  .mt-ctop{grid-row:spec}
+  .mt-cfoot{grid-row:foot}
+  .mt-cfoot, .mt-ctop{display:flex;align-items:baseline;justify-content:space-between;
+    align-self:start;gap:var(--lead) 4ch;flex-wrap:wrap}
+  /* WHY `start` AND NOT `center`. Both control rows are taller than their lead (45px and
+     57px of 44px targets), so how they sit in the row decides whether the two cases' TEXT
+     agrees. Centring two boxes of different heights in the same row puts their type in
+     different places by half the height difference — measured, that was the residual
+     6.50px between `a4` and the beats digits after the ladder landed. Aligned to the row's
+     start, and with each composite control's first baseline made its text's (the three
+     rules below), the two rows' first baselines are identical: measured 0.00 at 1440,
+     1240 and 1024. The rows keep their full height and overhang downward into the
+     figure's slack, so no tap target shrinks — all four are still 44px. */
   .mt-fl{display:inline-flex;align-items:baseline;gap:2ch;flex-wrap:wrap}
   .mt-fr{display:inline-flex;align-items:baseline;gap:2ch;flex-wrap:wrap}
+
+  /* ── THE SPEC ROW'S OWN BREAKPOINT, DERIVED (grid pass, 2026-08-05) ─────────
+     The metronome's spec row holds two meters — `beats 1-7` and `subdivide 1-7` — flush to
+     opposite ends of the case. Measured: they need 203px and 239px of ink plus the row's
+     4ch (36px) gap = 478px, and the case's content box is exactly 478px when the viewport
+     is 1240. Below that the row wraps, the second meter drops a line, and the case's spec
+     content becomes 128px tall inside a 56px row.
+     That wrap is not a defect on its own — a row too narrow for its contents SHOULD wrap
+     rather than overflow — but under the old layout it also dragged the whole instrument
+     with it, which is how the 7.50px transport gap at 1440 became 28.00px at 1024. On the
+     ladder the wrap is contained: the row overhangs into the figure's slack and the rows
+     below it do not move (verified: START stays 0.00 at 1100, 1024, 940 and 901). So what
+     is left to fix is only the row's own height, and it is fixed by STATING the width the
+     row cannot hold both meters at, instead of leaving it to be discovered.
+     1240 IS MEASURED, NOT CHOSEN — it is the width at which 478px of meters meets a 478px
+     case, the same way STYLE.md's 1060 is the width at which `--label` meets its longest
+     label. Above it, one line; below it, the spec row is two leads taller and the meters
+     stack flush left, which is what they do at phone width anyway. The ladder's `spec` row
+     grows with them so the figure's slack is not silently eaten. */
+  @media (max-width: 1240px) and (min-width: 901px){
+    .mt-pages{grid-template-rows:
+      [case-top]  var(--lead)
+      [spec]      calc(var(--lead) * 4)  /* two stacked meters, two leads each */
+      [figure]    minmax(0, 1fr)
+      [read]      var(--lead)
+      [transport] var(--lead)
+      [foot]      var(--lead)
+      [hint]      var(--lead)
+      [case-bot]  var(--lead)
+      [case-end]}
+    /* Stacked, both meters read from the same left edge — `space-between` on a wrapped
+       row would push the second one right and the two scales would not line up. */
+    .mt-ctop{justify-content:flex-start;flex-direction:column;gap:0}
+  }
 
   /* THE STRING (user nit 2): circles joined by trimmed rules — o-o-o-o-o-o-o, the
      mark's own vocabulary at meter scale. Click the Nth circle and the string fills
@@ -438,8 +597,16 @@ import Layout from '../layouts/Layout.astro';
      is deliberate: a 44px box centred on the digit 1 would overlap the digit 2 button
      beside it and swallow clicks meant for the meter. The 140px rule below is the
      large target for touch; this one is the precise one for a pointer, and between
-     them the state has both. Verified by hit-testing both, and the digits. */
-  .rm-accbtn{position:absolute;left:0;top:0;z-index:1;
+     them the state has both. Verified by hit-testing both, and the digits.
+     `top:-8px`, NOT 0 (grid pass, 2026-08-05). The mark used to ride inside 8px of top
+     padding on `.rbtn`, and that padding was the last thing holding the beats meter off
+     the ladder: it pushed the DIGITS 8px down in flow, so the metronome's type sat below
+     the tuner's while both rows started on the same row line. The padding is gone from
+     `.rbtn` (see below) and the reservation moves here instead — the mark is already out
+     of flow, so it can hold its own space without costing the digits any. The ink lands
+     where the measured geometry above put it: verified, the mark still clears the digits'
+     top edge by 0px (touching, not overlapping) and sits 20px inside the case. */
+  .rm-accbtn{position:absolute;left:0;top:-8px;z-index:1;
     background:transparent;border:0;border-radius:0;cursor:pointer;
     padding:8px;margin:-8px;display:block;line-height:0}
   .rm-accbtn:focus-visible{outline:1px solid var(--accent);outline-offset:1px}
@@ -473,7 +640,14 @@ import Layout from '../layouts/Layout.astro';
                stroke-width var(--dur-fast) var(--ease)}
   .rm-acc.on{fill:var(--ink);stroke-width:1}
   .rm-digits{display:inline-flex}
-  .rbtn{font:inherit;background:transparent;border:0;padding:8px 0 0;margin:0;
+  /* THE 8px TOP PADDING IS GONE (grid pass): it existed to make room for the accent mark
+     above the digits, but the mark is absolutely positioned, so the padding was reserving
+     space for something that never occupied it — and it pushed the digits 8px down in
+     flow, which is what kept the metronome's type below the tuner's after both rows landed
+     on the same ladder. The reservation moved to `.rm-accbtn`'s `top:-8px`.
+     `min-height:36px` STAYS. It is the digit's tap target, not its spacing, and dropping
+     it would take the meter's buttons under the 44px this page holds everywhere else. */
+  .rbtn{font:inherit;background:transparent;border:0;padding:0;margin:0;
     border-radius:0;cursor:pointer;color:var(--faint);width:20px;min-height:36px;
     text-align:left;transition:color var(--dur-fast) var(--ease)}
   .rbtn.on{color:var(--ink)}
@@ -506,21 +680,41 @@ import Layout from '../layouts/Layout.astro';
      them would be a frame in a frame. The plate goes with it; the page dots name
      the pages. */
   @media (max-width: 900px){
+    /* THE SNAP SCROLLER, ON THE SAME LADDER. What changes from the desktop case is only
+       the COLUMN axis — each page is a full viewport wide, so the two columns become two
+       100%-wide ones and the gap goes. `grid-auto-flow:column` is NOT used: the rows are
+       named and inherited, so the cases must be explicit columns or one would flow into
+       the row below its neighbour. The ROW ladder is untouched, which is the point — the
+       two instruments hold identical row positions on the phone too, so swiping between
+       them moves nothing vertically. Measured before: a swipe moved the transport 28px
+       and the figure 84px, so the two pages read as two different layouts. */
     .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-      gap:0;padding:0}
+      grid-template-columns:repeat(2, 100%);column-gap:0;padding:0}
     .mt-pages::-webkit-scrollbar{display:none}
     /* THE CASE STAYS ON THE PHONE (round16, reversing the round-7 mobile rule):
        the hairline box reads as the instrument's identity, so each page draws
        its frame INSET via ::before (the snap pages themselves must stay
        full-width and border-free or the scroller's geometry shifts). The plate
        comes back with it, centred on the frame's top edge. */
-    .mt-half{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;
-      border:0;padding:calc(var(--lead) + 10px) var(--gutter)}
-    .mt-half::before{content:"";position:absolute;inset:14px 12px;
+    /* THE FRAME'S INSET IS ONE LEAD ON EVERY SIDE. It was `inset:14px 12px` — two
+       numbers on no grid and not even equal to each other — against content padding of
+       `calc(var(--lead) + 10px) var(--gutter)` (another off-grid 10px), so the content's
+       clearance from the frame it sits in was 24px at the top and 16px at the sides: a
+       frame whose margins disagreed with themselves. At one lead the frame is a row of
+       the ladder in from the viewport edge, and content clears it by exactly the
+       `case-top` row above and `--gutter` beside — both stated, both on grid.
+       The vertical padding goes for the same reason as on the desktop case: padding
+       cannot move an inherited row line, so the air must be rows, and it is. */
+    .mt-half{scroll-snap-align:start;scroll-snap-stop:always;
+      border:0;padding:0 var(--gutter)}
+    .mt-half::before{content:"";position:absolute;inset:var(--lead);
       border:1px solid var(--line);pointer-events:none}
-    .mt-plate{display:block;top:0;left:28px}
-    /* the grid overlay tracks the frame, not the page edge */
-    .mt-half::after{inset:calc(var(--lead) + 10px) var(--gutter)}
+    .mt-plate{display:block;top:calc(var(--lead) - 14px);
+      left:calc(var(--lead) + var(--gutter) - 1ch)}
+    /* The per-case overlay is DELETED on the phone rather than re-inset: the parent draws
+       the rows, so a second grid over one case would be the two-grids-at-once problem
+       this pass exists to remove. */
+    .mt-half::after{display:none}
   }
 
   /* THE GRID (round16, user ask: "is there an internal grid system we can press
@@ -528,17 +722,43 @@ import Layout from '../layouts/Layout.astro';
      toggled with the G key. The overlay draws the grid the case claims: columns
      across the padding box's content, rows on --lead. It is diagnostic chrome —
      accent at low opacity, pointer-events:none, session-only. */
-  .mt-half::after{content:"";position:absolute;inset:var(--lead) var(--gutter);
+  /* The case draws its own COLUMNS; the parent draws the ROWS.
+     THE ROWS ARE GONE FROM HERE, and that is a correction not a simplification — see the
+     numbers on `.mt-pages::before`. There is one row ladder now, on the parent, and it is
+     the one the content is placed on.
+     THE COLUMNS ARE DRAWN AS TRACKS AND GUTTERS, not as a band every 100%/12. A repeating
+     gradient at `100%/12` marks twelve equal slices with no gutters in them, so it can
+     never show where a 6-column figure with 5 interior gutters ends — it was drawing a
+     grid the CSS could not use. Now the paint is the real thing: a `--gutter`-wide gap
+     between twelve `--mt-track` columns, so a span's edges are visibly track edges. */
+  .mt-half::after{content:"";position:absolute;inset:0 var(--gutter);
+    --mt-track:calc((100% - var(--gutter) * 11) / 12);
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    background:
-      repeating-linear-gradient(to bottom,
-        color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead)),
-      repeating-linear-gradient(to right,
-        color-mix(in srgb, var(--accent) 30%, transparent) 0 1px, transparent 1px calc(100% / 12));
-    background-clip:content-box}
+    background:repeating-linear-gradient(to right,
+      color-mix(in srgb, var(--accent) 12%, transparent) 0 var(--mt-track),
+      transparent var(--mt-track) calc(var(--mt-track) + var(--gutter)))}
 
 
-  .mt-gauge{width:min(320px,80vw);margin:0}
+  /* == THE FIGURE'S WIDTH IS SIX COLUMNS, NOT 320px ==========================
+     It was `min(320px,80vw)` — a number measured against nothing on this screen — which
+     is the bug class STYLE.md records for `--label` (16ch = 144px against a column-3 edge
+     at 182px): a fixed width inside a fluid case lands on a column edge at no width at
+     all. Measured before: at 1440 the gauge spanned the case's columns 2.68 -> 9.32, i.e.
+     15.50px inside a band edge on each side, and the readout shared the error.
+     Now it is stated in the grid it sits in: SIX of the case's twelve columns, centred.
+     `--mt-track` is derived exactly as STYLE.md derives the document's `--track` (n
+     columns and n-1 gutters share the content width). Six because at the measure it is
+     the closest whole span to the 320px the drawing was designed at: 6 columns of a
+     636px case = 292px against 320, so the figure is ~9% smaller on a wide screen and
+     lands on band edges at EVERY width instead of one.
+     THE FLOOR is why `max` is here: at phone widths six columns is under 200px and the
+     pendulum needs its swing to read, so `min(100%, ...)` degrades it to "as wide as it
+     can be" rather than "too small to read". The drawing is untouched — same viewBox. */
+  .mt-gauge{--mt-cols:6;
+    --mt-track:calc((100% - var(--gutter) * 11) / 12);
+    --mt-figw:calc(var(--mt-track) * var(--mt-cols) + var(--gutter) * (var(--mt-cols) - 1));
+    width:min(100%, max(var(--mt-figw), 240px));
+    margin:0;grid-row:figure;align-self:center;justify-self:center}
   .mt-gauge svg{display:block;width:100%;height:auto;color:var(--ink)}
   #mt-needle{transform-origin:160px 160px;transform-box:view-box;
     transition:transform var(--dur) var(--ease),color var(--dur) var(--ease)}
@@ -551,7 +771,14 @@ import Layout from '../layouts/Layout.astro';
   #mt-pend.live{color:var(--ink)}
   #mt-tickL, #mt-tickR{transition:stroke-width var(--dur-fast) var(--ease)}
 
-  .mt-read{display:flex;align-items:baseline;gap:2ch;width:min(320px,80vw)}
+  /* The readout is the figure's own width, so the note under the dial's left end and the
+     Hz under its right end line up with the drawing above them. It is the `read` row,
+     which the METRONOME also has and leaves empty — that empty row is what puts the two
+     transports on one line. */
+  .mt-read{grid-row:read;align-self:center;justify-self:center;
+    --mt-track:calc((100% - var(--gutter) * 11) / 12);
+    width:min(100%, max(calc(var(--mt-track) * 6 + var(--gutter) * 5), 240px));
+    display:flex;align-items:baseline;gap:2ch}
   .mt-read .ends{flex:1}
   /* IN TUNE is the invert (round-1 pick Q2/02): selection colours on the reading.
      The padding is carved out of the margin so the text never moves. */
@@ -563,7 +790,13 @@ import Layout from '../layouts/Layout.astro';
 
   .mt-row{display:flex;align-items:center;gap:3ch;flex-wrap:wrap}
   .mt-hint{color:var(--faint)}
-  .mt-hintline{flex:none;min-height:28px;margin-top:2px}
+  /* THE RESERVED LINE IS A ROW NOW, and the hack it replaces is deleted. It was
+     `min-height:28px;margin-top:2px` — the min-height reserved the line so swapping the
+     error text couldn't reflow the foot (annotation: "hate how the layout changes when
+     starting/stopping"), and the 2px was an off-grid margin of exactly the kind STYLE.md
+     forbids ("No off-grid margins like 17px"). A row on the ladder reserves the line by
+     existing, in both cases, so neither the declaration nor the 2px is needed. */
+  .mt-hintline{grid-row:hint;align-self:center}
   .mt-lb{color:var(--faint)}
 
   .mt-refnote{color:var(--ink);min-width:4ch;text-align:center;display:inline-block}
@@ -589,7 +822,13 @@ import Layout from '../layouts/Layout.astro';
      track (an svg whose baseline is its bottom edge) is nudged 2px down to sit
      optically centred on the x-height. align-items:center made every latch's
      baseline the svg's bottom edge — "bpm" and "tap" drifting apart was this. */
-  .tbtn.latch, .tbtn.mom{display:inline-flex;align-items:baseline;gap:1ch}
+  /* ONE RULE FOR ALL THREE KINDS (grid pass). This was `.tbtn.latch, .tbtn.mom` — the
+     latch and the momentary got baseline alignment and `.tbtn.scrubv` (the reference note)
+     did not, so the ref note's baseline sat 3.50px off `play tone`'s beside it in the same
+     row. Every `.tbtn` is a word, optionally with a track before it, and every one of them
+     should report its WORD's baseline; naming two of the three kinds was the bug. The
+     `gap:1ch` is harmless on `.scrubv`, which has no track to separate. */
+  .tbtn{display:inline-flex;align-items:baseline;gap:1ch}
   .tbtn .tk{flex:none;display:block;overflow:visible;transform:translateY(2px)}
   .latch .tk .run{stroke:var(--line);stroke-width:1}
   .latch .tk .pk{fill:none;stroke:var(--faint);stroke-width:1.2}
@@ -663,7 +902,14 @@ import Layout from '../layouts/Layout.astro';
      in a monospace face); the track and the gap sit outside the reservation. */
   .tbtn.fixw .w{display:inline-block;min-width:var(--w);text-align:left}
 
-  .mt-a4, .mt-bpm{display:inline-flex;align-items:center;gap:1ch}
+  /* BASELINE, NOT CENTRE (grid pass). These groups hold a 15px unit label beside a 16px
+     input (`.f input` is 16px, forced by iOS Safari's focus zoom), and `align-items:center`
+     made the GROUP's first baseline the taller input's — so the a4 row's type sat 4px
+     below the beats meter's even once both rows were on the same ladder. On `baseline` the
+     label and the numeral share one baseline and the group reports it as its own, which is
+     the rule this file already states for every other composite control ("ONE BASELINE PER
+     ROW"). The two were the exceptions to it. */
+  .mt-a4, .mt-bpm{display:inline-flex;align-items:baseline;gap:1ch}
   .mt-a4 input, .mt-bpm input{flex:0 0 auto;width:6ch;text-align:center;
     -moz-appearance:textfield;appearance:textfield}
   .mt-a4 input::-webkit-outer-spin-button, .mt-a4 input::-webkit-inner-spin-button,
@@ -730,12 +976,18 @@ import Layout from '../layouts/Layout.astro';
   // A scrub that updates the field but not the value would otherwise pass.
   const hook: { ticks: Tick[]; reading: unknown; toneHz: number | null;
                 sounds: { at: number; voice: string }[];
+                // Every reading the tuner PAINTED, stamped on the audio clock. The bleed
+                // test's core assertion is an exact invariant rather than a statistic:
+                // no paint may fall inside a span the speaker was sounding in. That holds
+                // whatever frequency the click smears to, which a note-name assertion
+                // does not — a real mic's noise floor moves the click 25-46 cents.
+                renders: { at: number; note: string }[];
                 bleed: GainNode | null; gated: number;
                 readonly a4: number; readonly bpm: number;
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
-    ticks: [], reading: null, toneHz: null, sounds: [],
+    ticks: [], reading: null, toneHz: null, sounds: [], renders: [],
     // THE ROOM, for the bleed test. Headless Chrome's fake microphone plays a WAV; it
     // cannot hear the page's speaker, so the acoustic path that causes the bug does
     // not exist in CI. Set `bleed` to a GainNode and every ping() also routes into it
@@ -892,32 +1144,39 @@ import Layout from '../layouts/Layout.astro';
   // it never clears, because returning the dash needs six consecutive silent frames
   // and a beat at 140 leaves five. The instrument reads as broken while it clicks.
   //
-  // The page knows what its own speaker is doing, so the gate is a CONJUNCTION of the
-  // two facts it holds: the analyser's window overlaps a click THIS PAGE scheduled,
-  // AND the frequency just detected is that click's. Either half alone is wrong — a
-  // time-only gate blinds the tuner at 200 bpm with subdivisions, where the blocked
-  // span (click + room tail + one analyser window) is longer than the gap between
-  // ticks; a frequency-only notch would refuse to tune a real G5 forever.
+  // The page knows what its own speaker is doing, so the gate is TIME: drop any read
+  // whose analyser window overlaps a click this page scheduled.
   //
-  // The cost, stated because it is real: a note within 30 cents of 784, 1046.5 or
-  // 1568 Hz can't be read while the metronome runs. Detuning the click voices off the
-  // note grid would remove even that, except the grid MOVES with the calibration — a
-  // frequency sitting between notes at a4=440 is a note at a4=453 — so no fixed click
-  // frequency is never a note. The gate is the mechanism; the notch isn't.
+  // The first version of this also required the detected frequency to be within 30
+  // cents of that click's, on the theory that a time-only gate throws away good frames.
+  // The frequency half was WRONG, and testing the deployed page is what caught it — the
+  // live tuner still printed G♯5 (816 Hz) and C4 (261 Hz) with the metronome running,
+  // 51 cents and an octave-and-a-half off any click voice. Measured on synthesized
+  // buffers afterwards: with ANY other content in the window — a hum, a room tone, the
+  // string still ringing — a click reads as a smear up to 978 cents off its own
+  // frequency, or as a subharmonic (f/2, f/3, f/4; C4 is 784/3). The mix moves the
+  // period the NSDF locks onto, so there is no cents window that contains the answer.
+  // A gate that must guess the frequency cannot work; the TIME is exact.
+  //
+  // The cost, stated because it is real: while the metronome runs the tuner is blind for
+  // ~150ms per tick (click 90ms + room tail 60ms, plus the analyser window that overlaps
+  // it). At 120bpm with no subdivisions that is a third of the frames; the remaining two
+  // thirds are 5+ reads a second, and a held note updates continuously. The honest limit
+  // is fast subdivisions: at 200bpm in sixteenths a tick sounds every 75ms and the gate
+  // covers everything, so the readout HOLDS its last value rather than tracking. That is
+  // why a gated frame renders nothing instead of showing silence — holding the last real
+  // reading is the correct failure, and a musician tuning against a click that fast is
+  // not reading cents off the screen anyway.
   const BLEED_TAIL = 0.06;    // seconds of room after the click's own envelope ends
-  const BLEED_CENTS = 30;     // measured: a click-locked reading lands within 20 cents
 
   // What the speaker is sounding, by audio-clock span. ping() fills it; a cancelled
   // lookahead click must be removed, or it gates a window it never sounded in.
-  const sounding: { from: number; to: number; freq: number }[] = [];
+  const sounding: { from: number; to: number }[] = [];
 
-  function ownClick(freq: number, now: number, sampleRate: number): boolean {
+  function ownClick(now: number, sampleRate: number): boolean {
     const winFrom = now - buf.length / sampleRate;
     while (sounding.length && sounding[0].to < winFrom) sounding.shift();
-    for (const s of sounding) {
-      if (s.from > now || s.to < winFrom) continue;              // no overlap
-      if (Math.abs(1200 * Math.log2(freq / s.freq)) <= BLEED_CENTS) return true;
-    }
+    for (const s of sounding) if (s.from <= now && s.to >= winFrom) return true;
     return false;
   }
 
@@ -935,7 +1194,11 @@ import Layout from '../layouts/Layout.astro';
     needle.classList.remove('rest');
     needle.classList.add('live');
     noteEl.classList.toggle('intune', tuned);
-    if (E2E) hook.reading = { ...r };
+    if (E2E) {
+      hook.reading = { ...r };
+      hook.renders.push({ at: audio().currentTime, note: `${r.name}${r.octave}` });
+      if (hook.renders.length > 512) hook.renders.shift();
+    }
   }
 
   function renderSilence() {
@@ -1018,7 +1281,9 @@ import Layout from '../layouts/Layout.astro';
       // as silence either (six of those and a held note flips to the dash). Nothing
       // renders, so the last real reading stands — which is what a musician wants
       // from the beat that interrupted their note.
-      if (f > 0 && ownClick(f, ac.currentTime, ac.sampleRate)) { if (E2E) hook.gated++; return; }
+      // Checked BEFORE the pitch is examined: what disqualifies the frame is when it
+      // was taken, not what it happens to say.
+      if (ownClick(ac.currentTime, ac.sampleRate)) { if (E2E) hook.gated++; return; }
       if (f > 0) {
         recent.push(f);
         if (recent.length > 5) recent.shift();
@@ -1286,7 +1551,7 @@ import Layout from '../layouts/Layout.astro';
     // Tell the tuner what the speaker is about to do, so it can disown the sound.
     // Registered here rather than in click() because EVERY ping reaches the room —
     // the scheduler's clicks, a tap's strike, the accent audition.
-    sounding.push({ from: at, to: at + v.dur + BLEED_TAIL, freq: v.freq });
+    sounding.push({ from: at, to: at + v.dur + BLEED_TAIL });
     if (sounding.length > 64) sounding.shift();
     if (E2E) { hook.sounds.push({ at, voice }); if (hook.sounds.length > 512) hook.sounds.shift(); }
     return { osc, g };
