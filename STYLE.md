@@ -596,22 +596,33 @@ classes in one costume (chooser `metrotuner-control-taxonomy`, pick 03 of 30 jud
 concepts — Rams's form-announces-operation translated, not Braun's hardware copied).
 **One moving disc everywhere; the TRACK it rides announces the operation:**
 
-- **VALUE** (bpm, A4 Hz, reference note) — the disc rides a **continuous rail**: 1px
-  `--line` run, `--faint` end ticks bounding the range, the disc at the value's
-  fraction of it. The rail is both the class mark and a read-at-distance gauge.
-  Scrub anywhere on the control (4px per unit), type as before; the disc goes accent
-  while in hand (`.scrubbing`). The reference note's rail is **vertical** — its drag is.
-- **TOGGLE** (start/stop, play tone, accent 1) — a **two-pocket track**: one disc, two
-  ring berths, 18px throw on `--dur`. Latched = the far pocket, disc in **accent** —
+- **VALUE** (bpm, A4 Hz, reference note) — the **bare numeral** (round-15 chooser,
+  Q2/06: the rails shipped and were deleted the same week — they read as imported
+  slider furniture). The number is display and control: scrub anywhere on it (4px
+  per unit; the reference note drags vertically), type as before. The affordance is
+  the resize cursor, the title, and the digits reading **accent while in hand**
+  (`.scrubbing`). The wager, stated on the sheet: a practice tool is used repeatedly,
+  so the gesture amortizes.
+- **TOGGLE** (start/stop, play tone) — a **two-pocket track**: one disc, two ring
+  berths, 18px throw on `--dur`. Latched = the far pocket, disc in **accent** —
   state reads at arm's length with no words. ONE label that swaps text (the user's
   refinement on the sheet's mock: printing both words was redundant), with the longer
   string's width reserved on the `.w` span so nothing reflows.
+  - **The accent toggle is the exception** (round-15, Q1/06 "the rule is the
+    switch"): no latch, no words — the beats rule ITSELF is the button (140px-wide
+    target). Accented = the downbeat tick stands full-height in ink and the digit
+    "1" carries weight 500; equal = a flush `--faint` stub and a plain 1. The state
+    lives in marks the meter already draws.
 - **MOMENTARY** (tap) — a **lone ring, no track**: a disc with nowhere to travel can
   only be pressed. Each strike fills it accent instantly and the fill drains over
-  300ms — the per-strike reward, and the visible proof it holds nothing.
-- **SELECTOR** (beats, subdivide) — unchanged: the ruled measure's digits ARE the
-  buttons and the rule under them is the value (grow/cut). It already announced its
-  operation; it predates and fits the grammar.
+  300ms — the per-strike reward, and the visible proof it holds nothing. Fires on
+  **press** (pointerdown), the hardware convention — measuring on release folds the
+  press's duration into the tapped intervals.
+- **SELECTOR** (beats, subdivide) — the ruled measure: digits ARE the buttons and
+  the rule under them is the value. Both rules **grow to digit N** now (round-15,
+  Q3/04 "the dashed extent" — one lesson, learned once); the texture is the
+  difference: beats' rule is solid (positions in the bar), subdivide's is cut into
+  n dashes (divisions of the beat).
 
 Scoped to the instrument: the document pages keep the link idiom — a case study is a
 text to read, the instrument is a machine to operate, and the two vocabularies must

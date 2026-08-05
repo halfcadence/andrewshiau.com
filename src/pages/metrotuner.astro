@@ -47,22 +47,16 @@ import Layout from '../layouts/Layout.astro';
              top line, opposite the engraved name — rather than a control you play. -->
         <div class="mt-ctop">
           <span class="mt-fr">
-            <!-- TRACK GRAMMAR (chooser metrotuner-control-taxonomy, 03): a VALUE
-                 rides a continuous rail — end ticks bound the range, the disc sits
-                 at the value's fraction of it. The rail is the class mark AND a
-                 read-at-distance gauge; drag anywhere on the control scrubs,
-                 typing stays. -->
+            <!-- BARE NUMERAL (chooser metrotuner-round15, Q2/06): the value rails
+                 are gone — the number is display and control. The affordance is the
+                 ew-resize cursor, the title, and the accent digits while scrubbing;
+                 the wager is a practice tool is used repeatedly, so the gesture
+                 amortizes. Drag anywhere on the control scrubs; typing stays. -->
             <span class="f mt-a4 scrubwrap" id="mt-a4-scrub" title="drag ↔ to scrub · click to type">
               <label for="mt-a4" class="mt-lb">A4</label>
               <input id="mt-a4" data-testid="a4" type="number" inputmode="decimal"
                      min="400" max="480" step="1" value="440" aria-label="A4 calibration in hertz — drag horizontally to scrub, or type" />
               <span class="mt-lb">Hz</span>
-              <svg class="vrail" width="56" height="12" viewBox="0 0 56 12" aria-hidden="true">
-                <line class="end" x1="2" y1="2.5" x2="2" y2="9.5"/>
-                <line class="end" x1="54" y1="2.5" x2="54" y2="9.5"/>
-                <line class="run" x1="2" y1="6" x2="54" y2="6"/>
-                <circle id="mt-a4-disc" cy="6" r="3"/>
-              </svg>
             </span>
           </span>
         </div>
@@ -127,12 +121,7 @@ import Layout from '../layouts/Layout.astro';
                  touch that wanders sideways. -->
             <button type="button" class="tbtn scrubv" id="mt-refnote" data-testid="refnote"
               aria-label="Reference note — click to raise, shift-click to lower, drag vertically to scrub"
-              title="click +1 · shift-click −1 · drag ↕"><span class="w">A4</span><svg class="nrail" width="12" height="18" viewBox="0 0 12 18" aria-hidden="true">
-                <line class="end" x1="2.5" y1="2" x2="9.5" y2="2"/>
-                <line class="end" x1="2.5" y1="16" x2="9.5" y2="16"/>
-                <line class="run" x1="6" y1="2" x2="6" y2="16"/>
-                <circle id="mt-ref-disc" cx="6" r="3"/>
-              </svg></button>
+              title="click +1 · shift-click −1 · drag ↕"><span class="w">A4</span></button>
           </span>
         </div>
         <!-- The hint holds ITS OWN reserved line (annotation 2026-08-04: "hate how
@@ -169,35 +158,39 @@ import Layout from '../layouts/Layout.astro';
         <div class="mt-ctop">
           <span class="mt-fl">
             <span class="mt-lb">beats</span>
+            <!-- THE RULE IS THE SWITCH (chooser metrotuner-round15, Q1/06): the
+                 "accent 1" latch is DELETED — the beats rule itself is the accent
+                 toggle. Tap the rule (a 140px-wide target): accented = the downbeat
+                 tick stands full-height in ink AND the digit "1" carries weight 500;
+                 equal = a flush faint stub and a plain 1. State lives in the marks
+                 the meter already draws; the only copy on the row is "beats". -->
             <span class="mt-rm" id="mt-beats-seg" role="group" aria-label="Beats per bar">
               <span class="rm-digits">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                   <button type="button" class="rbtn" data-beats={n} aria-pressed={n === 4 ? 'true' : 'false'} aria-label={`${n} beats per bar`}>{n}</button>
                 ))}
               </span>
-              <svg class="rm-rule" width="140" height="8" viewBox="0 0 140 8" aria-hidden="true" data-rule="grow"></svg>
+              <button type="button" class="rm-rulebtn" id="mt-accent" data-testid="accent-toggle"
+                aria-pressed="true" aria-label="Accent the first beat">
+                <svg class="rm-rule" width="140" height="9" viewBox="0 0 140 9" aria-hidden="true" data-rule="grow"></svg>
+              </button>
             </span>
-            <!-- ACCENT LIVES WITH BEATS (annotation: "shouldnt this control be close
-                 to 'beats'") — it is a property of beat 1, a meter fact, so it sits
-                 on the meter line, not with transport. -->
-            <button type="button" class="tbtn latch" id="mt-accent" data-testid="accent-toggle" aria-pressed="true">
-              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
-                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
-                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
-                <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w">accent 1</span>
-            </button>
           </span>
           <span class="mt-fr">
             <span class="mt-lb">subdivide</span>
+            <!-- THE DASHED EXTENT (chooser metrotuner-round15, Q3/04): the subdivide
+                 rule now GROWS to the selected digit exactly as beats' does — one
+                 lesson, learned once — and is cut into n dashes, one under each
+                 counted digit. Solid = positions in the bar, dashed = divisions of
+                 the beat; the texture is the difference, the extent says which digit
+                 is selected. This retires the fixed one-beat-length argument. -->
             <span class="mt-rm" id="mt-sub-seg" role="group" aria-label="Subdivision">
               <span class="rm-digits">
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                   <button type="button" class="rbtn" data-sub={n} aria-pressed={n === 1 ? 'true' : 'false'} aria-label={`${n} per beat`}>{n}</button>
                 ))}
               </span>
-              <svg class="rm-rule" width="140" height="8" viewBox="0 0 140 8" aria-hidden="true" data-rule="cut"></svg>
+              <svg class="rm-rule" width="140" height="9" viewBox="0 0 140 9" aria-hidden="true" data-rule="dashext"></svg>
             </span>
           </span>
         </div>
@@ -241,18 +234,11 @@ import Layout from '../layouts/Layout.astro';
                horizontal snap-scroller directly. TAP stays beside it (it sets the
                tempo too). -->
           <span class="mt-fr">
-            <!-- The bpm VALUE gets the continuous rail too: same device as A4,
-                 the disc's berth reads approximate tempo without reading digits. -->
+            <!-- Bare numeral here too (Q2/06) — the value is the whole control. -->
             <span class="f mt-bpm scrubwrap" id="mt-bpm-scrub" title="drag ↔ to scrub · click to type">
               <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
                      min="20" max="320" step="1" value="96" aria-label="Beats per minute — drag horizontally to scrub, or type" />
               <span class="mt-lb">bpm</span>
-              <svg class="vrail" width="56" height="12" viewBox="0 0 56 12" aria-hidden="true">
-                <line class="end" x1="2" y1="2.5" x2="2" y2="9.5"/>
-                <line class="end" x1="54" y1="2.5" x2="54" y2="9.5"/>
-                <line class="run" x1="2" y1="6" x2="54" y2="6"/>
-                <circle id="mt-bpm-disc" cy="6" r="3"/>
-              </svg>
             </span>
             <!-- TRACK GRAMMAR: the MOMENTARY is a lone ring — a disc with NO track
                  has nowhere to travel; the only verb left is press. Each strike
@@ -349,6 +335,15 @@ import Layout from '../layouts/Layout.astro';
   .rbtn:not(.on):hover{color:var(--accent)}
   .rbtn:focus-visible{outline:1px solid var(--accent);outline-offset:-2px}
   .rm-rule{display:block;margin-top:-2px}
+  /* THE RULE IS THE SWITCH (round15 Q1/06): the beats rule sits inside a button.
+     No drawn chrome of its own — the tick and the digit "1" carry the state; the
+     padding fattens the target to the full scale width x ~26px below the digits. */
+  .rm-rulebtn{font:inherit;background:transparent;border:0;margin:0;cursor:pointer;
+    border-radius:0;display:block;padding:0 0 14px}
+  .rm-rulebtn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .rm-rulebtn:hover .rm-rule line[data-acc-tick]{stroke:var(--accent)}
+  /* the accented "1": weight is the digit's half-step up */
+  .rbtn.acc1{font-weight:500}
 
   /* THE SWIPE (metrotuner-two-pages Q3/02). Under 900px the cases become two
      full-width snap pages — and the case VANISHES (metrotuner-pendulum Q2, the
@@ -428,19 +423,11 @@ import Layout from '../layouts/Layout.astro';
     transition:fill 300ms var(--ease),stroke 300ms var(--ease)}
   .mom.hit .tk circle{fill:var(--accent);stroke:var(--accent);transition:none}
 
-  /* The value rails: faint end ticks bound the range, the hairline is the run,
-     the disc sits at the value's fraction of it. Ink at rest, accent in hand. */
-  .vrail{display:block;overflow:visible}
-  .vrail .run, .nrail .run{stroke:var(--line);stroke-width:1}
-  .vrail .end, .nrail .end{stroke:var(--faint);stroke-width:1}
-  .vrail circle, .nrail circle{fill:var(--ink);
-    transition:cx var(--dur-fast) linear,cy var(--dur-fast) linear}
-  .scrubbing .vrail circle, .scrubv.scrubbing .nrail circle{fill:var(--accent)}
-  .f.mt-a4 .vrail, .f.mt-bpm .vrail{margin-left:.5ch}
-  /* The reference note's rail is VERTICAL — its drag is vertical. */
-  .tbtn.scrubv{cursor:ns-resize;touch-action:none;
-    display:inline-flex;align-items:center;gap:.8ch}
-  .scrubv .nrail{display:block;overflow:visible}
+  /* BARE NUMERAL (round15 Q2/06): the rails are gone — the number is the whole
+     control. While a scrub is live the digits read accent; that flash, the
+     resize cursor and the title are the affordance. */
+  .scrubbing input, .tbtn.scrubv.scrubbing .w{color:var(--accent)}
+  .tbtn.scrubv{cursor:ns-resize;touch-action:none;min-width:4ch;text-align:center}
   .scrubwrap{cursor:ew-resize;touch-action:none}
   .scrubwrap input{cursor:ew-resize}
   /* THE REFLOW FIX (user nit, 2026-08-04), moved onto the WORD: the label swaps
@@ -517,24 +504,14 @@ import Layout from '../layouts/Layout.astro';
     const w = btn.querySelector('.w');
     if (w) w.textContent = s;
   };
-  // A value's disc sits at the value's fraction of its rail run.
-  const placeDisc = (id: string, v: number, min: number, max: number, from: number, to: number, axis: 'cx' | 'cy') => {
-    const d = document.getElementById(id);
-    if (d) d.setAttribute(axis, String(from + ((v - min) / (max - min)) * (to - from)));
-  };
-
   let a4 = Number(store.get('mt:a4')) || A4_DEFAULT;
   a4 = Math.min(A4_MAX, Math.max(A4_MIN, a4));
   const a4Input = $('mt-a4') as unknown as HTMLInputElement;
   a4Input.value = String(a4);
-  const placeA4Disc = () => placeDisc('mt-a4-disc', a4, A4_MIN, A4_MAX, 2, 54, 'cx');
-  placeA4Disc();
-
   const setA4 = (v: number) => {
     if (!Number.isFinite(v)) return;
     a4 = Math.min(A4_MAX, Math.max(A4_MIN, v));
     store.set('mt:a4', String(a4));
-    placeA4Disc();
     if (toneOsc) retune();
   };
   a4Input.addEventListener('change', () => {
@@ -749,7 +726,6 @@ import Layout from '../layouts/Layout.astro';
   function refLabel() {
     const name = NOTE_NAMES[((refMidi % 12) + 12) % 12];
     setWord(refNoteEl, `${name}${Math.floor(refMidi / 12) - 1}`);
-    placeDisc('mt-ref-disc', refMidi, 36, 96, 16, 2, 'cy');
   }
   refLabel();
 
@@ -763,6 +739,7 @@ import Layout from '../layouts/Layout.astro';
     let dragged = false;
     refNoteEl.addEventListener('pointerdown', (e) => {
       dragY = e.clientY; dragStart = refMidi; dragged = false;
+      refNoteEl.classList.add('scrubbing');
       (refNoteEl as HTMLElement).setPointerCapture(e.pointerId);
     });
     refNoteEl.addEventListener('pointermove', (e) => {
@@ -772,7 +749,7 @@ import Layout from '../layouts/Layout.astro';
       const m = Math.min(96, Math.max(36, dragStart + d));
       if (m !== refMidi) { refMidi = m; store.set('mt:ref', String(refMidi)); refLabel(); if (toneOsc) retune(); }
     });
-    refNoteEl.addEventListener('pointerup', () => { dragY = null; });
+    refNoteEl.addEventListener('pointerup', () => { dragY = null; refNoteEl.classList.remove('scrubbing'); });
     refNoteEl.addEventListener('click', (e) => {
       if (dragged) { dragged = false; return; }
       stepRef(e.shiftKey ? -1 : 1);
@@ -873,12 +850,15 @@ import Layout from '../layouts/Layout.astro';
   // click voice AND in the strike weight — one flag read at the two places the
   // downbeat is special, so sound and drawing can't disagree.
   let accentOn = store.get('mt:accent') !== '0';
+  // THE RULE IS THE SWITCH (round15 Q1/06): #mt-accent wraps the beats rule; its
+  // state is drawn BY the rule — the downbeat tick's height and the digit 1's
+  // weight. restoreBeats (defined with the meters, below) reads accentOn; clicks
+  // happen long after evaluation, so the forward reference is safe.
   const accBtn = $('mt-accent') as unknown as HTMLButtonElement;
-  // The latch's disc is pure CSS off aria-pressed — no JS paint beyond the attr.
   function paintAccent() {
     accBtn.setAttribute('aria-pressed', accentOn ? 'true' : 'false');
+    restoreBeats(beatsPerBar);
   }
-  paintAccent();
   accBtn.addEventListener('click', () => {
     accentOn = !accentOn;
     store.set('mt:accent', accentOn ? '1' : '0');
@@ -1046,14 +1026,11 @@ import Layout from '../layouts/Layout.astro';
     store.set('mt:sub', String(subdivision));
   }
 
-  const placeBpmDisc = () => placeDisc('mt-bpm-disc', bpm, 20, 320, 2, 54, 'cx');
   const setBpm = (v: number) => {
     bpm = clampBpm(v);
     bpmInput.value = String(bpm);
-    placeBpmDisc();
     applySpec();
   };
-  placeBpmDisc();
   bpmInput.addEventListener('change', () => setBpm(Number(bpmInput.value)));
 
   // THE SCRUB VALUE (Q2/02). Horizontal drag on the wrapper scrubs 1 bpm per 4px;
@@ -1075,7 +1052,7 @@ import Layout from '../layouts/Layout.astro';
       const d = Math.round((e.clientX - dragX) / 4);
       if (d !== 0) dragged = true;
       const v = clampBpm(dragStart + d);
-      if (v !== bpm) { bpm = v; bpmInput.value = String(bpm); placeBpmDisc(); applySpec(); }
+      if (v !== bpm) { bpm = v; bpmInput.value = String(bpm); applySpec(); }
     });
     wrap.addEventListener('pointerup', () => { dragX = null; wrap.classList.remove('scrubbing'); });
     // after a drag, the input must not focus (that would pop the keyboard on
@@ -1111,33 +1088,41 @@ import Layout from '../layouts/Layout.astro';
     if (t !== null) setBpm(t);
   });
 
-  // THE RULED MEASURE (metrotuner-meter-final Q1/02). The digits are the buttons;
-  // one hairline under them is the value — GROW for beats (the rule extends to
-  // digit N, a 2.5px tick at its left terminus = the downbeat), CUT for subdivide
-  // (the rule spans one fixed beat and is cut into n equal dashes). Digits paint
-  // ink inside the value (grow) / the value digit alone (cut).
+  // THE RULED MEASURE, round-15 form. Digits are the buttons; the hairline under
+  // them is the value. BEATS: the rule grows to digit N, and its downbeat tick is
+  // the accent's state — tall ink when accented, a flush faint stub when equal
+  // (Q1/06: the rule is the switch; the digit 1 carries weight 500 too). SUBDIVIDE:
+  // the rule grows to digit N exactly like beats but is CUT into n dashes — one
+  // under each counted digit; solid = positions in the bar, dashed = divisions of
+  // the beat (Q3/04: the dashed extent).
   const PITCH = 20; // one digit cell, px — matches .rbtn width
-  const wireRuled = (segId: string, attr: string, kind: 'grow' | 'cut', apply: (v: number) => void) => {
+  const wireRuled = (segId: string, attr: string, kind: 'grow' | 'dashext', apply: (v: number) => void) => {
     const seg = document.getElementById(segId)!;
     const rule = seg.querySelector('.rm-rule')!;
     const paint = (v: number) => {
-      seg.querySelectorAll('button').forEach((x) => {
+      seg.querySelectorAll('button[' + attr + ']').forEach((x) => {
         const n = Number(x.getAttribute(attr));
         x.setAttribute('aria-pressed', n === v ? 'true' : 'false');
-        x.classList.toggle('on', kind === 'grow' ? n <= v : n === v);
+        x.classList.toggle('on', n <= v);
+        if (kind === 'grow') x.classList.toggle('acc1', n === 1 && accentOn);
       });
+      const xe = (v - 1) * PITCH + 10; // the rule's terminus, under digit N
       let h = '';
       if (kind === 'grow') {
-        const x2 = (v - 1) * PITCH + 10;
-        h = `<line x1="1.5" y1="1" x2="1.5" y2="8" stroke="var(--ink)" stroke-width="2.5"/>`
-          + `<line x1="1" y1="4" x2="${x2}" y2="4" stroke="var(--ink)" stroke-width="1.5"/>`;
+        h = accentOn
+          ? `<line data-acc-tick x1="1.5" y1="0" x2="1.5" y2="9" stroke="var(--ink)" stroke-width="2.5"/>`
+          : `<line data-acc-tick x1="1.5" y1="3" x2="1.5" y2="6" stroke="var(--faint)" stroke-width="2.5"/>`;
+        h += `<line x1="1" y1="4.5" x2="${xe}" y2="4.5" stroke="var(--ink)" stroke-width="1.5"/>`;
       } else {
-        const W = 6 * PITCH + 10; // one beat = the full scale width, fixed
-        const gap = 3;
-        const segw = (W - (v - 1) * gap) / v;
-        for (let k = 0; k < v; k++) {
-          const x = 1 + k * (segw + gap);
-          h += `<line x1="${x}" y1="4" x2="${x + segw}" y2="4" stroke="var(--ink)" stroke-width="1.5"/>`;
+        if (v === 1) {
+          h = `<line x1="1" y1="4.5" x2="10" y2="4.5" stroke="var(--ink)" stroke-width="1.5"/>`;
+        } else {
+          const gap = 3;
+          const segw = (xe - 1 - (v - 1) * gap) / v;
+          for (let k = 0; k < v; k++) {
+            const x = 1 + k * (segw + gap);
+            h += `<line x1="${x}" y1="4.5" x2="${x + segw}" y2="4.5" stroke="var(--ink)" stroke-width="1.5"/>`;
+          }
         }
       }
       rule.innerHTML = h;
@@ -1146,15 +1131,15 @@ import Layout from '../layouts/Layout.astro';
       const b = (e.target as HTMLElement).closest('button');
       if (!b || !seg.contains(b)) return;
       const v = Number(b.getAttribute(attr));
-      if (!v) return;
+      if (!v) return; // the rule-switch button lands here — it has its own handler
       paint(v);
       apply(v);
     });
     return paint;
   };
   const restoreBeats = wireRuled('mt-beats-seg', 'data-beats', 'grow', (v) => { beatsPerBar = v; applySpec(); });
-  const restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'cut', (v) => { subdivision = v; applySpec(); });
-  restoreBeats(beatsPerBar);
+  const restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'dashext', (v) => { subdivision = v; applySpec(); });
+  paintAccent(); // draws the beats rule too (restoreBeats inside), with the persisted accent state
   restoreSub(subdivision);
 
   // ── the swipe indicator (chooser Q3/02) ──────────────────────────────────
