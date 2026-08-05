@@ -138,7 +138,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
             black, so "no background" would ship a black tile. */}
         <link rel="manifest" href="/practice-room/manifest.json" />
         <link rel="apple-touch-icon" href="/practice-room/icon-180.png" />
-        <meta name="apple-mobile-web-app-title" content="Practice room" />
+        {/* Lowercase like every word on the instrument itself (the round-13 rule: the
+            plates say "tuner", "metronome"; no control word is capitalised). "Practice
+            Room" title case is the one form the site never uses. */}
+        <meta name="apple-mobile-web-app-title" content="practice room" />
       </>
     )}
 

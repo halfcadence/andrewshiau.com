@@ -7,11 +7,12 @@ Writes three PNGs into `public/practice-room/`:
     icon-192.png   manifest icon (Android / anything that reads the manifest)
     icon-512.png   manifest icon, splash-sized
 
-THE DRAWING IS THE INSTRUMENT'S OWN FIGURE: the arc rail, the pendulum arm and bob,
-the pivot dot — the round-7 "arm and bob" silhouette from practice-room.astro, at the
-arm's real park angle. -54° is not a styling choice: it is PARK_LEFT in the page's own
-script, the angle the arm rests at before the first sweep. The icon is the instrument
-at rest.
+THE DRAWING IS THE DIAGONAL — the mark's rule alone, one round-capped stroke at 45°
+(chooser: practice-room-icon-2, pick 07 "rly cool"). It is the favicon's diagonal and
+the subdivide stair's angle, borrowed from the site's mark without repeating it: the
+ring and disc stay the site's, the rule between them becomes the app's.
+The first icon (round 1, rejected as "pretty ugly") was the instrument figure at 1:1 —
+arc rail, arm and bob at the park angle — whose hairline weights vanished at 60px.
 
 OPAQUE PAPER BACKGROUND, DELIBERATELY. An apple-touch-icon with transparency gets
 composited onto BLACK by iOS, so the site's favicon rule ("no background, either mode")
@@ -29,32 +30,24 @@ are: a generated SVG cannot read global.css. They must match --paper/--ink/--fai
 Requires ImageMagick (`convert`). Run it, commit the output — the PNGs are never
 edited by hand.
 """
-import math
+
 import subprocess
 import tempfile
 from pathlib import Path
 
 PAPER = '#f4f3ef'   # --paper, light scheme
 INK = '#141412'     # --ink
-FAINT = '#6e6d64'   # --faint (the rail, same as the page's arc)
-
-PARK_DEG = 54       # PARK_LEFT in practice-room.astro — the arm's rest angle
 
 OUT = Path(__file__).resolve().parent.parent / 'public' / 'practice-room'
 
 
 def svg(size: int) -> str:
-    # 64-unit box; pivot low-centre like the page's 320×184 figure, margins generous
-    # because iOS rounds the corners off whatever we hand it.
-    cx, cy, r, arm, bob = 32.0, 44.0, 25.0, 21.0, 4.2
-    a = math.radians(PARK_DEG)
-    bx, by = cx - arm * math.sin(a), cy - arm * math.cos(a)
+    # 64-unit box; the stroke runs corner-to-corner of the mark's own join geometry
+    # (13.54→18.46 in a 32 box, doubled), margins generous because iOS rounds the
+    # corners off whatever we hand it.
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="{size}" height="{size}">
   <rect width="64" height="64" fill="{PAPER}"/>
-  <path d="M {cx - r} {cy} A {r} {r} 0 0 1 {cx + r} {cy}" fill="none" stroke="{FAINT}" stroke-width="1.4"/>
-  <line x1="{cx}" y1="{cy}" x2="{bx:.2f}" y2="{by:.2f}" stroke="{INK}" stroke-width="1.7"/>
-  <circle cx="{bx:.2f}" cy="{by:.2f}" r="{bob}" fill="{INK}"/>
-  <circle cx="{cx}" cy="{cy}" r="2" fill="{INK}"/>
+  <line x1="19" y1="19" x2="45" y2="45" stroke="{INK}" stroke-width="5.5" stroke-linecap="round"/>
 </svg>'''
 
 
