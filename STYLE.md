@@ -588,6 +588,35 @@ The one exception, kept on purpose:
 External links still get the `↗` from `a[target]::after`. The bare `a` default is accent text +
 underline-offset.
 
+### Instrument controls — the Track grammar (`/metrotuner/` only)
+
+The instrument screen retired the action underline: a button that wears the link's
+line is dressed as a link, and the page had four operationally different control
+classes in one costume (chooser `metrotuner-control-taxonomy`, pick 03 of 30 judged
+concepts — Rams's form-announces-operation translated, not Braun's hardware copied).
+**One moving disc everywhere; the TRACK it rides announces the operation:**
+
+- **VALUE** (bpm, A4 Hz, reference note) — the disc rides a **continuous rail**: 1px
+  `--line` run, `--faint` end ticks bounding the range, the disc at the value's
+  fraction of it. The rail is both the class mark and a read-at-distance gauge.
+  Scrub anywhere on the control (4px per unit), type as before; the disc goes accent
+  while in hand (`.scrubbing`). The reference note's rail is **vertical** — its drag is.
+- **TOGGLE** (start/stop, play tone, accent 1) — a **two-pocket track**: one disc, two
+  ring berths, 18px throw on `--dur`. Latched = the far pocket, disc in **accent** —
+  state reads at arm's length with no words. ONE label that swaps text (the user's
+  refinement on the sheet's mock: printing both words was redundant), with the longer
+  string's width reserved on the `.w` span so nothing reflows.
+- **MOMENTARY** (tap) — a **lone ring, no track**: a disc with nowhere to travel can
+  only be pressed. Each strike fills it accent instantly and the fill drains over
+  300ms — the per-strike reward, and the visible proof it holds nothing.
+- **SELECTOR** (beats, subdivide) — unchanged: the ruled measure's digits ARE the
+  buttons and the rule under them is the value (grow/cut). It already announced its
+  operation; it predates and fits the grammar.
+
+Scoped to the instrument: the document pages keep the link idiom — a case study is a
+text to read, the instrument is a machine to operate, and the two vocabularies must
+not blend.
+
 ---
 
 ## Layout blocks

@@ -47,11 +47,22 @@ import Layout from '../layouts/Layout.astro';
              top line, opposite the engraved name — rather than a control you play. -->
         <div class="mt-ctop">
           <span class="mt-fr">
-            <span class="f mt-a4">
+            <!-- TRACK GRAMMAR (chooser metrotuner-control-taxonomy, 03): a VALUE
+                 rides a continuous rail — end ticks bound the range, the disc sits
+                 at the value's fraction of it. The rail is the class mark AND a
+                 read-at-distance gauge; drag anywhere on the control scrubs,
+                 typing stays. -->
+            <span class="f mt-a4 scrubwrap" id="mt-a4-scrub" title="drag ↔ to scrub · click to type">
               <label for="mt-a4" class="mt-lb">A4</label>
               <input id="mt-a4" data-testid="a4" type="number" inputmode="decimal"
-                     min="400" max="480" step="1" value="440" aria-label="A4 calibration in hertz" />
+                     min="400" max="480" step="1" value="440" aria-label="A4 calibration in hertz — drag horizontally to scrub, or type" />
               <span class="mt-lb">Hz</span>
+              <svg class="vrail" width="56" height="12" viewBox="0 0 56 12" aria-hidden="true">
+                <line class="end" x1="2" y1="2.5" x2="2" y2="9.5"/>
+                <line class="end" x1="54" y1="2.5" x2="54" y2="9.5"/>
+                <line class="run" x1="2" y1="6" x2="54" y2="6"/>
+                <circle id="mt-a4-disc" cy="6" r="3"/>
+              </svg>
             </span>
           </span>
         </div>
@@ -84,10 +95,29 @@ import Layout from '../layouts/Layout.astro';
 
         <div class="mt-cfoot">
           <span class="mt-fl">
-            <button type="button" class="tbtn fixw" id="mt-mic" data-testid="mic-toggle" aria-pressed="false" style="--w:15ch">start the tuner</button>
+            <!-- TRACK GRAMMAR: a TOGGLE is a two-pocket track — one disc, two
+                 resting places, latched = the disc at the far pocket in accent.
+                 ONE label that swaps (user refinement on the sheet's pick: the
+                 second printed word was redundant; the swap + the disc's berth
+                 say it). The word keeps the fixw reservation so nothing reflows. -->
+            <button type="button" class="tbtn latch fixw" id="mt-mic" data-testid="mic-toggle" aria-pressed="false" style="--w:15ch">
+              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
+                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
+                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
+                <circle class="disc" cy="6" r="3.2"/>
+              </svg><span class="w">start the tuner</span>
+            </button>
           </span>
           <span class="mt-fr">
-            <button type="button" class="tbtn fixw" id="mt-tone" data-testid="tone-toggle" aria-pressed="false" style="--w:9ch">play tone</button>
+            <button type="button" class="tbtn latch fixw" id="mt-tone" data-testid="tone-toggle" aria-pressed="false" style="--w:9ch">
+              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
+                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
+                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
+                <circle class="disc" cy="6" r="3.2"/>
+              </svg><span class="w">play tone</span>
+            </button>
             <!-- THE VALUE IS THE CONTROL (steppers chooser Q1/02, 2026-08-04): the
                  chevrons are gone — "A4" itself is the button. Click steps up,
                  shift-click steps down, VERTICAL DRAG scrubs (the primary gesture
@@ -97,7 +127,12 @@ import Layout from '../layouts/Layout.astro';
                  touch that wanders sideways. -->
             <button type="button" class="tbtn scrubv" id="mt-refnote" data-testid="refnote"
               aria-label="Reference note — click to raise, shift-click to lower, drag vertically to scrub"
-              title="click +1 · shift-click −1 · drag ↕">A4</button>
+              title="click +1 · shift-click −1 · drag ↕"><span class="w">A4</span><svg class="nrail" width="12" height="18" viewBox="0 0 12 18" aria-hidden="true">
+                <line class="end" x1="2.5" y1="2" x2="9.5" y2="2"/>
+                <line class="end" x1="2.5" y1="16" x2="9.5" y2="16"/>
+                <line class="run" x1="6" y1="2" x2="6" y2="16"/>
+                <circle id="mt-ref-disc" cx="6" r="3"/>
+              </svg></button>
           </span>
         </div>
         <!-- The hint holds ITS OWN reserved line (annotation 2026-08-04: "hate how
@@ -145,8 +180,13 @@ import Layout from '../layouts/Layout.astro';
             <!-- ACCENT LIVES WITH BEATS (annotation: "shouldnt this control be close
                  to 'beats'") — it is a property of beat 1, a meter fact, so it sits
                  on the meter line, not with transport. -->
-            <button type="button" class="tbtn acc" id="mt-accent" data-testid="accent-toggle" aria-pressed="true">
-              <span class="mt-lb">accent 1&nbsp;</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle id="mt-accdot" cx="6" cy="6" r="4.2" fill="currentColor" stroke="currentColor" stroke-width="1.5"/></svg>
+            <button type="button" class="tbtn latch" id="mt-accent" data-testid="accent-toggle" aria-pressed="true">
+              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
+                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
+                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
+                <circle class="disc" cy="6" r="3.2"/>
+              </svg><span class="w">accent 1</span>
             </button>
           </span>
           <span class="mt-fr">
@@ -182,7 +222,14 @@ import Layout from '../layouts/Layout.astro';
 
         <div class="mt-cfoot">
           <span class="mt-fl">
-            <button type="button" class="tbtn fixw" id="mt-run" data-testid="metro-toggle" aria-pressed="false" style="--w:19ch">start the metronome</button>
+            <button type="button" class="tbtn latch fixw" id="mt-run" data-testid="metro-toggle" aria-pressed="false" style="--w:19ch">
+              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
+                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
+                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
+                <circle class="disc" cy="6" r="3.2"/>
+              </svg><span class="w">start the metronome</span>
+            </button>
           </span>
           <!-- THE SCRUB VALUE (steppers chooser Q2/02): the −/+ are gone — the
                number is the control. Drag HORIZONTALLY to scrub (1 bpm per 4px;
@@ -194,12 +241,27 @@ import Layout from '../layouts/Layout.astro';
                horizontal snap-scroller directly. TAP stays beside it (it sets the
                tempo too). -->
           <span class="mt-fr">
+            <!-- The bpm VALUE gets the continuous rail too: same device as A4,
+                 the disc's berth reads approximate tempo without reading digits. -->
             <span class="f mt-bpm scrubwrap" id="mt-bpm-scrub" title="drag ↔ to scrub · click to type">
               <input id="mt-bpm" data-testid="bpm" type="number" inputmode="numeric"
                      min="20" max="320" step="1" value="96" aria-label="Beats per minute — drag horizontally to scrub, or type" />
               <span class="mt-lb">bpm</span>
+              <svg class="vrail" width="56" height="12" viewBox="0 0 56 12" aria-hidden="true">
+                <line class="end" x1="2" y1="2.5" x2="2" y2="9.5"/>
+                <line class="end" x1="54" y1="2.5" x2="54" y2="9.5"/>
+                <line class="run" x1="2" y1="6" x2="54" y2="6"/>
+                <circle id="mt-bpm-disc" cy="6" r="3"/>
+              </svg>
             </span>
-            <button type="button" class="tbtn" id="mt-tap" data-testid="tap">tap</button>
+            <!-- TRACK GRAMMAR: the MOMENTARY is a lone ring — a disc with NO track
+                 has nowhere to travel; the only verb left is press. Each strike
+                 fills it and it drains, so it visibly cannot hold. -->
+            <button type="button" class="tbtn mom" id="mt-tap" data-testid="tap">
+              <svg class="tk" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                <circle id="mt-tap-ring" cx="7" cy="7" r="4.6"/>
+              </svg><span class="w">tap</span>
+            </button>
           </span>
         </div>
       </section>
@@ -332,32 +394,59 @@ import Layout from '../layouts/Layout.astro';
 
   .mt-refnote{color:var(--ink);min-width:4ch;text-align:center;display:inline-block}
 
+  /* ══ TRACK GRAMMAR (chooser metrotuner-control-taxonomy, pick 03) ══════════
+     One moving disc everywhere; the TRACK it rides announces the operation:
+       continuous rail  = a value    — scrub along it (the disc is the gauge)
+       two pockets      = a toggle   — one disc, two resting places; latched =
+                          the far pocket, in accent (state reads at a distance)
+       no track at all  = momentary  — a lone ring; a disc with nowhere to go
+                          can only be pressed; each strike fills it and it
+                          drains, so it visibly cannot hold
+     The action underline DIED here: buttons no longer borrow the link idiom.
+     The user's refinement on the sheet's mock: ONE label that swaps text
+     (start/stop), not both words printed — the swap plus the disc's berth. */
   .tbtn{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;
     border-radius:0;min-height:44px;cursor:pointer;
-    text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px;
-    transition:color var(--dur-fast) var(--ease),text-decoration-color var(--dur-fast) var(--ease)}
-  .tbtn:hover{color:var(--accent);text-decoration-color:var(--ink)}
-  .tbtn:focus-visible{outline:0;color:var(--accent);text-decoration-color:var(--ink)}
-  .tbtn[aria-pressed="true"]:not(.seg){text-decoration-color:var(--accent)}
-  .tbtn.gly{min-width:44px;text-align:center}
-  /* The accent toggle: word + disc on one baseline; no underline on the label part
-     (the whole thing is the button; the disc is the state). */
-  .tbtn.acc{text-decoration:none;display:inline-flex;align-items:center}
-  .tbtn.acc:hover .mt-lb{color:var(--accent)}
-  /* Scrub controls: the value IS the control. ns/ew cursors advertise the drag;
-     touch-action:none stops the swipe-scroller from stealing it. */
-  .tbtn.scrubv{cursor:ns-resize;touch-action:none;min-width:4ch;text-align:center}
+    transition:color var(--dur-fast) var(--ease)}
+  .tbtn:hover{color:var(--accent)}
+  .tbtn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+
+  .tbtn.latch, .tbtn.mom{display:inline-flex;align-items:center;gap:1ch}
+  .tbtn .tk{flex:none;display:block;overflow:visible}
+  .latch .tk .run{stroke:var(--line);stroke-width:1}
+  .latch .tk .pk{fill:none;stroke:var(--faint);stroke-width:1.2}
+  /* The disc: ink at the near pocket (off), ACCENT at the far pocket (latched).
+     cx is fixed at the near pocket; the throw is a transform, which animates. */
+  .latch .tk .disc{fill:var(--ink);cx:4px;
+    transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
+  .latch[aria-pressed="true"] .tk .disc{fill:var(--accent);transform:translateX(18px)}
+  .latch[aria-pressed="true"] .w{color:var(--ink)}
+
+  /* The momentary's ring: dim outline at rest; each strike fills it accent and
+     the fill drains over ~300ms — the transition runs on RELEASE of .hit. */
+  .mom .tk circle{fill:transparent;stroke:var(--dim);stroke-width:1.4;
+    transition:fill 300ms var(--ease),stroke 300ms var(--ease)}
+  .mom.hit .tk circle{fill:var(--accent);stroke:var(--accent);transition:none}
+
+  /* The value rails: faint end ticks bound the range, the hairline is the run,
+     the disc sits at the value's fraction of it. Ink at rest, accent in hand. */
+  .vrail{display:block;overflow:visible}
+  .vrail .run, .nrail .run{stroke:var(--line);stroke-width:1}
+  .vrail .end, .nrail .end{stroke:var(--faint);stroke-width:1}
+  .vrail circle, .nrail circle{fill:var(--ink);
+    transition:cx var(--dur-fast) linear,cy var(--dur-fast) linear}
+  .scrubbing .vrail circle, .scrubv.scrubbing .nrail circle{fill:var(--accent)}
+  .f.mt-a4 .vrail, .f.mt-bpm .vrail{margin-left:.5ch}
+  /* The reference note's rail is VERTICAL — its drag is vertical. */
+  .tbtn.scrubv{cursor:ns-resize;touch-action:none;
+    display:inline-flex;align-items:center;gap:.8ch}
+  .scrubv .nrail{display:block;overflow:visible}
   .scrubwrap{cursor:ew-resize;touch-action:none}
   .scrubwrap input{cursor:ew-resize}
-  /* THE REFLOW FIX (user nit, 2026-08-04): a transport's label flips between
-     start/stop (or play/stop) and the two strings differ in width, so every toggle
-     used to reflow the whole foot line. Reserve the LONGER string's width per
-     button (--w set inline, in ch — exact in a monospace face) and keep the text
-     flush left; nothing moves but the word. */
-  .tbtn.fixw{min-width:var(--w);text-align:left}
-  .tbtn.seg{color:var(--faint)}
-  .tbtn.seg[aria-pressed="true"]{color:var(--ink);text-decoration:none;cursor:default}
-  .mt-seg{display:inline-flex;align-items:center;gap:1.5ch;flex-wrap:wrap;justify-content:center}
+  /* THE REFLOW FIX (user nit, 2026-08-04), moved onto the WORD: the label swaps
+     between two widths, so the .w span reserves the longer one (--w in ch — exact
+     in a monospace face); the track and the gap sit outside the reservation. */
+  .tbtn.fixw .w{display:inline-block;min-width:var(--w);text-align:left}
 
   .mt-a4, .mt-bpm{display:inline-flex;align-items:center;gap:1ch}
   .mt-a4 input, .mt-bpm input{flex:0 0 auto;width:6ch;text-align:center;
@@ -422,21 +511,61 @@ import Layout from '../layouts/Layout.astro';
     set(k: string, v: string) { try { localStorage.setItem(k, v); } catch {} },
   };
 
+  // TRACK GRAMMAR plumbing: every latch keeps its word in a .w span so setting
+  // the label can't wipe the track SVG out of the button.
+  const setWord = (btn: HTMLElement, s: string) => {
+    const w = btn.querySelector('.w');
+    if (w) w.textContent = s;
+  };
+  // A value's disc sits at the value's fraction of its rail run.
+  const placeDisc = (id: string, v: number, min: number, max: number, from: number, to: number, axis: 'cx' | 'cy') => {
+    const d = document.getElementById(id);
+    if (d) d.setAttribute(axis, String(from + ((v - min) / (max - min)) * (to - from)));
+  };
+
   let a4 = Number(store.get('mt:a4')) || A4_DEFAULT;
   a4 = Math.min(A4_MAX, Math.max(A4_MIN, a4));
   const a4Input = $('mt-a4') as unknown as HTMLInputElement;
   a4Input.value = String(a4);
+  const placeA4Disc = () => placeDisc('mt-a4-disc', a4, A4_MIN, A4_MAX, 2, 54, 'cx');
+  placeA4Disc();
 
   const setA4 = (v: number) => {
     if (!Number.isFinite(v)) return;
     a4 = Math.min(A4_MAX, Math.max(A4_MIN, v));
     store.set('mt:a4', String(a4));
+    placeA4Disc();
     if (toneOsc) retune();
   };
   a4Input.addEventListener('change', () => {
     setA4(Number(a4Input.value));
     a4Input.value = String(a4);
   });
+
+  // The A4 rail scrubs like the bpm one: drag on the wrapper (an input eats
+  // pointermove), 1 Hz per 4px, clean tap types, post-drag click suppressed.
+  {
+    const wrap = document.getElementById('mt-a4-scrub')!;
+    let dragX: number | null = null;
+    let dragStart = 0;
+    let dragged = false;
+    wrap.addEventListener('pointerdown', (e) => {
+      dragX = e.clientX; dragStart = a4; dragged = false;
+      wrap.classList.add('scrubbing');
+      wrap.setPointerCapture(e.pointerId);
+    });
+    wrap.addEventListener('pointermove', (e) => {
+      if (dragX === null) return;
+      const d = Math.round((e.clientX - dragX) / 4);
+      if (d !== 0) dragged = true;
+      const v = Math.min(A4_MAX, Math.max(A4_MIN, dragStart + d));
+      if (v !== a4) { setA4(v); a4Input.value = String(a4); }
+    });
+    wrap.addEventListener('pointerup', () => { dragX = null; wrap.classList.remove('scrubbing'); });
+    wrap.addEventListener('click', (e) => {
+      if (dragged) { dragged = false; e.preventDefault(); a4Input.blur(); }
+    }, true);
+  }
 
   // ── tuner ─────────────────────────────────────────────────────────────────
   const noteEl = $('mt-note');
@@ -542,7 +671,7 @@ import Layout from '../layouts/Layout.astro';
     analyser = ac.createAnalyser();
     analyser.fftSize = 2048;
     src.connect(analyser);
-    micBtn.textContent = 'stop the tuner';
+    setWord(micBtn, 'stop the tuner');
     micBtn.setAttribute('aria-pressed', 'true');
     hintEl.textContent = 'listening';
     tunerTimer = window.setInterval(() => {
@@ -572,7 +701,7 @@ import Layout from '../layouts/Layout.astro';
     recent.length = 0;
     quietFrames = 99;
     renderSilence();
-    micBtn.textContent = 'start the tuner';
+    setWord(micBtn, 'start the tuner');
     micBtn.setAttribute('aria-pressed', 'false');
     hintEl.textContent = 'uses the microphone, on this device only';
   }
@@ -619,7 +748,8 @@ import Layout from '../layouts/Layout.astro';
 
   function refLabel() {
     const name = NOTE_NAMES[((refMidi % 12) + 12) % 12];
-    refNoteEl.textContent = `${name}${Math.floor(refMidi / 12) - 1}`;
+    setWord(refNoteEl, `${name}${Math.floor(refMidi / 12) - 1}`);
+    placeDisc('mt-ref-disc', refMidi, 36, 96, 16, 2, 'cy');
   }
   refLabel();
 
@@ -682,7 +812,7 @@ import Layout from '../layouts/Layout.astro';
     toneGain.connect(ac.destination);
     toneOsc.start();
     toneOsc2.start();
-    toneBtn.textContent = 'stop tone';
+    setWord(toneBtn, 'stop tone');
     toneBtn.setAttribute('aria-pressed', 'true');
     if (E2E) hook.toneHz = f;
   }
@@ -696,7 +826,7 @@ import Layout from '../layouts/Layout.astro';
     toneOsc = null;
     toneOsc2 = null;
     toneGain = null;
-    toneBtn.textContent = 'play tone';
+    setWord(toneBtn, 'play tone');
     toneBtn.setAttribute('aria-pressed', 'false');
     if (E2E) hook.toneHz = null;
   }
@@ -744,10 +874,9 @@ import Layout from '../layouts/Layout.astro';
   // downbeat is special, so sound and drawing can't disagree.
   let accentOn = store.get('mt:accent') !== '0';
   const accBtn = $('mt-accent') as unknown as HTMLButtonElement;
-  const accDot = document.getElementById('mt-accdot')!;
+  // The latch's disc is pure CSS off aria-pressed — no JS paint beyond the attr.
   function paintAccent() {
     accBtn.setAttribute('aria-pressed', accentOn ? 'true' : 'false');
-    accDot.setAttribute('fill', accentOn ? 'currentColor' : 'none');
   }
   paintAccent();
   accBtn.addEventListener('click', () => {
@@ -863,7 +992,7 @@ import Layout from '../layouts/Layout.astro';
     lastBeat = null;
     firstBeatIndex = -1;
     scheduler.start();
-    runBtn.textContent = 'stop the metronome';
+    setWord(runBtn, 'stop the metronome');
     runBtn.setAttribute('aria-pressed', 'true');
     pend.classList.remove('rest');
     pend.classList.add('live');
@@ -901,7 +1030,7 @@ import Layout from '../layouts/Layout.astro';
       // here — finishSweep's frames read it after this returns; startMetro resets it.
       finishSweep();
     }
-    runBtn.textContent = 'start the metronome';
+    setWord(runBtn, 'start the metronome');
     runBtn.setAttribute('aria-pressed', 'false');
   }
 
@@ -917,11 +1046,14 @@ import Layout from '../layouts/Layout.astro';
     store.set('mt:sub', String(subdivision));
   }
 
+  const placeBpmDisc = () => placeDisc('mt-bpm-disc', bpm, 20, 320, 2, 54, 'cx');
   const setBpm = (v: number) => {
     bpm = clampBpm(v);
     bpmInput.value = String(bpm);
+    placeBpmDisc();
     applySpec();
   };
+  placeBpmDisc();
   bpmInput.addEventListener('change', () => setBpm(Number(bpmInput.value)));
 
   // THE SCRUB VALUE (Q2/02). Horizontal drag on the wrapper scrubs 1 bpm per 4px;
@@ -935,6 +1067,7 @@ import Layout from '../layouts/Layout.astro';
     let dragged = false;
     wrap.addEventListener('pointerdown', (e) => {
       dragX = e.clientX; dragStart = bpm; dragged = false;
+      wrap.classList.add('scrubbing');
       wrap.setPointerCapture(e.pointerId);
     });
     wrap.addEventListener('pointermove', (e) => {
@@ -942,9 +1075,9 @@ import Layout from '../layouts/Layout.astro';
       const d = Math.round((e.clientX - dragX) / 4);
       if (d !== 0) dragged = true;
       const v = clampBpm(dragStart + d);
-      if (v !== bpm) { bpm = v; bpmInput.value = String(bpm); applySpec(); }
+      if (v !== bpm) { bpm = v; bpmInput.value = String(bpm); placeBpmDisc(); applySpec(); }
     });
-    wrap.addEventListener('pointerup', () => { dragX = null; });
+    wrap.addEventListener('pointerup', () => { dragX = null; wrap.classList.remove('scrubbing'); });
     // after a drag, the input must not focus (that would pop the keyboard on
     // touch mid-scrub); a clean tap focuses it as normal.
     wrap.addEventListener('click', (e) => {
@@ -957,7 +1090,14 @@ import Layout from '../layouts/Layout.astro';
   }
 
   const tap = createTapTempo();
-  $('mt-tap').addEventListener('click', () => {
+  const tapBtn = $('mt-tap');
+  // The strike flash: .hit fills the ring instantly (transition:none), removing it
+  // lets the 300ms fill drain — the reward per strike, and the proof nothing holds.
+  tapBtn.addEventListener('pointerdown', () => {
+    tapBtn.classList.add('hit');
+    setTimeout(() => tapBtn.classList.remove('hit'), 60);
+  });
+  tapBtn.addEventListener('click', () => {
     const t = tap.tap(performance.now());
     if (t !== null) setBpm(t);
   });
