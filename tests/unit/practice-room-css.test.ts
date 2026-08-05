@@ -95,6 +95,24 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     expect(css).not.toContain('min(320px,80vw)');
   });
 
+  // ── THE OVERLAY MAY NOT DRAW A GRID. Found by the user, by looking: the ⌥G guide was
+  // painting twelve tracks per case as a pair of hairlines each, plus twelve across the
+  // screen — "i thought we chose just a few datums, i see like 25 cols". The horizontal
+  // system is two datums, and a guide that draws a rejected column grid is an instrument
+  // that lies about what the page is built on.
+  // A sentinel per datum was NOT enough, red-cased: re-adding a repeating column gradient
+  // left both datum sentinels present and the suite green. So this counts the marks instead.
+  // The ONE sanctioned repeating gradient is the ROW ladder on `.mt-pages::before`, which is
+  // vertical (`to bottom`) and real — every row is a named line both cases inherit.
+  it('draws only the row ladder as a repeating gradient — no column grid', () => {
+    const repeats = css.match(/repeating-linear-gradient\([^)]*/g) || [];
+    const horizontal = repeats.filter((g) => /to right|90deg/.test(g));
+    expect(horizontal, `the overlay must not repeat horizontally: ${horizontal.join(' | ')}`)
+      .toEqual([]);
+    // and the vertical repeats are the row ladder: desktop + the phone override
+    expect(repeats.length, 'expected the row ladder to still be drawn').toBeGreaterThan(0);
+  });
+
   // ── the sheet is whole ─────────────────────────────────────────────────────
   it('has balanced braces and no comment tokens left in the output', () => {
     const opens = (css.match(/\{/g) || []).length;
@@ -133,8 +151,17 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     // above `.mt-half::after` ate the whole rule, and every check above passed — the sheet
     // was 12kB, brace-balanced, comment-free, and the four declarations named above were
     // all present, because none of them lived in the rule that died.
-    ['the case draws its own columns', '--mt-track'],
-    ['the parent draws the rows', 'repeating-linear-gradient'],
+    ['the figure spans six columns', '--mt-track'],
+    ['the parent draws the row ladder', 'repeating-linear-gradient'],
+    // THE TWO DATUMS. The ⌥G overlay used to paint twelve tracks per case as a pair of
+    // hairlines each — 24 lines inside every case plus 12 across the screen, which is what
+    // the reader saw as "like 25 cols". It draws three lines now: the axis at 50%, and one
+    // inset a --lead inside each edge. These two sentinels are what a future edit would have
+    // to keep, and they are declarations only this rule contains.
+    // `.5px`, not `0.5px`: lightningcss strips the leading zero, and this test reads the
+    // BUILT sheet. Asserting the source spelling failed here for exactly that reason.
+    ['the axis datum', 'calc(50% - .5px)'],
+    ['the inset datum', 'calc(100% - var(--lead))'],
   ])('keeps the declaration that carries %s (%s)', (_label, decl) => {
     expect(css).toContain(decl);
   });

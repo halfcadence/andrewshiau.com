@@ -440,22 +440,23 @@ import Layout from '../layouts/Layout.astro';
      svg with a fixed aspect ratio whose width comes from the column span, so pinning its
      row to n leads would either crop it or open a gap inside the group. The air that is on
      the ladder is the slack rows; the figure is a figure. */
-  /* The desktop MAIN grid (⌥G): 12 columns over the screen the two cases
-     compose on. Drawn to the padding box so the cases' outer edges land on
-     column edges; the per-case overlays draw their own 12 inside. */
   /* THE ROWS ARE DRAWN HERE, from the origin the ladder actually starts at, so the
      overlay describes the ladder that exists. This is the honesty fix: the rows used to
      be drawn per case from each case's own content-box top, and NOTHING landed on them
      (measured: the tuner's rows missed by 1.00, 10.00, 9.50, 2.50, 2.50, 5.00, 3.00px,
      and the two cases' ladders were 12px out of phase with each other). The instrument
-     by which the grid was judged was itself off-grid. */
+     by which the grid was judged was itself off-grid.
+     THE 12 SCREEN COLUMNS ARE DELETED (datum pass). They were the second half of the
+     "25 columns" the reader saw, and they described nothing: the two cases are placed by
+     `repeat(2, minmax(0,1fr))` and one `--group`, not by spans of a twelve-track screen
+     grid, so the bands never marked an edge any content used. What remains is the ROW
+     LADDER, which is the vertical system and is real — every row is a named line on
+     `.mt-pages` that both cases inherit via subgrid. Rows here, the two horizontal datums
+     on `.mt-half::after`, and nothing else. */
   .mt-pages::before{content:"";position:absolute;inset:var(--group) var(--group) var(--lead);
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    background:
-      repeating-linear-gradient(to bottom,
-        color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead)),
-      repeating-linear-gradient(to right,
-        color-mix(in srgb, var(--accent) 14%, transparent) 0 1px, transparent 1px calc(100% / 12))}
+    background:repeating-linear-gradient(to bottom,
+      color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead))}
   /* ON THE PHONE the overlay keeps the ROWS and drops the columns: the rows are what the
      two swipe pages share, while "12 columns" across a two-viewport-wide scroller
      describes nothing — at that width the pages are not two halves of one composition.
@@ -770,10 +771,16 @@ import Layout from '../layouts/Layout.astro';
        28px line box, and in from the frame by the content's gutter. */
     .mt-plate{display:block;top:calc(var(--lead) / 2 - 14px);
       left:calc(var(--gutter) - 1ch)}
-    /* The per-case overlay is DELETED on the phone rather than re-inset: the parent draws
-       the rows, so a second grid over one case would be the two-grids-at-once problem
-       this pass exists to remove. */
-    .mt-half::after{display:none}
+    /* THE DATUMS ARE DRAWN ON THE PHONE TOO (datum pass). This used to be
+       `display:none`, and the reason given was sound for what the rule then contained — a
+       second twelve-column grid over one case would have been the two-grids-at-once problem.
+       But the rule holds the two DATUMS now, and they are as true here as anywhere: the
+       harness verifies axis 5/5 and inset 6/6 at 430, 390 and 360. A guide that goes blank
+       exactly where the layout changes most is the wrong instrument.
+       The inset is measured from the CONTENT box on the phone (padding is `0 var(--gutter)`
+       and the drawn frame sits half a lead in), so the overlay insets to match rather than
+       drawing on the viewport edge. */
+    .mt-half::after{inset:0 var(--gutter)}
     /* AND SO THE FIGURE TAKES THE CONTENT WIDTH HERE. With no column grid on the phone,
        a 6-of-12 span is not a smaller version of the desktop rule — it is arithmetic on a
        grid that does not exist (at 360px the track computes NEGATIVE, since 11 gutters of
@@ -794,30 +801,44 @@ import Layout from '../layouts/Layout.astro';
      toggled with the G key. The overlay draws the grid the case claims: columns
      across the padding box's content, rows on --lead. It is diagnostic chrome —
      accent at low opacity, pointer-events:none, session-only. */
-  /* The case draws its own COLUMNS; the parent draws the ROWS.
-     THE ROWS ARE GONE FROM HERE, and that is a correction not a simplification — see the
-     numbers on `.mt-pages::before`. There is one row ladder now, on the parent, and it is
-     the one the content is placed on.
-     THE COLUMNS ARE DRAWN AS TRACKS AND GUTTERS, not as a band every 100%/12. A repeating
-     gradient at `100%/12` marks twelve equal slices with no gutters in them, so it can
-     never show where a 6-column figure with 5 interior gutters ends — it was drawing a
-     grid the CSS could not use. Now the paint is the real thing: a `--gutter`-wide gap
-     between twelve `--mt-track` columns, so a span's edges are visibly track edges.
-     HAIRLINES AT THE TRACK EDGES, not filled bands — decided by rendering both and
-     looking. Twelve filled columns at any opacity that was visible read as a striped
-     BACKGROUND rather than a guide: the eye sees alternating stripes and the thing you are
-     trying to check (does this edge land on that edge?) is the one thing the paint hides,
-     because a band's boundary is where its own tint stops rather than a mark. Two rules per
-     track is what a grid guide is: a line where the track starts and a line where it ends,
-     with the gutter empty between them. The site's document guide is the same device. */
-  .mt-half::after{content:"";position:absolute;inset:0 var(--gutter);
-    --mt-track:calc((100% - var(--gutter) * 11) / 12);
+  /* ── THE OVERLAY DRAWS THE TWO DATUMS, AND NOTHING ELSE (datum pass, 2026-08-05) ──
+     THE COLUMNS ARE DELETED. This rule used to paint twelve tracks per case as a pair of
+     hairlines each — up to 24 lines inside every case, plus twelve more across the screen
+     from `.mt-pages::before`. The user's report, and it is exactly right: "i thought we
+     chose just a few datums, i see like 25 cols."
+     A guide has to draw the system that EXISTS. The horizontal system on this screen is two
+     datums, both stated once in CSS and both verified by
+     `tools/verify-practice-room-datums.mjs`:
+       · THE AXIS  — the case's centre line. Everything the instrument radiates from sits on
+                     it: the dial, the reading, the verb. ONE line, at 50%.
+       · THE INSET — one --lead from the box. Everything else sits on it, flush left or
+                     right. TWO lines, one just inside each edge.
+     Three lines per case, not twenty-four. The twelve columns were the system three rounds
+     of proof sheets REJECTED — measured worse than doing nothing — and leaving them in the
+     overlay meant the one instrument for judging the alignment was still describing the
+     losing proposal. That is the same defect this file records for the row ladder (an
+     overlay drawn from an origin no content sat on) and the same defect STYLE.md records for
+     `--label` (two grids running at once, and the drawn one describing nothing).
+     WHY `linear-gradient` AND NOT `repeating-`: there is nothing to repeat. Three stated
+     positions is the whole guide, and a repeating gradient is what made this an accidental
+     grid in the first place.
+     The axis reads slightly stronger than the insets (55% against 34%) because it is the
+     datum the eye checks the figure against; the insets only have to be findable next to
+     the hairline they sit inside. */
+  .mt-half::after{content:"";position:absolute;inset:0;
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    background:repeating-linear-gradient(to right,
-      color-mix(in srgb, var(--accent) 40%, transparent) 0 1px,
-      transparent 1px calc(var(--mt-track) - 1px),
-      color-mix(in srgb, var(--accent) 40%, transparent) calc(var(--mt-track) - 1px) var(--mt-track),
-      transparent var(--mt-track) calc(var(--mt-track) + var(--gutter)))}
+    background:
+      /* THE AXIS — one line on the case's centre */
+      linear-gradient(to right, transparent calc(50% - 0.5px),
+        color-mix(in srgb, var(--accent) 55%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+        transparent calc(50% + 0.5px)),
+      /* THE INSET — one line a --lead inside each edge */
+      linear-gradient(to right,
+        transparent calc(var(--lead) - 1px),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(var(--lead) - 1px) var(--lead),
+        transparent var(--lead) calc(100% - var(--lead)),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(100% - var(--lead)) calc(100% - var(--lead) + 1px),
+        transparent calc(100% - var(--lead) + 1px))}
 
 
   /* == THE FIGURE'S WIDTH IS SIX COLUMNS, NOT 320px ==========================
