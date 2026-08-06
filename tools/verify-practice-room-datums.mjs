@@ -198,6 +198,50 @@ for (const scheme of ['light', 'dark']) {
         }
       }
 
+      // ── THE POINTER MAY NOT CROSS THE SCALE ───────────────────────────────
+      // Inside each figure the marks are placed by RADIUS from the pivot, and one rule governs
+      // the pair that matters: the pointer reaches the scale and stops. MIL-STD-1472G
+      // §5.2.2.5.3b(5)(a) — "shall extend to, but not overlap, the shortest scale graduation
+      // marks." Measured in viewBox units, from the SVG the page actually ships:
+      //   bob outer  = 160 − cy + r      (the disc's far edge)
+      //   tick inner = 160 − tick.y2     (where the scale mark begins)
+      // The bob was at r 122 against a scale at r 118, so at exact tune the disc hid 25% of the
+      // in-tune tick. Chosen fix: the arm ends at 48 instead of 44, putting the bob's edge ON
+      // the scale (both 118). Asserted for BOTH figures, because they share the drawing and a
+      // fix that landed on one would split the pair.
+      const radiiFails = [];
+      for (const [name, figSel, needleSel, tickSel] of [
+        ['the tuner’s needle', '#mt-dial', '#mt-needle', '#mt-tick'],
+        // the metronome has no tick of its own — its strike flashes are the end ticks — so the
+        // pendulum is checked against the SAME scale radius the tuner states, which is the
+        // point of them being one drawing.
+        ['the pendulum', '#mt-metro-fig', '#mt-pend', null],
+      ]) {
+        const fig = q(figSel);
+        const needle = q(needleSel);
+        if (!fig || !needle) continue;
+        const bob = needle.querySelector('circle');
+        const arm = needle.querySelector('line');
+        if (!bob || !arm) continue;
+        const cy = parseFloat(bob.getAttribute('cy'));
+        const r = parseFloat(bob.getAttribute('r'));
+        const bobOuter = 160 - cy + r;
+        // the scale: the tuner's own tick, or the tuner's value for the shared drawing
+        const tickEl = tickSel ? q(tickSel) : q('#mt-tick');
+        if (!tickEl) continue;
+        const tickInner = 160 - parseFloat(tickEl.getAttribute('y2'));
+        if (bobOuter > tickInner + 0.01) {
+          radiiFails.push(`${name}: the bob reaches r ${bobOuter} past a scale at r ${tickInner}`
+            + ` — it crosses by ${(bobOuter - tickInner)} viewBox units`);
+        }
+        // and the arm must still REACH the scale — "extend to" is half the rule, so a bob that
+        // stops short is as wrong as one that overshoots, just less visibly.
+        if (bobOuter < tickInner - 0.01) {
+          radiiFails.push(`${name}: the bob stops at r ${bobOuter}, short of the scale at`
+            + ` r ${tickInner}`);
+        }
+      }
+
       // ── THE INSET IS A WHOLE CHARACTER ────────────────────────────────────
       // Reading the token from the page made every other check follow it automatically — and
       // red-cased, that meant reverting the token to 28px PASSED: the sheet was internally
@@ -324,7 +368,7 @@ for (const scheme of ['light', 'dark']) {
         '#mt-a4', '#mt-bpm'].map(tgt));
 
       return {
-        axisFails, insetFails, glyphFails, vertFails, wordFails, unitFails,
+        axisFails, insetFails, glyphFails, vertFails, wordFails, unitFails, radiiFails,
         distinct: [...seen].sort((a, b) => a - b),
         smallest,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -336,7 +380,7 @@ for (const scheme of ['light', 'dark']) {
 
     const ok = !r.axisFails.length && !r.insetFails.length && !r.glyphFails.length
       && !r.vertFails.length && !r.wordFails.length && !r.unitFails.length
-      && !r.overflow && r.smallest >= 24 && r.hzExists;
+      && !r.radiiFails.length && !r.overflow && r.smallest >= 24 && r.hzExists;
     if (!ok) bad++;
     const notes = [
       r.axisFails.length ? `AXIS: ${r.axisFails.join('; ')}` : '',
@@ -345,6 +389,7 @@ for (const scheme of ['light', 'dark']) {
       r.vertFails.length ? `VERTICAL: ${r.vertFails.join('; ')}` : '',
       r.wordFails.length ? `WORD: ${r.wordFails.join('; ')}` : '',
       r.unitFails.length ? `UNIT: ${r.unitFails.join('; ')}` : '',
+      r.radiiFails.length ? `RADII: ${r.radiiFails.join('; ')}` : '',
       r.distinct.length > 1 ? `insets seen: ${r.distinct.join(', ')}` : '',
       r.overflow ? 'HORIZONTAL OVERFLOW' : '',
       r.smallest < 24 ? `target ${r.smallest}px < 24` : '',

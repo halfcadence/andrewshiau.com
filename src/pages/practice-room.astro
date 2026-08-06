@@ -87,9 +87,25 @@ import Layout from '../layouts/Layout.astro';
             <svg viewBox="0 0 320 184" id="mt-dial">
               <path d="M 34 160 A 126 126 0 0 1 286 160" fill="none" stroke="var(--faint)" stroke-width="1.5"/>
               <line id="mt-tick" x1="160" y1="26" x2="160" y2="42" stroke="var(--ink)" stroke-width="1.5"/>
+              <!-- THE POINTER STOPS AT THE SCALE (radii chooser 02, 2026-08-06). The arm and
+                   bob end at y=48, not 44, so the bob's OUTER edge (160−48+6 = r 118) lands
+                   exactly on the tick's inner end (160−42 = r 118). Before, the bob reached
+                   r 122 — four units PAST the scale — so at exact tune the disc covered the
+                   lower 25% of the in-tune mark: the one reading the tick exists for was the
+                   one where the mark was most obscured.
+                   MIL-STD-1472G §5.2.2.5.3b(5)(a): the pointer "shall extend to, but not
+                   overlap, the shortest scale graduation marks", and Figure 30's note has
+                   pointers "ride against the inner scale annulus just short of the markings".
+                   Rejected on the sheet: lifting the tick's inner end instead (the scale would
+                   yield to the pointer, which inverts which one is the reference), and
+                   shrinking the bob to r=2 (it stops reading as the pendulum's weight — the
+                   Wittner silhouette is why this drawing was chosen).
+                   The cost, stated: the needle is 4 units = 3.44px shorter against a 108px
+                   radius. The pendulum below carries the identical change, because both
+                   instruments share this drawing on purpose. -->
               <g id="mt-needle" class="rest">
-                <line x1="160" y1="160" x2="160" y2="44" stroke="currentColor" stroke-width="1.5"/>
-                <circle cx="160" cy="44" r="6" fill="currentColor"/>
+                <line x1="160" y1="160" x2="160" y2="48" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="160" cy="48" r="6" fill="currentColor"/>
               </g>
               <circle cx="160" cy="160" r="2.5" fill="var(--ink)"/>
             </svg>
@@ -268,9 +284,13 @@ import Layout from '../layouts/Layout.astro';
                    reduced-motion case, where the bob was parked — and that case now
                    steps the bob between the ends instead, so one figure states the
                    beat in both modes. Three elements down to one. -->
+              <!-- Same 48, same reason as the tuner's needle — see the note there. The two
+                   instruments are one drawing in two states (still vs moving), so a geometry
+                   fix that landed on only one of them would break the thing that makes the
+                   pair read as one mechanic. -->
               <g id="mt-pend" class="rest">
-                <line x1="160" y1="160" x2="160" y2="44" stroke="currentColor" stroke-width="1.5"/>
-                <circle cx="160" cy="44" r="6" fill="currentColor"/>
+                <line x1="160" y1="160" x2="160" y2="48" stroke="currentColor" stroke-width="1.5"/>
+                <circle cx="160" cy="48" r="6" fill="currentColor"/>
               </g>
               <circle cx="160" cy="160" r="2.5" fill="var(--ink)"/>
             </svg>
