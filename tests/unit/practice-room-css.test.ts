@@ -65,10 +65,36 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     ['the meter digits', '.rbtn'],
     ['the track grammar', '.tbtn'],
     ['the scrub handles', '.mt-hd'],
+    ['the drone case', '.mt-drone'],
+    ["the drone's figure — its note letter", '.mt-dnote'],
     ['the page words', '.pgword'],
     ['the reduced-motion block', 'prefers-reduced-motion'],
   ])('keeps %s (%s)', (_label, needle) => {
     expect(css).toContain(needle);
+  });
+
+  // ── THE THIRD CASE (chooser metrotuner-drone-box, Q1/02 + Q2/05) ───────────
+  it('lays the room out as two equal cases plus the narrow third', () => {
+    // The pick is "the narrow third": the drone gets the width a letter and a verb need
+    // and no more, so the two worked instruments keep theirs. A future edit back to
+    // `repeat(3, minmax(0,1fr))` would be a different pick, silently.
+    expect(css).toContain('--mt-drone-w');
+    expect(css).toMatch(/grid-template-columns:minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)\s+var\(--mt-drone-w\)/);
+    expect(css, 'three equal columns is a different pick').not.toMatch(/repeat\(3,\s*minmax/);
+  });
+
+  it('gives the phone three snap pages', () => {
+    expect(css).toMatch(/repeat\(3,\s*100%\)/);
+    expect(css, 'the two-page scroller is gone').not.toMatch(/repeat\(2,\s*100%\)/);
+  });
+
+  // The one deliberate break of the site's single type size, and the only one on this
+  // screen: the drone's figure is a glyph doing a drawing's job. Pinned so it cannot drift
+  // into a second display size — and so deleting the figure's size is a visible change.
+  it("states the drone letter's size once, as the figure it is", () => {
+    const sizes = css.match(/font-size:\s*\d+px/g) || [];
+    expect(sizes, `only the drone letter may set a px size: ${sizes.join(' | ')}`)
+      .toEqual(['font-size:72px']);
   });
 
   // ── the alignment contract, as declarations ────────────────────────────────

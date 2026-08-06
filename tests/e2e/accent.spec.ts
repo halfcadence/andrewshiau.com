@@ -78,6 +78,15 @@ test('the `>` mark states the accent, as a real rendered colour change', async (
 });
 
 test('the accent mark adds no layout — both meters keep one baseline', async ({ page }) => {
+  // THE PREMISE IS A WIDTH, so the width is stated. Below 1479 the two meters STACK by
+  // design (`.mt-ctop{flex-direction:column}` — the case is too narrow to hold 431px of
+  // label+scale on one line), so "share a top edge" is only a claim about the wide layout.
+  // This test ran at Playwright's default 1280 and passed for as long as the room had two
+  // cases; the drone's 210px moved the stacking threshold up past 1280, and the test then
+  // reported the STACKED layout as a broken baseline (Δy 56, which is exactly one stacked
+  // row). What it exists to catch is the accent mark taking over the row's baseline — a
+  // mark-in-flow regression — and that is a wide-layout fact.
+  await page.setViewportSize({ width: 1512, height: 900 });
   await page.goto('/practice-room/?e2e');
   // `.mt-rm` is a column flex and baselines on its FIRST item, so an in-flow mark row
   // above the digits would become the beats meter's baseline and drop it below
@@ -94,6 +103,49 @@ test('the accent mark adds no layout — both meters keep one baseline', async (
   const a2 = (await beats.boundingBox())!;
   expect(Math.abs(a2.y - a.y), 'toggling the accent does not shift the digits').toBeLessThan(0.5);
   await page.getByTestId('accent-toggle').click();
+});
+
+// THE STACKED LAYOUT IS A CLAIM TOO, and nothing asserted it before — which is how the
+// stacking threshold could move 200px with only an unrelated baseline test noticing.
+//
+// WHAT THE CONTRACT ACTUALLY IS, measured rather than taken from the source comment: below
+// 1479 the two meters stack (`flex-direction:column` + `justify-content:flex-start`) and
+// each GROUP — its label plus its scale — starts on the case's inset datum. Both groups read
+// 563.0 at 1280, i.e. 0.0px apart and on the 3ch inset.
+// The first version of this test asserted the two SCALES share a left edge, and that is
+// false by 36px: `beats` sets 45px wide and `subdivide` 81px, so a scale that follows its
+// own label cannot line up with the other one. The page has never done it — the offset
+// predates the drone; what changed is that the widths which stack now reach up to 1479, so
+// more screens see it. Left as an observation for the owner rather than silently
+// redesigned: making the scales align needs a label column, which is a composition decision.
+test('below the stacking width the meters stack flush left, in order', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/practice-room/?e2e');
+  const beats = (await page.locator('#mt-beats-seg .rm-digits').boundingBox())!;
+  const sub = (await page.locator('#mt-sub-seg .rm-digits').boundingBox())!;
+
+  expect(sub.y, 'subdivide sits BELOW beats when stacked').toBeGreaterThan(beats.y + 20);
+
+  // Each group on the inset datum — the page's own horizontal rule (see
+  // tools/verify-practice-room-datums.mjs, which checks this system at 14 widths).
+  const flush = await page.evaluate(() => {
+    const half = document.querySelector('.mt-half[aria-label="Metronome"]')!;
+    const cs = getComputedStyle(half);
+    const contentLeft = half.getBoundingClientRect().x + parseFloat(cs.paddingLeft);
+    const fl = half.querySelector('.mt-fl')!.getBoundingClientRect().x;
+    const fr = half.querySelector('.mt-fr')!.getBoundingClientRect().x;
+    return { groupDelta: Math.abs(fl - fr), insetDelta: Math.abs(fl - contentLeft) };
+  });
+  expect(flush.groupDelta, 'both meter groups read from one left edge').toBeLessThan(1.5);
+  expect(flush.insetDelta, 'and that edge is the inset datum').toBeLessThan(1.5);
+
+  // and the spec row grew to hold them, rather than the meters overhanging into the figure
+  const fits = await page.evaluate(() => {
+    const top = document.querySelector('.mt-half[aria-label="Metronome"] .mt-ctop')!;
+    const seg = document.querySelector('#mt-sub-seg')!;
+    return seg.getBoundingClientRect().bottom <= top.getBoundingClientRect().bottom + 1;
+  });
+  expect(fits, 'the spec row must contain both stacked meters').toBe(true);
 });
 
 test('the tap SNAPS — the ring overshoots on press and settles back', async ({ page }) => {

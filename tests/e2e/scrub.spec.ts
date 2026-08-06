@@ -90,6 +90,27 @@ test('the A4 label and the Hz label both scrub the calibration', async ({ page }
   expect(await page.evaluate(() => (window as any).__mt.a4)).toBe(450);
 });
 
+// THE DRONE'S CALIBRATION SCRUBS TOO, AND IT MOVES THE ROOM (chooser
+// metrotuner-drone-box, the user's Q4 refinement: both cases carry a4, synced). Two
+// wrappers are wired now, so the regression this guards is wiring only the first — which
+// would leave the drone's labels looking like handles and doing nothing.
+test('the drone case scrubs the same calibration', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  const tunerField = page.getByTestId('a4');
+  const droneField = page.getByTestId('a4-drone');
+  const droneLabels = page.locator('#mt-a4-scrub-drone .mt-hd');
+  await expect(droneLabels).toHaveCount(2);
+
+  await dragBy(page, droneLabels.nth(0), 40);   // drag the drone's "a4" → +10
+  await expect(droneField).toHaveValue('450');
+  await expect(tunerField, 'the tuner must follow — one value').toHaveValue('450');
+  expect(await page.evaluate(() => (window as any).__mt.a4)).toBe(450);
+
+  await dragBy(page, droneLabels.nth(1), -40);  // and its "hz" → −10
+  await expect(droneField).toHaveValue('440');
+  await expect(tunerField).toHaveValue('440');
+});
+
 test('the handles are keyboard operable and clamp at their range', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
   const handle = page.getByTestId('bpm-handle');
@@ -117,7 +138,11 @@ test('every scrub handle clears the 44px tap target', async ({ page }) => {
   // asserted rather than eyeballed. `A4`/`Hz` are 2ch and are the narrow case.
   const handles = page.locator('.mt-hd');
   const n = await handles.count();
-  expect(n).toBe(3);                            // bpm, A4, Hz
+  // FIVE now: bpm, the tuner's a4 + hz, and the drone case's a4 + hz. The count is
+  // asserted rather than left open because a handle that loses its padding is invisible
+  // until someone tries to drag it on a phone — and adding an unwired one should fail here
+  // too, not just look right.
+  expect(n).toBe(5);
   for (let i = 0; i < n; i++) {
     const h = handles.nth(i);
     const box = (await h.boundingBox())!;

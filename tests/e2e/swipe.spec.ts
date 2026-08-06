@@ -46,19 +46,71 @@ test('phone: the metronome still runs while the tuner page is shown', async ({ p
   await page.getByTestId('metro-toggle').click();
 });
 
-test('desktop control: both halves on screen, no dots', async ({ page }) => {
+test('desktop control: three cases on screen, the third narrow, no dots', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/practice-room/');
-  const tuner = await page.locator('.mt-half[aria-label="Tuner"]').boundingBox();
-  const metro = await page.locator('.mt-half[aria-label="Metronome"]').boundingBox();
-  // Equal halves, side by side, both fully in the viewport.
-  expect(tuner!.x).toBeLessThan(100);
-  expect(metro!.x).toBeGreaterThan(600);
-  expect(metro!.x + metro!.width).toBeLessThanOrEqual(1441);
-  expect(Math.abs(tuner!.width - metro!.width)).toBeLessThan(10);
+  const tuner = (await page.locator('.mt-half[aria-label="Tuner"]').boundingBox())!;
+  const metro = (await page.locator('.mt-half[aria-label="Metronome"]').boundingBox())!;
+  const drone = (await page.locator('.mt-half[aria-label="Drone"]').boundingBox())!;
+
+  // THE NARROW THIRD (chooser metrotuner-drone-box, Q2/05). The two worked instruments
+  // keep equal width; the drone takes only what a letter and a verb need. Widths state
+  // importance, and that is the pick — so it is asserted as a RELATION (the drone is
+  // materially narrower) plus the token's own value, not as three magic numbers.
+  expect(tuner.x).toBeLessThan(100);
+  expect(Math.abs(tuner.width - metro.width), 'the two worked cases stay equal').toBeLessThan(10);
+  expect(drone.x).toBeGreaterThan(metro.x + metro.width - 1);
+  expect(drone.width, 'the drone case is the narrow third').toBeLessThan(metro.width * 0.7);
+  const token = await page.evaluate(() =>
+    getComputedStyle(document.querySelector('#mt-app')!).getPropertyValue('--mt-drone-w').trim());
+  expect(token).toBe('210px');
+  expect(Math.round(drone.width)).toBe(210);
+
+  // all three inside the viewport
+  expect(drone.x + drone.width).toBeLessThanOrEqual(1441);
   await expect(page.getByTestId('dot-tuner')).toBeHidden();
   // The instrument carries no site chrome: the mark is deleted (2026-08-04).
   await expect(page.getByTestId('home-mark')).toHaveCount(0);
+});
+
+// THREE PAGES, THREE WORDS (Q3/01) — and the words row is what breaks first at 390px, so
+// it is measured rather than eyeballed: one line, inside the viewport, and the third word
+// navigates like the other two.
+test('phone: the drone is a third page and the words still fit one line', async ({ page }) => {
+  await page.goto('/practice-room/');
+
+  const row = page.locator('#mt-dots');
+  const fit = await row.evaluate((el) => {
+    const kids = [...el.children];
+    // COUNT LINES FROM THE WORDS, not from every child. The `·` separators are `.mt-lb`
+    // 11px labels, so their boxes sit ~10px below the buttons' on the SAME line — counting
+    // distinct `top` values across all five children reported 2 lines for a row that
+    // measured one (every word at y634, the dots at y644). The words are what must not
+    // wrap, so the words are what gets measured.
+    const words = kids.filter((k) => k.tagName === 'BUTTON');
+    const tops = new Set(words.map((k) => Math.round(k.getBoundingClientRect().top)));
+    return { lines: tops.size, overflows: el.scrollWidth > el.clientWidth + 1,
+             width: Math.round(el.getBoundingClientRect().width),
+             // The BUTTONS' own text, not the row's concatenation: the build strips the
+             // whitespace between elements, so a joined string is a test of the bundler's
+             // formatting rather than of the words. (It failed on exactly that — expected
+             // "tuner · metronome · drone", got "tuner·metronome·drone".)
+             words: words.map((k) => k.textContent?.trim()) };
+  });
+  expect(fit.words).toEqual(['tuner', 'metronome', 'drone']);
+  expect(fit.lines, 'three words must set on ONE line at 390px').toBe(1);
+  expect(fit.overflows, 'the words row must not overflow').toBe(false);
+  // AND the row is inside the viewport — one line that overflows its own box would pass the
+  // line count and still be broken.
+  expect(fit.width).toBeLessThanOrEqual(390);
+
+  // and the third word navigates
+  await page.getByTestId('dot-drone').click();
+  await page.waitForTimeout(700);
+  const drone = (await page.locator('.mt-half[aria-label="Drone"]').boundingBox())!;
+  expect(Math.abs(drone.x), 'the drone page snapped into view').toBeLessThan(30);
+  await expect(page.getByTestId('dot-drone')).toHaveClass(/cur/);
+  await expect(page.getByTestId('dot-tuner')).not.toHaveClass(/cur/);
 });
 
 test('phone: the accent mark clears the plate it sits under', async ({ page }) => {

@@ -32,7 +32,12 @@ const URL = process.env.VERIFY_URL || 'http://127.0.0.1:4321/practice-room/';
 let INSET = null;   // --mt-inset, the horizontal datum
 let LEAD = null;    // --lead, the vertical rhythm
 const TOL = 0.51; // half a pixel, so a subpixel layout rounds clean
-const WIDTHS = [2560, 1728, 1440, 1280, 1241, 1240, 1100, 1024, 940, 901, 900, 430, 390, 360];
+// The list brackets every threshold in the sheet, from both sides — a boundary that is only
+// sampled on one side is a boundary nobody checked. 1480/1479 is the meter-stacking switch
+// (it moved from 1240 when the drone's 210px column narrowed the metronome), and 1002/1001 is
+// the phone switch (it moved from 901 because three cases need 964px before the metronome's
+// own meter fits — see the note in practice-room.astro).
+const WIDTHS = [2560, 1728, 1512, 1480, 1479, 1440, 1280, 1100, 1024, 1002, 1001, 940, 901, 430, 390, 360];
 
 const browser = await chromium.launch();
 let bad = 0;

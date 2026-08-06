@@ -11,9 +11,39 @@ test('page boots clean: no console errors, controls present', async ({ page }) =
   await page.goto('/practice-room/');
   await expect(page.getByTestId('mic-toggle')).toBeVisible();
   await expect(page.getByTestId('metro-toggle')).toBeVisible();
-  await expect(page.getByTestId('tone-toggle')).toBeVisible();
+  // THREE cases now (chooser metrotuner-drone-box, Q1/02): the drone has its own square
+  // and `tone-toggle` is gone with the tuner's second job. Its transport is the caption
+  // under its own figure, like the other two.
+  await expect(page.getByTestId('drone-toggle')).toBeVisible();
+  await expect(page.getByTestId('fifth-toggle')).toBeVisible();
+  await expect(page.getByTestId('tone-toggle')).toHaveCount(0);
+  // BOTH calibration fields, ONE value (the user's refinement on Q4).
   await expect(page.getByTestId('a4')).toHaveValue('440');
+  await expect(page.getByTestId('a4-drone')).toHaveValue('440');
   expect(errors).toEqual([]);
+});
+
+// ONE CALIBRATION BEHIND TWO FIELDS. The refinement the chooser's Q4 landed on was "both
+// cases have a pitch calibration but they're synced" — so the failure this guards is two
+// numbers drifting apart, which would silently mean the tuner and the drone disagree about
+// what A is. Asserted in BOTH directions, because wiring one field's listener and not the
+// other's passes a one-way test.
+test('the two a4 fields are one value', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  const tuner = page.getByTestId('a4');
+  const drone = page.getByTestId('a4-drone');
+
+  await tuner.fill('442');
+  await tuner.blur();
+  await expect(drone).toHaveValue('442');
+
+  await drone.fill('438');
+  await drone.blur();
+  await expect(tuner).toHaveValue('438');
+
+  // and the BINDING moved, not just the two input texts — a paint that skipped setA4()
+  // would satisfy every assertion above.
+  expect(await page.evaluate(() => (window as any).__mt.a4)).toBe(438);
 });
 
 test('A4 calibration clamps to 400–480', async ({ page }) => {
@@ -40,13 +70,32 @@ test('bpm clamps to 20–320', async ({ page }) => {
 
 test('the controls are keyboard-reachable in order', async ({ page }) => {
   await page.goto('/practice-room/');
-  // Tab from the top of the document; the mic toggle is the first control after
-  // the panel's link home.
+  // The tuner's foot is EMPTY now — `play tone` and the reference note left with the
+  // sustained tone (Q4/01 "nothing sounds"). So the tab after the tuner's transport lands
+  // on the METRONOME's first control rather than on a tone button in the same case.
+  // Asserted as "the next stop is inside the next case" instead of naming one testid,
+  // because the order within a case is a composition decision that has changed twice.
   const mic = page.getByTestId('mic-toggle');
   await mic.focus();
   await expect(mic).toBeFocused();
   await page.keyboard.press('Tab');
-  await expect(page.getByTestId('tone-toggle')).toBeFocused();
+  const next = await page.evaluate(() => {
+    const el = document.activeElement;
+    return { case: el?.closest('.mt-half')?.getAttribute('aria-label') ?? null,
+             testid: el?.getAttribute('data-testid') ?? null };
+  });
+  expect(next.case, 'focus left the tuner (its foot line is empty now)').toBe('Metronome');
+});
+
+// EVERY CASE'S TRANSPORT IS KEYBOARD-REACHABLE, and the drone's is new. A control added to
+// the DOM but placed out of the tab order is the regression this catches.
+test('all three transports take focus', async ({ page }) => {
+  await page.goto('/practice-room/');
+  for (const id of ['mic-toggle', 'metro-toggle', 'drone-toggle']) {
+    const btn = page.getByTestId(id);
+    await btn.focus();
+    await expect(btn, `${id} must be focusable`).toBeFocused();
+  }
 });
 
 // THE HOME-SCREEN INSTALL CONTRACT (Layout's `installable` prop). What iOS actually

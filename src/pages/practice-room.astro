@@ -9,7 +9,7 @@ import Layout from '../layouts/Layout.astro';
 // THE SHAPE IS A SCREEN, NOT THE DOCUMENT. Q2/01 "equal halves": on a wide viewport
 // the tuner and the metronome each centre in half the screen, both running — two
 // instruments, one practice, the same argument .duo makes on /method/. Q3/02 "swipe":
-// under 900px the halves become two snap-scroll pages, and the indicator is the
+// under 1002px the cases become snap-scroll pages, and the indicator is the
 // site's own pair — ring and disc, the disc marking where you are. 900 because that
 // is the width where .duo stacks; this page's halves give at the same width the
 // site's one other side-by-side does.
@@ -137,26 +137,13 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
 
-        <div class="mt-cfoot">
-          <span class="mt-fr">
-            <button type="button" class="tbtn latch fixw" id="mt-tone" data-testid="tone-toggle" aria-pressed="false" style="--w:9ch">
-              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
-                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
-                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
-                <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w">play tone</span>
-            </button>
-            <!-- THE VALUE IS THE CONTROL (steppers Q1/02), drag now HORIZONTAL
-                 (round16, user: values scrub left-to-right — one drag axis for every
-                 value, right = higher like a keyboard). Click steps up, shift-click
-                 down, arrows step when focused. touch-action:none keeps the page's
-                 swipe-scroller from stealing the drag. -->
-            <button type="button" class="tbtn scrubv" id="mt-refnote" data-testid="refnote"
-              aria-label="Reference note — click to raise, shift-click to lower, drag horizontally to scrub"
-              title="click +1 · shift-click −1 · drag ↔"><span class="w">A4</span></button>
-          </span>
-        </div>
+        <!-- THE TUNER'S FOOT IS EMPTY NOW (chooser metrotuner-drone-box, Q4/01 "nothing
+             sounds"). `play tone` and the reference note moved out with the sustained tone
+             they belonged to — this case listens, the drone case sounds, and one instrument
+             owns one verb. The `foot` ROW stays on the ladder and stays empty, which is the
+             mechanism that keeps all three cases' rows in phase (the metronome's `read` and
+             `hint` rows are empty for the same reason): the empty modules are what hold the
+             alignment. No div, because there is nothing left to put in one. -->
         <!-- The hint holds ITS OWN reserved line (annotation 2026-08-04: "hate how
              the layout changes when starting/stopping"): swapping between the
              28-char idle text and 9-char 'listening' used to reflow the whole foot
@@ -338,6 +325,94 @@ import Layout from '../layouts/Layout.astro';
           </span>
         </div>
       </section>
+
+      <!-- ── DRONE, the third case / third page ────────────────────────────── -->
+      <!-- ITS OWN CASE (chooser metrotuner-drone-box, Q1/02). The sustained tone was the
+           tuner's second job — one case that both listened and sounded — and a drone is
+           not a reference pip you check against: it is a note you play against for
+           minutes, the daily string and wind intonation ritual. So it gets a square, and
+           the tuner goes back to one verb.
+           THE FIGURE IS THE NOTE LETTER, not a third copy of the arc-and-bob. The tuner
+           and metronome share that drawing on purpose (still vs moving is their whole
+           distinction) and a drone is neither — nothing deflects and nothing sweeps. What
+           it has to say is WHICH NOTE, from across the room, so the letter at 72px IS the
+           figure: the largest type on the screen, and the only place this page breaks its
+           one-size rule, because a figure is a drawing and not a line of copy.
+           NARROW (Q2/05, "the narrow third"): the case takes 210px rather than an equal
+           third, because a note and a verb do not fill a third of a screen — and the two
+           worked instruments keep the width they had. Widths state importance. -->
+      <section class="mt-half mt-drone" aria-label="Drone">
+        <span class="mt-plate" aria-hidden="true">drone</span>
+        <!-- A4 IS ON BOTH CASES, ONE VALUE (the user's refinement on Q4: "it makes sense
+             for both to have a pitch calibration but they're synced?"). The alternative on
+             the sheet was one owner — either the tuner keeps it or it follows the sound —
+             and both are wrong for the same reason: calibration is what the whole ROOM
+             means by a note, so a case that reads pitch and a case that sounds pitch each
+             need it in reach, and there must be exactly one number. Two fields, one
+             binding: `setA4()` writes every field on the screen (see `a4Fields`). -->
+        <div class="mt-ctop">
+          <span class="mt-fr">
+            <span class="f mt-a4" id="mt-a4-scrub-drone">
+              <label for="mt-a4-drone" class="mt-lb mt-hd" title="drag ↔ to change the calibration">a4</label>
+              <input id="mt-a4-drone" data-testid="a4-drone" type="number" inputmode="decimal"
+                     min="400" max="480" step="1" value="440" title="type a value"
+                     aria-label="A4 calibration in hertz — type a value, or drag the a4 or hz label horizontally" />
+              <span class="mt-lb mt-hd" title="drag ↔ to change the calibration">hz</span>
+            </span>
+          </span>
+        </div>
+        <div class="mt-mid">
+          <figure class="mt-gauge mt-dfig" aria-hidden="true">
+            <span class="mt-dnote" id="mt-dnote">A</span>
+          </figure>
+          <!-- THE READ ROW STAYS EMPTY, like the metronome's. It briefly held `A4` — the
+               sounding pitch with its octave, under the letter that names it without one —
+               and looking at the render killed it: the case then stated its note THREE
+               times (the 72px letter, that reading, and the foot's scrub control) inside
+               210px. The letter is the figure and the foot control is the value; a third
+               copy between them is the same fact drawn again.
+               The empty row still does work — it is what keeps this case's transport on the
+               same line as the other two (the metronome leaves the same row empty). -->
+          <!-- The bare verb (Q1/05), the same caption both other cases carry. -->
+          <div class="mt-cap">
+            <button type="button" class="tbtn latch" id="mt-drone" data-testid="drone-toggle"
+              aria-pressed="false" aria-label="start the drone">
+              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
+                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
+                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
+                <circle class="disc" cy="6" r="3.2"/>
+              </svg><span class="w fixw" style="--w:5ch">start</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-cfoot">
+          <span class="mt-fl">
+            <!-- THE VALUE IS THE CONTROL (steppers Q1/02), horizontal drag (round16):
+                 click steps up, shift-click down, drag scrubs, arrows step when focused.
+                 This is the tuner's old refnote control, moved — same gesture, same
+                 testid contract, now naming the drone's own note. -->
+            <button type="button" class="tbtn scrubv" id="mt-refnote" data-testid="refnote"
+              aria-label="Drone note — click to raise, shift-click to lower, drag horizontally to scrub"
+              title="click +1 · shift-click −1 · drag ↔"><span class="w">A4</span></button>
+          </span>
+          <span class="mt-fr">
+            <!-- THE FIFTH is a two-pocket latch, the Track grammar's toggle. JUST (3:2),
+                 not tempered: the beating against an equal-tempered instrument is the
+                 whole reason to drone against a fifth. -->
+            <button type="button" class="tbtn latch" id="mt-fifth" data-testid="fifth-toggle"
+              aria-pressed="false" aria-label="Sound the fifth above">
+              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
+                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
+                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
+                <circle class="disc" cy="6" r="3.2"/>
+              </svg><span class="w">fifth</span>
+            </button>
+          </span>
+        </div>
+      </section>
     </div>
 
     <!-- The foot: the page indicator (phone only) and the one word out. The dots are
@@ -350,10 +425,17 @@ import Layout from '../layouts/Layout.astro';
            faint+underlined (the segment idiom). The swipe still works; these are its
            click-shaped fallback, and with the pages named at the foot the engraved
            plate labels became redundant on the phone (they were already hidden). -->
+      <!-- THREE PAGES, THREE WORDS (chooser metrotuner-drone-box, Q3/01). Measured before
+           committing to it, because the words row is what breaks first: at 390px
+           `tuner · metronome · drone` sets to 360px on ONE line, inside the viewport. The
+           dots-instead fallback the sheet offered was not needed, and the words are worth
+           keeping — they NAME the pages, which two discs cannot. -->
       <div class="mt-dots" id="mt-dots">
         <button type="button" data-goto="0" data-testid="dot-tuner" class="pgword">tuner</button>
         <span class="mt-lb" aria-hidden="true">·</span>
         <button type="button" data-goto="1" data-testid="dot-metro" class="pgword">metronome</button>
+        <span class="mt-lb" aria-hidden="true">·</span>
+        <button type="button" data-goto="2" data-testid="dot-drone" class="pgword">drone</button>
       </div>
       <!-- THE MARK IS GONE (user call, 2026-08-04: "just delete the mark, it's not
            really part of this tool"). The instrument carries no site chrome at all;
@@ -415,6 +497,8 @@ import Layout from '../layouts/Layout.astro';
      padding, the phone's, the plate's offset, and the overlay's inset) and they have to agree
      by construction — four hand-typed 3chs is four chances to drift. */
   #mt-app{--mt-inset:3ch;
+    /* the drone case's width — see the note on `.mt-pages`' columns for the derivation */
+    --mt-drone-w:210px;
     height:100dvh;height:round(down, 100dvh, var(--lead));
     display:flex;flex-direction:column;overflow:hidden}
 
@@ -450,8 +534,21 @@ import Layout from '../layouts/Layout.astro';
      no readout and no hint line, and those rows stay empty on its side. That is the
      point — the empty modules are what hold the alignment (designer.md: "the empty
      modules are the composition"). It also retires the tuner's reserved-line hack. */
+  /* ── THREE CASES, AND THE THIRD IS NARROW (chooser metrotuner-drone-box, Q2/05) ──
+     The room was `repeat(2, minmax(0,1fr))`. The drone gets `--mt-drone-w` rather than an
+     equal third, and the reason is the one the sheet was built to show: the case holds a
+     letter, a verb, a note and a latch, so an equal third buys mostly empty case while
+     making both worked instruments narrower to pay for it. Widths state importance.
+     210px IS MEASURED, not chosen: the widest ink the case must hold is its foot line,
+     `A4` beside `fifth` — 2ch + 5ch of glyphs plus the fifth's 26px track, its 1ch gap and
+     the two 3ch insets. That comes to 9ch (81px) of type + 26px + 9px + 54px = 170px, and
+     210 leaves the pair a comfortable 40px of air rather than setting them touching. Below
+     1240 the meters stack (see that block) and this stays: the drone's contents do not
+     change with width. The token is declared with `--mt-inset` on `#mt-app`, with the
+     screen's other measures, rather than typed into the template here. */
   .mt-pages{flex:1;min-height:0;position:relative;
-    display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) var(--mt-drone-w);
     column-gap:var(--group);
     padding:var(--group) var(--group) var(--lead);
     grid-template-rows:
@@ -535,7 +632,7 @@ import Layout from '../layouts/Layout.astro';
      `inset:0` because the scroller's padding is 0 at that width, and an absolutely-positioned
      ::before inside a scroll container is laid out against the scrollable padding box, so it
      travels with the pages instead of staying stuck over page 1. */
-  @media (max-width: 900px){
+  @media (max-width: 1001px){
     .mt-pages::before{inset:0}
   }
   /* THE HAIRLINE (chooser metrotuner-reactive, Q1/02): 1px --line — the embed
@@ -649,7 +746,25 @@ import Layout from '../layouts/Layout.astro';
      label. Above it, one line; below it, the spec row is two leads taller and the meters
      stack flush left, which is what they do at phone width anyway. The ladder's `spec` row
      grows with them so the figure's slack is not silently eaten. */
-  @media (max-width: 1240px) and (min-width: 901px){
+  /* 1479 IS BISECTED, and it took three attempts to get right — worth recording, because
+     every wrong answer came from computing instead of measuring.
+     1240 was the TWO-case threshold. Adding the drone takes `--mt-drone-w` plus a `--group`
+     out of the row, so the metronome's case is narrow enough to wrap at a WIDER screen.
+       · 1506 (= 1240 + 210 + 56) — wrong by ~96px. It scaled a number whose own premise was
+         false: the old comment said the meters need 478px, and they measure 280px.
+       · 1410 — wrong by 69px, and worse than it looks. It came from sampling widths 20px
+         apart (1420 fits, 1400 wraps) and picking between the samples; the real boundary was
+         never in that interval. It left a BAND, 1410–1479, where the meters wrapped with no
+         taller row to wrap into — which is precisely the defect this block exists to
+         prevent, and it showed up as the accent-baseline test failing at Playwright's
+         default 1280… no, at 1411: measured Δy −84 there against −56 when stacked.
+       · 1479 — bisected one pixel at a time with the stacking rule suppressed, so the wrap
+         is the browser's own decision: the row holds both meters on one line down to 1480
+         and wraps at 1479.
+     THE LESSON, stated because the same mistake is easy to repeat here: a threshold is a
+     boundary, so it has to be found by bisection, not by sampling a range and interpolating.
+     If `--mt-drone-w` changes, re-bisect — do not re-derive. */
+  @media (max-width: 1479px) and (min-width: 1002px){
     .mt-pages{grid-template-rows:
       [case-top]  var(--lead)
       [spec]      calc(var(--lead) * 4)  /* two stacked meters, two leads each */
@@ -662,10 +777,51 @@ import Layout from '../layouts/Layout.astro';
       [hint]      var(--lead)
       [case-bot]  var(--lead)
       [case-end]}
-    /* Stacked, both meters read from the same left edge — `space-between` on a wrapped
-       row would push the second one right and the two scales would not line up. */
+    /* Stacked, both meter GROUPS read from the same left edge — `space-between` on a wrapped
+       row would push the second one right, off the inset datum entirely.
+       PRECISELY WHAT ALIGNS, because the earlier wording ("the two scales would not line
+       up") over-claimed and a test written from it failed on a correct page: the two GROUPS
+       are flush at the inset (measured 563.0 and 563.0 at 1280, 0.00px apart), and the two
+       SCALES are 36px apart — `beats` sets 45px wide and `subdivide` 81px, so a scale that
+       follows its own label cannot share an edge with the other. That offset is not new; it
+       predates the drone. Aligning the scales would need a label column, which is a
+       composition decision and not this rule's business. */
     .mt-ctop{justify-content:flex-start;flex-direction:column;gap:0}
   }
+
+  /* ── THREE CASES DO NOT FIT ABOVE THE PHONE BREAKPOINT, so the room becomes the swiper
+     69px earlier (901 → 970). This is the one place the drone forced a real trade, and the
+     numbers are why:
+       · A label+scale group needs 230px of ink for `subdivide` (81 + 9 + 140).
+       · The spec row holds two of them stacked, so the case needs 230px of CONTENT — 284px
+         of case with the 3ch insets.
+       · Three cases plus two `--group`s means the screen needs 3×284 + 112 = 964px before
+         the metronome has that. Below it `subdivide` wraps UNDER ITS OWN SCALE: four lines
+         where the design has two, a spec row of 191px against 99px, and the datums harness
+         reading "stacked subdivide sits 102.00px below beats, not a whole lead" at 901 and
+         940 in both colourways (the pre-change page passed all 28 configurations, so the
+         defect was mine and new).
+     1002 IS BISECTED, and it is the third number this one threshold went through — the
+     arithmetic above predicts 964 and the browser says 1002, a 38px miss, because a
+     label+scale group's wrap depends on the flex container's own rounding and not only on the
+     ink it holds. Bisected one pixel at a time: at 1002 `subdivide` still sits beside its
+     scale, at 1001 it wraps under it. Compute to know WHY a threshold exists; bisect to know
+     WHERE it is.
+     WHAT I TRIED FIRST AND MEASURED WRONG: releasing the narrow third below 1001 so the
+     drone shrank with the room. It made the case NARROWER, not wider — 183px of content
+     against the 197px the fixed 210px column left it — because an equal third of 940 is
+     less than what remains after a fixed 210. The instinct ("let the small case give") was
+     backwards: the narrow third is what PROTECTS the other two.
+     So the honest fix is the phone layout starting sooner. 970 is the round number above the
+     964 the arithmetic gives — superseded by the bisection below. One case per snap page has
+     the whole viewport, which is more than 284px at any phone width. The cost, stated: a
+     window between 901 and 1001 that used to show two cases side by side now swipes. That
+     band is a narrow desktop window, and the alternative was a case whose own meter does not
+     fit inside it.
+     THE BREAKPOINT MOVED, rather than a columns-only override being layered on top: the
+     phone layout is one decision (snap scroller + page words + drawn frame + its own row
+     ladder), so 970 is written into every `@media` that keys on it. Two numbers governing
+     one switch is how a layout ends up half-transformed at some width nobody tried. */
 
   /* THE STRING (user nit 2): circles joined by trimmed rules — o-o-o-o-o-o-o, the
      mark's own vocabulary at meter scale. Click the Nth circle and the string fills
@@ -807,12 +963,12 @@ import Layout from '../layouts/Layout.astro';
      must be `:global()`. That covers `.rm-rule line` and `.rm-acc`'s children. */
   .rm-rulebtn:hover .rm-rule :global(line){stroke:var(--accent)}
 
-  /* THE SWIPE (metrotuner-two-pages Q3/02). Under 900px the cases become two
+  /* THE SWIPE (metrotuner-two-pages Q3/02). Under 1002px the cases become three
      full-width snap pages — and the case VANISHES (metrotuner-pendulum Q2, the
      mobile rule): the viewport's own edges are the frame, so drawing one inside
      them would be a frame in a frame. The plate goes with it; the page dots name
      the pages. */
-  @media (max-width: 900px){
+  @media (max-width: 1001px){
     /* THE SNAP SCROLLER, ON THE SAME LADDER. What changes from the desktop case is only
        the COLUMN axis — each page is a full viewport wide, so the two columns become two
        100%-wide ones and the gap goes. `grid-auto-flow:column` is NOT used: the rows are
@@ -821,8 +977,11 @@ import Layout from '../layouts/Layout.astro';
        two instruments hold identical row positions on the phone too, so swiping between
        them moves nothing vertically. Measured before: a swipe moved the transport 28px
        and the figure 84px, so the two pages read as two different layouts. */
+    /* THREE PAGES (Q3/01). The drone is a page like the others — full width, its own snap
+       stop — so the narrow-third width is a DESKTOP statement only, which is right: on a
+       phone there is no neighbour to be narrow beside. */
     .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-      grid-template-columns:repeat(2, 100%);column-gap:0;padding:0;
+      grid-template-columns:repeat(3, 100%);column-gap:0;padding:0;
       /* THE PHONE'S TOP AIR IS TWO LEADS (user, 2026-08-05: "the accent is too close to
          the text metronome on mobile, vertically"). Measured on the live page at 390,
          360 and 430: the plate's line box ran y 0→28 and the accent mark's ink y 20→28,
@@ -983,7 +1142,7 @@ import Layout from '../layouts/Layout.astro';
                       narrow enough that the columns are thinner than the gutters between
                       them, and a 12-column grid inside a 400px box is a fiction whether or
                       not something is aligned to it.
-       · ≤900px     — the phone, which has no column grid at all (the per-case overlay is
+       · ≤1001px    — the phone, which has no column grid at all (the per-case overlay is
                       `display:none` there and the parent draws rows only), so the figure
                       takes the content width. See the mobile rule below.
      THE FLOOR IS THE DRAWING, not a round number: 320px is the width the pendulum was
@@ -995,6 +1154,46 @@ import Layout from '../layouts/Layout.astro';
     width:min(100%, max(var(--mt-figw), 240px));
     margin:0;grid-row:figure;align-self:center;justify-self:center}
   .mt-gauge svg{display:block;width:100%;height:auto;color:var(--ink)}
+
+  /* ── THE DRONE'S FIGURE IS ITS NOTE LETTER ──────────────────────────────────
+     Not a third arc-and-bob: the tuner and the metronome share that drawing because still
+     vs moving is their entire distinction, and a drone is neither — nothing deflects,
+     nothing sweeps. What it must say from a music stand is WHICH NOTE, so the letter is
+     the figure.
+     72px IS A DELIBERATE BREAK of the site's one-size rule, and the only one on this
+     screen. The justification is the same one `.mt-plate` and the meter digits do NOT get:
+     this is a FIGURE, a drawing that happens to be made of a glyph, sitting in the row the
+     other two cases put a 158px drawing in. Set at 72 rather than filling the row because
+     the case is 210px wide and the widest letter pair is `A♯` — measured, `A♯` at 72px sets
+     to 129px, which clears the case's 156px of content width; at 96px it would be 172px and
+     overflow. `line-height:1` and `font-weight:400`: the site has no display weight and a
+     figure needs no leading.
+     `font-variant-numeric` is irrelevant here and `letter-spacing` is left alone — in a
+     monospace face the advance width IS the cell, and tightening it would take the glyph
+     off the character ladder the rest of the screen is set on. */
+  .mt-dfig{display:flex;align-items:center;justify-content:center;
+    /* the figure's own width, not the six-column measure the arcs use: a glyph has no
+       aspect ratio to preserve, so it centres on the axis and takes what it needs */
+    width:100%}
+  .mt-dnote{font-size:72px;line-height:1;font-weight:400;color:var(--ink);
+    /* Optical, and measured: a cap-height glyph's line box carries its descender space, so
+       the letter's INK centre sits 7.5px below the box centre in this face at this size —
+       which put it 7.5px off the axis the dial and the verb sit on. The nudge is stated as
+       a fraction of the size rather than a pixel so it survives a size change. */
+    transform:translateY(-0.104em);
+    transition:color var(--dur-fast) var(--ease)}
+  /* SOUNDING is the accent, and it is the one state this case has. The tuner says "live"
+     with its needle going from --line to --ink; the drone's letter is always ink (it names
+     the note whether or not it is playing), so the running state cannot be carried by the
+     same value change. The accent is what this system uses for "you can act on this", and
+     a sounding drone is the one thing on the screen actively doing something. */
+  .mt-drone[data-sounding="true"] .mt-dnote{color:var(--accent)}
+  /* The exact pitch, in the `read` row — the row the tuner uses for its reading and the
+     metronome leaves empty. On the axis, like every reading on this screen. */
+  /* No `.mt-dread` / `.mt-dfull` rules: the exact reading they styled is deleted (see the
+     markup note — the case was stating its note three times in 210px). The OCTAVE, which was
+     the one thing that reading added over the letter, lives on the foot control, which prints
+     the full `A4`. */
   #mt-needle{transform-origin:160px 160px;transform-box:view-box;
     transition:transform var(--dur) var(--ease),color var(--dur) var(--ease)}
   #mt-needle.rest{color:var(--line)}
@@ -1234,7 +1433,7 @@ import Layout from '../layouts/Layout.astro';
   .mt-foot{display:none;flex:none;flex-direction:column;align-items:center;
     gap:4px;padding:0 var(--gutter) var(--lead)}
   .mt-dots{display:flex;gap:1.5ch;align-items:baseline}
-  @media (max-width: 900px){ .mt-foot{display:flex} }
+  @media (max-width: 1001px){ .mt-foot{display:flex} }
   /* The page words (user nit 2026-08-04, the dots were unclear): current = ink, no
      underline (a fact); the other = faint, underlined (an offer) — the segment
      idiom. 44px targets via padding. */
@@ -1295,6 +1494,12 @@ import Layout from '../layouts/Layout.astro';
                 renders: { at: number; note: string }[];
                 bleed: GainNode | null; gated: number;
                 readonly a4: number; readonly bpm: number;
+                // EVERY RANK'S SET FREQUENCY, read off the live oscillators. `toneHz` alone
+                // could not answer the question the fifth raises — whether the interval is
+                // JUST (3:2) or the tempered 2^(7/12), two cents narrow — and a test that
+                // re-derives the ratio from the source instead of the graph would pass on a
+                // page that sounds the wrong one.
+                readonly droneRanks: number[];
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
@@ -1308,6 +1513,12 @@ import Layout from '../layouts/Layout.astro';
     bleed: null, gated: 0,
     get a4() { return a4; },
     get bpm() { return bpm; },
+    // In start order: fundamental, octave, and the fifth when latched.
+    get droneRanks() {
+      return [toneOsc, toneOsc2, toneOsc3]
+        .filter((o): o is OscillatorNode => !!o)
+        .map((o) => o.frequency.value);
+    },
     get ctx() { return ctx; },
     get mic() { return analyser; },
   };
@@ -1326,18 +1537,42 @@ import Layout from '../layouts/Layout.astro';
   };
   let a4 = Number(store.get('mt:a4')) || A4_DEFAULT;
   a4 = Math.min(A4_MAX, Math.max(A4_MIN, a4));
-  const a4Input = $('mt-a4') as unknown as HTMLInputElement;
-  a4Input.value = String(a4);
+  // ── ONE CALIBRATION, TWO FIELDS (the user's refinement on the drone-box chooser's Q4:
+  // "it makes sense for both to have a pitch calibration but they're synced?").
+  // Calibration is what the whole ROOM means by a note, so the case that READS pitch and
+  // the case that SOUNDS pitch each carry the field — and there is exactly one number
+  // behind them. Every write goes through setA4(), which paints every field, so the two
+  // cannot disagree. The alternative was one owner, and both versions of that were worse:
+  // a4 on the tuner alone leaves the drone's pitch set on another case, and a4 following
+  // the sound takes it off the case whose reading it defines.
+  const a4Fields = Array.from(
+    document.querySelectorAll<HTMLInputElement>('#mt-a4, #mt-a4-drone'),
+  );
+  // PAINT BOTH FIELDS, UNCONDITIONALLY. The first version skipped the focused one, meaning
+  // to protect a half-typed number — and that guard was both unnecessary and a bug:
+  //   · Unnecessary, because these fields only commit on `change` (blur or Enter), never on
+  //     `input`. Nothing repaints while a number is being typed, so there is nothing to
+  //     protect against.
+  //   · A bug, because a scrub leaves focus on the handle INSIDE one case, and skipping
+  //     "the focused field" then left the other case's number stale: measured a4=440 with
+  //     the two inputs reading 450 and 440. Two fields showing different numbers is the
+  //     exact failure "synced" exists to prevent.
+  const paintA4 = () => {
+    for (const f of a4Fields) f.value = String(a4);
+  };
   const setA4 = (v: number) => {
     if (!Number.isFinite(v)) return;
     a4 = Math.min(A4_MAX, Math.max(A4_MIN, v));
     store.set('mt:a4', String(a4));
+    paintA4();
     if (toneOsc) retune();
   };
-  a4Input.addEventListener('change', () => {
-    setA4(Number(a4Input.value));
-    a4Input.value = String(a4);
-  });
+  for (const f of a4Fields) {
+    f.value = String(a4);
+    // setA4() clamps and then paints BOTH fields, so an out-of-range entry is corrected in
+    // place — no separate write-back needed here.
+    f.addEventListener('change', () => setA4(Number(f.value)));
+  }
 
   // ── SCRUB ON THE UNIT, TYPE IN THE FIELD ────────────────────────────────────
   // One helper for all of it (chooser metrotuner-scrub-target, pick 03). It used to
@@ -1404,24 +1639,35 @@ import Layout from '../layouts/Layout.astro';
   }
 
   {
-    const host = document.getElementById('mt-a4-scrub')!;
+    // BOTH cases' calibration fields are scrubbable, and both report the same value —
+    // there is one binding, so a drag on the drone's `hz` moves the tuner's number too.
+    // The handles are collected across both hosts; `host` (the class that paints the
+    // scrubbing state) is resolved per handle from its own wrapper rather than passed in,
+    // because there are two wrappers now.
+    const hosts = Array.from(document.querySelectorAll<HTMLElement>('#mt-a4-scrub, #mt-a4-scrub-drone'));
+    const allHandles = hosts.flatMap((h) => Array.from(h.querySelectorAll<HTMLElement>('.mt-hd')));
     // `aria-valuenow` has to track the value or a screen reader reads the start state
     // forever. Declared BEFORE wireScrub so the setter closes over a real binding —
     // a `var` after the call would hoist and work by luck, only because the setter
     // does not run until a drag.
     const syncA4Handles = () => {
-      for (const h of host.querySelectorAll('.mt-hd')) {
+      for (const h of allHandles) {
         h.setAttribute('aria-valuenow', String(a4));
         h.setAttribute('aria-valuetext', `A4 = ${a4} hertz`);
       }
     };
-    wireScrub({
-      host,
-      handles: Array.from(host.querySelectorAll<HTMLElement>('.mt-hd')),
-      get: () => a4,
-      set: (v) => { setA4(v); a4Input.value = String(a4); syncA4Handles(); },
-      min: A4_MIN, max: A4_MAX,
-    });
+    for (const host of hosts) {
+      wireScrub({
+        host,
+        handles: Array.from(host.querySelectorAll<HTMLElement>('.mt-hd')),
+        get: () => a4,
+        // paintA4() writes BOTH fields; the handle sync covers both sets of labels. A
+        // scrub on either case therefore moves the whole room's calibration, which is
+        // what "synced" has to mean to be worth having twice.
+        set: (v) => { setA4(v); syncA4Handles(); },
+        min: A4_MIN, max: A4_MAX,
+      });
+    }
     syncA4Handles();
   }
 
@@ -1656,23 +1902,47 @@ import Layout from '../layouts/Layout.astro';
     }
   } catch {}
 
-  // ── reference tone ────────────────────────────────────────────────────────
-  const toneBtn = $('mt-tone') as unknown as HTMLButtonElement;
+  // ── the drone ─────────────────────────────────────────────────────────────
+  // WAS THE REFERENCE TONE, and the change is more than a rename (chooser
+  // metrotuner-drone-box): it has its own case now, so the verb it answers to is the
+  // caption `start` under its own figure rather than `play tone` on the tuner's foot.
+  // The engine is the same two-rank organ plus one new rank, the fifth.
+  const toneBtn = $('mt-drone') as unknown as HTMLButtonElement;
+  const droneCase = document.querySelector('.mt-drone') as HTMLElement;
   const refNoteEl = $('mt-refnote');
+  const dNoteEl = $('mt-dnote');    // the figure: the letter alone (no octave — that is on
+                                    // the foot control, which prints the full A4)
   let refMidi = Number(store.get('mt:ref')) || 69; // A4
   if (!Number.isInteger(refMidi) || refMidi < 36 || refMidi > 96) refMidi = 69;
+  // THE FIFTH is persisted like every other set-once value on this screen. JUST, not
+  // tempered — see the markup note: the beating is the point of droning on a fifth.
+  let fifthOn = store.get('mt:fifth') === '1';
+  const fifthBtn = $('mt-fifth') as unknown as HTMLButtonElement;
   // THE ORGAN PAIR (timbre chooser pick, 2026-08-04): the fundamental plus one
   // octave partial at −12 dB — the two-rank flute organ. Fills out without buzz,
   // and the octave makes unisons easier to hear against a real instrument.
   let toneOsc: OscillatorNode | null = null;   // the fundamental — the hook reads this one
   let toneOsc2: OscillatorNode | null = null;  // the octave partial
+  let toneOsc3: OscillatorNode | null = null;  // the fifth, when latched
   let toneGain: GainNode | null = null;
 
+  // ONE function writes every place the drone's note appears: the scrub control, the
+  // 72px figure and the exact reading. Three copies of one value is three chances to
+  // drift, and the figure is the one a reader trusts from across the room.
   function refLabel() {
     const name = NOTE_NAMES[((refMidi % 12) + 12) % 12];
+    // TWO PLACES, at two precisions: the figure carries the letter (what you read from a
+    // stand) and the foot control carries letter + octave (the value you set). One function
+    // writes both, so they cannot drift.
     setWord(refNoteEl, `${name}${Math.floor(refMidi / 12) - 1}`);
+    if (dNoteEl) dNoteEl.textContent = name;
   }
   refLabel();
+
+  function paintFifth() {
+    fifthBtn.setAttribute('aria-pressed', String(fifthOn));
+  }
+  paintFifth();
 
   // THE VALUE IS THE CONTROL (Q1/02). One element, four inputs:
   // click +1 · shift-click −1 · vertical drag scrubs (8px per semitone; the
@@ -1705,12 +1975,18 @@ import Layout from '../layouts/Layout.astro';
     });
   }
 
-  // ONE function owns both oscillators' frequencies AND the hook's copy.
+  // THE JUST FIFTH, not the tempered one: 3:2 exactly. An equal-tempered fifth is
+  // 2^(7/12) = 1.49831, two cents narrow, and those two cents are the difference between
+  // a drone you can tune a third against and one that beats against itself.
+  const FIFTH = 3 / 2;
+
+  // ONE function owns every oscillator's frequency AND the hook's copy.
   function retune() {
     const f = midiToFreq(refMidi, a4);
     const now = audio().currentTime;
     if (toneOsc) toneOsc.frequency.setValueAtTime(f, now);
     if (toneOsc2) toneOsc2.frequency.setValueAtTime(f * 2, now);
+    if (toneOsc3) toneOsc3.frequency.setValueAtTime(f * FIFTH, now);
     if (E2E) hook.toneHz = toneOsc ? f : null;
   }
 
@@ -1731,11 +2007,26 @@ import Layout from '../layouts/Layout.astro';
     toneGain.gain.exponentialRampToValueAtTime(0.12, ac.currentTime + 0.06);
     toneOsc.connect(toneGain);
     toneOsc2.connect(g2).connect(toneGain);
+    // The fifth is its own rank at −6 dB: quieter than the fundamental so the root still
+    // reads as the note, louder than the octave so the interval is audible to tune against.
+    if (fifthOn) {
+      toneOsc3 = ac.createOscillator();
+      toneOsc3.type = 'sine';
+      toneOsc3.frequency.value = f * FIFTH;
+      const g3 = ac.createGain();
+      g3.gain.value = 0.5;
+      toneOsc3.connect(g3).connect(toneGain);
+    }
     toneGain.connect(ac.destination);
     toneOsc.start();
     toneOsc2.start();
-    setWord(toneBtn, 'stop tone');
+    toneOsc3?.start();
+    setWord(toneBtn, 'stop');
     toneBtn.setAttribute('aria-pressed', 'true');
+    toneBtn.setAttribute('aria-label', 'stop the drone');
+    // The figure carries the running state (the letter goes accent) — the drone's one
+    // state, and the only thing on this screen the accent means here.
+    if (droneCase) droneCase.dataset.sounding = 'true';
     if (E2E) hook.toneHz = f;
   }
 
@@ -1745,15 +2036,39 @@ import Layout from '../layouts/Layout.astro';
     toneGain.gain.setTargetAtTime(0.0001, ac.currentTime, 0.03);
     toneOsc.stop(ac.currentTime + 0.2);
     toneOsc2?.stop(ac.currentTime + 0.2);
+    toneOsc3?.stop(ac.currentTime + 0.2);
     toneOsc = null;
     toneOsc2 = null;
+    toneOsc3 = null;
     toneGain = null;
-    setWord(toneBtn, 'play tone');
+    setWord(toneBtn, 'start');
     toneBtn.setAttribute('aria-pressed', 'false');
+    toneBtn.setAttribute('aria-label', 'start the drone');
+    if (droneCase) delete droneCase.dataset.sounding;
     if (E2E) hook.toneHz = null;
   }
 
-  toneBtn.addEventListener('click', () => (toneOsc ? stopTone() : startTone()));
+  toneBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
+    toneOsc ? stopTone() : startTone();
+  });
+
+  // THE FIGURE IS THE SWITCH HERE TOO — the same shortcut the dial and the pendulum
+  // carry, so all three cases answer a tap in the middle. The foot line's controls sit
+  // OUTSIDE `.mt-mid`, so they cannot double-fire through it; the caption latch is inside
+  // it and stops propagation, exactly as the other two cases' do.
+  document.getElementById('mt-dnote')?.closest('.mt-mid')?.addEventListener('click', () => {
+    toneOsc ? stopTone() : startTone();
+  });
+
+  // The fifth toggles WHILE SOUNDING: adding or removing a rank means restarting the
+  // stack, so a latch mid-drone re-voices it. Stopped, it just records the choice.
+  fifthBtn.addEventListener('click', () => {
+    fifthOn = !fifthOn;
+    store.set('mt:fifth', fifthOn ? '1' : '0');
+    paintFifth();
+    if (toneOsc) { stopTone(); startTone(); }
+  });
 
   const stepRef = (d: number) => {
     refMidi = Math.min(96, Math.max(36, refMidi + d)); // C2..C7
