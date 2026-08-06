@@ -379,7 +379,23 @@ import Layout from '../layouts/Layout.astro';
      The bare `100dvh` first is the fallback for anything without `round()` (Chrome 125,
      Safari 15.4, Firefox 118) — those get today's unsnapped screen rather than no
      height at all. */
-  #mt-app{height:100dvh;height:round(down, 100dvh, var(--lead));
+  /* ── THE INSET IS A CHARACTER COUNT, NOT A SPACING TOKEN (2026-08-06) ────────
+     `--mt-inset` is the ONE horizontal datum on this screen: the clearance between a case's
+     frame and any ink inside it, and the origin every flush mark is measured from. It was
+     `--gutter` (28px) — the site's vertical spacing token, borrowed sideways — and that is
+     3.111 characters in this face, so the frame sat a third of a cell off the ladder every
+     glyph on the page is set on. The instrument-standards research is what named it: legend
+     clearance is conventionally stated in the width of the font's own capital (MIL-STD-1472G
+     §5.2.3.14.12, "not less than the width of the letter H"), and in IBM Plex Mono at
+     `--step` that width is exactly 1ch = 9.000px.
+     At 3ch the clearance is 27px and the frame IS a cell boundary — the frame and the type
+     become one ladder instead of two that never meet. Same correction STYLE.md records for
+     `--label`: a number that was right about spacing and wrong about the grid it sits in.
+     Stated as a TOKEN and not typed at each site because there are four of them (the case's
+     padding, the phone's, the plate's offset, and the overlay's inset) and they have to agree
+     by construction — four hand-typed 3chs is four chances to drift. */
+  #mt-app{--mt-inset:3ch;
+    height:100dvh;height:round(down, 100dvh, var(--lead));
     display:flex;flex-direction:column;overflow:hidden}
 
   /* THE CASES (chooser metrotuner-pendulum, Q2/01): each instrument in a square
@@ -529,7 +545,7 @@ import Layout from '../layouts/Layout.astro';
     grid-row:case-top / case-end;
     display:grid;grid-template-rows:subgrid;
     grid-template-columns:minmax(0, 1fr);
-    padding:0 var(--gutter)}
+    padding:0 var(--mt-inset)}
   .mt-plate{position:absolute;top:-14px;left:24px;background:var(--paper);
     padding:0 1ch;color:var(--faint)}
   /* THE MIDDLE IS THREE ROWS, not a centred leftover. It spans figure -> read ->
@@ -837,13 +853,20 @@ import Layout from '../layouts/Layout.astro';
        the frame by 14px on all four sides (measured T/L/R 14, B 26), and the frame is the
        one mark on this screen that sits between the viewport edge and the grid. */
     .mt-half{scroll-snap-align:start;scroll-snap-stop:always;
-      border:0;padding:0 var(--gutter)}
-    .mt-half::before{content:"";position:absolute;inset:calc(var(--lead) / 2);
+      border:0;padding:0 var(--mt-inset)}
+    /* THE FRAME'S OWN INSET IS 1ch NOW, not half a lead (14px). On the phone the frame is
+       DRAWN rather than being the case's border, so the clearance a reader sees is the
+       content padding MINUS this inset. With the padding at 3ch and this at 14px that
+       clearance would be 13px = 1.444ch — the finding half-applied, one non-whole number
+       swapped for another. At 1ch it is 3ch - 1ch = 2ch exactly.
+       1ch and not 2ch: at 2ch the clearance is a single character and the engraved plate ends
+       up 1px off the frame's corner — rendered both and looked; the plate needs the room. */
+    .mt-half::before{content:"";position:absolute;inset:1ch;
       border:1px solid var(--line);pointer-events:none}
     /* The plate still straddles the frame's top edge: half a lead down, less half its own
        28px line box, and in from the frame by the content's gutter. */
-    .mt-plate{display:block;top:calc(var(--lead) / 2 - 14px);
-      left:calc(var(--gutter) - 1ch)}
+    .mt-plate{display:block;top:calc(1ch - 14px);
+      left:calc(var(--mt-inset) - 1ch)}
     /* THE DATUMS ARE DRAWN ON THE PHONE TOO (datum pass). This used to be
        `display:none`, and the reason given was sound for what the rule then contained — a
        second twelve-column grid over one case would have been the two-grids-at-once problem.
@@ -853,7 +876,7 @@ import Layout from '../layouts/Layout.astro';
        The inset is measured from the CONTENT box on the phone (padding is `0 var(--gutter)`
        and the drawn frame sits half a lead in), so the overlay insets to match rather than
        drawing on the viewport edge. */
-    .mt-half::after{inset:0 var(--gutter)}
+    .mt-half::after{inset:0 var(--mt-inset)}
     /* AND SO THE FIGURE TAKES THE CONTENT WIDTH HERE. With no column grid on the phone,
        a 6-of-12 span is not a smaller version of the desktop rule — it is arithmetic on a
        grid that does not exist (at 360px the track computes NEGATIVE, since 11 gutters of
@@ -905,13 +928,14 @@ import Layout from '../layouts/Layout.astro';
       linear-gradient(to right, transparent calc(50% - 0.5px),
         color-mix(in srgb, var(--accent) 55%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
         transparent calc(50% + 0.5px)),
-      /* THE INSET — one line a --lead inside each edge */
+      /* THE INSET — one line `--mt-inset` inside each edge. Drawn from the token, so the
+         guide cannot claim a datum the layout no longer uses. */
       linear-gradient(to right,
-        transparent calc(var(--lead) - 1px),
-        color-mix(in srgb, var(--accent) 34%, transparent) calc(var(--lead) - 1px) var(--lead),
-        transparent var(--lead) calc(100% - var(--lead)),
-        color-mix(in srgb, var(--accent) 34%, transparent) calc(100% - var(--lead)) calc(100% - var(--lead) + 1px),
-        transparent calc(100% - var(--lead) + 1px))}
+        transparent calc(var(--mt-inset) - 1px),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(var(--mt-inset) - 1px) var(--mt-inset),
+        transparent var(--mt-inset) calc(100% - var(--mt-inset)),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(100% - var(--mt-inset)) calc(100% - var(--mt-inset) + 1px),
+        transparent calc(100% - var(--mt-inset) + 1px))}
 
 
   /* == THE FIGURE'S WIDTH IS SIX COLUMNS, NOT 320px ==========================

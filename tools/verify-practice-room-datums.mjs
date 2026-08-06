@@ -3,8 +3,8 @@
 //
 //   THE AXIS   — the case's centre line. Everything the instrument radiates from sits on it:
 //                the dial, the reading, the verb.
-//   THE INSET  — one --lead (28px) from the case's box. Everything else sits on it, flush
-//                left or flush right.
+//   THE INSET  — `--mt-inset` (3ch = 27px, the font's own character) from the case's box.
+//                Everything else sits on it, flush left or flush right.
 //
 // Run against a loopback `astro preview` (never 0.0.0.0 — see CLAUDE.md rule 1):
 //   npm run build && npx astro preview --host 127.0.0.1 --port 4321
@@ -18,7 +18,19 @@
 import { chromium } from '@playwright/test';
 
 const URL = process.env.VERIFY_URL || 'http://127.0.0.1:4321/practice-room/';
-const INSET = 28; // --lead
+// THE INSET IS READ FROM THE PAGE, not hardcoded. It was `28` here, and when the datum moved
+// to 3ch (27px) the harness failed 28 configurations while reporting the CORRECT new number in
+// its own message — a check that has to be hand-edited to follow the thing it checks is a check
+// that will eventually be edited wrong. `--mt-inset` is declared on `#mt-app`; whatever it
+// resolves to IS the datum, so the assertion becomes "every flush mark sits on the token" and
+// stays true across a future change of value.
+// TWO datums, two values, and conflating them is a real bug this caught: the HORIZONTAL inset
+// is `--mt-inset` (3ch = 27px) and the VERTICAL rhythm is `--lead` (28px). They were equal until
+// the inset moved to the character cell, and the vertical checks then failed on 27 while
+// reporting the right number — "the reading and the verb are 28.00px apart, not one lead", which
+// is the check calling a correct layout wrong. Both are resolved from the page below.
+let INSET = null;   // --mt-inset, the horizontal datum
+let LEAD = null;    // --lead, the vertical rhythm
 const TOL = 0.51; // half a pixel, so a subpixel layout rounds clean
 const WIDTHS = [2560, 1728, 1440, 1280, 1241, 1240, 1100, 1024, 940, 901, 900, 430, 390, 360];
 
@@ -43,7 +55,21 @@ for (const scheme of ['light', 'dark']) {
     }, null, { timeout: 15000 });
     await page.waitForTimeout(120); // one frame for the fonts to settle the ink
 
-    const r = await page.evaluate(({ INSET, TOL }) => {
+    // resolve the token from the live page — one source of truth for the datum's value
+    ({ INSET, LEAD } = await page.evaluate(() => {
+      const app = document.querySelector('#mt-app');
+      const px = (expr) => {
+        const probe = document.createElement('div');
+        probe.style.cssText = `position:absolute;visibility:hidden;width:${expr}`;
+        app.appendChild(probe);
+        const w = probe.getBoundingClientRect().width;
+        probe.remove();
+        return +w.toFixed(3);
+      };
+      return { INSET: px('var(--mt-inset)'), LEAD: px('var(--lead)') };
+    }));
+
+    const r = await page.evaluate(({ INSET, LEAD, TOL }) => {
       // ── ink: text ranges + drawn SVG + an input's rendered value ──────────
       const ink = (el) => {
         if (!el) return null;
@@ -172,6 +198,27 @@ for (const scheme of ['light', 'dark']) {
         }
       }
 
+      // ── THE INSET IS A WHOLE CHARACTER ────────────────────────────────────
+      // Reading the token from the page made every other check follow it automatically — and
+      // red-cased, that meant reverting the token to 28px PASSED: the sheet was internally
+      // consistent at the wrong value. Self-consistency is not the property being asserted.
+      // The property is that the frame's clearance is a whole number of the font's own
+      // characters, so the frame and the type ladder are one ladder (MIL-STD-1472G
+      // §5.2.3.14.12 states legend clearance in the width of the letter H; here 1ch = 9px).
+      // 28px = 3.111ch fails this; 3ch = 27px passes.
+      const unitFails = [];
+      {
+        const probe = document.createElement('span');
+        probe.style.cssText = 'position:absolute;visibility:hidden;font:inherit;width:10ch';
+        document.body.appendChild(probe);
+        const ch = probe.getBoundingClientRect().width / 10;
+        probe.remove();
+        const inCh = INSET / ch;
+        if (Math.abs(inCh - Math.round(inCh)) > 0.02) {
+          unitFails.push(`the inset is ${INSET}px = ${inCh.toFixed(3)}ch, not a whole character`);
+        }
+      }
+
       // ── THE GLYPH, NOT THE GROUP'S BOX ────────────────────────────────────
       // The check above measures each flush GROUP's ink extent, and that is not enough: it
       // read 28.00px for the subdivide meter while the `7` glyph ended 11.00px short of the
@@ -247,14 +294,14 @@ for (const scheme of ['light', 'dark']) {
         if (top.length !== 1) vertFails.push(`the top datum is ${top.length} lines: ${top.join(', ')}`);
         if (stacked) {
           const gap = baseline('#mt-sub-seg .rbtn') - baseline('#mt-beats-seg .rbtn');
-          if (Math.abs(gap % INSET) > TOL) {
+          if (Math.abs(gap % LEAD) > TOL) {
             vertFails.push(`stacked subdivide sits ${gap.toFixed(2)}px below beats, not a whole lead`);
           }
         }
         // CENTRE — the reading, and the verb exactly one lead below it. Both verbs agree.
         const read = baseline('#mt-note');
         const vT = baseline('#mt-mic .w'), vM = baseline('#mt-run .w');
-        if (read != null && vT != null && Math.abs((vT - read) - INSET) > TOL) {
+        if (read != null && vT != null && Math.abs((vT - read) - LEAD) > TOL) {
           vertFails.push(`the reading and the verb are ${(vT - read).toFixed(2)}px apart, not one lead`);
         }
         if (vT != null && vM != null && Math.abs(vT - vM) > TOL) {
@@ -277,7 +324,7 @@ for (const scheme of ['light', 'dark']) {
         '#mt-a4', '#mt-bpm'].map(tgt));
 
       return {
-        axisFails, insetFails, glyphFails, vertFails, wordFails,
+        axisFails, insetFails, glyphFails, vertFails, wordFails, unitFails,
         distinct: [...seen].sort((a, b) => a - b),
         smallest,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -285,11 +332,11 @@ for (const scheme of ['light', 'dark']) {
         // have hidden it outright
         hzExists: !!q('#mt-hz'),
       };
-    }, { INSET, TOL });
+    }, { INSET, LEAD, TOL });
 
     const ok = !r.axisFails.length && !r.insetFails.length && !r.glyphFails.length
-      && !r.vertFails.length && !r.wordFails.length && !r.overflow && r.smallest >= 24
-      && r.hzExists;
+      && !r.vertFails.length && !r.wordFails.length && !r.unitFails.length
+      && !r.overflow && r.smallest >= 24 && r.hzExists;
     if (!ok) bad++;
     const notes = [
       r.axisFails.length ? `AXIS: ${r.axisFails.join('; ')}` : '',
@@ -297,6 +344,7 @@ for (const scheme of ['light', 'dark']) {
       r.glyphFails.length ? `GLYPH: ${r.glyphFails.join('; ')}` : '',
       r.vertFails.length ? `VERTICAL: ${r.vertFails.join('; ')}` : '',
       r.wordFails.length ? `WORD: ${r.wordFails.join('; ')}` : '',
+      r.unitFails.length ? `UNIT: ${r.unitFails.join('; ')}` : '',
       r.distinct.length > 1 ? `insets seen: ${r.distinct.join(', ')}` : '',
       r.overflow ? 'HORIZONTAL OVERFLOW' : '',
       r.smallest < 24 ? `target ${r.smallest}px < 24` : '',
@@ -311,5 +359,6 @@ for (const scheme of ['light', 'dark']) {
 await browser.close();
 console.log(bad
   ? `\n${bad} failing configuration(s)`
-  : '\nall datums hold — axis, the 28px inset, and the three vertical lines — at every width, both colourways');
+  : `\nall datums hold — axis, the ${INSET}px inset (--mt-inset), and the three vertical lines`
+    + ' — at every width, both colourways');
 process.exit(bad ? 1 : 0);
