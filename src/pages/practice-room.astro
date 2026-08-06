@@ -1040,6 +1040,33 @@ import Layout from '../layouts/Layout.astro';
      `gap:1ch` is harmless on `.scrubv`, which has no track to separate. */
   .tbtn{display:inline-flex;align-items:baseline;gap:1ch}
   .tbtn .tk{flex:none;display:block;overflow:visible;transform:translateY(2px)}
+  /* ── THE VERB SITS ON THE AXIS, NOT THE BUTTON (axis datum, 2026-08-05) ─────
+     The transport is the figure's caption, so the WORD is what has to sit on the case's centre
+     axis — the same vertical the dial's pivot is on. It did not: measured, the button's ink
+     midpoint was 0.00 off the axis while the word "start" was 17.50px RIGHT of it, at every
+     width. `.tbtn` is a flex row of [26px track][9px gap][45px word], so centring the BUTTON
+     centres that whole block and pushes the word right by half the track-plus-gap. Visible at
+     a glance once you look — the word reads noticeably off the needle it captions.
+     My own datum harness missed it, and the reason is worth recording: it measured each mark's
+     INK EXTENT, and the button's ink includes the track. The extent was centred; the word was
+     not. The research pass (instrument-panel standards — 14 CFR 25.1321(b), MIL-STD-1472G
+     §5.2.2.5.3c(7), both of which make the POINTER the datum other furniture aligns to, never
+     the case edge) is what pointed at it.
+     THE FIX: take the track out of flow so the word is the only thing being centred. It stays
+     on the LEFT, where it has always been, at the same 1ch gap — `right:100%` plus
+     `margin-right:1ch` reproduces exactly the position the flex gap gave it. Measured after:
+     the word is 0.00 off the pivot on both instruments.
+     WHAT THIS COSTS, checked rather than assumed: the button's box narrows 80px to 45px because
+     the track no longer occupies flow. The track is still INSIDE the button's hit area
+     (`elementFromPoint` at the disc's centre returns a node the button contains) and both the
+     word and the disc still toggle — click-tested on the metronome, which needs no microphone
+     permission, `aria-pressed` false → true from each. The 44px height is untouched, so 2.5.5
+     still holds on the axis that matters for a thumb.
+     `translateY(-50%) translateY(2px)` keeps the 2px optical nudge the flex version had (see
+     the note above about the svg's baseline) on top of the centring the absolute position needs. */
+  .mt-cap .tbtn.latch{position:relative}
+  .mt-cap .tbtn.latch .tk{position:absolute;right:100%;margin-right:1ch;
+    top:50%;transform:translateY(-50%) translateY(2px)}
   .latch .tk .run{stroke:var(--line);stroke-width:1}
   .latch .tk .pk{fill:none;stroke:var(--faint);stroke-width:1.2}
   /* The disc: ink at the near pocket (off), ACCENT at the far pocket (latched).

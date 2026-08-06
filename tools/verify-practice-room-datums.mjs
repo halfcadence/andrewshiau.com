@@ -93,12 +93,15 @@ for (const scheme of ['light', 'dark']) {
       const q = (s) => document.querySelector(s);
 
       // ── THE AXIS ─────────────────────────────────────────────────────────
+      // THE TWO VERBS ARE CHECKED BY THEIR WORD, not here — see the WORD block below. Their
+      // ink EXTENT is deliberately 17.50px off this axis now, because `.tbtn` is
+      // [track][gap][word] and it is the WORD that must sit on the figure's pivot. Checking
+      // both would be checking two incompatible things: the extent was centred for two passes
+      // while the word visibly was not, which is exactly the defect the word check exists for.
       const axis = [
         ['the tuner’s dial', '.mt-half[aria-label="Tuner"] .mt-gauge', T],
         ['the reading', '.mt-read', T],
-        ['the tuner’s verb', '#mt-mic', T],
         ['the pendulum', '.mt-half[aria-label="Metronome"] .mt-gauge', M],
-        ['the metronome’s verb', '#mt-run', M],
       ];
       const axisFails = [];
       for (const [name, sel, c] of axis) {
@@ -140,6 +143,33 @@ for (const scheme of ['light', 'dark']) {
         const d = side === 'L' ? v.l - c.L : c.R - v.r;
         seen.add(+d.toFixed(1));
         if (Math.abs(d - INSET) > TOL) insetFails.push(`${name} at ${d.toFixed(2)}px`);
+      }
+
+      // ── THE WORD ON THE AXIS, NOT THE BUTTON'S INK EXTENT ─────────────────
+      // The axis check above measures each mark's ink EXTENT and centres that. For the
+      // transport that is not enough and it hid a real defect for two passes: `.tbtn` is
+      // [track][gap][word], so the extent centred on the axis (0.00) while the word "start"
+      // sat 17.50px right of it. The word is what the eye reads as the figure's caption, and
+      // instrument-panel practice makes the pointer the datum its furniture aligns to
+      // (14 CFR 25.1321(b); MIL-STD-1472G §5.2.2.5.3c(7)) — so the WORD is checked against
+      // the dial's own PIVOT, computed from the drawing rather than from the case box.
+      const wordFails = [];
+      for (const [name, btn, fig] of [
+        ['the tuner’s verb', '#mt-mic', '#mt-dial'],
+        ['the metronome’s verb', '#mt-run', '#mt-metro-fig'],
+      ]) {
+        const w = q(`${btn} .w`);
+        const svg = q(fig);
+        if (!w || !svg) continue;
+        const sb = svg.getBoundingClientRect();
+        const pivot = sb.left + sb.width * (160 / 320);   // viewBox 320x184, pivot at x=160
+        const rg = document.createRange();
+        rg.selectNodeContents(w);
+        const wb = rg.getBoundingClientRect();
+        const off = (wb.left + wb.right) / 2 - pivot;
+        if (Math.abs(off) > TOL) {
+          wordFails.push(`${name} reads ${off.toFixed(2)}px off its figure’s pivot`);
+        }
       }
 
       // ── THE GLYPH, NOT THE GROUP'S BOX ────────────────────────────────────
@@ -247,7 +277,7 @@ for (const scheme of ['light', 'dark']) {
         '#mt-a4', '#mt-bpm'].map(tgt));
 
       return {
-        axisFails, insetFails, glyphFails, vertFails,
+        axisFails, insetFails, glyphFails, vertFails, wordFails,
         distinct: [...seen].sort((a, b) => a - b),
         smallest,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -258,13 +288,15 @@ for (const scheme of ['light', 'dark']) {
     }, { INSET, TOL });
 
     const ok = !r.axisFails.length && !r.insetFails.length && !r.glyphFails.length
-      && !r.vertFails.length && !r.overflow && r.smallest >= 24 && r.hzExists;
+      && !r.vertFails.length && !r.wordFails.length && !r.overflow && r.smallest >= 24
+      && r.hzExists;
     if (!ok) bad++;
     const notes = [
       r.axisFails.length ? `AXIS: ${r.axisFails.join('; ')}` : '',
       r.insetFails.length ? `INSET: ${r.insetFails.join('; ')}` : '',
       r.glyphFails.length ? `GLYPH: ${r.glyphFails.join('; ')}` : '',
       r.vertFails.length ? `VERTICAL: ${r.vertFails.join('; ')}` : '',
+      r.wordFails.length ? `WORD: ${r.wordFails.join('; ')}` : '',
       r.distinct.length > 1 ? `insets seen: ${r.distinct.join(', ')}` : '',
       r.overflow ? 'HORIZONTAL OVERFLOW' : '',
       r.smallest < 24 ? `target ${r.smallest}px < 24` : '',
