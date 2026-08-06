@@ -82,7 +82,10 @@ test('home-screen install: manifest + touch icon resolve and are real', async ({
   }
 });
 
-test('the rest of the site does not carry the install head', async ({ page }) => {
+test('the rest of the site does not carry the install head', async ({ page, baseURL }) => {
+  // On practice.andrewshiau.com "/" IS the instrument, so this contract only exists
+  // where "/" is the homepage — the apex and local preview.
+  test.skip(!!baseURL?.includes('practice.'), 'subdomain serves the app at /');
   await page.goto('/');
   await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(0);
