@@ -73,8 +73,11 @@ test('home-screen install: manifest + touch icon resolve and are real', async ({
   expect(mres.status()).toBe(200);
   const manifest = await mres.json();
   expect(manifest.display).toBe('standalone');
-  expect(manifest.start_url).toBe('/practice-room/');
-  expect(manifest.scope).toBe('/practice-room/');
+  // Same link URL, host-specific file: the subdomain's vhost serves manifest-root.json
+  // there (the app IS its root), the apex serves the path-scoped one.
+  const appRoot = (process.env.E2E_BASE_URL || '').includes('practice.') ? '/' : '/practice-room/';
+  expect(manifest.start_url).toBe(appRoot);
+  expect(manifest.scope).toBe(appRoot);
   for (const icon of manifest.icons) {
     const r = await request.get(icon.src);
     expect(r.status()).toBe(200);
@@ -85,7 +88,7 @@ test('home-screen install: manifest + touch icon resolve and are real', async ({
 test('the rest of the site does not carry the install head', async ({ page, baseURL }) => {
   // On practice.andrewshiau.com "/" IS the instrument, so this contract only exists
   // where "/" is the homepage — the apex and local preview.
-  test.skip(!!baseURL?.includes('practice.'), 'subdomain serves the app at /');
+  test.skip((process.env.E2E_BASE_URL || '').includes('practice.'), 'subdomain serves the app at /');
   await page.goto('/');
   await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(0);
@@ -106,7 +109,10 @@ test('the instrument carries its own favicon set', async ({ page, request }) => 
     expect(body.length).toBeGreaterThan(50);
     expect(body.subarray(0, 15).toString()).not.toContain('<!DOCTYPE');
   }
-  // The homepage keeps the site's.
+  // The homepage keeps the site's — except on the subdomain, where / IS the instrument.
   await page.goto('/');
-  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+  const homeIcon = (process.env.E2E_BASE_URL || '').includes('practice.')
+    ? '/practice-room/favicon.svg'
+    : '/favicon.svg';
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', homeIcon);
 });
