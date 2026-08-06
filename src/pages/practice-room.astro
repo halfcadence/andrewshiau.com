@@ -360,6 +360,10 @@ import Layout from '../layouts/Layout.astro';
   body:has(#mt-app) .guide{display:none !important}
   :is(html,body).showgrid .mt-half::after{opacity:1}
   :is(html,body).showgrid .mt-pages::before{opacity:1}
+  /* the CENTRE pair of vertical datums, which rides on `.mt-mid` because the elastic slack
+     decides where it sits — see the note on `.mt-pages::before`. Listed here with the other two
+     because ⌥G has to raise all of them together or the guide is partial. */
+  :is(html,body).showgrid .mt-mid::after{opacity:1}
 </style>
 
 <style>
@@ -450,23 +454,53 @@ import Layout from '../layouts/Layout.astro';
      "25 columns" the reader saw, and they described nothing: the two cases are placed by
      `repeat(2, minmax(0,1fr))` and one `--group`, not by spans of a twelve-track screen
      grid, so the bands never marked an edge any content used. What remains is the ROW
-     LADDER, which is the vertical system and is real — every row is a named line on
-     `.mt-pages` that both cases inherit via subgrid. Rows here, the two horizontal datums
-     on `.mt-half::after`, and nothing else. */
+     LADDER, and the 32 lines it drew are DELETED TOO (vertical datum pass, 2026-08-05).
+     The named row ladder stays — it is what places the content and what keeps the two cases
+     0.00px apart — but drawing all 32 of its lines was the same mistake as the columns, and
+     for a reason worth writing down: THE LADDER CANNOT BE HONOURED BELOW THE INSTRUMENT.
+     Measured, walking the resolved tracks: `case-top` and `spec` land at 0.00 off a lead, then
+     the first `1fr` slack row resolves to 214.938px and every line after it is 9.06px off. The
+     middle of this screen is elastic by design (the figure takes the leftover), so no
+     arrangement of `1fr` puts the lower rows on the same 28px ladder as the upper ones. A
+     guide that draws 32 lines when 20 of them cannot be met is a guide that makes the page
+     look broken.
+     WHAT IS ACTUALLY TRUE is three datums, and they were nearly true already:
+       · TOP    — the spec line. a4, beats and subdivide all share it (measured: one line).
+       · CENTRE — the instrument's own pair: the reading, and the verb one lead below it.
+       · BOTTOM — the played controls. play tone, refnote, bpm and tap all share it.
+     TOP and BOTTOM are drawn here because they are grid-derivable: two leads down from the
+     ladder's origin, and two leads up from its end. The CENTRE pair cannot be — it floats with
+     the slack — so it is drawn on `.mt-mid`, which is the box that holds it. Verified: all four
+     drawn lines coincide with the baselines they claim, 0.0px each. */
   .mt-pages::before{content:"";position:absolute;inset:var(--group) var(--group) var(--lead);
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    background:repeating-linear-gradient(to bottom,
-      color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead))}
-  /* ON THE PHONE the overlay keeps the ROWS and drops the columns: the rows are what the
-     two swipe pages share, while "12 columns" across a two-viewport-wide scroller
-     describes nothing — at that width the pages are not two halves of one composition.
-     `inset:0` because the scroller's padding is 0 there, and an absolutely-positioned
-     ::before inside a scroll container is laid out against the scrollable padding box, so
-     it travels with the pages instead of staying stuck over page 1. */
+    background:
+      /* TOP — the spec baseline, two leads down (case-top, then the spec row's own line) */
+      linear-gradient(to bottom, transparent calc(var(--lead) * 2 - 1px),
+        color-mix(in srgb, var(--accent) 45%, transparent) calc(var(--lead) * 2 - 1px) calc(var(--lead) * 2),
+        transparent calc(var(--lead) * 2)),
+      /* BOTTOM — the foot baseline, two leads up (hint, then case-bot) */
+      linear-gradient(to bottom, transparent calc(100% - var(--lead) * 2 - 1px),
+        color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - var(--lead) * 2 - 1px) calc(100% - var(--lead) * 2),
+        transparent calc(100% - var(--lead) * 2))}
+  /* THE CENTRE PAIR rides on `.mt-mid` because its position is not derivable from the ladder —
+     the elastic slack decides it. `.mt-mid`'s last two rows ARE the reading and the transport,
+     so the pair is its bottom edge and one lead above. */
+  .mt-mid::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+    transition:opacity var(--dur-fast) var(--ease);
+    background:
+      linear-gradient(to bottom, transparent calc(100% - var(--lead) - 1px),
+        color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - var(--lead) - 1px) calc(100% - var(--lead)),
+        transparent calc(100% - var(--lead))),
+      linear-gradient(to bottom, transparent calc(100% - 1px),
+        color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - 1px) 100%, transparent 100%)}
+  /* The phone keeps the same three datums — the ladder is the same one, and the cases hold
+     identical row positions there (which is what makes the swipe move nothing vertically).
+     `inset:0` because the scroller's padding is 0 at that width, and an absolutely-positioned
+     ::before inside a scroll container is laid out against the scrollable padding box, so it
+     travels with the pages instead of staying stuck over page 1. */
   @media (max-width: 900px){
-    .mt-pages::before{inset:0;
-      background:repeating-linear-gradient(to bottom,
-        color-mix(in srgb, var(--accent) 22%, transparent) 0 1px, transparent 1px var(--lead))}
+    .mt-pages::before{inset:0}
   }
   /* THE HAIRLINE (chooser metrotuner-reactive, Q1/02): 1px --line — the embed
      frame's own weight, the weakest mark the system has. The case is not
@@ -512,15 +546,26 @@ import Layout from '../layouts/Layout.astro';
      draws. Found by reading the placement off the built page, not from the source. */
   .mt-mid{grid-row:figure / slack-b;display:grid;grid-template-rows:subgrid;
     grid-template-columns:minmax(0, 1fr);
+    /* `relative` so the CENTRE datum pair (`.mt-mid::after`) has this box to position
+       against — it is drawn from the bottom edge, which is the transport's row line. */
+    position:relative;
     min-height:0;cursor:pointer}
   /* THE CAPTION (transport-placement Q1/05): the transport under the figure it
      drives, centred — the figure supplies the noun, the caption is the verb. */
   /* IT IS THE `transport` ROW, on both cases — the one the user's report named. The
-     44px button is taller than the 28px row, so it is placed by its BASELINE and allowed
-     to overhang the row's box symmetrically: the tap target keeps its full 44px while the
-     WORD, which is what the eye aligns, sits on the row. No height is shrunk anywhere —
-     WCAG 2.5.5 is untouched. */
-  .mt-cap{grid-row:transport;display:flex;justify-content:center;align-self:center}
+     44px button is taller than the 28px row, so it overhangs; the tap target keeps its full
+     44px while the WORD, which is what the eye aligns, sits on the row. No height is shrunk
+     anywhere — WCAG 2.5.5 is untouched.
+     `start`, NOT `center` (vertical datum pass, 2026-08-05). Centring a 44px box in a 28px
+     track hangs it 8px ABOVE the track line, so the verb's baseline landed 24.50px below the
+     reading's instead of one lead — measured, and visible as the two lines of the instrument
+     group reading tight. `start` puts the box's top on the track line and its baseline exactly
+     one lead below the reading's: 28.00, at every width. The overhang moves to the BOTTOM,
+     into the slack row below, where it is air.
+     The reading takes the same treatment for the same reason (see `.mt-read`) — and it has to
+     be BOTH: with only one of the two changed the interval reads 32.50 or 24.50. That pair is
+     why an earlier single-rule test looked like it did nothing. */
+  .mt-cap{grid-row:transport;display:flex;justify-content:center;align-self:start}
   /* A foot line: left group flush left, right group flush right, one baseline.
      The top line is the same device at the case's other edge (user nit 2): spec
      controls up top, played controls at the foot. */
@@ -699,8 +744,18 @@ import Layout from '../layouts/Layout.astro';
   /* THE RULE IS THE SWITCH (round15 Q1/06): the beats rule sits inside a button.
      No drawn chrome of its own — the `>` above the digits carries the state; the
      padding fattens the target to the full scale width x ~26px below the digits. */
+  /* THE 13px IS THE ONE ODD NUMBER IN THE STACK, and it is deliberate (vertical datum pass).
+     The beats meter is digits 36 + rule 9 + this padding − the rule's 2px tuck. At 14 that
+     totals 57 — ONE px over two leads — and when the spec row stacks below 1240 the whole
+     subdivide line inherits it: measured 57.00px below the beats line where two leads is 56,
+     and 85.00 on the phone where three is 84. One pixel, in the one place that repeats.
+     13 lands the meter on 56 exactly. The alternative was deepening the rule's tuck to −3px,
+     which measured identically — rejected because the tuck is a visual judgement about how the
+     rule sits under the digits, and this is arithmetic; better to bend the number that has no
+     opinion. The rule's touch target goes 140x21 to 140x20, still the large target for the
+     accent state (the 25x24 mark beside it is the precise one). */
   .rm-rulebtn{font:inherit;background:transparent;border:0;margin:0;cursor:pointer;
-    border-radius:0;display:block;padding:0 0 14px}
+    border-radius:0;display:block;padding:0 0 13px}
   .rm-rulebtn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
   /* Hover paints the RULE, and it needs `:global()` — this one was broken twice over.
      First the selector named `line[data-acc-tick]`, a tick deleted by the straight-line
@@ -910,7 +965,10 @@ import Layout from '../layouts/Layout.astro';
      Hz under its right end line up with the drawing above them. It is the `read` row,
      which the METRONOME also has and leaves empty — that empty row is what puts the two
      transports on one line. */
-  .mt-read{grid-row:read;align-self:center;justify-self:center;
+  /* `start` for the same reason as `.mt-cap` — the two are one change. See the note there: the
+     pair is what makes the reading and the verb exactly one lead apart (28.00), and changing
+     only one of them moves the interval to 24.50 or 32.50. */
+  .mt-read{grid-row:read;align-self:start;justify-self:center;
     --mt-track:calc((100% - var(--gutter) * 11) / 12);
     width:min(100%, max(calc(var(--mt-track) * 6 + var(--gutter) * 5), 240px));
     display:flex;align-items:baseline;gap:2ch}

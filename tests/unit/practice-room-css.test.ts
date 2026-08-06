@@ -102,15 +102,16 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
   // that lies about what the page is built on.
   // A sentinel per datum was NOT enough, red-cased: re-adding a repeating column gradient
   // left both datum sentinels present and the suite green. So this counts the marks instead.
-  // The ONE sanctioned repeating gradient is the ROW ladder on `.mt-pages::before`, which is
-  // vertical (`to bottom`) and real — every row is a named line both cases inherit.
-  it('draws only the row ladder as a repeating gradient — no column grid', () => {
+  // AND THE ROW LADDER'S 32 LINES ARE GONE TOO (vertical datum pass), for the same reason on
+  // the other axis: measured, the first `1fr` slack row resolves to a fraction and every line
+  // below it is 9.06px off a lead, so 20 of the 32 could never be met. The overlay now draws
+  // FOUR horizontal lines — top, the centre pair, bottom — and three vertical. Seven marks,
+  // every one of them a datum something actually sits on.
+  // So the rule is now absolute: NO repeating gradient anywhere in this sheet's overlay.
+  it('the ⌥G overlay draws discrete datums, never a repeating grid', () => {
     const repeats = css.match(/repeating-linear-gradient\([^)]*/g) || [];
-    const horizontal = repeats.filter((g) => /to right|90deg/.test(g));
-    expect(horizontal, `the overlay must not repeat horizontally: ${horizontal.join(' | ')}`)
+    expect(repeats, `the overlay must not repeat on either axis: ${repeats.join(' | ')}`)
       .toEqual([]);
-    // and the vertical repeats are the row ladder: desktop + the phone override
-    expect(repeats.length, 'expected the row ladder to still be drawn').toBeGreaterThan(0);
   });
 
   // ── the sheet is whole ─────────────────────────────────────────────────────
@@ -152,7 +153,10 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     // was 12kB, brace-balanced, comment-free, and the four declarations named above were
     // all present, because none of them lived in the rule that died.
     ['the figure spans six columns', '--mt-track'],
-    ['the parent draws the row ladder', 'repeating-linear-gradient'],
+    // the VERTICAL datums, which replaced the 32-line ladder: two on `.mt-pages::before`
+    // (top and bottom, grid-derived) and the centre pair on `.mt-mid::after`.
+    ['the top/bottom vertical datums', 'calc(var(--lead) * 2 - 1px)'],
+    ['the centre datum pair', 'calc(100% - var(--lead) - 1px)'],
     // THE TWO DATUMS. The ⌥G overlay used to paint twelve tracks per case as a pair of
     // hairlines each — 24 lines inside every case plus 12 across the screen, which is what
     // the reader saw as "like 25 cols". It draws three lines now: the axis at 50%, and one

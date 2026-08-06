@@ -188,6 +188,54 @@ for (const scheme of ['light', 'dark']) {
         }
       }
 
+      // ── THE THREE VERTICAL DATUMS ─────────────────────────────────────────
+      // The 28px row ladder places the content, but only three of its lines can be DATUMS:
+      // measured, the first `1fr` slack row resolves to a fraction (214.938px) and every line
+      // after it is 9.06px off a lead, because the middle of this screen is elastic by design.
+      // So the vertical system is: TOP (the spec line), CENTRE (the reading and the verb, one
+      // lead apart), BOTTOM (the played controls). Baselines, not boxes.
+      const baseline = (sel) => {
+        const el = q(sel);
+        if (!el) return null;
+        const s = document.createElement('span');
+        s.textContent = 'x';
+        s.style.cssText = 'display:inline-block;width:0;overflow:hidden;font:inherit';
+        el.appendChild(s);
+        const y = s.getBoundingClientRect().bottom;
+        s.remove();
+        return y;
+      };
+      const vertFails = [];
+      {
+        const uniq = (a) => [...new Set(a.filter((v) => v != null).map((v) => +v.toFixed(1)))];
+        // TOP — a4, beats and subdivide share one line. When the spec row STACKS (below 1240)
+        // subdivide is deliberately on the next line, which must still be a whole lead below.
+        const top = stacked
+          ? uniq([baseline('#mt-a4-scrub .mt-lb'), baseline('#mt-beats-seg .rbtn')])
+          : uniq([baseline('#mt-a4-scrub .mt-lb'), baseline('#mt-beats-seg .rbtn'),
+            baseline('.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fr > .mt-lb')]);
+        if (top.length !== 1) vertFails.push(`the top datum is ${top.length} lines: ${top.join(', ')}`);
+        if (stacked) {
+          const gap = baseline('#mt-sub-seg .rbtn') - baseline('#mt-beats-seg .rbtn');
+          if (Math.abs(gap % INSET) > TOL) {
+            vertFails.push(`stacked subdivide sits ${gap.toFixed(2)}px below beats, not a whole lead`);
+          }
+        }
+        // CENTRE — the reading, and the verb exactly one lead below it. Both verbs agree.
+        const read = baseline('#mt-note');
+        const vT = baseline('#mt-mic .w'), vM = baseline('#mt-run .w');
+        if (read != null && vT != null && Math.abs((vT - read) - INSET) > TOL) {
+          vertFails.push(`the reading and the verb are ${(vT - read).toFixed(2)}px apart, not one lead`);
+        }
+        if (vT != null && vM != null && Math.abs(vT - vM) > TOL) {
+          vertFails.push(`the two verbs are ${(vT - vM).toFixed(2)}px apart`);
+        }
+        // BOTTOM — the played controls share one line.
+        const bot = uniq([baseline('#mt-tone .w'), baseline('#mt-refnote .w'),
+          baseline('#mt-bpm-scrub .mt-lb'), baseline('#mt-tap .w')]);
+        if (bot.length !== 1) vertFails.push(`the bottom datum is ${bot.length} lines: ${bot.join(', ')}`);
+      }
+
       // ── nothing may regress while satisfying the datums ───────────────────
       const tgt = (s) => {
         const e = q(s);
@@ -199,7 +247,7 @@ for (const scheme of ['light', 'dark']) {
         '#mt-a4', '#mt-bpm'].map(tgt));
 
       return {
-        axisFails, insetFails, glyphFails,
+        axisFails, insetFails, glyphFails, vertFails,
         distinct: [...seen].sort((a, b) => a - b),
         smallest,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -210,12 +258,13 @@ for (const scheme of ['light', 'dark']) {
     }, { INSET, TOL });
 
     const ok = !r.axisFails.length && !r.insetFails.length && !r.glyphFails.length
-      && !r.overflow && r.smallest >= 24 && r.hzExists;
+      && !r.vertFails.length && !r.overflow && r.smallest >= 24 && r.hzExists;
     if (!ok) bad++;
     const notes = [
       r.axisFails.length ? `AXIS: ${r.axisFails.join('; ')}` : '',
       r.insetFails.length ? `INSET: ${r.insetFails.join('; ')}` : '',
       r.glyphFails.length ? `GLYPH: ${r.glyphFails.join('; ')}` : '',
+      r.vertFails.length ? `VERTICAL: ${r.vertFails.join('; ')}` : '',
       r.distinct.length > 1 ? `insets seen: ${r.distinct.join(', ')}` : '',
       r.overflow ? 'HORIZONTAL OVERFLOW' : '',
       r.smallest < 24 ? `target ${r.smallest}px < 24` : '',
@@ -230,5 +279,5 @@ for (const scheme of ['light', 'dark']) {
 await browser.close();
 console.log(bad
   ? `\n${bad} failing configuration(s)`
-  : '\nevery mark on the axis or on the 28px inset, at every width, in both colourways');
+  : '\nall datums hold — axis, the 28px inset, and the three vertical lines — at every width, both colourways');
 process.exit(bad ? 1 : 0);
