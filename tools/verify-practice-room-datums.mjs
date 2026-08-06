@@ -122,7 +122,13 @@ for (const scheme of ['light', 'dark']) {
         ['a4 · the tuner’s spec', '.mt-half[aria-label="Tuner"] .mt-ctop > .mt-fr', T, 'L'],
         ['play tone · the tuner’s foot', '.mt-half[aria-label="Tuner"] .mt-cfoot > .mt-fr', T, 'L'],
         ['beats', '.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fl', M, 'L'],
-        ['subdivide', '.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fr', M, stacked ? 'L' : 'R'],
+        // SUBDIVIDE IS CHECKED AT GLYPH LEVEL BELOW, not here. Its meter is shifted right by
+        // the digit cell's dead tail (`1ch - 20px`) so the `7`'s glyph lands on the datum; that
+        // necessarily puts the group's BOX 11px past it, which this box-level check would read
+        // as a 17px inset and fail. The box was never the thing the eye reads — measuring it is
+        // exactly what let the 11px gap ship green. One check per mark, at the level that
+        // matters.
+        ...(stacked ? [['subdivide', '.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fr', M, 'L']] : []),
         ['bpm · the metronome’s foot', '.mt-half[aria-label="Metronome"] .mt-cfoot > .mt-fr', M, 'L'],
         ['the hint line', '.mt-hintline', T, 'L'],
       ];
@@ -136,6 +142,52 @@ for (const scheme of ['light', 'dark']) {
         if (Math.abs(d - INSET) > TOL) insetFails.push(`${name} at ${d.toFixed(2)}px`);
       }
 
+      // ── THE GLYPH, NOT THE GROUP'S BOX ────────────────────────────────────
+      // The check above measures each flush GROUP's ink extent, and that is not enough: it
+      // read 28.00px for the subdivide meter while the `7` glyph ended 11.00px short of the
+      // datum, because a digit cell is 20px wide and holds a 9px numeral — the group's ink
+      // box ended at the cell's edge, not the glyph's. The user caught it by eye
+      // ("subdivide doesnt seem to be right aligned to its datum") against a green harness.
+      // So the flush mark's OWN outermost glyph is checked too, and which glyph that is
+      // depends on the layout: stacked, both meters read flush LEFT from their LABEL (like
+      // the tuner's `a4`); on one line, subdivide reads flush RIGHT from its LAST DIGIT.
+      const glyphFails = [];
+      {
+        const el = stacked
+          ? q('.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fr > .mt-lb')
+          : [...document.querySelectorAll('#mt-sub-seg .rbtn')].pop();
+        if (el && M) {
+          const rg = document.createRange();
+          rg.selectNodeContents(el);
+          const g = rg.getBoundingClientRect();
+          const d = stacked ? g.left - (M.L + INSET) : (M.R - INSET) - g.right;
+          if (Math.abs(d) > TOL) {
+            glyphFails.push(`subdivide's ${stacked ? 'label' : 'last digit'} ` +
+              `${d.toFixed(2)}px off the ${stacked ? 'left' : 'right'} datum`);
+          }
+        }
+        // and the rule under the digits must still sit under the digits it counts — the
+        // rejected fix for the nit above (right-aligning the glyphs inside their cells) put
+        // the numerals on the datum and left the rule 10px behind, so this pins both.
+        const rule = q('#mt-sub-seg .rm-rule');
+        const on = [...document.querySelectorAll('#mt-sub-seg .rbtn.on')];
+        if (rule && on.length) {
+          const segs = [...rule.querySelectorAll('line')].map((l) => l.getBoundingClientRect());
+          if (segs.length) {
+            const ruleR = Math.max(...segs.map((s) => s.right));
+            const inkR = Math.max(...on.map((d) => {
+              const rg2 = document.createRange();
+              rg2.selectNodeContents(d);
+              return rg2.getBoundingClientRect().right;
+            }));
+            if (Math.abs(ruleR - inkR) > 2) {
+              glyphFails.push(`the subdivide rule is ${(ruleR - inkR).toFixed(1)}px out of ` +
+                'register with the digits it measures');
+            }
+          }
+        }
+      }
+
       // ── nothing may regress while satisfying the datums ───────────────────
       const tgt = (s) => {
         const e = q(s);
@@ -147,7 +199,7 @@ for (const scheme of ['light', 'dark']) {
         '#mt-a4', '#mt-bpm'].map(tgt));
 
       return {
-        axisFails, insetFails,
+        axisFails, insetFails, glyphFails,
         distinct: [...seen].sort((a, b) => a - b),
         smallest,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -157,12 +209,13 @@ for (const scheme of ['light', 'dark']) {
       };
     }, { INSET, TOL });
 
-    const ok = !r.axisFails.length && !r.insetFails.length && !r.overflow
-      && r.smallest >= 24 && r.hzExists;
+    const ok = !r.axisFails.length && !r.insetFails.length && !r.glyphFails.length
+      && !r.overflow && r.smallest >= 24 && r.hzExists;
     if (!ok) bad++;
     const notes = [
       r.axisFails.length ? `AXIS: ${r.axisFails.join('; ')}` : '',
       r.insetFails.length ? `INSET: ${r.insetFails.join('; ')}` : '',
+      r.glyphFails.length ? `GLYPH: ${r.glyphFails.join('; ')}` : '',
       r.distinct.length > 1 ? `insets seen: ${r.distinct.join(', ')}` : '',
       r.overflow ? 'HORIZONTAL OVERFLOW' : '',
       r.smallest < 24 ? `target ${r.smallest}px < 24` : '',

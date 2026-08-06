@@ -595,6 +595,24 @@ import Layout from '../layouts/Layout.astro';
      under them is the value. Digits inside the value read ink (beats) / the value
      digit alone reads ink (subdivide); the rest faint. */
   .mt-rm{display:inline-flex;flex-direction:column;align-items:flex-start;position:relative}
+  /* ── THE RIGHT-HAND METER MEETS THE RIGHT DATUM (user nit, 2026-08-05: "subdivide doesnt
+     seem to be right aligned to its datum / padding").
+     THE MECHANISM: a digit cell (`.rbtn`) is 20px wide and `text-align:left`, while a numeral
+     in this face is 1ch = 9px. So every cell carries 11px of dead tail to the RIGHT of its
+     glyph. Flush LEFT that is invisible — the first glyph starts at the cell's edge, which is
+     the datum, which is why `beats` always looked right. Flush RIGHT the dead tail lands
+     between the last glyph and the datum: measured, the `7` ended 11.00px short while the
+     group's BOX ended at exactly 28px. My earlier harness measured the box, so it read 28 and
+     passed — the eye read the glyph, and the eye was right.
+     WHY THIS AND NOT `text-align:right` ON THE CELLS, which was tried first and rejected on a
+     measurement: the rule under the digits is drawn by drawRules() against the CELL grid at a
+     20px pitch, so right-aligning the glyphs inside their cells moved the numerals 11px and
+     left the rule behind — measured 10px out of register, i.e. it fixed the datum and broke the
+     measure the meter exists to draw. Shifting the whole segment moves cells, glyphs and rule
+     together: last glyph on the datum (0.00), rule still under its digits (1px, unchanged).
+     `1ch - 20px` and not `-11px`: the number is the dead tail, so it is stated as what it is —
+     a cell less a numeral. If either ever changes this follows. */
+  .mt-ctop > .mt-fr > .mt-rm{margin-right:calc(1ch - 20px)}
   /* THE MUSIC ACCENT `>` over the 1. `position:absolute` is doing real work here, not
      avoiding a layout problem: `.mt-rm` baselines on its first flex item (see ONE
      BASELINE PER ROW above), so an in-flow mark would take over the row's baseline and
@@ -1060,7 +1078,22 @@ import Layout from '../layouts/Layout.astro';
      READS FROM THE EDGE. Here that is the field; in the tuner it is the `a4` label.
      `padding-left:0` with it because `.f input` carries `padding:8px 0` — stated anyway so a
      future change to that shared rule cannot silently reintroduce the 20px. */
-  .mt-bpm input{text-align:left;padding-left:0}
+  /* AND THE FIELD IS AS WIDE AS ITS VALUE (user nit, 2026-08-05: "176 bpm line reads weird
+     now with empty space after the number"). Flush-left alone was half a fix: the box stayed a
+     fixed 6ch, so "96" left 40px of dead air before the word `bpm` and the line read as two
+     things with a hole between them rather than one phrase. `field-sizing:content` sizes the
+     box to the digits, which is what a flush mark needs — the value's own edge, not the widest
+     value's edge.
+     `min-width:3ch` is the part that matters for feel: the tempo runs 20–320, so the field
+     would otherwise WIDEN as you scrub past 99 and shove `bpm` and `tap` sideways mid-drag.
+     At 3ch it is the width of the longest tempo from the start, so nothing reflows — measured
+     at 20 / 96 / 176 / 320, `bpm` stays at x 802 and `tap` at 861 for all four, and 176 fills
+     the box exactly. That is the same reflow lesson `.tbtn.fixw` already records for the
+     start/stop word.
+     THE COST, stated: the field's tap target goes 60x45 to 30x45. Over WCAG 2.5.8's 24px and
+     the numeral was never the drag handle anyway — `bpm` is (chooser metrotuner-scrub-target,
+     pick 03), and it keeps its own 46x44. */
+  .mt-bpm input{text-align:left;padding-left:0;field-sizing:content;min-width:3ch;width:auto}
   .mt-a4 input::-webkit-outer-spin-button, .mt-a4 input::-webkit-inner-spin-button,
   .mt-bpm input::-webkit-outer-spin-button, .mt-bpm input::-webkit-inner-spin-button{
     -webkit-appearance:none;margin:0}
