@@ -1,7 +1,7 @@
 {
   "name": "practice room",
   "short_name": "practice room",
-  "description": "A chromatic tuner and a metronome. Pitch detection runs on-device; the microphone signal never leaves the page.",
+  "description": "A chromatic tuner, a metronome and a drone. Pitch detection runs on-device; the microphone signal never leaves the page.",
   "id": "/practice-room/",
   "start_url": "/practice-room/",
   "scope": "/practice-room/",
