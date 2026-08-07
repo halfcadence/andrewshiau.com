@@ -1826,7 +1826,11 @@ import Layout from '../layouts/Layout.astro';
 
 <script>
   import { detectPitch } from '../lib/practice-room/pitch';
-  import { freqToReading, midiToFreq, NOTE_NAMES, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/practice-room/notes';
+  import { freqToReading, midiToFreq, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/practice-room/notes';
+  // THE ONE NAMING MODULE. `nameOf` for a pitch on its own (the root, the tuner's readout) and
+  // `nameInChord` for a pitch heard AS AN INTERVAL above the root — which is a different
+  // question with a different answer: a minor third above E♭ is G♭, not F♯.
+  import { nameOf, pitchClassOf, nameInChord } from '../lib/practice-room/naming';
   import { Scheduler, clampBpm, type Tick } from '../lib/practice-room/metronome';
   import { createTapTempo } from '../lib/practice-room/tap';
 
@@ -1855,7 +1859,7 @@ import Layout from '../layouts/Layout.astro';
                 // whatever frequency the click smears to, which a note-name assertion
                 // does not — a real mic's noise floor moves the click 25-46 cents.
                 renders: { at: number; note: string }[];
-                bleed: GainNode | null; gated: number;
+                bleed: GainNode | null; gated: number; belowFloor: number;
                 readonly a4: number; readonly bpm: number;
                 // EVERY RANK'S SET FREQUENCY, read off the live oscillators. `toneHz` alone
                 // could not answer the question the fifth raises — whether the interval is
@@ -1878,7 +1882,7 @@ import Layout from '../layouts/Layout.astro';
     // — the TEST then connects that node to the analyser, at a chosen attenuation.
     // The topology lives in the test; the page only offers the tap. `gated` counts
     // frames the tuner disowned, so a green can be told from a gate that never fired.
-    bleed: null, gated: 0,
+    bleed: null, gated: 0, belowFloor: 0,
     get a4() { return a4; },
     get bpm() { return bpm; },
     // ONE ENTRY PER SOUNDING NOTE, in pitch order: the root, then each switched interval.
@@ -2195,6 +2199,10 @@ import Layout from '../layouts/Layout.astro';
 
   const IN_TUNE_CENTS = 3;
 
+  // The lowest frequency this window can honestly resolve — see the note at the read loop.
+  // B1 is 61.7 Hz, so 62 admits every note from C2 up and rejects the rumble below it.
+  const TUNER_FMIN_HZ = 62;
+
   // THE METRONOME IS NOT AN INSTRUMENT (user report 2026-08-05: "when metronome is
   // playing it triggers tuner"). The click is a pure sine at a known frequency, the
   // mic hears it out of the speaker, and the tuner reads the metronome. Measured, not
@@ -2344,7 +2352,50 @@ import Layout from '../layouts/Layout.astro';
     const src = ac.createMediaStreamSource(micStream);
     analyser = ac.createAnalyser();
     analyser.fftSize = 2048;
-    src.connect(analyser);
+
+    // ── PUT BACK THE HIGH-PASS THE THREE getUserMedia FLAGS TOOK AWAY ───────────────
+    // Reported 2026-08-07: sitting in a quiet office playing nothing produced 24 note
+    // panels, clustered at F♯1–A♯1 (46–58 Hz) with scattered mid-range hits. Measured on
+    // this very detector: synthesized office noise (brown rumble + 50 Hz hum, RMS inside
+    // the existing gate) reported a pitch in 42 of 400 frames, and EVERY ONE was under
+    // 100 Hz.
+    //
+    // THE PROXIMATE CAUSE IS THREE LINES ABOVE, in the constraints this page asks for.
+    // `echoCancellation:false, noiseSuppression:false, autoGainControl:false` are set so
+    // the browser cannot mangle the pitch — correct, and staying. But read Chromium:
+    // `NeedWebrtcAudioProcessing()` returns false when all three are off, so no audio
+    // processing module is constructed at all; and WebRTC's `HighPassFilter.enabled`
+    // defaults to false, existing only as a side-effect of AEC's
+    // `enforce_high_pass_filtering` or of the noise suppressor. So turning those three off
+    // also silently deleted an 87 Hz high-pass that was attenuating 46 Hz by ~104 dB. The
+    // regression was never in this file's logic; it was in a filter we did not know we had.
+    //
+    // 45 Hz and not 87: the browser's corner is aggressive enough to cost a bass guitar's
+    // open E (41.2 Hz) its fundamental. Two cascaded biquads at 45 Hz measure −5.6 dB at
+    // 46 Hz, −4.4 dB at 50 Hz, and −1.8 dB at a cello's C2 — enough to stop rumble
+    // WINNING the NSDF's maximum, which is the actual failure, while leaving real low
+    // notes audible to the detector.
+    //
+    // Q IS IN dB FOR highpass, NOT LINEAR — the one trap here. Per the Web Audio spec's
+    // filter characteristics, `highpass` uses α = sin(ω₀)/(2·10^(Q/20)), and the DEFAULT
+    // Q of 1 is 1 dB, which is RESONANT: measured, two default-Q nodes at 45 Hz would
+    // BOOST 50 Hz mains hum by +3.4 dB. Butterworth is Q = 20·log10(1/√2) = −3.01 dB.
+    const HP_HZ = 45;
+    const HP_Q_DB = -3.01;      // Butterworth. NOT 0.7071 — see above.
+    const hp1 = ac.createBiquadFilter();
+    const hp2 = ac.createBiquadFilter();
+    for (const f of [hp1, hp2]) {
+      f.type = 'highpass';
+      f.frequency.value = HP_HZ;
+      f.Q.value = HP_Q_DB;
+    }
+    // The RMS gate is measured on what comes OUT of the filter, because it reads the
+    // analyser — which is downstream. That ordering matters: a high-pass alone measured
+    // upstream is WORSE than none (it strips the energy the gate was catching while the
+    // NSDF, being scale-invariant, still finds a peak in the residue).
+    src.connect(hp1);
+    hp1.connect(hp2);
+    hp2.connect(analyser);
     micBtn.setAttribute('aria-label', 'stop the tuner');
     micBtn.setAttribute('aria-pressed', 'true');
     hintEl.textContent = '';
@@ -2359,6 +2410,32 @@ import Layout from '../layouts/Layout.astro';
       // Checked BEFORE the pitch is examined: what disqualifies the frame is when it
       // was taken, not what it happens to say.
       if (ownClick(ac.currentTime, ac.sampleRate)) { if (E2E) hook.gated++; return; }
+      // ── A PITCH BELOW THE WINDOW'S OWN FLOOR IS NOT A PITCH ──────────────────────
+      // Measured: this removes 40 of the 42 false readings a synthesized quiet office
+      // produced in 400 frames, and it is the single largest win available here.
+      //
+      // The number is not a preference, it is a property of the window already chosen.
+      // Praat documents the coupling: a pitch floor REQUIRES a window of three of its
+      // longest periods, so a 2048-sample window at 48 kHz (42.7 ms) already declares a
+      // floor of 3/0.0427 ≈ 70 Hz. Everything below that was outside the range the DSP
+      // could support, and reporting it was the bug.
+      //
+      // WHY THE DETECTOR IS CONFIDENT DOWN THERE, which is why no clarity threshold can
+      // replace this: the NSDF sums only W−τ terms, so at long lags the estimate is built
+      // from fewer samples and its variance grows — and MPM then takes the MAXIMUM of that
+      // noisier function. Measured on this detector: pure noise reaches clarity 0.983 at
+      // 46 Hz, above any gate that would not also destroy real notes. And k is inert
+      // there: a 46 Hz candidate has exactly ONE key maximum in the window, so
+      // "first within 10% of the highest" has nothing to choose between.
+      //
+      // 62 and not 65: the floor must sit BELOW the lowest note supported, not on it.
+      // Measured, a real C2 at 65.41 Hz keeps 78.5% of its frames at a 62 Hz floor, 65% at
+      // 65, and 19.5% at 66 — a floor placed on the note eats the note.
+      // THE COST, stated: this makes the tuner useless below B1. Bass guitar's open E
+      // (41.2 Hz) and a 5-string's B0 are out of range now — honestly out, rather than
+      // reported as the F♯1s that started this. Supporting them needs a longer window,
+      // not a lower floor, because the floor and the window are one decision.
+      if (f > 0 && f < TUNER_FMIN_HZ) { if (E2E) hook.belowFloor++; return; }
       if (f > 0) {
         recent.push(f);
         if (recent.length > MEDIAN_N) recent.shift();
@@ -2450,10 +2527,9 @@ import Layout from '../layouts/Layout.astro';
   // 14 cents flat of the piano's, and hearing that interval lock is the exercise. A
   // tempered stack would beat against itself and teach the wrong thing. The old `FIFTH`
   // constant is row 7 of this table.
-  // Two small helpers the stack needs. `nameOf` prints letter+octave, which is what a
-  // player reads; `el` builds one node from markup so the strip's cells are written as
-  // markup rather than as six imperative property assignments each.
-  const nameOf = (m: number) => `${NOTE_NAMES[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
+  // `nameOf` and `nameInChord` are imported — see the note on the import. `el` builds one node
+  // from markup so the strip's cells are written as markup rather than as six imperative
+  // property assignments each.
   const el = (h: string) => {
     const t = document.createElement('template');
     t.innerHTML = h.trim();
@@ -2519,8 +2595,7 @@ import Layout from '../layouts/Layout.astro';
   // needs to know which A — and now that the figure is also the control, the thing you drag
   // has to state the value you are setting.
   function refLabel() {
-    const name = NOTE_NAMES[((refMidi % 12) + 12) % 12];
-    refNoteEl.textContent = `${name}${Math.floor(refMidi / 12) - 1}`;
+    refNoteEl.textContent = nameOf(refMidi);
   }
   refLabel();
 
@@ -2570,16 +2645,22 @@ import Layout from '../layouts/Layout.astro';
   // readout. The labels carry the NAMES the strip's geometry drops — `5 — E3`, so nothing has
   // to be counted — and they must be rewritten when the root moves, not only when a cell is
   // clicked, or the strip announces intervals above a note that is no longer the root.
+  // EVERY NAME HERE IS AN INTERVAL ABOVE THE ROOT, so it goes through `nameInChord` and not
+  // `nameOf` (user, 2026-08-07: "E♭4 F♯4 should actually read like eb gb, so for chords can u
+  // spell based on the implied key of the root?"). The root itself has no context above it, so
+  // it keeps the context-free spelling — which is what the user asked for too: "the root notes
+  // are fine spelled this way".
   function paintStack() {
     const names: string[] = [nameOf(refMidi)];
     stripEl?.querySelectorAll<HTMLButtonElement>('[data-semi]').forEach((b) => {
       const n = Number(b.dataset.semi);
       const on = stack.has(n);
+      const nm = nameInChord(refMidi, n);
       b.setAttribute('aria-pressed', String(on));
       b.classList.toggle('on', on);
-      b.setAttribute('aria-label', `${JUST[n].d} — ${nameOf(refMidi + n)}`);
-      b.title = `${JUST[n].d}  ${nameOf(refMidi + n)}`;
-      if (on) names.push(nameOf(refMidi + n));
+      b.setAttribute('aria-label', `${JUST[n].d} — ${nm}`);
+      b.title = `${JUST[n].d}  ${nm}`;
+      if (on) names.push(nm);
     });
     // THE CHORD IS THE STRIP'S CAPTION — what is sounding, by name, in pitch order. It says
     // the one thing the 72px letter cannot: the rest of the notes. (The exact reading deleted
