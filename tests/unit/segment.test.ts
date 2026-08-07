@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   STRATEGIES, DEFAULT_STRATEGY_ID, createSegmenter, getStrategy, resolveParams,
-  segment, noteRuns, type Sample,
+  segment, noteRuns, shown, AXIS_LIMIT_CENTS, type Sample,
 } from '../../src/lib/practice-room/segment';
 
 // The read cadence the instrument actually uses, so durations here are the durations
@@ -236,6 +236,71 @@ describe('a slow continuous slide (a portamento across 4 semitones)', () => {
     // FEWER notes than nearest — it is not tracking the semitones the slide crosses.
     const island = new Set(segment(contour, 'contour-island')).size;
     expect(island).toBeLessThan(5);
+  });
+});
+
+// ── the display contract ────────────────────────────────────────────────────────
+
+describe('shown() — what a readout may print', () => {
+  // FOUND ON THE LIVE SHEET, not in a test: the picked mechanism holds the old note
+  // through a slur (that is how it survives vibrato), and while it holds, the true
+  // offset leaves the ±50 axis. The trace printed "+141.3¢" and once "+187¢" on a scale
+  // whose entire domain is ±50. Clamping is not cosmetic here — an unclamped number is
+  // a wrong number.
+  it('clamps a mid-slur excursion to the axis and flags it', () => {
+    const s = shown(70.41, 69);                  // measured off the live page
+    expect(s.trueCents).toBeCloseTo(141.3, 0);
+    expect(s.cents).toBe(AXIS_LIMIT_CENTS);
+    expect(s.inTransition).toBe(true);
+    expect(s.inTune).toBe(false);
+  });
+
+  it('does not flag an ordinary in-range reading', () => {
+    const s = shown(69.19, 69);
+    expect(s.cents).toBeCloseTo(19, 0);
+    expect(s.trueCents).toBeCloseTo(19, 0);
+    expect(s.inTransition).toBe(false);
+  });
+
+  it('clamps in both directions', () => {
+    expect(shown(67.5, 69).cents).toBe(-AXIS_LIMIT_CENTS);
+    expect(shown(67.5, 69).inTransition).toBe(true);
+  });
+
+  it('marks the in-tune window at the shipped ±3¢, not ±5', () => {
+    expect(shown(69.02, 69).inTune).toBe(true);    // +2
+    expect(shown(69.04, 69).inTune).toBe(false);   // +4
+  });
+
+  it('is silent for silence', () => {
+    expect(shown(null, null).cents).toBeNull();
+    expect(shown(null, 69).midi).toBeNull();
+    expect(shown(69, null).midi).toBeNull();
+  });
+
+  it('never returns a cents value the axis cannot hold, over the whole hard phrase', () => {
+    // The property, asserted across every strategy rather than at one point: whatever
+    // the mechanism decides, the number handed to a drawing is on the scale.
+    const contour = [...hold(69, 2, 8), ...slide(69, 71, 4), ...hold(71, -8, 8),
+      ...vibrato(74, 6, 58, 20)];
+    for (const st of STRATEGIES) {
+      const dec = segment(contour, st.id);
+      for (let i = 0; i < contour.length; i++) {
+        const v = shown(contour[i], dec[i]);
+        if (v.cents === null) continue;
+        expect(Math.abs(v.cents), `${st.id} at ${i}`).toBeLessThanOrEqual(AXIS_LIMIT_CENTS);
+      }
+    }
+  });
+
+  it('every strategy that holds a note through a slur reports the transition', () => {
+    // attack-lock and hysteresis both hold; nearest never does. This asserts the flag
+    // actually fires where the mechanism causes it, so a readout can trust it.
+    const contour = [...hold(69, 2, 6), ...slide(69, 71, 5), ...hold(71, -8, 6)];
+    const flags = (id: string) => segment(contour, id)
+      .map((d, i) => shown(contour[i], d).inTransition).filter(Boolean).length;
+    expect(flags('attack-lock')).toBeGreaterThan(0);
+    expect(flags('nearest')).toBe(0);
   });
 });
 

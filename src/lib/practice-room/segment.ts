@@ -450,6 +450,62 @@ export function segment(
   return samples.map((s) => seg.feed(s));
 }
 
+/**
+ * What to SHOW for one frame — which is not the same question as what to measure.
+ *
+ * Every strategy that survives a vibrato does so by holding the old note through a
+ * transition, and while it holds, the true offset from that note runs off the ±50 cent
+ * scale: measured on the live trace, a slurred A4→B4 prints 141¢ and briefly 187¢, and a
+ * numeric readout that says "+141.3¢" on an axis whose whole domain is ±50 is not a
+ * precise reading, it is a broken one.
+ *
+ * So the display contract is explicit and lives beside the mechanism that causes it:
+ *
+ *   · `cents` is CLAMPED to the axis, because a drawing cannot show what it cannot hold.
+ *   · `inTransition` is true when the true offset is off-scale — the frames where the
+ *     segmenter is knowingly holding a note the pitch has already left. A readout should
+ *     print nothing (or a dash) rather than a number for these; a trace should still draw
+ *     them, clamped, because the excursion is real and hiding it would draw a gap where
+ *     the player played.
+ *   · `trueCents` is kept unclamped for anything that needs the honest value — a test, a
+ *     verdict, this file's own bench.
+ */
+export interface Shown {
+  /** The note being measured against; null in silence. */
+  midi: number | null;
+  /** Offset in cents, clamped to ±`limit`. Null in silence. */
+  cents: number | null;
+  /** The unclamped offset. Null in silence. */
+  trueCents: number | null;
+  /** True when |trueCents| exceeds the axis — the segmenter is holding a left note. */
+  inTransition: boolean;
+  /** Within the in-tune window. */
+  inTune: boolean;
+}
+
+export const AXIS_LIMIT_CENTS = 50;   // ±50 is one semitone's worth: the whole domain
+export const IN_TUNE_CENTS = 3;       // the shipped tuner's window
+
+export function shown(
+  sample: Sample,
+  decision: Decision,
+  limit = AXIS_LIMIT_CENTS,
+  inTuneWindow = IN_TUNE_CENTS,
+): Shown {
+  if (sample === null || decision === null) {
+    return { midi: null, cents: null, trueCents: null, inTransition: false, inTune: false };
+  }
+  const trueCents = (sample - decision) * SEMITONE_CENTS;
+  const cents = Math.max(-limit, Math.min(limit, trueCents));
+  return {
+    midi: decision,
+    cents,
+    trueCents,
+    inTransition: Math.abs(trueCents) > limit,
+    inTune: Math.abs(trueCents) <= inTuneWindow,
+  };
+}
+
 export interface NoteRun {
   /** The note as decided. */
   midi: number;
