@@ -1826,6 +1826,7 @@ import Layout from '../layouts/Layout.astro';
                 readonly droneVoice: string | null;
                 readonly droneStack: number[];
                 droneHz: () => Promise<number | null>;
+                readonly droneOut: GainNode | null;
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
@@ -1863,7 +1864,7 @@ import Layout from '../layouts/Layout.astro';
       if (!toneGain || !ctx) return Promise.resolve(null);
       const ac = ctx;
       const an = ac.createAnalyser();
-      an.fftSize = 8192;
+      an.fftSize = 16384;
       toneGain.connect(an);
       return new Promise((resolve) => {
         setTimeout(() => {
@@ -1871,39 +1872,91 @@ import Layout from '../layouts/Layout.astro';
           an.getFloatTimeDomainData(buf);
           try { toneGain?.disconnect(an); } catch {}
           const sr = ac.sampleRate;
-          const minLag = Math.floor(sr / 700), maxLag = Math.floor(sr / 60);
           let mean = 0;
           for (let i = 0; i < buf.length; i++) mean += buf[i];
           mean /= buf.length;
           const w = Array.from(buf, (v) => v - mean);
-          const vals: number[] = [];
-          let best = -2, bestLag = minLag;
-          for (let lag = minLag; lag < maxLag; lag++) {
-            let ac2 = 0, norm = 0;
-            for (let i = 0; i < w.length - maxLag; i += 2) {
-              const a = w[i], b = w[i + lag];
-              ac2 += a * b;
-              norm += a * a + b * b;
+
+          // SPECTRAL-PEAK SEARCH, and the algorithm choice is load-bearing. This hook first
+          // used an NSDF lag peak with parabolic interpolation, which is biased up to 11.4
+          // cents and swings with frequency — it read 221.0 Hz for the organ voice's exact
+          // 220.000 Hz oscillators. That plausible-looking wrong number is what let a 30-cent
+          // sample "correction" ship: the instrument was lying and its reading looked fine.
+          // Maximising summed harmonic magnitude has no lag quantisation and no integer
+          // ambiguity, so there is no mechanism for that bias. Verified to 0.000¢ against
+          // synthetic tones in scripts/build-cello-samples.py's self_check().
+          const power = (f: number) => {
+            let total = 0;
+            for (let h = 1; h <= 3; h++) {
+              const om = (2 * Math.PI * f * h) / sr;
+              let re = 0, im = 0;
+              for (let i = 0; i < w.length; i += 2) {
+                const win = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (w.length - 1));
+                const v = w[i] * win;
+                re += v * Math.cos(om * i);
+                im -= v * Math.sin(om * i);
+              }
+              total += Math.hypot(re, im) / h;
             }
-            const v = norm ? (2 * ac2) / norm : 0;
-            vals[lag] = v;
-            if (v > best) { best = v; bestLag = lag; }
+            return total;
+          };
+          // ── PREFER THE SUBHARMONIC — this is the octave error, and it is not academic.
+          // A bare "take the strongest candidate" sweep reported the section voice an octave
+          // HIGH for the first ~2.5 s of its swell. Measured, at 2.2 s: |440| = 1.000 and
+          // |220| = 0.371 — the second partial genuinely dominates while the bow is still
+          // filling in — and since 440's harmonics (440/880/1320) are ALSO harmonics of 220,
+          // the objective scores the octave higher than the fundamental. The audio was right
+          // the whole time; the instrument reported it as a 1204-cent error, and I nearly
+          // "fixed" the samples because of it. (Twice now: the same class of mistake as the
+          // biased lag detector this replaced.)
+          // THE FIX is the standard one for pitch tracking: having found a peak, check whether
+          // half of it is also present, and prefer the lower octave when it is. A real
+          // fundamental at f/2 means energy at f/2 AND at 1.5·f/2 (its own odd partial, which
+          // is NOT a harmonic of f) — so the test is not "is f/2 present" but "is f/2 present
+          // with its own odd partials", which an octave-up artefact cannot fake.
+          let seed = 220, bestP = -1;
+          for (let m = 24; m <= 96; m++) {
+            const f = 440 * Math.pow(2, (m - 69) / 12);
+            const pw = power(f);
+            if (pw > bestP) { bestP = pw; seed = f; }
           }
-          let lag = bestLag;
-          for (let L = minLag + 1; L < maxLag - 1; L++) {
-            if (vals[L] >= 0.85 * best && vals[L] >= vals[L - 1] && vals[L] >= vals[L + 1]) {
-              lag = L;
-              break;
-            }
+          for (let k = 0; k < 2 && seed / 2 >= 55; k++) {
+            const half = seed / 2;
+            const mag = (f: number) => {
+              const om = (2 * Math.PI * f) / sr;
+              let re = 0, im = 0;
+              for (let i = 0; i < w.length; i += 2) {
+                const win = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (w.length - 1));
+                const v = w[i] * win;
+                re += v * Math.cos(om * i);
+                im -= v * Math.sin(om * i);
+              }
+              return Math.hypot(re, im);
+            };
+            // `half` counts as the true fundamental if it carries real energy AND its 3rd
+            // partial (1.5·seed) does too — the latter belongs to `half` alone.
+            const ref = mag(seed);
+            if (mag(half) > 0.12 * ref && mag(half * 3) > 0.04 * ref) seed = half;
+            else break;
           }
-          const y0 = vals[lag - 1] ?? vals[lag], y1 = vals[lag], y2 = vals[lag + 1] ?? vals[lag];
-          const d = 2 * (2 * y1 - y0 - y2);
-          resolve(sr / (lag + (d ? (y0 - y2) / d : 0)));
+          let lo = seed * Math.pow(2, -1 / 12), hi = seed * Math.pow(2, 1 / 12);
+          for (let k = 0; k < 40; k++) {
+            const m1 = lo + (hi - lo) / 3;
+            const m2 = hi - (hi - lo) / 3;
+            if (power(m1) < power(m2)) lo = m1; else hi = m2;
+          }
+          resolve((lo + hi) / 2);
         }, 260);
       });
     },
+    // THE BLEED SUITE BUILDS ITS OWN TOPOLOGY off these two: the page offers the taps and the
+    // test wires them (see the note on `bleed`). They were briefly deleted by an edit that
+    // replaced `droneHz` and took the two getters after it — which failed 5 bleed tests with
+    // `createGain of undefined`, nothing to do with the drone. Kept last, and kept together.
     get ctx() { return ctx; },
     get mic() { return analyser; },
+    // the drone's own output node, so a probe can tap exactly what `droneHz` taps
+    get droneOut() { return toneGain; },
   };
   if (E2E) (window as any).__mt = hook;
 

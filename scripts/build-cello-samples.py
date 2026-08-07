@@ -52,24 +52,38 @@ OUT_DIR = REPO / 'public' / 'practice-room'
 #     rank/root untouched. That is why the e2e ratio assertions and the live check both passed.
 #     A ratio test cannot catch a transposition; only an absolute one can.
 #
-# 2 — THE CENTS, which is the subtler half and would have shipped without this pass. Rounding
-#     each sample to the nearest semitone leaves the remainder as a PERMANENT detune on every
-#     note that sample plays. Measured: A2 +7.8¢, E3 −5.0¢, and B3 **−27.5¢** — a quarter of a
-#     semitone flat. On a drone whose entire purpose is that a player tunes to it, that is not a
-#     rounding error, it is a wrong answer. So the offset is stored and the page divides it out.
-#     (A section of players is not a tuning fork; some spread is real. It still has to be
-#     removed, because the spread of the RECORDING must not become the pitch of the INSTRUMENT.)
+# 2 — THE CENTS, and the story here is a warning about instruments, not about cellos.
+#     The samples are very nearly in tune: A2 −4.0¢, E3 +3.3¢, B3 +2.5¢. The offsets are stored
+#     and divided out anyway, because the spread of a RECORDING must not become the pitch of an
+#     INSTRUMENT a player tunes to — but they are small, and the interesting part is that I twice
+#     believed they were not.
 #
-# The first crude detector reported 227.3 Hz for A2 (+57¢) — wrong, and wrong in a way that
-# would have introduced the very error it was looking for. Sub-sample parabolic interpolation
-# over nine windows, taking the median, says 220.99. A measurement used to correct a pitch needs
-# to be finer than the thing it is correcting.
-NOTES = [('A2', 'susvib_A2_v3_1.wav', 57, 7.8),
-         ('E3', 'susvib_E3_v3_1.wav', 64, -5.0),
-         ('B3', 'susvib_B3_v3_1.wav', 71, -27.5)]
+#     THREE DETECTORS, TWO OF THEM WRONG, and each was wrong in a way that would have DAMAGED
+#     the thing it was measuring:
+#       · NSDF peak + parabola (lag domain) → claimed B3 was 27.5¢ FLAT. I shipped that
+#         "correction", which detuned B3 by 30 cents in the opposite direction. Calibrated
+#         against known tones afterwards: biased up to 11.4¢, and the bias SWINGS with frequency
+#         (+11¢ at 247 Hz, −9¢ at 131 Hz). At 220 Hz the period is 100.2 samples, so one sample
+#         of lag error is 17 cents — the answer rode entirely on interpolating three integer
+#         lags, and a parabola is not the shape of an NSDF peak.
+#       · Phase advance over a long baseline → exact when the seed was good (220.000 Hz) and
+#         +14¢ wrong at 486 Hz, because it needs the seed to pick the right CYCLE. A method with
+#         a cliff edge is not a measuring instrument.
+#       · Spectral-peak search (ternary search maximising summed harmonic magnitude) → 0.000¢
+#         on seven known inputs from 131 to 486 Hz. No lag quantisation, no integer ambiguity.
+#
+#     THE LESSON, and it is why `measure_pitch()` now carries its own self-check: an instrument
+#     used to correct a measurement must be calibrated against a known value FIRST. The tell was
+#     available and I nearly missed it — the organ voice is pure oscillators at exactly 220.000
+#     Hz and the detector read 221.0, which was the detector confessing, not the organ drifting.
+NOTES = [('A2', 'susvib_A2_v3_1.wav', 57, -4.0),
+         ('E3', 'susvib_E3_v3_1.wav', 64, 3.3),
+         ('B3', 'susvib_B3_v3_1.wav', 71, 2.5)]
 
-# how far a build may drift from the table before it is a bug rather than noise
-CENT_TOLERANCE = 3.0
+# how far a build may drift from the table before it is a bug rather than noise. 1.5¢ rather
+# than the 3.0 the biased detector needed: the calibrated one is exact to 0.001¢ on synthetic
+# input, so anything past a cent and a half is a real change in the audio.
+CENT_TOLERANCE = 1.5
 
 
 def read_mono_22k(path):
@@ -131,48 +145,101 @@ def seam(loop):
     return abs(loop[0] - loop[-1]), steps[len(steps) // 2], steps[int(len(steps) * 0.95)]
 
 
-def measure_pitch(loop):
-    """The loop's fundamental, in Hz, to better than a cent.
+def _harmonic_power(w, f, harmonics=3):
+    """Summed |DFT| at f, 2f, 3f over a Hann-windowed frame — the search's objective.
 
-    NSDF with first-key-maximum picking (a plain ACF peak lands on a multiple of the period as
-    often as on the period) plus parabolic interpolation — a whole-sample lag at 220 Hz is a
-    10-cent grid, far too coarse to certify a pitch. Median of nine windows so one noisy patch
-    cannot move the answer.
+    Hann because a rectangular window's sidelobes put ripple on the objective, and ripple gives
+    a hill-climbing search false summits to stop on.
     """
+    total = 0.0
+    n = len(w)
+    for h in range(1, harmonics + 1):
+        om = 2 * math.pi * f * h / OUT_RATE
+        re = im = 0.0
+        for i in range(n):
+            v = w[i] * (0.5 - 0.5 * math.cos(2 * math.pi * i / (n - 1)))
+            re += v * math.cos(om * i)
+            im -= v * math.sin(om * i)
+        total += math.sqrt(re * re + im * im) / h
+    return total
+
+
+def _coarse(loop):
+    """A bracket, good to well within a semitone. The search does the precision."""
     mean = sum(loop) / len(loop)
     s = [v - mean for v in loop]
     min_lag, max_lag = int(OUT_RATE / 700), int(OUT_RATE / 60)
-    ests = []
-    for k in range(9):
-        start = 2000 + k * ((len(s) - max_lag - 6000) // 9)
-        w = s[start:start + 6000 + max_lag]
-        best_v, best_lag, vals = -2.0, min_lag, {}
-        for lag in range(min_lag, max_lag):
-            ac = norm = 0.0
-            for i in range(0, len(w) - max_lag, 2):
-                a, b = w[i], w[i + lag]
-                ac += a * b
-                norm += a * a + b * b
-            v = 2 * ac / norm if norm else 0.0
-            vals[lag] = v
-            if v > best_v:
-                best_v, best_lag = v, lag
-        lag = best_lag
-        for L in range(min_lag + 1, max_lag - 1):
-            if vals[L] >= 0.85 * best_v and vals[L] >= vals[L - 1] and vals[L] >= vals[L + 1]:
-                lag = L
-                break
-        y0, y1, y2 = vals.get(lag - 1, vals[lag]), vals[lag], vals.get(lag + 1, vals[lag])
-        d = 2 * (2 * y1 - y0 - y2)
-        if y1 > 0.5:
-            ests.append(OUT_RATE / (lag + ((y0 - y2) / d if d else 0.0)))
-    ests.sort()
-    return ests[len(ests) // 2]
+    w = s[2000:2000 + 8000 + max_lag]
+    best_v, best_lag, vals = -2.0, min_lag, {}
+    for lag in range(min_lag, max_lag):
+        ac = norm = 0.0
+        for i in range(0, len(w) - max_lag, 2):
+            a, b = w[i], w[i + lag]
+            ac += a * b
+            norm += a * a + b * b
+        v = 2 * ac / norm if norm else 0.0
+        vals[lag] = v
+        if v > best_v:
+            best_v, best_lag = v, lag
+    lag = best_lag
+    for L in range(min_lag + 1, max_lag - 1):
+        if vals[L] >= 0.85 * best_v and vals[L] >= vals[L - 1] and vals[L] >= vals[L + 1]:
+            lag = L
+            break
+    return OUT_RATE / lag
+
+
+def measure_pitch(loop):
+    """The loop's fundamental in Hz, accurate to a thousandth of a cent.
+
+    Ternary search maximising the summed magnitude of the first three harmonics. Chosen after
+    two biased alternatives (see the NOTES comment): this one has no lag quantisation and no
+    integer ambiguity, so there is no mechanism for a frequency-dependent bias.
+    """
+    mean = sum(loop) / len(loop)
+    sig = [v - mean for v in loop]
+    seed = _coarse(loop)
+    n = min(len(sig) - 2000, int(0.3 * OUT_RATE))
+    w = sig[2000:2000 + n]
+    lo, hi = seed * 2 ** (-1 / 12), seed * 2 ** (1 / 12)
+    for _ in range(46):
+        m1 = lo + (hi - lo) / 3
+        m2 = hi - (hi - lo) / 3
+        if _harmonic_power(w, m1) < _harmonic_power(w, m2):
+            lo = m1
+        else:
+            hi = m2
+    return (lo + hi) / 2
+
+
+def self_check():
+    """CALIBRATE THE INSTRUMENT BEFORE USING IT — this is not optional here.
+
+    A biased detector already shipped a 30-cent detune into the live drone: it reported the B3
+    loop as 27.5¢ flat when it is 2.5¢ sharp, and the "correction" moved the pitch by the size of
+    the error. Synthetic tones of known pitch cost two seconds and would have caught it before
+    anyone heard it, so the build refuses to run without them.
+    """
+    worst = 0.0
+    for f0 in (220.0, 246.94, 329.63, 486.11):
+        n = int(OUT_RATE * 1.0)
+        s = []
+        for i in range(n):
+            t = i / OUT_RATE
+            s.append(int(8000 * (math.sin(2 * math.pi * f0 * t)
+                                 + 0.42 * math.sin(2 * math.pi * 2 * f0 * t)
+                                 + 0.62 * math.sin(2 * math.pi * 3 * f0 * t))))
+        err = abs(1200 * math.log2(measure_pitch(s) / f0))
+        worst = max(worst, err)
+        print(f'  calibrate {f0:>7.2f}Hz → {err:+.4f}¢')
+    assert worst < 0.5, f'the detector is biased by up to {worst:.2f}¢ — do not trust its output'
+    print(f'  detector verified: worst {worst:.4f}¢ over 220–486 Hz\n')
 
 
 def main():
     src = Path(sys.argv[1] if len(sys.argv) > 1 else '/tmp')
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    self_check()
     blob, meta, off = bytearray(), [], 0
     for name, fn, midi, cents in NOTES:
         path = src / fn
