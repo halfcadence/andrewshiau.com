@@ -484,7 +484,26 @@ export interface Shown {
 }
 
 export const AXIS_LIMIT_CENTS = 50;   // ±50 is one semitone's worth: the whole domain
-export const IN_TUNE_CENTS = 3;       // the shipped tuner's window
+
+/**
+ * The in-tune window. 3 cents is the value the tuner ships, and it is TIGHTER THAN THE
+ * EAR: the published threshold for a musician reliably hearing a pitch error is about
+ * 5–7 cents (Clark 2012), so a ±3 window can print "out of tune" for an error nobody
+ * can hear. Kept at 3 anyway — a tuner's job is to be more precise than the ear, that
+ * is why you look at it — but the trace is a different instrument, and the survey of
+ * shipped tools says a practice display should carry TWO bands rather than one
+ * threshold: Singing Carrots draws ±5 ("barely noticeable even by most trained ears")
+ * inside ±12 ("commonly audible by most untrained ears"), and Tunable makes the band a
+ * skill setting (Beginner ±10 / Intermediate ±6 / Advanced ±2).
+ *
+ * Also worth knowing before treating this as symmetric: sharp and flat are not judged
+ * symmetrically, and the asymmetry varies by instrument (Geringer, MacLeod & Sasanfar
+ * 2015). A symmetric band is not a perceptually symmetric band.
+ */
+export const IN_TUNE_CENTS = 3;
+
+/** The two-band practice display, after Singing Carrots. `inner` is "nobody hears it". */
+export const PRACTICE_BANDS = { inner: 5, outer: 12 } as const;
 
 export function shown(
   sample: Sample,
@@ -514,9 +533,48 @@ export interface NoteRun {
   to: number;
   /** How many readings. */
   reads: number;
-  /** Mean and standard deviation of the cents offset, over those readings. */
+  /**
+   * The note's pitch offset in cents — weighted toward the middle of the note, which is
+   * what a listener hears the note AS. See `centerWeighted`.
+   */
   mean: number;
+  /** The plain arithmetic mean over every reading, unweighted. */
+  flatMean: number;
+  /** Standard deviation of the offsets — the wobble. */
   sd: number;
+}
+
+/**
+ * How much of a note's edges to discount when reporting its pitch.
+ *
+ * Melodyne computes a note's "fine offset" weighted toward its middle, on the stated
+ * grounds that "the central part of a note, as a rule, plays a more decisive role in the
+ * listener's perception of pitch" — and Tunable reports Attack / Sustain / Release cents
+ * as three separate numbers for the same reason. Both are saying an unweighted mean is
+ * the wrong summary of a note.
+ *
+ * It matters here specifically: a real attack overshoots. In the phrase this tool was
+ * built around, the attack is 42 cents sharp before settling, so the flat mean of the
+ * first note reports an intonation error that lasted 200 ms out of 1.6 s. The player did
+ * not sit sharp; they started sharp.
+ *
+ * A raised-cosine window rather than a hard trim: a hard trim needs a rule for how many
+ * reads to cut and gets it wrong on short notes, whereas this degrades smoothly and is
+ * defined for a note of one reading.
+ */
+export function centerWeighted(cs: number[]): number {
+  if (cs.length === 0) return 0;
+  if (cs.length <= 2) return cs.reduce((a, b) => a + b, 0) / cs.length;
+  let num = 0;
+  let den = 0;
+  for (let i = 0; i < cs.length; i++) {
+    // 0 at both edges, 1 in the middle. `(i + 0.5)/n` so the window is symmetric and
+    // no reading is weighted exactly zero.
+    const w = 0.5 * (1 - Math.cos((2 * Math.PI * (i + 0.5)) / cs.length));
+    num += cs[i] * w;
+    den += w;
+  }
+  return den > 0 ? num / den : cs.reduce((a, b) => a + b, 0) / cs.length;
 }
 
 /**
@@ -525,6 +583,9 @@ export interface NoteRun {
  * This is what a per-note verdict reads from, and it is deliberately NOT part of the
  * segmenter: the same runs are wanted from every strategy, and computing them once
  * here is what makes two strategies comparable on the same take.
+ *
+ * The offsets are the TRUE ones, not clamped — `shown()` clamps for drawing, but a
+ * verdict that averaged clamped values would report the axis rather than the playing.
  */
 export function noteRuns(samples: Sample[], decisions: Decision[]): NoteRun[] {
   const runs: NoteRun[] = [];
@@ -542,8 +603,16 @@ export function noteRuns(samples: Sample[], decisions: Decision[]): NoteRun[] {
   }
   return runs.map((r) => {
     const cs = (r as unknown as { cs: number[] }).cs;
-    const mean = cs.reduce((a, b) => a + b, 0) / cs.length;
-    const sd = Math.sqrt(cs.reduce((a, b) => a + (b - mean) ** 2, 0) / cs.length);
-    return { midi: r.midi, from: r.from, to: r.to, reads: cs.length, mean, sd };
+    const flatMean = cs.reduce((a, b) => a + b, 0) / cs.length;
+    const sd = Math.sqrt(cs.reduce((a, b) => a + (b - flatMean) ** 2, 0) / cs.length);
+    return {
+      midi: r.midi,
+      from: r.from,
+      to: r.to,
+      reads: cs.length,
+      mean: centerWeighted(cs),
+      flatMean,
+      sd,
+    };
   });
 }

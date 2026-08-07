@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   STRATEGIES, DEFAULT_STRATEGY_ID, createSegmenter, getStrategy, resolveParams,
-  segment, noteRuns, shown, AXIS_LIMIT_CENTS, type Sample,
+  segment, noteRuns, shown, centerWeighted, AXIS_LIMIT_CENTS, IN_TUNE_CENTS,
+  PRACTICE_BANDS, type Sample,
 } from '../../src/lib/practice-room/segment';
 
 // The read cadence the instrument actually uses, so durations here are the durations
@@ -184,10 +185,22 @@ describe('a grace note of one read (66 ms), slurred on both sides', () => {
     expect(dec[10]).toBe(73);                     // still C♯5, not B4
     const runs = noteRuns(contour, dec);
     const cSharp = runs.find((r) => r.midi === 73)!;
-    // The documented cost, made numeric: C♯5 was played +14, and the refused read
-    // drags its reported mean far off that. This is the finding, not a rounding error.
-    expect(cSharp.mean).toBeLessThan(0);
-    expect(Math.abs(cSharp.mean - 14)).toBeGreaterThan(10);
+    // The documented cost, made numeric: C♯5 was played +14, and the refused read is
+    // charged to it. On the FLAT mean that is a 36¢ lie — the note comes back 22¢ flat.
+    expect(cSharp.flatMean).toBeLessThan(0);
+    expect(Math.abs(cSharp.flatMean - 14)).toBeGreaterThan(30);
+  });
+
+  it('centre-weighting PARTLY REPAIRS that reattribution — an unplanned interaction', () => {
+    // Found by adding the weighting: the refused read sits at the END of C♯5's run, so a
+    // window that discounts the edges discounts most of the damage too. The reported
+    // offset goes from 22¢ flat to about 7¢ sharp against a truth of +14¢ — a 36¢ lie
+    // becomes a 7¢ one. Asserted because it is a real property of the pair, and because
+    // it means the two fixes must be judged together rather than one at a time.
+    const runs = noteRuns(contour, segment(contour, 'dwell'));
+    const cSharp = runs.find((r) => r.midi === 73)!;
+    expect(cSharp.mean).toBeGreaterThan(0);
+    expect(Math.abs(cSharp.mean - 14)).toBeLessThan(Math.abs(cSharp.flatMean - 14) / 3);
   });
 
   it('the picked default inherits that reattribution', () => {
@@ -301,6 +314,66 @@ describe('shown() — what a readout may print', () => {
       .map((d, i) => shown(contour[i], d).inTransition).filter(Boolean).length;
     expect(flags('attack-lock')).toBeGreaterThan(0);
     expect(flags('nearest')).toBe(0);
+  });
+});
+
+// ── how a note's pitch is summarised ────────────────────────────────────────────
+
+describe('centerWeighted — the middle of a note is what you heard', () => {
+  // From the research: Melodyne weights a note's "fine offset" toward its centre because
+  // "the central part of a note, as a rule, plays a more decisive role in the listener's
+  // perception of pitch", and Tunable splits Attack / Sustain / Release for the same
+  // reason. An unweighted mean reports the attack as intonation.
+  it('discounts an attack overshoot that a flat mean would report as being sharp', () => {
+    // A real long tone: 42¢ sharp attack for 3 reads, then 1¢ for 20. The player did not
+    // sit sharp — they started sharp.
+    const cs = [42, 30, 18, ...Array.from({ length: 20 }, () => 1)];
+    const flat = cs.reduce((a, b) => a + b, 0) / cs.length;
+    const weighted = centerWeighted(cs);
+    expect(flat).toBeGreaterThan(4);          // the flat mean calls this note sharp
+    expect(weighted).toBeLessThan(flat);
+    expect(Math.abs(weighted - 1)).toBeLessThan(2);   // the weighted one says: in tune
+  });
+
+  it('leaves a steady note alone', () => {
+    const cs = Array.from({ length: 20 }, () => 12);
+    expect(centerWeighted(cs)).toBeCloseTo(12, 6);
+  });
+
+  it('is centred on a symmetric vibrato', () => {
+    const cs = Array.from({ length: 24 }, (_, i) => 30 * Math.sin((i / 24) * 2 * Math.PI));
+    expect(Math.abs(centerWeighted(cs))).toBeLessThan(6);
+  });
+
+  it('is defined for the degenerate cases a real take produces', () => {
+    expect(centerWeighted([])).toBe(0);
+    expect(centerWeighted([7])).toBe(7);         // a one-read grace note
+    expect(centerWeighted([7, 9])).toBe(8);      // two reads: no middle to weight
+  });
+
+  it('noteRuns reports both, so a verdict can choose and a test can compare', () => {
+    const contour = [
+      ...hold(69, 42, 3), ...hold(69, 1, 20),
+    ];
+    const runs = noteRuns(contour, segment(contour, 'nearest'));
+    expect(runs).toHaveLength(1);
+    expect(runs[0].flatMean).toBeGreaterThan(runs[0].mean);
+    expect(Math.abs(runs[0].mean - 1)).toBeLessThan(2);
+  });
+});
+
+describe('the in-tune window, and what the ear can actually hear', () => {
+  it('ships at ±3¢ — tighter than the ear, deliberately', () => {
+    expect(IN_TUNE_CENTS).toBe(3);
+  });
+
+  it('the practice bands bracket the published perceptual thresholds', () => {
+    // Musicians cannot reliably hear below ~5–7 cents (Clark 2012), so the inner band is
+    // "nobody hears this" and the outer is "an untrained ear hears it".
+    expect(PRACTICE_BANDS.inner).toBeLessThanOrEqual(7);
+    expect(PRACTICE_BANDS.inner).toBeGreaterThan(IN_TUNE_CENTS);
+    expect(PRACTICE_BANDS.outer).toBeGreaterThan(PRACTICE_BANDS.inner);
+    expect(PRACTICE_BANDS.outer).toBeLessThan(AXIS_LIMIT_CENTS);
   });
 });
 
