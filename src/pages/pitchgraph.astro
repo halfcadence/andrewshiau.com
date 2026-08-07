@@ -1,0 +1,699 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+// PITCHGRAPH — the intonation trace, as its own page.
+//
+// WORKING TITLE. The owner's words on it: "it sounds kinda ugly." A name chooser is out
+// for ideation; when it lands, the rename is this file, the URL, the h1, the plate and
+// the index entry. Nothing else depends on the string.
+//
+// WHAT IT IS. You play; it draws how far off the note you are, in cents, over time. Two
+// figures at once, which is the decision this page exists to execute:
+//
+//   LIVE     one continuous trace, cents off the nearest note, ±50¢, over a 0¢ datum.
+//            Inside ±3¢ the ink goes accent — the same in-tune window the tuner ships.
+//   REVIEW   as each note ENDS, a small panel appears in a row beneath, one per note,
+//            each with its own 0¢ datum and its mean offset engraved on it. The row
+//            accumulates: the page becomes a record of the phrase you just played.
+//
+// The owner picked "both at once, panels build up as you go" over "panels appear on
+// release". The cost is real and worth stating rather than hiding: two figures compete
+// for attention while you play, and the research says the display is already where
+// attention is lost (Pardue & McPherson 2019 gaze-tracked beginning violinists looking at
+// visuals 16% of the time; the one head-to-head of trace vs per-note verdicts found no
+// difference, p=0.41, while every group played WORSE with a live screen). The mitigation
+// here is hierarchy, not omission: the live trace is the figure, the panel row is set
+// small and quiet beneath it, and a finished panel never moves again.
+//
+// WHY THE PANELS ARE THE CONVENTIONAL HALF. Per-note panels are how every shipped tool
+// that reports real intonation statistics does it — Tunable's per-note cards and
+// TonalEnergy's tile grid are the only two places in a survey of nine tuners, five
+// practice platforms and six editors where a per-note mean and spread actually live.
+// Cents-over-time is the conventional LIVE view. Tunable, TonalEnergy and Singing Carrots
+// all ship both. So this page is not inventing a shape; it is putting the two halves on
+// one screen.
+//
+// THE AXIS PROBLEM, AND WHY THE SEGMENTER IS A MODULE. "Cents off the nearest note" is
+// discontinuous: move A4 → B4 and the reading wraps +49 → −49 without passing zero, so a
+// clean slur draws the same full-height vertical line a catastrophic error would. Deciding
+// WHEN the note changed is therefore load-bearing, and it has no answer that is right
+// everywhere. It lives in src/lib/practice-room/segment.ts as a registry of eight named,
+// parameterised mechanisms with `node tools/segment-bench.mjs` to score them. This page
+// picks one; changing it is one string.
+//
+// Picks executed here, from work/understand/practice-room-pitch-change/ (sheet 2) and
+// work/understand/practice-room-centline/ (sheet 1, Q3/Q4 still open):
+//   Q1/07  a panel per note, width in proportion to how long you held it
+//   Q2/05  hysteresis + dwell (the bench prefers hysteresis alone; see segment.ts)
+//   Q3/05  the mean printed ON the drawing, not in a readout beneath it
+//
+// Engine reuse: the same MPM detector and note math the practice room runs, at the same
+// 33 ms cadence. Nothing is recorded and nothing leaves the page.
+---
+
+<Layout
+  title="pitchgraph — Andrew Shiau"
+  description="Play, and watch how far off the note you are in cents. Pitch detection runs on-device; the microphone signal never leaves the page."
+>
+  <div class="grid">
+    <div class="c1-12">
+      <h1 class="pg-h1">pitchgraph</h1>
+      <p class="pg-dek">Hold a note, or play a phrase. The line is your pitch in cents
+        against the note you are nearest; the datum is dead centre. Each note that ends
+        prints its own panel below, with the offset you actually held.</p>
+    </div>
+  </div>
+
+  <!-- ── THE INSTRUMENT ─────────────────────────────────────────────────────
+       One hairline case, the site's own idiom (the embed-frame argument: inside is a
+       machine, so the border is sanctioned where the site otherwise draws rules not
+       boxes). The name interrupts the top frame like an engraved plate. -->
+  <div class="grid">
+    <div class="c1-12">
+      <div class="pg-case">
+        <span class="pg-plate" aria-hidden="true">pitchgraph</span>
+
+        <!-- the spec line: the one set-once control, flush right on the inset -->
+        <div class="pg-ctop">
+          <span class="pg-fl"></span>
+          <span class="pg-fr">
+            <span class="pg-a4">
+              <label class="pg-lbl" for="pg-a4">a4</label>
+              <input
+                type="number" id="pg-a4" data-testid="a4"
+                value="440" min="400" max="480" step="1"
+                aria-label="A4 calibration in hertz"
+              /><span class="pg-lbl">hz</span>
+            </span>
+          </span>
+        </div>
+
+        <!-- THE FIGURE: the live trace. Drawn to a fixed viewBox measured from the
+             element so 1px means 1px — a viewBox narrower than the element with
+             preserveAspectRatio="none" stretches every label horizontally. -->
+        <div class="pg-fig" id="pg-fig">
+          <svg id="pg-svg" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+
+        <!-- the reading, the instrument's own line -->
+        <div class="pg-read">
+          <span class="pg-note" id="pg-note" data-testid="note">—</span>
+          <span class="pg-ends"></span>
+          <span class="pg-cents" id="pg-cents" data-testid="cents">–</span>
+          <span class="pg-hz" id="pg-hz" data-testid="hz"></span>
+        </div>
+
+        <!-- THE REVIEW ROW: one panel per finished note, filling in as you play. -->
+        <div class="pg-panels" id="pg-panels" data-testid="panels" aria-live="off"></div>
+
+        <!-- the transport: the bare verb, centred under the figure (practice room's
+             round-17 pick, same vocabulary) -->
+        <div class="pg-cap">
+          <button
+            type="button" class="pg-btn pg-latch pg-fixw" style="--w:6ch"
+            id="pg-listen" data-testid="listen-toggle"
+            aria-pressed="false" aria-label="start listening"
+          >
+            <svg class="pg-tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+              <line class="pg-run" x1="4" y1="6" x2="22" y2="6"></line>
+              <circle class="pg-pk" cx="4" cy="6" r="2.4"></circle>
+              <circle class="pg-pk" cx="22" cy="6" r="2.4"></circle>
+              <circle class="pg-disc" cy="6" r="3.2"></circle>
+            </svg><span class="pg-w">listen</span>
+          </button>
+        </div>
+
+        <!-- errors only. An idle hint here was deleted from the practice room as ugly;
+             this channel carries mic denials and nothing else. -->
+        <div class="pg-hint" id="pg-hint" data-testid="hint" role="status"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="c1-8">
+      <p class="pg-note-copy">Nothing is recorded and nothing leaves the page — the
+        microphone signal is read in the browser and thrown away. <a href="/work/practice-room/">The
+        practice room</a> has the tuner, metronome and drone.</p>
+    </div>
+  </div>
+</Layout>
+
+<!-- THE SVG STYLES CANNOT BE SCOPED, and this was a real bug, not a precaution.
+     Astro scopes a component's CSS by stamping a `data-astro-cid-*` attribute onto the
+     elements it compiles, then compiling the selectors to match it. Every mark in both
+     figures is built at RUNTIME with innerHTML, so those elements never carry the
+     attribute and every scoped rule missed them: the traces computed to
+     `stroke: none; stroke-width: 1px`, the fills fell back to black, and the figure
+     rendered as a solid slab with the numbers correct underneath it. A screenshot found
+     it in one look; no DOM assertion could, because the geometry was right.
+     So the drawing's rules live in `is:global`, namespaced under `.pg-case` so they
+     cannot leak to another page's SVG. -->
+<style is:global>
+  .pg-case .pg-datum{stroke:var(--ink);stroke-width:1;fill:none}
+  .pg-case .pg-edge{stroke:var(--faint);stroke-width:1;stroke-dasharray:2 3;fill:none}
+  /* The two practice bands, after Singing Carrots: ±5¢ is "barely noticeable even by
+     most trained ears", ±12¢ "commonly audible by most untrained ears". Fields rather
+     than rules because in-tune is a PLACE you are inside, not a number to compare. */
+  /* MEASURED DOWN FROM .10/.05 AFTER LOOKING: at those values the two bands read as one
+     grey slab across the middle of the figure, the ±12¢ edge was invisible against the
+     ±5¢, and the trace — the actual subject — was the faintest thing on the screen. The
+     bands are context; they must lose to ink. Drawn as a HAIRLINE EDGE plus a very light
+     wash instead of a heavier wash: the boundary is the information ("am I inside?"), and
+     an edge states it at 1px where a fill needs 20% to say the same thing badly. */
+  .pg-case .pg-band-in{fill:var(--accent);opacity:.07;stroke:none}
+  .pg-case .pg-band-out{fill:var(--accent);opacity:.03;stroke:none}
+  .pg-case .pg-band-edge{stroke:var(--accent);stroke-width:1;fill:none;opacity:.35}
+  .pg-case .pg-trace{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round;
+    stroke-linecap:round}
+  .pg-case .pg-trace.pg-in{stroke:var(--accent)}
+  .pg-case .pg-axl{font:inherit;font-size:11px;fill:var(--faint);stroke:none}
+  .pg-case .pg-pname{font:inherit;font-size:11px;fill:var(--ink);stroke:none}
+  .pg-case .pg-pmean{font:inherit;font-size:11px;fill:var(--dim);stroke:none}
+  .pg-case .pg-pdatum{stroke:var(--line);stroke-width:1;fill:none}
+  .pg-case .pg-ptrace{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linejoin:round}
+  .pg-case .pg-ptrace.pg-in{stroke:var(--accent)}
+  /* A one-read note has no line to draw — a dot is the honest mark for it. */
+  .pg-case .pg-pdot{fill:var(--ink);stroke:none}
+
+  /* SAME SCOPING TRAP, SECOND VICTIM. `.visually-hidden` is defined inside
+     practice-room.astro's own scoped block, so it does not exist here at all — and a
+     replacement defined in THIS page's scoped block would not reach the span either,
+     because the panel is built with innerHTML. Both mistakes shipped in one pass and both
+     rendered the same way: "A4, +20.0 cents, 1221 milliseconds" as visible copy under the
+     row. Global, namespaced under .pg-panel. */
+  .pg-panel .pg-sr{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap}
+</style>
+
+<style>
+  /* Tokens are the site's, unchanged. Every measure here is --lead or a multiple. */
+  .pg-h1{font:inherit;margin:0}
+  .pg-dek{margin-top:var(--tight);max-width:62ch;color:var(--dim)}
+  .pg-note-copy{margin-top:var(--group);max-width:62ch;color:var(--faint)}
+
+  /* THE CASE. Same argument as the practice room's: a hairline box is sanctioned
+     because inside is a machine. --lead of padding, and the plate interrupts the top
+     frame. The inset is 3ch — a whole character, the practice room's own measure. */
+  .pg-case{position:relative;margin-top:var(--group);
+    border:1px solid var(--line);padding:var(--lead) 3ch}
+  .pg-plate{position:absolute;top:calc(-1 * var(--tight));left:var(--unit);
+    background:var(--paper);padding:0 1ch;color:var(--faint)}
+
+  .pg-ctop{display:flex;align-items:baseline;justify-content:space-between;
+    gap:2ch;flex-wrap:wrap;min-height:44px}
+  .pg-fl{display:inline-flex;align-items:baseline;gap:2ch}
+  .pg-fr{display:inline-flex;align-items:baseline;gap:2ch;margin-left:auto}
+  .pg-lbl{color:var(--faint)}
+  .pg-a4{display:inline-flex;align-items:baseline;gap:1ch}
+  /* 16px so iOS does not zoom on focus; 44px min so the target clears WCAG 2.5.5 —
+     both learned on the practice room, where a bare 16px input computes to 37. */
+  .pg-a4 input{font:inherit;font-size:16px;color:var(--ink);background:transparent;
+    border:0;border-bottom:1px solid var(--ink);padding:4px 0;width:5ch;
+    text-align:center;min-height:44px;-moz-appearance:textfield;appearance:textfield;
+    border-radius:0}
+  .pg-a4 input::-webkit-outer-spin-button,
+  .pg-a4 input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+  /* THE FIGURE. Fixed height in leads so the trace has a stable scale and the panel
+     row below it never shifts — a figure that resizes with its content makes every
+     finished panel move, which is the one thing a record must not do. */
+  .pg-fig{margin-top:var(--lead);height:calc(var(--lead) * 7)}
+  .pg-fig svg{display:block;width:100%;height:100%;overflow:visible}
+
+  .pg-read{display:flex;align-items:baseline;gap:2ch;margin-top:var(--tight);
+    min-height:var(--lead)}
+  .pg-ends{flex:1}
+  .pg-note{color:var(--ink);padding:0 .5ch;margin-left:-.5ch}
+  .pg-note.pg-intune{background:var(--ink);color:var(--paper)}
+  .pg-cents{color:var(--ink);font-variant-numeric:tabular-nums}
+  .pg-hz{color:var(--faint);font-variant-numeric:tabular-nums}
+
+  /* THE REVIEW ROW. Small multiples: same scale in every panel, one row per note, so
+     the only thing that differs between two panels is the playing. Set quiet and
+     SMALL — this is the second figure on the screen and it must not compete with the
+     live trace while you are playing. It scrolls horizontally rather than wrapping: a
+     phrase is a sequence, and wrapping it to a second line breaks the reading order. */
+  .pg-panels{margin-top:var(--lead);height:calc(var(--lead) * 3);
+    display:flex;align-items:stretch;gap:1px;overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none}
+  .pg-panels::-webkit-scrollbar{display:none}
+  .pg-panels:empty::before{content:"each note you finish prints here";
+    color:var(--faint);align-self:center}
+  .pg-panel{flex:none;position:relative;border-left:1px solid var(--line);
+    padding:0 2px;min-width:14px}
+  .pg-panel:first-child{border-left:0}
+  .pg-panel svg{display:block;height:calc(var(--lead) * 2);width:100%;overflow:visible}
+
+  .pg-cap{display:flex;justify-content:center;margin-top:var(--lead)}
+  .pg-hint{min-height:var(--lead);margin-top:var(--tight);color:var(--faint);
+    max-width:62ch}
+
+  /* Controls: the Track grammar, verbatim from the practice room. A toggle is a
+     two-pocket track — one moving disc, the track is the class. */
+  .pg-btn{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;
+    border-radius:0;min-height:44px;cursor:pointer;
+    display:inline-flex;align-items:baseline;gap:1ch;
+    transition:color var(--dur-fast) var(--ease)}
+  .pg-btn:hover{color:var(--accent)}
+  .pg-btn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .pg-btn .pg-tk{flex:none;display:block;overflow:visible;transform:translateY(2px)}
+  .pg-latch .pg-tk .pg-run{stroke:var(--line);stroke-width:1}
+  .pg-latch .pg-tk .pg-pk{fill:none;stroke:var(--faint);stroke-width:1.2}
+  .pg-latch .pg-tk .pg-disc{fill:var(--ink);cx:4px;
+    transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
+  .pg-latch[aria-pressed="true"] .pg-tk .pg-disc{fill:var(--accent);
+    transform:translateX(18px)}
+  /* Reserve the longer label's width so start/stop does not reflow the row — the
+     practice room's round-9 fix, same reason. */
+  .pg-btn.pg-fixw .pg-w{display:inline-block;min-width:var(--w);text-align:left}
+
+  @media (prefers-reduced-motion:reduce){
+    .pg-latch .pg-tk .pg-disc{transition:none}
+  }
+
+  @media (max-width:600px){
+    /* The figure keeps its height; the panels get one lead less so both fit a phone
+       screen without the transport falling below the fold. */
+    .pg-panels{height:calc(var(--lead) * 2.5)}
+  }
+</style>
+
+<script>
+  import { detectPitch } from '../lib/practice-room/pitch';
+  import { freqToReading, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/practice-room/notes';
+  import {
+    createSegmenter, shown, centerWeighted, noteRuns,
+    AXIS_LIMIT_CENTS, IN_TUNE_CENTS, PRACTICE_BANDS,
+    type Sample,
+  } from '../lib/practice-room/segment';
+
+  const $ = (id: string) => document.getElementById(id)!;
+
+  // THE READ CADENCE. 33 ms, the same as the practice room's and for the same measured
+  // reason (work/understand/practice-room-cadence/): reading faster recovers no more of a
+  // vibrato — the 2048-sample window is 46 ms of audio, so every read is already an
+  // estimate over that span and the detector returns the same ±52¢ of a real ±58¢ at any
+  // hop from 66 ms to 5 ms. What 33 ms buys is that the DRAWING stops lying: at 66 ms a
+  // 6 Hz vibrato gets 2.5 samples per cycle and a worst-phase peak is drawn up to 22¢ from
+  // where it happened, which is larger than the errors this page exists to show. At 33 ms
+  // that is 3¢.
+  const READ_MS = 33;
+
+  // How much history the live trace holds. 6 seconds is a long phrase or a very long
+  // note; past that the oldest reads fall off the left edge.
+  const SPAN_MS = 6000;
+  const SPAN = Math.round(SPAN_MS / READ_MS);
+
+  // A breath between notes is not the end of a note. Held as a DURATION, not a frame
+  // count — as frames it would halve when the cadence halved.
+  const SILENCE_HOLD_MS = 250;
+  const SILENCE_FRAMES = Math.max(2, Math.round(SILENCE_HOLD_MS / READ_MS));
+
+  // A note too short to have readable intonation does not earn a panel. 100 ms is
+  // McNab's minimum note duration and Essentia's `minDuration` default; at this cadence
+  // that is 3 reads.
+  const MIN_PANEL_MS = 100;
+  const MIN_PANEL_READS = Math.max(2, Math.round(MIN_PANEL_MS / READ_MS));
+
+  // How many panels stay on screen. The row scrolls, but an unbounded row is a memory
+  // leak dressed as a feature.
+  const MAX_PANELS = 40;
+
+  let a4 = A4_DEFAULT;
+
+  // The segmenter: the sheet's Q2/05 pick. One string to change, and the registry in
+  // segment.ts documents what each alternative costs.
+  const seg = createSegmenter('hysteresis-dwell');
+
+  // Live state.
+  let stream: MediaStream | null = null;
+  let ac: AudioContext | null = null;
+  let analyser: AnalyserNode | null = null;
+  let timer: number | null = null;
+  const buf = new Float32Array(2048);
+
+  // Median smoothing on the FREQUENCY, before any note decision — the practice room's
+  // defence, so one chair scrape cannot kick the reading. Held as a duration.
+  const MEDIAN_MS = 165;
+  const MEDIAN_N = Math.max(3, Math.round(MEDIAN_MS / READ_MS) | 1);
+  const recent: number[] = [];
+
+  // The trace: exact MIDI or null, newest last. EXACT MIDI, not {note, cents} — once a
+  // read has been rounded to a note the question "is this the same note as the last
+  // read?" cannot be re-asked, which is the question the whole page turns on.
+  const series: Sample[] = [];
+  const decided: (number | null)[] = [];
+
+  let quietFrames = 0;
+  // The note being accumulated: its reads' cents offsets, and the note it is measured
+  // against. A panel is printed when this ends.
+  let openNote: { midi: number; cents: number[] } | null = null;
+  let panelCount = 0;
+
+  // A verification hook, not test topology — the same contract the practice room's
+  // suite reads. A trace that looks plausible while drawing the wrong data is exactly
+  // what a screenshot cannot catch.
+  const E2E = new URLSearchParams(location.search).has('e2e');
+  const hook = {
+    reads: 0,
+    panels: [] as { note: string; mean: number; reads: number }[],
+    reading: null as null | { name: string; cents: number; inTransition: boolean },
+    series,
+  };
+  if (E2E) (window as any).__pg = hook;
+
+  // ── the drawing ───────────────────────────────────────────────────────────
+  const svg = $('pg-svg') as unknown as SVGSVGElement;
+  const figEl = $('pg-fig');
+
+  // W and H are MEASURED from the element, so the viewBox maps 1:1 to pixels. With
+  // preserveAspectRatio="none" a viewBox narrower than the element stretches every
+  // label horizontally — caught on the proof sheet, where the note names came out 1.9×
+  // wide the moment the case grew to fill its column.
+  let W = 1000;
+  let H = 196;
+  function measure() {
+    const r = figEl.getBoundingClientRect();
+    if (r.width > 200) W = Math.round(r.width);
+    if (r.height > 80) H = Math.round(r.height);
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  }
+
+  const MID = () => H / 2;
+  const yOf = (c: number) =>
+    MID() - Math.max(-AXIS_LIMIT_CENTS, Math.min(AXIS_LIMIT_CENTS, c))
+      / AXIS_LIMIT_CENTS * (H / 2 - 10);
+  const xOf = (i: number) => (i / (SPAN - 1)) * W;
+  const f1 = (n: number) => n.toFixed(1);
+  const sign = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFixed(1)}`;
+
+  // The trace is split at the in-tune boundary so the accent is honest rather than
+  // decorative: a path is either inside ±3¢ or outside it, never averaged.
+  function tracePaths(pts: [number, number, boolean][]): string {
+    if (pts.length < 2) return '';
+    let out = '';
+    let run: [number, number, boolean][] = [pts[0]];
+    let flag = pts[0][2];
+    const flush = () => {
+      if (run.length < 2) return;
+      const d = run.map((p, i) => `${i ? 'L' : 'M'}${f1(p[0])} ${f1(p[1])}`).join(' ');
+      out += `<path class="pg-trace${flag ? ' pg-in' : ''}" d="${d}"/>`;
+    };
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i][2] !== flag) { run.push(pts[i]); flush(); run = [pts[i]]; flag = pts[i][2]; }
+      else run.push(pts[i]);
+    }
+    flush();
+    return out;
+  }
+
+  function drawLive() {
+    measure();
+    const mid = MID();
+    let g = '';
+
+    // The bands first, so ink sits over them.
+    g += `<rect class="pg-band-out" x="0" y="${f1(yOf(PRACTICE_BANDS.outer))}" `
+      + `width="${W}" height="${f1(yOf(-PRACTICE_BANDS.outer) - yOf(PRACTICE_BANDS.outer))}"/>`;
+    g += `<rect class="pg-band-in" x="0" y="${f1(yOf(PRACTICE_BANDS.inner))}" `
+      + `width="${W}" height="${f1(yOf(-PRACTICE_BANDS.inner) - yOf(PRACTICE_BANDS.inner))}"/>`;
+    // The ±5¢ boundary gets an edge: it is the one line on the figure that answers the
+    // question the player is actually asking, and a wash cannot mark a threshold.
+    for (const c of [PRACTICE_BANDS.inner, -PRACTICE_BANDS.inner]) {
+      g += `<line class="pg-band-edge" x1="0" y1="${f1(yOf(c))}" x2="${W}" y2="${f1(yOf(c))}"/>`;
+    }
+    // The edges of the domain, and the datum.
+    // The edge rules stop short of the labels rather than running under them: a label
+    // sitting on its own rule was the first render's worst detail, and shortening the line
+    // is the fix that adds nothing. 11px type measures ~6px per character here.
+    const LBL_SHARP = '+50¢ sharp';
+    const LBL_FLAT = '−50¢ flat';
+    const gap = (t: string) => 8 + t.length * 6.4;
+    g += `<line class="pg-edge" x1="${f1(gap(LBL_SHARP))}" y1="${f1(yOf(50))}" `
+      + `x2="${W}" y2="${f1(yOf(50))}"/>`;
+    g += `<line class="pg-edge" x1="${f1(gap(LBL_FLAT))}" y1="${f1(yOf(-50))}" `
+      + `x2="${W}" y2="${f1(yOf(-50))}"/>`;
+    g += `<line class="pg-datum" x1="0" y1="${mid}" x2="${W}" y2="${mid}"/>`;
+    // Baseline-centred on the rule, not offset above it, so the type reads as labelling
+    // the line rather than floating over the field.
+    g += `<text class="pg-axl" x="0" y="${f1(yOf(50) + 4)}">${LBL_SHARP}</text>`;
+    g += `<text class="pg-axl" x="0" y="${f1(yOf(-50) + 4)}">${LBL_FLAT}</text>`;
+
+    // The trace, BROKEN at every note change: joined across one, the line draws the
+    // wrap from +49 to −49 as a full-height vertical stroke — the exact artifact this
+    // page's axis question was about.
+    let cur: [number, number, boolean][] = [];
+    const segs: [number, number, boolean][][] = [];
+    for (let i = 0; i < series.length; i++) {
+      const s = series[i];
+      const d = decided[i];
+      if (s === null || d === null) { if (cur.length) segs.push(cur); cur = []; continue; }
+      if (i > 0 && decided[i - 1] !== null && decided[i - 1] !== d) {
+        if (cur.length) segs.push(cur);
+        cur = [];
+      }
+      const v = shown(s, d);
+      cur.push([xOf(i), yOf(v.cents!), v.inTune]);
+    }
+    if (cur.length) segs.push(cur);
+    for (const sgm of segs) g += tracePaths(sgm);
+
+    svg.innerHTML = g;
+  }
+
+  // ── a finished note becomes a panel ───────────────────────────────────────
+  const panelsEl = $('pg-panels');
+
+  function printPanel(midi: number, cents: number[]) {
+    // Weighted to the middle of the note: Melodyne computes its "fine offset" this way
+    // because "the central part of a note, as a rule, plays a more decisive role in the
+    // listener's perception of pitch", and an attack overshoot is not intonation. A real
+    // attack runs 40¢ sharp before settling; the flat mean would report that as sharp.
+    const mean = centerWeighted(cents);
+    const r = freqToReading(a4 * 2 ** ((midi - 69) / 12), a4);
+    const name = r ? `${r.name}${r.octave}` : String(midi);
+
+    // Width in proportion to how long you held it (the sheet's Q1/07): a short note is
+    // honestly narrow. Capped so one very long note cannot own the row.
+    const w = Math.max(14, Math.min(90, cents.length * 2));
+    const PH = 56;
+    const pmid = PH / 2;
+    const py = (c: number) =>
+      pmid - Math.max(-AXIS_LIMIT_CENTS, Math.min(AXIS_LIMIT_CENTS, c))
+        / AXIS_LIMIT_CENTS * (PH / 2 - 8);
+
+    let g = `<line class="pg-pdatum" x1="0" y1="${pmid}" x2="${w}" y2="${pmid}"/>`;
+    if (cents.length === 1) {
+      g += `<circle class="pg-pdot" cx="${w / 2}" cy="${f1(py(cents[0]))}" r="1.6"/>`;
+    } else {
+      const pts: [number, number, boolean][] = cents.map((c, i) => [
+        (i / (cents.length - 1)) * w, py(c), Math.abs(c) <= IN_TUNE_CENTS,
+      ]);
+      // Same honest split as the live trace.
+      let run: [number, number, boolean][] = [pts[0]];
+      let flag = pts[0][2];
+      const flush = () => {
+        if (run.length < 2) return;
+        const d = run.map((p, i) => `${i ? 'L' : 'M'}${f1(p[0])} ${f1(p[1])}`).join(' ');
+        g += `<path class="pg-ptrace${flag ? ' pg-in' : ''}" d="${d}"/>`;
+      };
+      for (let i = 1; i < pts.length; i++) {
+        if (pts[i][2] !== flag) { run.push(pts[i]); flush(); run = [pts[i]]; flag = pts[i][2]; }
+        else run.push(pts[i]);
+      }
+      flush();
+    }
+
+    const el = document.createElement('div');
+    el.className = 'pg-panel';
+    el.dataset.note = name;
+    el.dataset.mean = mean.toFixed(1);
+    el.setAttribute('data-testid', 'panel');
+    // The mean printed ON the drawing (Q3/05), not in a readout beneath it — the number
+    // sits where its evidence is. Below ~28px there is no room for it, and a truncated
+    // number is worse than none, so a narrow panel carries the name only.
+    el.innerHTML =
+      `<svg viewBox="0 0 ${w} ${PH}" preserveAspectRatio="none" aria-hidden="true">`
+      + `<text class="pg-pname" x="0" y="10">${name}</text>`
+      + g
+      + (w >= 28 ? `<text class="pg-pmean" x="0" y="${PH - 2}">${sign(mean)}</text>` : '')
+      + '</svg>'
+      + `<span class="pg-sr">${name}, ${sign(mean)} cents, `
+      + `${Math.round(cents.length * READ_MS)} milliseconds</span>`;
+    el.style.width = `${w}px`;
+    panelsEl.appendChild(el);
+    // A finished panel never moves again, so the row scrolls to the newest rather than
+    // re-laying out. `scrollLeft` and not scrollIntoView: the latter scrolls the PAGE
+    // when the row is the nearest scrollable ancestor, which yanks the figure off screen.
+    panelsEl.scrollLeft = panelsEl.scrollWidth;
+
+    panelCount++;
+    if (E2E) {
+      hook.panels.push({ note: name, mean: +mean.toFixed(1), reads: cents.length });
+      if (hook.panels.length > 128) hook.panels.shift();
+    }
+    while (panelsEl.children.length > MAX_PANELS) panelsEl.removeChild(panelsEl.firstChild!);
+  }
+
+  function closeOpenNote() {
+    if (openNote && openNote.cents.length >= MIN_PANEL_READS) {
+      printPanel(openNote.midi, openNote.cents);
+    }
+    openNote = null;
+  }
+
+  // ── the read loop ─────────────────────────────────────────────────────────
+  const noteEl = $('pg-note');
+  const centsEl = $('pg-cents');
+  const hzEl = $('pg-hz');
+
+  function push(sample: Sample, hz: number | null) {
+    const decision = seg.feed(sample);
+    series.push(sample);
+    decided.push(decision);
+    if (series.length > SPAN) { series.shift(); decided.shift(); }
+    if (E2E) hook.reads++;
+
+    if (sample === null || decision === null) {
+      // Hold the readout briefly — a couple of empty windows is a bow change.
+      if (++quietFrames >= SILENCE_FRAMES) {
+        closeOpenNote();
+        noteEl.textContent = '—';
+        noteEl.classList.remove('pg-intune');
+        centsEl.textContent = '–';
+        hzEl.textContent = '';
+        if (E2E) hook.reading = null;
+      }
+      drawLive();
+      return;
+    }
+    quietFrames = 0;
+
+    const v = shown(sample, decision);
+    // A note change closes the previous panel. This is why the segmenter matters: with
+    // nearest-note rounding a wide vibrato would print a new panel at every peak.
+    if (openNote && openNote.midi !== decision) closeOpenNote();
+    if (!openNote) openNote = { midi: decision, cents: [] };
+    openNote.cents.push(v.trueCents!);
+
+    const r = freqToReading(hz ?? 0, a4);
+    noteEl.textContent = r ? `${r.name}${r.octave}` : '—';
+    noteEl.classList.toggle('pg-intune', v.inTune);
+    // A number the axis cannot hold is not a precise reading, it is a broken one. While
+    // the segmenter holds a note the pitch has already left, the true offset runs off the
+    // ±50 scale — measured at 141¢ and once 187¢ on the proof sheet. Print a dash for
+    // those frames; the trace still draws them, clamped, because the excursion is real.
+    centsEl.textContent = v.inTransition ? '–' : `${sign(v.cents!)}¢`;
+    hzEl.textContent = hz ? `${hz.toFixed(1)} hz` : '';
+    if (E2E) {
+      hook.reading = {
+        name: r ? `${r.name}${r.octave}` : '—',
+        cents: v.cents!,
+        inTransition: v.inTransition,
+      };
+    }
+    drawLive();
+  }
+
+  // ── the mic ───────────────────────────────────────────────────────────────
+  const listenBtn = $('pg-listen') as unknown as HTMLButtonElement;
+  const hintEl = $('pg-hint');
+  let micRequest = 0;
+
+  async function start() {
+    const req = ++micRequest;
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      });
+      // A stop click during a pending prompt must not leave the resolved stream live.
+      if (req !== micRequest) { s.getTracks().forEach((t) => t.stop()); return; }
+      stream = s;
+      ac = new AudioContext();
+      analyser = ac.createAnalyser();
+      analyser.fftSize = 2048;
+      ac.createMediaStreamSource(s).connect(analyser);
+
+      listenBtn.setAttribute('aria-pressed', 'true');
+      listenBtn.setAttribute('aria-label', 'stop listening');
+      listenBtn.querySelector('.pg-w')!.textContent = 'stop';
+      hintEl.textContent = '';
+
+      timer = window.setInterval(() => {
+        analyser!.getFloatTimeDomainData(buf);
+        const f = detectPitch(buf, ac!.sampleRate);
+        if (f > 0) {
+          recent.push(f);
+          if (recent.length > MEDIAN_N) recent.shift();
+          const sorted = [...recent].sort((x, y) => x - y);
+          const hz = sorted[Math.floor(sorted.length / 2)];
+          push(69 + 12 * Math.log2(hz / a4), hz);
+        } else {
+          recent.length = 0;
+          push(null, null);
+        }
+      }, READ_MS);
+    } catch (err) {
+      // The hint derives from the ERROR and the input kind. iOS has no address-bar
+      // permission UI and Safari never re-prompts after a denial — the request rejects
+      // instantly, so "allow it in the address bar" describes a control that does not
+      // exist and the button reads as dead.
+      const name = (err as Error).name;
+      const touch = window.matchMedia('(hover:none)').matches;
+      if (name === 'NotAllowedError') {
+        hintEl.textContent = touch
+          ? 'The microphone is blocked. In Safari: the aA menu in the address bar → '
+            + 'Website Settings → Microphone → Allow, then reload.'
+          : 'The microphone is blocked. Allow it for this site in your browser settings, '
+            + 'then reload.';
+      } else if (name === 'NotFoundError') {
+        hintEl.textContent = 'No microphone found.';
+      } else if (name === 'NotReadableError') {
+        hintEl.textContent = 'The microphone is in use by another app.';
+      } else {
+        hintEl.textContent = `The microphone could not start (${name}).`;
+      }
+    }
+  }
+
+  function stop() {
+    micRequest++;
+    if (timer !== null) { clearInterval(timer); timer = null; }
+    stream?.getTracks().forEach((t) => t.stop());
+    stream = null;
+    ac?.close();
+    ac = null;
+    analyser = null;
+    recent.length = 0;
+    seg.reset();
+    closeOpenNote();
+    quietFrames = 99;
+    listenBtn.setAttribute('aria-pressed', 'false');
+    listenBtn.setAttribute('aria-label', 'start listening');
+    listenBtn.querySelector('.pg-w')!.textContent = 'listen';
+    noteEl.textContent = '—';
+    noteEl.classList.remove('pg-intune');
+    centsEl.textContent = '–';
+    hzEl.textContent = '';
+    hintEl.textContent = '';
+  }
+
+  listenBtn.addEventListener('click', () => { stream ? stop() : start(); });
+
+  // A4: commits on `change`, never on `input`, so nothing repaints mid-keystroke.
+  const a4El = $('pg-a4') as unknown as HTMLInputElement;
+  a4El.addEventListener('change', () => {
+    const v = Number(a4El.value);
+    if (Number.isFinite(v) && v >= A4_MIN && v <= A4_MAX) a4 = v;
+    else a4El.value = String(a4);
+  });
+
+  // The mic must stop on pagehide — a live track on a backgrounded page is a recording
+  // light nobody asked for.
+  window.addEventListener('pagehide', () => { if (stream) stop(); });
+
+  window.addEventListener('resize', () => { measure(); drawLive(); });
+  measure();
+  drawLive();
+</script>

@@ -55,6 +55,17 @@ export default defineConfig({
     mkProject('bleed', 'pulse-440.wav', /bleed\.spec\.ts/),
     mkProject('tuner-446', 'sine-446.wav', /tuner-446\.spec\.ts/),
     mkProject('tuner-196', 'sine-196.wav', /tuner-196\.spec\.ts/),
+    // /pitchgraph/ needs a PHRASE, not a tone: its subject is what happens between notes
+    // and what each finished note reports, neither of which a single sustained sine can
+    // exercise. Four notes at four known offsets, with rests, so the panels have four
+    // different truths to check.
+    mkProject('pitchgraph', 'phrase-4.wav', /pitchgraph\.spec\.ts/),
+    // THE SLUR, in its own project because the fake mic is a launch flag. This is the
+    // fixture that can tell a working segmenter from a broken one: `phrase-4.wav` rests
+    // between every note, which is precisely where even `attack-lock` is correct — swapping
+    // the page to it passed the entire suite. No rest, no reset, and the wrong mechanism
+    // measures B4 against A4 and pins off scale.
+    mkProject('pitchgraph-slur', 'slur-a4-b4.wav', /pitchgraph-slur\.spec\.ts/),
     mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts/),
   ],
 });
