@@ -232,7 +232,24 @@ export const experiments: Entry[] = [
     side: 'both',
   },
   {
+    // Sits beside the practice room because it is the same practice and the same host:
+    // practice.andrewshiau.com/pitchgraph/. Working title — the owner called it ugly and a
+    // name chooser is out.
     n: '06',
+    title: 'pitchgraph',
+    blurb:
+      'An intonation trace. Play, and it draws how far off the note you are in cents; ' +
+      'each note you finish prints its own panel with the offset you actually held.',
+    meta: 'Web instrument',
+    // The WRITEUP, like every other row — the index is a list of case studies. The
+    // instrument is one click further, on the practice host.
+    href: '/work/pitchgraph/',
+    // `both`: the segmenter and the read cadence are engineering with measured bounds; the
+    // two-figures-at-once shape and the panel treatment were picked off proof sheets.
+    side: 'both',
+  },
+  {
+    n: '07',
     title: 'Photography',
     blurb:
       'Shot with iPhones, a Fuji X100, and a Leica Q.',

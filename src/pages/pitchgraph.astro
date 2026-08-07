@@ -56,14 +56,15 @@ import Layout from '../layouts/Layout.astro';
   description="Play, and watch how far off the note you are in cents. Pitch detection runs on-device; the microphone signal never leaves the page."
   onPracticeHost
 >
-  <div class="grid">
-    <div class="c1-12">
-      <h1 class="pg-h1">pitchgraph</h1>
-      <p class="pg-dek">Hold a note, or play a phrase. The line is your pitch in cents
-        against the note you are nearest; the datum is dead centre. Each note that ends
-        prints its own panel below, with the offset you actually held.</p>
-    </div>
-  </div>
+  <!-- THE INSTRUMENT IS THE PAGE. No dek, no explanation, no colophon — the same shape
+       the practice room has, whose h1 is visually hidden and whose only prose is a mic
+       error when there is one. This page had both a dek and a closing note; the owner:
+       "i dont want to see this". Right: a tool that explains itself every time you open it
+       is a tool you are reading instead of playing. The instrument's plate names it, the
+       axis labels say which way is sharp, and the empty panel row says what it is for. All
+       the prose moved to /work/pitchgraph/.
+       The h1 stays for screen readers and the document outline. -->
+  <h1 class="pg-sr-h1">pitchgraph</h1>
 
   <!-- ── THE INSTRUMENT ─────────────────────────────────────────────────────
        One hairline case, the site's own idiom (the embed-frame argument: inside is a
@@ -131,17 +132,11 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </div>
 
-  <div class="grid">
-    <div class="c1-8">
-      <!-- THE TOOL, NOT THE WRITEUP. This host is for practising on: a link from one
-           instrument to another should hand you the other instrument, not an essay about
-           it. The case study is still linked from the site's index, which is where someone
-           reading rather than playing arrives. -->
-      <p class="pg-note-copy">Nothing is recorded and nothing leaves the page — the
-        microphone signal is read in the browser and thrown away.
-        <a href="https://practice.andrewshiau.com/">The practice room</a> has the tuner,
-        metronome and drone.</p>
-    </div>
+  <!-- ONE WORD OUT, at the foot, the way the practice room carries its mark. Not a
+       sentence about the microphone and not a description of the other tool — a way back to
+       the rest of the tools, and nothing else. -->
+  <div class="pg-foot">
+    <a href="https://practice.andrewshiau.com/">practice room</a>
   </div>
 </Layout>
 
@@ -194,14 +189,18 @@ import Layout from '../layouts/Layout.astro';
 
 <style>
   /* Tokens are the site's, unchanged. Every measure here is --lead or a multiple. */
-  .pg-h1{font:inherit;margin:0}
-  .pg-dek{margin-top:var(--tight);max-width:62ch;color:var(--dim)}
-  .pg-note-copy{margin-top:var(--group);max-width:62ch;color:var(--faint)}
+  /* The h1 is for the outline and screen readers; the plate on the case is the visible
+     name. Same call the practice room makes. */
+  .pg-sr-h1{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap;margin:0}
+  .pg-foot{margin-top:var(--group);display:flex;justify-content:center}
+  .pg-foot a{color:var(--faint)}
+  .pg-foot a:hover{color:var(--accent)}
 
   /* THE CASE. Same argument as the practice room's: a hairline box is sanctioned
      because inside is a machine. --lead of padding, and the plate interrupts the top
      frame. The inset is 3ch — a whole character, the practice room's own measure. */
-  .pg-case{position:relative;margin-top:var(--group);
+  .pg-case{position:relative;margin-top:var(--sect);
     border:1px solid var(--line);padding:var(--lead) 3ch}
   .pg-plate{position:absolute;top:calc(-1 * var(--tight));left:var(--unit);
     background:var(--paper);padding:0 1ch;color:var(--faint)}

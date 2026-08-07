@@ -1,0 +1,193 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PanelHead from '../../components/PanelHead.astro';
+
+// THE CASE STUDY for pitchgraph. The instrument itself is at
+// practice.andrewshiau.com/pitchgraph/ and carries NO prose — no dek, no colophon, one
+// word out at the foot. The owner's correction, and it was the right one: a tool that
+// explains itself every time you open it is a tool you are reading instead of playing.
+// So the explaining lives here, where someone arrives to read.
+//
+// TYPE B (skill shape), same as /work/practice-room/: dek → named heads over the argument
+// → the facts colophon.
+//
+// Working title. The name chooser is out for ideation; "pitchgraph" is the owner's own
+// placeholder and he has already called it ugly.
+---
+
+<Layout
+  title="pitchgraph — Andrew Shiau"
+  description="How the intonation trace was built: what a pitch change looks like, when the instrument decides one happened, and why a phrase needs a panel per note."
+>
+  <div class="grid">
+    <PanelHead href="/work/pitchgraph/" title="pitchgraph">
+      <div class="frow">
+        <div class="fm">Reads</div>
+        <div class="ftx">Every 33 ms, measured — not chosen</div>
+      </div>
+      <div class="frow">
+        <div class="fm">Microphone</div>
+        <div class="ftx">Read in the page and discarded. Nothing is recorded or sent.</div>
+      </div>
+    </PanelHead>
+
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">
+          Hold a note, or play a phrase. The line is your pitch in cents against the note
+          you are nearest; the datum is dead centre. Each note that ends prints its own
+          panel below, with the offset you actually held.
+        </p>
+      </div>
+
+      <div class="grid">
+        <div class="c1-12">
+          <p><a href="https://practice.andrewshiau.com/pitchgraph/">Open the
+          instrument</a>. Nothing is recorded and nothing leaves the page — the microphone
+          signal is read in the browser and thrown away. <a href="/work/practice-room/">The
+          practice room</a> has the tuner, metronome and drone.</p>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The axis is discontinuous, and it draws a lie</h2>
+          <div class="sbody">
+            <p>
+              A tuner reads <b>cents off the nearest note</b>, which is the right axis for
+              one held note and the wrong one for a phrase. Move from A4 to B4 and the
+              reading wraps from <b>+49¢</b> to <b>−49¢</b> without passing through zero.
+              Drawn as one line that is a full-height vertical stroke through the middle of
+              a clean slur — the same picture a catastrophic intonation error would draw.
+            </p>
+            <p>
+              So something has to decide <em>when the note changed</em>, and every possible
+              answer is wrong in some case. Round every frame to the nearest note and a
+              wide vibrato renames the note at every peak: a singer's reaches <b>±123
+              cents</b>, so the peaks cross the halfway line twice a cycle. Wait for
+              agreement instead and a grace note shorter than the window disappears —
+              worse, its frames get charged to the note you were holding, which then
+              reports an error you did not make. Lock the note at the attack and a slur
+              measures the second note against the first, pinning the reading off scale.
+            </p>
+            <p>
+              There is no default that is right for every instrument, so the decision is
+              a <b>registry of eight named mechanisms</b> rather than a constant, each with
+              its parameters and its cost written down. A bench scores them against
+              contours whose truth is known by construction. The trace picks one; changing
+              it is one string.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The most relevant precedent was written by the same person</h2>
+          <div class="sbody">
+            <p>
+              The detector here is the <b>McLeod pitch method</b>, and Philip McLeod also
+              wrote <b>Tartini</b> — a violin intonation trainer solving this exact
+              problem. Same detector, same question, and his answer is not a constant: the
+              tolerance is <code>base + √(local variance) × stretch</code>, so vibrato
+              raises the variance, which widens the band, which suppresses the note change.
+              Nothing detects vibrato. On his own numbers that is about <b>12 cents</b> on a
+              steady tone and <b>113</b> under a wide vibrato, from one formula.
+            </p>
+            <p>
+              It is implemented, benched, and <em>not</em> what ships — it swallows a
+              semitone trill whole, one note found where twelve were played, because the
+              band it opens is wider than the trill's own interval. Every window and every
+              threshold was swept; the behaviour is invariant, so that is the mechanism and
+              not a tuning miss. It stays in the registry for the idea.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>Reading faster does not help, and the measurement says why</h2>
+          <div class="sbody">
+            <p>
+              The obvious fix for a ragged vibrato is to read more often. It does not work,
+              and the reason is the analyser window: <b>2048 samples is 46 ms of audio</b>,
+              so every read is already an estimate fitted to that whole span. Measured in a
+              real browser with the real detector, it returns the same <b>±52¢ of a real
+              ±58¢</b> at every cadence from 66 ms down to 5 ms. The peak it misses is the
+              window averaging, and no hop recovers it. At a 16 ms hop each read
+              shares <b>66%</b> of its samples with the one before; at 5 ms, <b>89%</b>. That
+              redundancy is what "smoother" turned out to mean.
+            </p>
+            <p>
+              What halving the cadence to <b>33 ms</b> actually buys is that the drawing
+              stops lying. The trace joins samples with straight lines, and at 66 ms a 6 Hz
+              vibrato gets 2.5 samples per cycle — a worst-phase peak is drawn up
+              to <b>22 cents</b> from where it happened, which is larger than the errors the
+              page exists to show. At 33 ms that is <b>3 cents</b>. Going further costs
+              real money for one: 8 ms is 81% of a core, and 5 ms needs 130% and cannot
+              hold its own schedule.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>One number for a phrase is the wrong answer</h2>
+          <div class="sbody">
+            <p>
+              The test phrase holds four notes at <b>+20, −18, +12 and −6 cents</b>. They
+              average to about <b>+1</b>, so any single figure for the take reports a player
+              who is in tune and is wrong about every note in it. That is why each finished
+              note prints its own panel, with its own datum and its own offset engraved on
+              it — and why the panels are the half of this that is conventional. In a survey
+              of nine tuners, five practice platforms and six audio editors, per-note cards
+              were the <em>only</em> place real intonation statistics lived.
+            </p>
+            <p>
+              Each panel's offset is weighted toward the <b>middle</b> of the note rather
+              than averaged flat, because a real attack overshoots — this phrase starts 40
+              cents sharp before settling, and a flat mean would call that note sharp when
+              the player merely started sharp. Melodyne computes its own figure the same
+              way, on the stated grounds that the central part of a note decides what a
+              listener hears it as.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2>The suite that passed and proved nothing</h2>
+          <div class="sbody">
+            <p>
+              The first harness drove the page with a fake microphone playing that
+              four-note phrase, and ten tests passed on the first run. Then the segmenter
+              was swapped for the <em>wrong</em> mechanism — lock-at-the-attack, which
+              cannot handle a phrase — and all ten passed again. Every note in that fixture
+              has a rest around it, and a rest is precisely where even the wrong mechanism
+              is right.
+            </p>
+            <p>
+              So there is a second fixture: a <b>slurred</b> A4 to B4 with no rest, phase
+              integrated across the glide so there is no click for an onset detector to
+              lean on. With the wrong mechanism it now reports "only heard: A4" and panel
+              offsets of <b>91.7 cents</b> — off a ±50 scale. A suite that cannot tell the
+              right mechanism from the wrong one is not testing the mechanism, however
+              green it is.
+            </p>
+            <p>
+              And four bugs that no assertion could have caught, all one cause: Astro
+              scopes CSS by stamping an attribute on the elements it compiles, and every
+              mark in both figures is drawn at runtime. So every scoped rule missed them —
+              the traces computed to no stroke, the fills fell back to black, and the
+              figure rendered as a <b>solid black slab with the numbers correct
+              underneath</b>. One screenshot found what ten passing tests could not.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
