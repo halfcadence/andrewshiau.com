@@ -502,11 +502,30 @@ import Layout from '../layouts/Layout.astro';
   const panelsEl = $('rd-panels');
 
   function printPanel(midi: number, cents: number[]) {
+    // A PANEL MAY NOT REPORT A NUMBER ITS OWN AXIS CANNOT HOLD. Found in the wild
+    // 2026-08-07: the owner's row printed "C2 +909.8¢", "G♯1 +626.1¢", "C4 −511.8¢" — 11
+    // of 24 panels outside ±50¢, on an axis that spans exactly ±50. Nine semitones of
+    // error drawn in a box one semitone tall is not a precise reading, it is a broken one.
+    //
+    // THE MECHANISM, and it is a gap in MY OWN fix rather than a new bug: `shown()` clamps
+    // for the live readout precisely because the hysteresis segmenter HOLDS the old note
+    // while the pitch leaves it — that is how it survives vibrato. The panel then averaged
+    // `trueCents`, the unclamped value, so every frame the segmenter spent holding a note
+    // the pitch had abandoned went into the mean at full size. On a held note the
+    // excursions are small and it never showed; on room noise the pitch jumps octaves and
+    // it showed enormously.
+    //
+    // Clamp each read to the axis before averaging, not the average afterwards: averaging
+    // first then clamping would report a wrong-but-in-range number, which is worse — it
+    // looks credible. Clamping first says "this read was off the scale" and the mean
+    // stays a mean of things the scale can hold.
+    const onAxis = cents.map((c) =>
+      Math.max(-AXIS_LIMIT_CENTS, Math.min(AXIS_LIMIT_CENTS, c)));
     // Weighted to the middle of the note: Melodyne computes its "fine offset" this way
     // because "the central part of a note, as a rule, plays a more decisive role in the
     // listener's perception of pitch", and an attack overshoot is not intonation. A real
     // attack runs 40¢ sharp before settling; the flat mean would report that as sharp.
-    const mean = centerWeighted(cents);
+    const mean = centerWeighted(onAxis);
     const r = freqToReading(a4 * 2 ** ((midi - 69) / 12), a4);
     const name = r ? `${r.name}${r.octave}` : String(midi);
 

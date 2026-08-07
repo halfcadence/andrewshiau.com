@@ -148,6 +148,85 @@ function slurWav(name, fromHz, toHz, holdSec = 1.1, glideSec = 0.06, restSec = 0
     + `${glideSec * 1000}ms glide, x${repeats}`);
 }
 
+// ROOM NOISE, NOT A NOTE. This fixture exists because the four-note phrase could not
+// reproduce a bug the owner hit in his actual office: /readings/ printed panels reading
+// "C2 +909.8¢" and "G♯1 +626.1¢" — offsets nine semitones wide on an axis one semitone
+// tall. Clean sines cannot cause it. The mechanism needs a detected pitch that JUMPS
+// between reads while the segmenter holds one note, and only broadband rumble does that.
+//
+// What is in here, chosen to match the reported log (a cluster at F♯1–A♯1, roughly 46–58
+// Hz, plus scattered mid-range):
+//   · 50 Hz mains hum at −38 dBFS with its 2nd and 3rd harmonics — 50 Hz is G♯1, and the
+//     owner's cluster sits exactly there
+//   · low-frequency rumble: pink-ish noise steered under 120 Hz (HVAC, desk, traffic)
+//   · a broadband noise floor at −45 dBFS, which is what makes the detector's chosen
+//     period wander from read to read
+// Deliberately NO musical tone. Every panel this produces is a false positive, so any
+// panel it prints is evidence — and the invariant test can finally fail if the clamp goes.
+// THE JUMPING FIXTURE, and it took a red-case failure to work out what was needed. A first
+// noise fixture (roomNoiseWav, below) produced ZERO false panels from 247 reads — too
+// smooth. The owner's log says what the real input does: the detected pitch jumped 4 to 9
+// SEMITONES between consecutive reads while one note stayed open, which is what averaged
+// into "C2 +909.8¢". Working backwards from his numbers: held C2 65.4 Hz while detecting
+// 110.6 Hz; held G#1 51.9 while detecting 74.5.
+//
+// That is not a noise floor, it is the detector picking a DIFFERENT PERIOD each read. At 48
+// kHz a 2048-sample window is 42.7 ms, and F#1 (46 Hz) has a 21.7 ms period — barely two
+// periods in the window, which is exactly where NSDF locks onto a subharmonic or an octave
+// instead of the fundamental. So this fixture is a LOW tone that hops between neighbouring
+// low pitches every few reads, loud enough to clear the gate, in the F#1-A#1 band he saw.
+// It reproduces the mechanism rather than imitating the sound.
+function jumpyLowWav(name, seconds = 20) {
+  const n = Math.round(SR * seconds);
+  const data = Buffer.alloc(n * 2);
+  // The band from his log: F#1 46.2 to A#1 58.3, plus the octave-error targets above them.
+  const hz = [46.25, 51.91, 58.27, 74.42, 110.0, 92.5, 65.41, 103.8];
+  const holdMs = 99;                       // 3 reads at 33 ms — his shortest panels
+  let phase = 0;                           // integrated so a hop is not also a click
+  let seed = 424242;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x3fffffff - 1; };
+  for (let i = 0; i < n; i++) {
+    const f = hz[Math.floor((i / SR) * 1000 / holdMs) % hz.length];
+    phase += (2 * Math.PI * f) / SR;
+    // Well above the 0.008 RMS gate, with a little noise so the period estimate wobbles.
+    const s = 0.35 * Math.sin(phase) + 0.10 * Math.sin(phase * 2) + rnd() * 0.02;
+    data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, s)) * 32767), i * 2);
+  }
+  writeFileSync(join(out, name), Buffer.concat([wavHeader(data.length), data]));
+  console.log(`wrote ${name}: low tones hopping every ${holdMs}ms across ${hz.length} pitches, ${seconds}s`);
+}
+
+function roomNoiseWav(name, seconds = 20) {
+  const n = Math.round(SR * seconds);
+  const data = Buffer.alloc(n * 2);
+  // A cheap one-pole lowpass to colour the noise, so it is rumble rather than hiss.
+  let lp = 0;
+  let lp2 = 0;
+  // Deterministic PRNG — a fixture that differs per run makes a flaky test.
+  let seed = 20260807;
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return seed / 0x3fffffff - 1;
+  };
+  for (let i = 0; i < n; i++) {
+    const t = i / SR;
+    // Mains hum and two harmonics. 50 Hz is G♯1; 100 Hz is G♯2.
+    const hum = 0.0126 * Math.sin(2 * Math.PI * 50 * t)
+      + 0.0045 * Math.sin(2 * Math.PI * 100 * t)
+      + 0.0022 * Math.sin(2 * Math.PI * 150 * t);
+    // Rumble: white noise through two poles, which puts most energy under ~120 Hz.
+    const w = rnd();
+    lp += (w - lp) * 0.012;
+    lp2 += (lp - lp2) * 0.012;
+    const rumble = lp2 * 6.0;
+    const floor = w * 0.0056;
+    const s = Math.max(-1, Math.min(1, hum + rumble + floor));
+    data.writeInt16LE(Math.round(s * 32767), i * 2);
+  }
+  writeFileSync(join(out, name), Buffer.concat([wavHeader(data.length), data]));
+  console.log(`wrote ${name}: room noise (50 Hz hum + LF rumble + floor), ${seconds}s`);
+}
+
 // The four offsets, computed rather than eyeballed: A4 +20¢, B4 −18¢, C#5 +12¢, D5 −6¢.
 const cents = (base, c) => base * 2 ** (c / 1200);
 
@@ -156,6 +235,8 @@ wav(446, 20, 'sine-446.wav');   // ~23.4 cents sharp of A4 — the direction cas
 wav(196, 20, 'sine-196.wav');   // G3 — a different note name entirely
 pulsedWav(440, 30, 'pulse-440.wav'); // A4 played in phrases — the bleed test's input
 slurWav('slur-a4-b4.wav', cents(440.0, 20), cents(493.88, -18));
+roomNoiseWav('room-noise.wav');
+jumpyLowWav('low-jumps.wav');
 phraseWav('phrase-4.wav', [
   cents(440.0, 20),    // A4  +20¢ sharp
   cents(493.88, -18),  // B4  −18¢ flat

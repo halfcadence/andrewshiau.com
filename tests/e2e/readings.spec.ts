@@ -112,6 +112,33 @@ test('a note change breaks the trace instead of drawing a wrap as a vertical sla
       .toBeLessThan(worst.h * 0.5);
   });
 
+test('NO PANEL reports an offset its own axis cannot hold', async ({ page }) => {
+  // FOUND IN THE WILD, 2026-08-07, and it is the counterpart the suite was missing. The
+  // readout was guarded (below); the PANELS were not, and the owner's row printed
+  // "C2 +909.8¢", "G♯1 +626.1¢", "C4 −511.8¢" — 11 of 24 panels outside ±50¢ on an axis
+  // that spans exactly ±50. Nine semitones of error in a box one semitone tall.
+  //
+  // Why the four-note fixture never caught it: its notes are clean sines held dead steady,
+  // so the segmenter never spends frames holding a note the pitch has left, and the
+  // unclamped mean equals the clamped one. It took real room noise — where the detected
+  // pitch jumps octaves between reads — to separate them. So this test asserts the
+  // INVARIANT rather than the fixture's values: whatever a panel says, the axis can draw it.
+  await listen(page);
+  const panels = await panelsAfter(page, 4);
+  const offAxis = panels.filter((p) => Math.abs(p.mean) > 50);
+  expect(offAxis, `panels off the ±50¢ axis: ${offAxis.map((p) => `${p.note} ${p.mean}¢`).join(', ')}`)
+    .toEqual([]);
+
+  // And the same claim read off the DOM, not the hook — the hook is a verification aid,
+  // the printed number is the product.
+  const printed = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-testid="panel"]')]
+      .map((el) => Number((el as HTMLElement).dataset.mean))
+      .filter((n) => !Number.isNaN(n)));
+  expect(printed.length).toBeGreaterThan(0);
+  expect(printed.filter((m) => Math.abs(m) > 50)).toEqual([]);
+});
+
 test('the readout never prints a cents value the axis cannot hold', async ({ page }) => {
   // While the segmenter holds a note the pitch has already left, the true offset leaves
   // the ±50 scale — measured at 141¢ and once 187¢ on the proof sheet. Those frames must
