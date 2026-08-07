@@ -629,10 +629,18 @@ import Layout from '../layouts/Layout.astro';
      would be illegible, and an unscaled strip cannot be counted at all — so the marks are
      the same compromise the metronome's ruled measure makes. */
   /* the scale rides the SAME grid, so a tick is always under the cell it counts */
-  .mt-scale{display:grid;grid-template-columns:repeat(17, 1fr);gap:1px;width:100%;
-    pointer-events:none}
-  .mt-scale i{height:3px;display:block;min-width:0}
-  .mt-scale i.tk5{border-left:1px solid var(--faint)}
+  /* `pointer-events` is back ON for the marks so their titles can be read on hover — the row
+     is 6px tall and sits below the cells, so it cannot steal a cell's click (verified: the
+     cells' own 40px targets end above this row). It was `none` when the marks were mute. */
+  .mt-scale{display:grid;grid-template-columns:repeat(17, 1fr);gap:1px;width:100%}
+  /* THE MARKS SIT UNDER THE CELL THEY NAME, so the stroke is a border on the LEFT edge of the
+     cell's own track — a mark centred between two cells would name neither.
+     Two lengths, one hierarchy: the octave halves the strip and gets 6px, the other perfect
+     intervals get 4px. Both --faint, because a landmark is furniture and must not compete with
+     the cells, which are the content. */
+  .mt-scale i{height:6px;display:block;min-width:0}
+  .mt-scale i.tk-perfect{border-left:1px solid var(--faint);height:4px}
+  .mt-scale i.tk-octave{border-left:1px solid var(--faint);height:6px}
   /* THE CHORD READOUT — the strip's caption, and the only place the stack is stated in the
      names a player thinks in. It says what the 72px letter cannot: the rest of the notes. */
   /* ── THE CHORD WRAPS; IT MUST NOT TRUNCATE. First build had `nowrap` + ellipsis, which
@@ -658,8 +666,21 @@ import Layout from '../layouts/Layout.astro';
      height to give and the ladder absorbs whatever is taken. The other two cases leave it
      empty, which is unchanged; the drone's copy now holds the stack. `hint` goes back to
      being the tuner's error line only. */
+  /* ── PROXIMITY IS WHY THE MARKS READ AS NOISE ────────────────────────────────────
+     Measured, and it explains the user's question ("what do the lil vertical lines under notes
+     mean?") better than the marks' POSITIONS did: the gap from a cell's ink to a mark was 12px
+     while the gap from the mark to the chord text was 2px. Gestalt does the rest — the marks
+     grouped with the words below them instead of the strip above them, so they looked like
+     decoration under the note names rather than a scale for the cells.
+     The cells' 40px targets overhang their 20px of ink by 10px each way, which is what opened
+     that gap: the row box ends 10px below the ink a reader sees. So the scale is pulled up by
+     that overhang and the chord pushed down, making the marks 2px from their cells and 12px
+     from the text — the reverse of what shipped, and the same total height.
+     `gap:0` because both children now carry their own offsets; a flex gap would add to them. */
   .mt-stackline{grid-row:slack-b;align-self:center;
-    display:flex;flex-direction:column;align-items:stretch;gap:2px;min-height:0}
+    display:flex;flex-direction:column;align-items:stretch;gap:0;min-height:0}
+  .mt-stackline .mt-scale{margin-top:-10px}
+  .mt-stackline .mt-chord{margin-top:10px}
 
   /* ══ THE VOICE SELECTOR ════════════════════════════════════════════════════════════
      A SELECTOR, NOT THREE LATCHES, and the form has to say so: the voices are mutually
@@ -1634,7 +1655,20 @@ import Layout from '../layouts/Layout.astro';
      the pick's stated cost, not an oversight — but both axes still clear 44, which is the
      line that matters and is asserted in the e2e suite. */
   .mt-cap .tbtn.latch{min-height:0;padding:14px 6px;margin:-14px -6px}
-  .rd{flex:none;display:block;transform:translateY(1px)}
+  /* THE TOGGLE SITS ON THE TEXT'S OPTICAL CENTRE, MEASURED (annotation 2026-08-07: "this
+     needs to be in line with text"). The row is a baseline-aligned flex, so the svg's own
+     box bottom lands on the text baseline — which puts a 16px-tall mark 8.5px ABOVE where
+     the type reads as centred, because type's visual middle is half its CAP height above
+     the baseline, not half its line box.
+     Measured on the built page at 1512px: cap height 9px (and the digits are 9px too, so
+     "A4" and "−4.1" agree), baseline y545, so the optical centre is y540.5. The svg's
+     centre was y532. The correction is 8.5px, on top of the 1px this rule already carried
+     for the old 22×11 mark → 9.5px.
+     Derived, not nudged: `50% of cap` is why it is 4.5, and `half the svg's height` is why
+     the rest is 5 — at 32×16 the svg's centre is 8px below its top, and its top sat 8.5px
+     above the cap centre. A future change to the mark's height or the type size changes
+     this number, and the harness measures it rather than trusting it. */
+  .rd{flex:none;display:block;transform:translateY(9.5px)}
   .fld{fill:none;stroke:var(--line);stroke-width:1.5}
   .dt{fill:var(--ink);
     transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
@@ -2220,7 +2254,16 @@ import Layout from '../layouts/Layout.astro';
     noteEl.textContent = `${r.name}${r.octave}`;
     const c = r.cents;
     centsEl.textContent = `${c >= 0 ? '+' : '−'}${Math.abs(c).toFixed(1)}`;
-    hzEl.textContent = `${freq.toFixed(1)} Hz`;
+    // WHILE IT IS RUNNING, THE DEVIATION IS THE READING (annotation 2026-08-07: "in play
+    // mode dont need boh the abs pitch and the diff put just the diff like -4.1"). The Hz
+    // was a third number for a fact the note name and the cents already carry between them,
+    // and it is the one nobody tunes by — you tune by the sign and the size of the error.
+    // It is BLANKED rather than deleted: the element keeps its slot, so the row's right edge
+    // does not move when the mic starts, and the idle state can still show it.
+    // The note NAME stays. A deviation with nothing to deviate from is not a reading, and
+    // this row is where you learn you are on the wrong string. The screen-reader copy below
+    // was already note-plus-cents only, so nothing was lost there.
+    hzEl.textContent = '';
     const deg = Math.max(-50, Math.min(50, c)) * (60 / 50);
     needle.style.transform = `rotate(${deg}deg)`;
     const tuned = Math.abs(c) <= IN_TUNE_CENTS;
@@ -2494,12 +2537,32 @@ import Layout from '../layouts/Layout.astro';
         aria-pressed="false"></button>`) as HTMLButtonElement;
       stripEl.appendChild(b);
     });
-    // THE SCALE: a tick under every fifth cell. Sixteen printed numbers under a 156px strip
-    // would be unreadable, and a strip with no scale cannot be counted at all — so the marks
-    // are the compromise the metronome's ruled measure already uses.
-    const sc = el('<span class="mt-scale" aria-hidden="true"></span>');
-    for (let i = 0; i <= 16; i++)
-      sc.appendChild(el(`<i class="${i % 5 === 0 ? 'tk5' : ''}"></i>`));
+    // ── THE MARKS NAME THE LANDMARKS, they do not count cells ──────────────────────
+    // They used to fall on every 5th cell — 0, 5, 10, 15 — which is a counting grid and
+    // musically arbitrary. The user's question was the whole review: "what do the lil vertical
+    // lines under notes mean?" A mark whose meaning has to be asked is not doing its job, and
+    // the honest reading is that it had none: position 5 is a fourth, position 10 a minor
+    // seventh, position 15 a minor tenth — no set a player thinks in.
+    // NOW THEY MARK THE PERFECT INTERVALS the user named: the 4th, the 5th and the octave (and
+    // the octave above that, 12 + 4 and 12 + 7 being the compound 11th and 12th). Those are the
+    // consonances a string player tunes without deciding anything — the same three the chooser's
+    // option 05 was built from — so the strip now reads as a fingerboard rather than a ruler:
+    // you find the fifth by looking, not by counting seven cells.
+    // ONE MARK IS TALLER: the octave. It is the strongest landmark on the strip and the one
+    // that halves it, so it gets a longer stroke — the same hierarchy the metronome's beats rule
+    // draws with its downbeat tick.
+    const LANDMARKS: Record<number, 'octave' | 'perfect'> = {
+      5: 'perfect', 7: 'perfect', 12: 'octave', 17: 'perfect', 19: 'perfect',
+    };
+    const MARK_NAME: Record<number, string> = {
+      5: 'the fourth', 7: 'the fifth', 12: 'the octave',
+    };
+    const sc = el('<span class="mt-scale"></span>');
+    for (let i = 0; i <= 16; i++) {
+      const kind = LANDMARKS[i];
+      const t = MARK_NAME[i];
+      sc.appendChild(el(`<i class="${kind ? 'tk-' + kind : ''}"${t ? ` title="${t}"` : ''}></i>`));
+    }
     stripEl.parentElement?.insertBefore(sc, stripEl.nextSibling);
   }
 

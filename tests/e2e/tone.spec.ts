@@ -17,10 +17,12 @@ test('the drone sounds its note at the set calibration', async ({ page }) => {
   let hz = await page.evaluate(() => (window as any).__mt.toneHz);
   expect(hz).toBeCloseTo(220, 1);
 
-  // Step the note up a semitone: A3 → A♯3 = 233.08 Hz. THE FIGURE is the control now — one
+  // Step the note up a semitone: A3 → B♭3 = 233.08 Hz. THE FIGURE is the control now — one
   // 72px target that both names the note and sets it.
+  // B♭ AND NOT A♯ (user, 2026-08-07): the five black keys are spelled the way key signatures
+  // spell them, so D♯/G♯/A♯ read E♭/A♭/B♭ while C♯ and F♯ stay sharp. Same pitch, likelier name.
   await page.getByTestId('refnote').click();
-  await expect(page.getByTestId('refnote')).toHaveText('A♯3');
+  await expect(page.getByTestId('refnote')).toHaveText('B♭3');
   hz = await page.evaluate(() => (window as any).__mt.toneHz);
   expect(hz).toBeCloseTo(233.08, 0);
 
@@ -105,6 +107,74 @@ test('the organ voice is exactly 220 Hz — the detector\'s own calibration', as
     .toBeLessThan(1);
 });
 
+// ── THE BLACK KEYS ARE SPELLED THE WAY KEY SIGNATURES SPELL THEM ────────────────────
+// User call, 2026-08-07: "assume eb over d# since its more common in key sigs". Three of the
+// five flip to flats and two stay sharp, and the split is not a preference — it follows which
+// keys occur: E♭/A♭/B♭ appear in the common flat keys, while C♯ and F♯ appear in D/A/E/B major
+// and their enharmonics need six flats. Asserted note by note because a single wrong entry in
+// the table is invisible until a player reads it and translates.
+test('the five black keys use their commonest spelling', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  const figure = page.locator('#mt-dnote');
+  const step = () => page.getByTestId('refnote').click();
+
+  // A3 up through the octave, checking every semitone's name
+  const want = ['B♭3', 'B3', 'C4', 'C♯4', 'D4', 'E♭4', 'E4', 'F4', 'F♯4', 'G4', 'A♭4', 'A4'];
+  for (const name of want) {
+    await step();
+    await expect(figure).toHaveText(name);
+  }
+  // and NO sharp spelling survives for the three that flipped
+  const strip = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-semi]')].map((c) => c.getAttribute('aria-label')));
+  expect(strip.join(' '), 'no D♯ / G♯ / A♯ anywhere').not.toMatch(/[DGA]♯/);
+  // the two that stay sharp must still be sharp — a blanket flat conversion is also wrong
+  expect(strip.join(' '), 'C♯ and F♯ stay sharp').toMatch(/[CF]♯/);
+});
+
+// ── THE STRIP'S MARKS NAME THE PERFECT INTERVALS, they do not count cells ────────────
+// The user asked "what do the lil vertical lines under notes mean?", and the answer was
+// nothing: they fell on every 5th cell, so they marked the 4th, the minor 7th and the minor
+// 10th — no set anyone thinks in. A mark that has to be explained is a mark that is wrong.
+// They now sit under the 4th, the 5th and the octave, and this test pins the POSITIONS because
+// the whole failure was a plausible-looking row of ticks in musically meaningless places.
+test('the strip marks the fourth, the fifth and the octave', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  const marks = await page.evaluate(() =>
+    [...document.querySelectorAll('.mt-scale i')].map((n, i) => ({
+      i,
+      kind: n.className || null,
+      title: n.getAttribute('title'),
+      h: Math.round(n.getBoundingClientRect().height),
+    })).filter((m) => m.kind));
+
+  expect(marks.map((m) => m.i), 'the perfect intervals: 4th, 5th, octave').toEqual([5, 7, 12]);
+  expect(marks.map((m) => m.title)).toEqual(['the fourth', 'the fifth', 'the octave']);
+  // the octave is the taller stroke — it halves the strip and is the strongest landmark
+  const octave = marks.find((m) => m.i === 12)!;
+  const fifth = marks.find((m) => m.i === 7)!;
+  expect(octave.h, 'the octave mark is taller than the others').toBeGreaterThan(fifth.h);
+
+  // A MARK MUST SIT UNDER THE CELL IT NAMES. The stroke is a left border on the mark's own
+  // grid track, so its x must line up with that cell's left edge — a mark centred between two
+  // cells would name neither, and at 8px cells that error is invisible by eye.
+  const aligned = await page.evaluate(() => {
+    const cells = [...document.querySelectorAll('.mt-strip > *')];
+    const marks = [...document.querySelectorAll('.mt-scale i')];
+    return [5, 7, 12].map((i) => Math.abs(
+      cells[i].getBoundingClientRect().left - marks[i].getBoundingClientRect().left));
+  });
+  for (const off of aligned) expect(off, 'the mark lines up with its cell').toBeLessThan(1.5);
+
+  // and the marks must not steal the cells' clicks — the row sits below their 40px targets
+  const hit = await page.evaluate(() => {
+    const m = document.querySelectorAll('.mt-scale i')[7].getBoundingClientRect();
+    const el = document.elementFromPoint(m.left + 1, m.top + 2) as HTMLElement;
+    return el?.className ?? null;
+  });
+  expect(String(hit), 'the scale row is not over a cell').not.toContain('mt-cell');
+});
+
 // ── THE NOTE IS STATED ONCE, ON THE FIGURE ──────────────────────────────────────────
 // This test asserted the opposite until 2026-08-07: the note appeared in two places at two
 // precisions (the 72px letter carried `A`, a small foot control carried `A4`) and the test's
@@ -162,7 +232,7 @@ test('dragging the figure scrubs the pitch, and does not start the drone', async
   await page.mouse.down();
   await page.mouse.move(cx - 28, y, { steps: 6 });
   await page.mouse.up();
-  await expect(figure, '−28px = −2 semitones').toHaveText('A♯3');
+  await expect(figure, '−28px = −2 semitones').toHaveText('B♭3');
 
   // THE DRAG MUST NOT TOGGLE THE SOUND. The figure sits inside `.mt-mid`, which is itself a
   // click-to-start target, so without stopPropagation every pitch change would also start or
@@ -250,8 +320,8 @@ test('the strip names its intervals, and the names follow the root', async ({ pa
   await expect(page.getByTestId('chord')).toHaveText('A3  E4');
 
   await page.getByTestId('refnote').click();          // A3 → A♯3
-  await expect(page.getByTestId('semi-7'), 'the fifth above A♯3').toHaveAttribute('aria-label', '5 — F4');
-  await expect(page.getByTestId('chord')).toHaveText('A♯3  F4');
+  await expect(page.getByTestId('semi-7'), 'the fifth above B♭3').toHaveAttribute('aria-label', '5 — F4');
+  await expect(page.getByTestId('chord')).toHaveText('B♭3  F4');
 });
 
 // THE VOICE IS A SETTING (the user's refinement: "i like 05 the section. but also the organ
@@ -415,6 +485,6 @@ test('the middle toggles it; the figure sets the pitch instead', async ({ page }
   // on the control that replaced the foot line's.
   await expect(figure).toHaveText('A3');
   await figure.click();
-  await expect(figure, 'the click stepped the pitch').toHaveText('A♯3');
+  await expect(figure, 'the click stepped the pitch').toHaveText('B♭3');
   await expect(toggle, 'and did not start the drone').toHaveAttribute('aria-pressed', 'false');
 });
