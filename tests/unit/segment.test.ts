@@ -1,0 +1,322 @@
+import { describe, it, expect } from 'vitest';
+import {
+  STRATEGIES, DEFAULT_STRATEGY_ID, createSegmenter, getStrategy, resolveParams,
+  segment, noteRuns, type Sample,
+} from '../../src/lib/practice-room/segment';
+
+// The read cadence the instrument actually uses, so durations here are the durations
+// on the page rather than abstract frame counts.
+const STEP_MS = 66;
+
+// ── contour builders ────────────────────────────────────────────────────────────
+// Exact MIDI, one entry per read. Written as generators rather than literals so a
+// change of cadence or vibrato rate doesn't need 40 numbers retyped.
+
+function hold(midi: number, cents: number, reads: number): Sample[] {
+  return Array.from({ length: reads }, () => midi + cents / 100);
+}
+function rest(reads: number): Sample[] {
+  return Array.from({ length: reads }, () => null);
+}
+/** A vibrato of the given rate and extent, sampled at the read cadence. */
+function vibrato(midi: number, rateHz: number, extentCents: number, reads: number): Sample[] {
+  return Array.from({ length: reads }, (_, i) => {
+    const t = (i * STEP_MS) / 1000;
+    return midi + (extentCents / 100) * Math.sin(2 * Math.PI * rateHz * t);
+  });
+}
+/** A continuous slide between two notes over `reads` readings. */
+function slide(from: number, to: number, reads: number): Sample[] {
+  return Array.from({ length: reads }, (_, i) => from + (to - from) * (i / (reads - 1)));
+}
+
+const centsOf = (s: Sample, d: number | null) =>
+  s === null || d === null ? null : (s - d) * 100;
+
+// ── the registry's own contract ─────────────────────────────────────────────────
+
+describe('the strategy registry', () => {
+  it('every strategy is documented: mechanism, cost, and a note per parameter', () => {
+    for (const s of STRATEGIES) {
+      expect(s.id, 'id').toBeTruthy();
+      expect(s.name, `${s.id} name`).toBeTruthy();
+      // A strategy with no stated cost is a strategy whose cost nobody found yet.
+      expect(s.mechanism.length, `${s.id} mechanism`).toBeGreaterThan(20);
+      expect(s.cost.length, `${s.id} cost`).toBeGreaterThan(20);
+      for (const p of s.params) {
+        expect(p.note.length, `${s.id}.${p.key} note`).toBeGreaterThan(20);
+        expect(p.default).toBeGreaterThanOrEqual(p.min);
+        expect(p.default).toBeLessThanOrEqual(p.max);
+      }
+    }
+  });
+
+  it('ids are unique, and the default exists', () => {
+    const ids = STRATEGIES.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(() => getStrategy(DEFAULT_STRATEGY_ID)).not.toThrow();
+  });
+
+  it('an unknown id throws rather than silently falling back', () => {
+    // Silently substituting a default would make a typo in a stored preference
+    // look like a segmenter that behaves oddly.
+    expect(() => createSegmenter('no-such-strategy')).toThrow(/unknown/i);
+  });
+
+  it('parameters are clamped to their range and filled from defaults', () => {
+    const h = getStrategy('hysteresis');
+    expect(resolveParams(h, { band: 999 }).band).toBe(h.params[0].max);
+    expect(resolveParams(h, { band: 0 }).band).toBe(h.params[0].min);
+    expect(resolveParams(h, {}).band).toBe(h.params[0].default);
+    // NaN is the interesting one: it comes from an empty number input.
+    expect(resolveParams(h, { band: NaN }).band).toBe(h.params[0].default);
+  });
+
+  it('every strategy returns null for silence and never carries a note across a rest',
+    () => {
+      for (const s of STRATEGIES) {
+        const contour = [...hold(69, 0, 5), ...rest(3), ...hold(71, 0, 5)];
+        const out = segment(contour, s.id);
+        expect(out.slice(5, 8), `${s.id} on silence`).toEqual([null, null, null]);
+        // After the rest it must name B4, never still be holding A4.
+        expect(out[out.length - 1], `${s.id} after the rest`).toBe(71);
+      }
+    });
+
+  it('feed() streaming and segment() offline agree, for every strategy', () => {
+    const contour = [...hold(69, 12, 8), ...slide(69, 71, 3), ...hold(71, -8, 8),
+      ...rest(2), ...vibrato(74, 6, 58, 20)];
+    for (const s of STRATEGIES) {
+      const seg = createSegmenter(s.id);
+      const streamed = contour.map((x) => seg.feed(x));
+      expect(streamed, s.id).toEqual(segment(contour, s.id));
+    }
+  });
+
+  it('reset() returns a segmenter to its initial state', () => {
+    for (const s of STRATEGIES) {
+      const seg = createSegmenter(s.id);
+      const first = hold(69, 0, 6).map((x) => seg.feed(x));
+      seg.reset();
+      const second = hold(69, 0, 6).map((x) => seg.feed(x));
+      expect(second, s.id).toEqual(first);
+    }
+  });
+});
+
+describe('the default, and the finding recorded against it', () => {
+  // `tools/segment-bench.mjs` scores hysteresis ALONE better than the picked
+  // hysteresis+dwell on eight hard contours (0 miscounted notes / 17¢ worst error
+  // against 1 / 50¢). The pick stands because it was made by watching the drawing, not
+  // by scoring contours — but the numbers are pinned here so that if anyone changes the
+  // default they meet the argument instead of discovering it later.
+  it('is hysteresis+dwell — the sheet\'s pick, not the bench\'s', () => {
+    expect(DEFAULT_STRATEGY_ID).toBe('hysteresis-dwell');
+  });
+
+  it('dwell=1 collapses the default to plain hysteresis, which is the bench\'s answer',
+    () => {
+      const contour = [...hold(69, 12, 10), ...vibrato(74, 6, 58, 20), ...hold(71, -8, 10)];
+      expect(segment(contour, DEFAULT_STRATEGY_ID, { frames: 1 }))
+        .toEqual(segment(contour, 'hysteresis', { band: 62 }));
+    });
+
+  it('the documented band plateau holds: 58 and 62 both survive a wide vibrato, 55 does not',
+    () => {
+      const contour = vibrato(74, 6, 58, 40);
+      expect(new Set(segment(contour, 'hysteresis', { band: 58 })).size).toBe(1);
+      expect(new Set(segment(contour, 'hysteresis', { band: 62 })).size).toBe(1);
+      expect(new Set(segment(contour, 'hysteresis', { band: 55 })).size).toBeGreaterThan(1);
+    });
+});
+
+// ── the four hard cases, per strategy ───────────────────────────────────────────
+//
+// Each of these asserts a strategy's DOCUMENTED cost. A weakness written in a comment
+// and never tested is a claim; asserted, it is a property — and it fails loudly if
+// someone "fixes" one mechanism into another.
+
+describe('a wide vibrato (6 Hz, ±58 cents — a singer\'s)', () => {
+  // ±58 crosses the 50-cent halfway line, so nearest-note must rename the note at the
+  // peaks. This is the case that motivates every other strategy in the file.
+  const contour = vibrato(74, 6, 58, 40);
+
+  it('nearest renames the note at the peaks', () => {
+    const notes = new Set(segment(contour, 'nearest'));
+    expect(notes.size).toBeGreaterThan(1);
+    expect(notes.has(74)).toBe(true);
+  });
+
+  it('hysteresis holds one note throughout', () => {
+    expect(new Set(segment(contour, 'hysteresis'))).toEqual(new Set([74]));
+  });
+
+  it('hysteresis+dwell — the picked default — holds one note throughout', () => {
+    expect(new Set(segment(contour, DEFAULT_STRATEGY_ID))).toEqual(new Set([74]));
+  });
+
+  it('the running-mean island holds one note throughout', () => {
+    expect(new Set(segment(contour, 'contour-island'))).toEqual(new Set([74]));
+  });
+
+  it('a hysteresis band BELOW the vibrato extent fails — the constant is the mechanism',
+    () => {
+      // Red case for the parameter itself: 55 < 58, so the peaks get through.
+      const tight = new Set(segment(contour, 'hysteresis', { band: 55 }));
+      expect(tight.size).toBeGreaterThan(1);
+    });
+});
+
+describe('a grace note of one read (66 ms), slurred on both sides', () => {
+  // C♯5 held sharp, one read of B4, then a leap down to A4. No silence anywhere.
+  const contour: Sample[] = [
+    ...hold(73, 14, 10),
+    73 - 2 / 100 + (71 - 73),   // the grace: one read at B4
+    ...hold(69, -6, 10),
+  ];
+
+  it('nearest admits it as its own note', () => {
+    expect(segment(contour, 'nearest')[10]).toBe(71);
+  });
+
+  it('dwell refuses it — and CHARGES its read to the note being held', () => {
+    const dec = segment(contour, 'dwell');
+    expect(dec[10]).toBe(73);                     // still C♯5, not B4
+    const runs = noteRuns(contour, dec);
+    const cSharp = runs.find((r) => r.midi === 73)!;
+    // The documented cost, made numeric: C♯5 was played +14, and the refused read
+    // drags its reported mean far off that. This is the finding, not a rounding error.
+    expect(cSharp.mean).toBeLessThan(0);
+    expect(Math.abs(cSharp.mean - 14)).toBeGreaterThan(10);
+  });
+
+  it('the picked default inherits that reattribution', () => {
+    // Stated plainly in hysteresisDwell.cost — asserted here so it can't be forgotten.
+    expect(segment(contour, DEFAULT_STRATEGY_ID)[10]).toBe(73);
+  });
+
+  it('dwell with frames=1 is nearest-note, by construction', () => {
+    expect(segment(contour, 'dwell', { frames: 1 })).toEqual(segment(contour, 'nearest'));
+  });
+
+  it('the median window rejects the single-read outlier outright', () => {
+    expect(segment(contour, 'median')[10]).toBe(73);
+  });
+});
+
+describe('a slur — two notes with no silence between them', () => {
+  const contour = [...hold(69, 2, 10), ...slide(69, 71, 2), ...hold(71, -8, 10)];
+
+  it('locking at the attack measures the second note against the first', () => {
+    const dec = segment(contour, 'attack-lock');
+    expect(new Set(dec)).toEqual(new Set([69]));
+    // And that pins the reading off the ±50 scale entirely — the stated cost.
+    const worst = Math.max(...contour.map((s, i) => Math.abs(centsOf(s, dec[i]) ?? 0)));
+    expect(worst).toBeGreaterThan(150);
+  });
+
+  it('every other strategy finds both notes', () => {
+    for (const s of STRATEGIES) {
+      if (s.id === 'attack-lock') continue;
+      const notes = new Set(segment(contour, s.id).filter((x) => x !== null));
+      expect(notes, s.id).toEqual(new Set([69, 71]));
+    }
+  });
+});
+
+describe('a slow continuous slide (a portamento across 4 semitones)', () => {
+  const contour = slide(69, 73, 40);
+
+  it('nearest reports every note it passes through', () => {
+    expect(new Set(segment(contour, 'nearest')).size).toBe(5);   // 69..73
+  });
+
+  it('the running-mean island follows the slide instead of splitting it cleanly', () => {
+    // contourIsland's documented cost: the reference drifts with the player. It finds
+    // FEWER notes than nearest — it is not tracking the semitones the slide crosses.
+    const island = new Set(segment(contour, 'contour-island')).size;
+    expect(island).toBeLessThan(5);
+  });
+});
+
+// ── the verdict layer ───────────────────────────────────────────────────────────
+
+describe('noteRuns', () => {
+  const contour = [
+    ...hold(69, 19, 12),      // A4, sharp
+    ...rest(2),
+    ...hold(71, -13, 12),     // B4, flat
+    ...rest(2),
+    ...hold(73, 14, 12),      // C♯5, sharp
+  ];
+
+  it('gives one run per note, with that note\'s own mean and wobble', () => {
+    const runs = noteRuns(contour, segment(contour, DEFAULT_STRATEGY_ID));
+    expect(runs.map((r) => r.midi)).toEqual([69, 71, 73]);
+    expect(runs[0].mean).toBeCloseTo(19, 5);
+    expect(runs[1].mean).toBeCloseTo(-13, 5);
+    expect(runs[2].mean).toBeCloseTo(14, 5);
+    for (const r of runs) {
+      expect(r.reads).toBe(12);
+      expect(r.sd).toBeCloseTo(0, 5);          // a dead-steady hold has no wobble
+    }
+  });
+
+  it('THE AVERAGING TRAP: the whole-take mean says in tune, every note says otherwise',
+    () => {
+      // This is the reason the reading is per-note. Asserted so a future "simplify it
+      // to one number" cannot land without a red test explaining why not.
+      const dec = segment(contour, DEFAULT_STRATEGY_ID);
+      const sounding = contour
+        .map((s, i) => centsOf(s, dec[i]))
+        .filter((c): c is number => c !== null);
+      const whole = sounding.reduce((a, b) => a + b, 0) / sounding.length;
+      expect(Math.abs(whole)).toBeLessThan(8);        // "in tune"
+
+      const runs = noteRuns(contour, dec);
+      const spread = Math.max(...runs.map((r) => r.mean))
+        - Math.min(...runs.map((r) => r.mean));
+      expect(spread).toBeGreaterThan(30);             // and wrong about every note
+    });
+
+  it('a run\'s wobble is the standard deviation of its own offsets', () => {
+    const wobbly = vibrato(74, 6, 20, 24);
+    const runs = noteRuns(wobbly, segment(wobbly, 'hysteresis'));
+    expect(runs).toHaveLength(1);
+    expect(runs[0].sd).toBeGreaterThan(5);
+    expect(Math.abs(runs[0].mean)).toBeLessThan(5);   // symmetric vibrato, centred
+  });
+
+  it('is empty for pure silence', () => {
+    const s = rest(10);
+    expect(noteRuns(s, segment(s))).toEqual([]);
+  });
+
+  // FOUND BY RED-CASING, and the reason this test exists: `noteRuns` was sabotaged to
+  // merge every reading into ONE run and the whole suite still passed. Every grouping
+  // case above puts a REST between its notes, and silence resets the run by a different
+  // code path — so the note-change branch was never actually exercised. A SLURRED phrase
+  // is the only contour that tests it.
+  it('splits on a note change with NO silence between the notes', () => {
+    const slurred = [
+      ...hold(69, 19, 10),      // A4 sharp
+      ...hold(71, -13, 10),     // straight into B4 flat, no rest
+      ...hold(73, 14, 10),      // straight into C♯5 sharp
+    ];
+    const runs = noteRuns(slurred, segment(slurred, 'nearest'));
+    expect(runs.map((r) => r.midi)).toEqual([69, 71, 73]);
+    expect(runs.map((r) => r.reads)).toEqual([10, 10, 10]);
+    expect(runs[0].mean).toBeCloseTo(19, 5);
+    expect(runs[1].mean).toBeCloseTo(-13, 5);
+    expect(runs[2].mean).toBeCloseTo(14, 5);
+  });
+
+  it('a run\'s indices are contiguous and cover exactly its own reads', () => {
+    // The other half of what the merge sabotage broke: a merged run reports a `reads`
+    // count that no longer matches its own index span.
+    const slurred = [...hold(69, 5, 7), ...hold(71, 5, 4), ...rest(2), ...hold(69, 5, 6)];
+    for (const r of noteRuns(slurred, segment(slurred, 'nearest'))) {
+      expect(r.to - r.from + 1).toBe(r.reads);
+    }
+  });
+});
