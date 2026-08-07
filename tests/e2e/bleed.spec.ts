@@ -194,11 +194,15 @@ test('at an ordinary tempo the tuner still tracks between clicks', async ({ page
     (window as any).__mt.renders.length - b, before);
   await page.getByTestId('metro-toggle').click();
 
-  // 6.5s at a 66ms read cadence is ~98 frames; the fixture sounds for 2.4s of it (~36
-  // frames) and a tick at 120bpm/eighths blinds ~150ms of every 250ms. So a live tuner
-  // paints on the order of 15-20 frames. Ten is the floor that separates painting from
-  // frozen without pinning the exact ratio.
-  expect(painted, 'the tuner went blind while the metronome ran').toBeGreaterThan(10);
+  // 6.5s at the 33ms read cadence is ~197 frames; the fixture sounds for 2.4s of it (~73
+  // frames) and a tick at 120bpm/eighths blinds ~150ms of every 250ms, so ~40% of the
+  // sounding frames survive the gate — on the order of 30 paints.
+  //
+  // The floor is 20, not 10, and the reason is worth keeping: the cadence doubled on
+  // 2026-08-06, so a threshold of 10 would now pass even if HALF the reads were lost to a
+  // regression. A floor derived from the old cadence silently stops testing anything when
+  // the cadence changes — it has to scale with it or it is decoration.
+  expect(painted, 'the tuner went blind while the metronome ran').toBeGreaterThan(20);
   const junk = seen.filter((s) => s !== PLAYED && s !== '—');
   expect(junk, `unexpected readings: ${[...new Set(junk)].join(', ')}`).toEqual([]);
 });

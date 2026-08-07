@@ -138,9 +138,16 @@ const CASES = [
     'slurred both sides; dwell reattributes its read to C♯5',
     [rest(2), hold(73, 14, 12), seg_(71, [71.02]), hold(69, -6, 12)]),
 
+  // NOT SCORED, by the owner's call: "semitone trill is so fast though when I'm
+  // practicing I don't really mind if it gets swallowed." An intonation trainer is for
+  // held notes and phrases, and a 7.6 notes/sec trill has no intonation to read — you
+  // cannot be told you were 12 cents sharp on something that lasted 132 ms. It is still
+  // RUN and still PRINTED, because a strategy's behaviour here is worth seeing (it is the
+  // single thing that separates the adaptive band from hysteresis), but it no longer
+  // decides the ranking of a tool for a use it does not serve.
   build('semitone trill B4⇄C5, 2 reads each',
-    '7.6 notes/sec — fast but playable; a band above ~70¢ stops seeing it at all',
-    [rest(2), trill(71, 72, 12, 2)]),
+    '7.6 notes/sec — printed, NOT scored: too fast to have readable intonation',
+    [rest(2), trill(71, 72, 12, 2)], { ambiguous: true }),
 
   build('portamento A4→C♯5',
     'a continuous slide: one gesture or five notes, both defensible',

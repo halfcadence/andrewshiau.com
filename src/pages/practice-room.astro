@@ -1684,8 +1684,45 @@ import Layout from '../layouts/Layout.astro';
   let analyser: AnalyserNode | null = null;
   let tunerTimer: number | null = null;
   const buf = new Float32Array(2048);
-  // Median-of-5 smoothing: one bad window (a chair scrape) can't kick the reading.
+
+  // THE READ CADENCE. 33 ms, halved from 66 (measured 2026-08-06,
+  // work/understand/practice-room-cadence/ — the real detector in a real browser).
+  //
+  // What the measurement said, because the obvious reason is the wrong one. Reading twice
+  // as often does NOT recover more of a vibrato: the analyser window is 2048 samples =
+  // 46 ms of audio, so every read is already an estimate fitted to that whole span, and
+  // the detector reports the same ±52¢ of a real ±58¢ at every cadence from 66 ms down to
+  // 5 ms. The peak it misses is the window averaging, and no hop fixes that.
+  //
+  // What 33 ms actually buys is that the DRAWING stops lying. The trace joins samples
+  // with straight lines, and at 66 ms a 6 Hz vibrato gets 2.5 samples per cycle — so a
+  // worst-phase peak is drawn up to 22¢ away from where it happened, which is larger than
+  // the intonation errors this instrument exists to show. At 33 ms that is 3¢. Going
+  // further is not free and buys ~1¢: 8 ms costs 81% of one core and each read shares 83%
+  // of its samples with the previous one, and 5 ms needs 130% of a core — it cannot hold
+  // its own schedule (measured: 70–84% of reads completed).
+  //
+  // Cost here, measured on this window: 20% duty cycle on a 12-core desktop, and the real
+  // loop held 99.9% of its reads with +0.0 ms drift. A phone is several times slower, so
+  // treat that as a floor rather than a promise.
+  //
+  // EVERYTHING TIMED IN FRAMES BELOW IS DERIVED FROM THIS, not hardcoded — the median
+  // ring, the silence hold, and the tuner's own smoothing are all durations that would
+  // have silently halved when the hop halved.
+  const READ_MS = 33;
+
+  // Median smoothing: one bad window (a chair scrape) can't kick the reading. Held at
+  // ~165 ms of audio, which is what median-of-5 meant at the old 66 ms cadence — the
+  // point is the DURATION the median covers, so the count scales with the cadence.
+  const MEDIAN_MS = 165;
+  const MEDIAN_N = Math.max(3, Math.round(MEDIAN_MS / READ_MS) | 1); // odd: a median needs one
   const recent: number[] = [];
+
+  // A breath between notes is not silence. Held at ~400 ms, which is what six frames
+  // meant at 66 ms; as a frame count it would now clear the readout in 200 ms and make
+  // the note name flicker between bow changes.
+  const SILENCE_HOLD_MS = 400;
+  const SILENCE_FRAMES = Math.max(2, Math.round(SILENCE_HOLD_MS / READ_MS));
   let quietFrames = 0;
 
   const IN_TUNE_CENTS = 3;
@@ -1717,13 +1754,18 @@ import Layout from '../layouts/Layout.astro';
   //
   // The cost, stated because it is real: while the metronome runs the tuner is blind for
   // ~150ms per tick (click 90ms + room tail 60ms, plus the analyser window that overlaps
-  // it). At 120bpm with no subdivisions that is a third of the frames; the remaining two
-  // thirds are 5+ reads a second, and a held note updates continuously. The honest limit
-  // is fast subdivisions: at 200bpm in sixteenths a tick sounds every 75ms and the gate
-  // covers everything, so the readout HOLDS its last value rather than tracking. That is
-  // why a gated frame renders nothing instead of showing silence — holding the last real
-  // reading is the correct failure, and a musician tuning against a click that fast is
-  // not reading cents off the screen anyway.
+  // it). At 120bpm with no subdivisions that is a third of the WALL CLOCK; the rest is
+  // 15+ reads a second at the 33 ms cadence, and a held note updates continuously. The
+  // honest limit is fast subdivisions: at 200bpm in sixteenths a tick sounds every 75ms
+  // and the gate covers everything, so the readout HOLDS its last value rather than
+  // tracking. That is why a gated frame renders nothing instead of showing silence —
+  // holding the last real reading is the correct failure, and a musician tuning against a
+  // click that fast is not reading cents off the screen anyway.
+  //
+  // NOTE ON THE 2026-08-06 CADENCE CHANGE: the blind SPAN is unchanged, because it is
+  // measured in audio-clock seconds and not in frames. What changed is that the same span
+  // now costs twice as many reads — which is why nothing here is expressed as a frame
+  // count. The gate was always a time gate; that is the property that made it survive.
   const BLEED_TAIL = 0.06;    // seconds of room after the click's own envelope ends
 
   // What the speaker is sounding, by audio-clock span. ping() fills it; a cancelled
@@ -1760,7 +1802,7 @@ import Layout from '../layouts/Layout.astro';
 
   function renderSilence() {
     // A couple of empty windows is a breath between notes; hold briefly.
-    if (++quietFrames < 6) return;
+    if (++quietFrames < SILENCE_FRAMES) return;
     noteEl.textContent = '—';
     noteEl.classList.remove('intune');
     centsEl.textContent = '–';
@@ -1843,14 +1885,14 @@ import Layout from '../layouts/Layout.astro';
       if (ownClick(ac.currentTime, ac.sampleRate)) { if (E2E) hook.gated++; return; }
       if (f > 0) {
         recent.push(f);
-        if (recent.length > 5) recent.shift();
+        if (recent.length > MEDIAN_N) recent.shift();
         const sorted = [...recent].sort((a, b) => a - b);
         renderReading(sorted[Math.floor(sorted.length / 2)]);
       } else {
         recent.length = 0;
         renderSilence();
       }
-    }, 66);
+    }, READ_MS);
   }
 
   // `remember=false` is the pagehide path: the mic must stop, but the reader did
