@@ -12,15 +12,17 @@ test('the drone sounds its note at the set calibration', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
   await page.getByTestId('drone-toggle').click();
 
+  // A3 = 220 Hz IS THE DEFAULT (user, 2026-08-07) — the register a cello drones in, and the
+  // samples' own A. It was A4/440, inherited from when this was the tuner's reference pip.
   let hz = await page.evaluate(() => (window as any).__mt.toneHz);
-  expect(hz).toBeCloseTo(440, 1);
+  expect(hz).toBeCloseTo(220, 1);
 
-  // Step the note up a semitone: A4 → A♯4 = 466.16 Hz. The value IS the control
-  // (steppers chooser Q1/02): click steps up, shift-click steps down.
+  // Step the note up a semitone: A3 → A♯3 = 233.08 Hz. THE FIGURE is the control now — one
+  // 72px target that both names the note and sets it.
   await page.getByTestId('refnote').click();
-  await expect(page.getByTestId('refnote')).toHaveText('A♯4');
+  await expect(page.getByTestId('refnote')).toHaveText('A♯3');
   hz = await page.evaluate(() => (window as any).__mt.toneHz);
-  expect(hz).toBeCloseTo(466.16, 0);
+  expect(hz).toBeCloseTo(233.08, 0);
 
   // Back to A4 (shift-click), then recalibrate FROM THE DRONE'S OWN FIELD — the one this
   // case gained. Driving the tuner's field would exercise the old wiring; driving this one
@@ -29,35 +31,136 @@ test('the drone sounds its note at the set calibration', async ({ page }) => {
   await page.getByTestId('a4-drone').fill('442');
   await page.getByTestId('a4-drone').blur();
   hz = await page.evaluate(() => (window as any).__mt.toneHz);
-  expect(hz).toBeCloseTo(442, 1);
+  expect(hz, 'A3 at a4=442 is 221 Hz').toBeCloseTo(221, 1);
 
   await page.getByTestId('drone-toggle').click();
   const off = await page.evaluate(() => (window as any).__mt.toneHz);
   expect(off).toBeNull();
 });
 
-// THE NOTE APPEARS TWICE, at two precisions — the 72px figure carries the LETTER (what you
-// read from a music stand) and the foot control carries letter + octave (the value you set).
-// One function writes both, so the failure this catches is the two drifting: a figure naming
-// a different note than the one sounding.
-// It was three places for one build. The exact reading between them was deleted after looking
-// at the render — three copies of one note inside a 210px case.
-test('the note is one value at two precisions', async ({ page }) => {
+// ══ THE PITCH THAT COMES OUT IS THE PITCH ON THE FIGURE ══════════════════════════════
+// THE TEST THE OCTAVE BUG GOT PAST, and the reason it got past: every other assertion here is a
+// RATIO (rank ÷ root) or a report of what the code intended to schedule. The cello samples were
+// tagged an octave below their real pitch, so every playbackRate came out 2×, the whole voice
+// played an octave high, and the ratios were untouched because a constant factor cancels. The
+// user heard it; nothing in CI could.
+// So this measures the SIGNAL, in absolute Hz, per voice — autocorrelation off an analyser on
+// the drone's own output. It is the only check here that can catch a transposition, and it also
+// pins the per-sample cent correction (the B3 loop is 27.5¢ flat and the page divides that out).
+for (const voice of ['organ', 'cello', 'section'] as const) {
+  test(`the ${voice} voice sounds the pitch the figure names`, async ({ page }) => {
+    await page.goto('/practice-room/?e2e');
+    await page.getByTestId(`voice-${voice}`).click();
+    // root alone, so there is one fundamental to find
+    await page.evaluate(() => {
+      document.querySelectorAll('[data-semi]').forEach((c) => {
+        if (c.getAttribute('aria-pressed') === 'true') (c as HTMLButtonElement).click();
+      });
+    });
+    await expect(page.getByTestId('refnote')).toHaveText('A3');
+
+    await page.getByTestId('drone-toggle').click();
+    // the section swells over 1.2s; measure once it is up
+    await page.waitForTimeout(voice === 'section' ? 2200 : 1200);
+    if (voice === 'section') {
+      await expect
+        .poll(() => page.evaluate(() => (window as any).__mt.droneVoice), { timeout: 6000 })
+        .toBe('section');
+      await page.waitForTimeout(1500);
+    }
+
+    const hz = await page.evaluate(() => (window as any).__mt.droneHz());
+    expect(hz, 'something must be sounding').not.toBeNull();
+    const cents = 1200 * Math.log2(hz! / 220);
+    // ±25 cents: wide enough for a vibrato'd section of players (the samples ARE a section, and
+    // the vibrato is ±10-15¢ by design), tight enough that an octave (1200¢), a semitone (100¢)
+    // or an uncorrected 27.5¢ sample offset all fail. The window is the whole point — a looser
+    // one would have passed the bug this test exists for.
+    expect(Math.abs(cents), `${voice}: A3 is 220 Hz, got ${hz!.toFixed(2)} (${cents.toFixed(1)}¢)`)
+      .toBeLessThan(25);
+  });
+}
+
+// ── THE NOTE IS STATED ONCE, ON THE FIGURE ──────────────────────────────────────────
+// This test asserted the opposite until 2026-08-07: the note appeared in two places at two
+// precisions (the 72px letter carried `A`, a small foot control carried `A4`) and the test's
+// job was to prove they could not drift. The user's call retired the premise — "can you not
+// repeat a3 3 times, maybe the big one in center can say a3 and delete the other two" — so
+// there is nothing left to drift, and what has to be proven now is that the duplicates are
+// GONE and the survivor carries the whole value.
+test('the note is stated once, with its octave, on the figure', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
-  await expect(page.getByTestId('refnote')).toHaveText('A4');
-  await expect(page.locator('#mt-dnote')).toHaveText('A');
-  // and the octave lives ONLY on the control — the case does not state its note a third time
-  await expect(page.getByTestId('drone-note')).toHaveCount(0);
+  // ONE element states the note, and it is the figure — 72px, and also the control
+  const figure = page.locator('#mt-dnote');
+  await expect(figure).toHaveText('A3');
+  await expect(figure).toHaveAttribute('data-testid', 'refnote');
+  const size = await figure.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(size, 'the figure is the 72px break of the one-size rule').toBeCloseTo(72, 0);
 
-  await page.getByTestId('refnote').click();          // → A♯4
-  await expect(page.getByTestId('refnote')).toHaveText('A♯4');
-  await expect(page.locator('#mt-dnote')).toHaveText('A♯');
+  // and NOTHING ELSE in the case names the pitch. Counting nodes whose text is a note name is
+  // the assertion that survives a refactor: a future third copy fails this without anyone
+  // having to remember to add a check for it.
+  const copies = await page.evaluate(() => {
+    const c = document.querySelector('.mt-drone')!;
+    return [...c.querySelectorAll('*')]
+      .filter((el) => !el.children.length && /^[A-G][♯♭]?\d$/.test((el.textContent || '').trim()))
+      .map((el) => `${el.tagName}#${el.id || ''}.${el.className}`);
+  });
+  expect(copies, 'exactly one element names the note').toHaveLength(1);
 
-  // an octave step moves the control and NOT the letter — the letter is pitch class
-  await page.getByTestId('refnote').click({ modifiers: ['Shift'] });   // back to A4
+  // the octave is part of the value: an octave step changes what the figure reads
   for (let i = 0; i < 12; i++) await page.getByTestId('refnote').click();
-  await expect(page.getByTestId('refnote')).toHaveText('A5');
-  await expect(page.locator('#mt-dnote'), 'the figure is the pitch class').toHaveText('A');
+  await expect(figure, 'the figure carries the octave, so it moves').toHaveText('A4');
+});
+
+// THE FIGURE SCRUBS THE PITCH (user: "use the big one in center to change pitch too like left
+// to right sliding"). A real pointer drag, not a synthetic event: the whole point is the
+// gesture, and `setPointerCapture` + the click-suppression only behave correctly under real
+// pointer sequences.
+test('dragging the figure scrubs the pitch, and does not start the drone', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  const figure = page.locator('#mt-dnote');
+  await expect(figure).toHaveText('A3');
+  const box = (await figure.boundingBox())!;
+  const y = box.y + box.height / 2;
+  const cx = box.x + box.width / 2;
+
+  // right is higher, at 14px per semitone — a bigger step than the small handles use, because
+  // the target is a 72px glyph and an 8px step made a casual drag cross nine semitones
+  await page.mouse.move(cx, y);
+  await page.mouse.down();
+  await page.mouse.move(cx + 42, y, { steps: 8 });
+  await page.mouse.up();
+  await expect(figure, '+42px = +3 semitones').toHaveText('C4');
+
+  // and left is lower
+  await page.mouse.move(cx, y);
+  await page.mouse.down();
+  await page.mouse.move(cx - 28, y, { steps: 6 });
+  await page.mouse.up();
+  await expect(figure, '−28px = −2 semitones').toHaveText('A♯3');
+
+  // THE DRAG MUST NOT TOGGLE THE SOUND. The figure sits inside `.mt-mid`, which is itself a
+  // click-to-start target, so without stopPropagation every pitch change would also start or
+  // stop the drone — and a drag ends in a click.
+  await expect(page.getByTestId('drone-toggle')).toHaveAttribute('aria-pressed', 'false');
+  expect(await page.evaluate(() => (window as any).__mt.toneHz), 'still silent').toBeNull();
+
+  // A STEP MUST NOT EITHER — same mechanism, and it is the one a user hits constantly.
+  await figure.click();
+  await expect(figure).toHaveText('B3');
+  await expect(page.getByTestId('drone-toggle')).toHaveAttribute('aria-pressed', 'false');
+
+  // but the AIR around the figure still starts it — that shortcut is unchanged. The point has
+  // to be genuinely inside `.mt-mid` and clear of the letter: `+8,+8` is the case's own corner
+  // and hit nothing (the first version of this assertion failed for that reason, not because
+  // the shortcut was broken). Take the middle's left edge at the figure's own vertical centre.
+  const mid = (await page.locator('.mt-drone .mt-mid').boundingBox())!;
+  const fig = (await page.locator('#mt-dnote').boundingBox())!;
+  const px = (mid.x + fig.x) / 2;                       // between the case edge and the glyph
+  expect(px, 'the point is left of the figure').toBeLessThan(fig.x);
+  await page.mouse.click(px, fig.y + fig.height / 2);
+  await expect(page.getByTestId('drone-toggle')).toHaveAttribute('aria-pressed', 'true');
 });
 
 // ── THE STACK ───────────────────────────────────────────────────────────────────────
@@ -77,7 +180,7 @@ test('the stack is just, and it re-voices while sounding', async ({ page }) => {
   await page.getByTestId('drone-toggle').click();
   let ranks: number[] = await page.evaluate(() => (window as any).__mt.droneRanks);
   expect(ranks, 'the root and the fifth').toHaveLength(2);
-  expect(ranks[0]).toBeCloseTo(440, 1);
+  expect(ranks[0], 'the root is A3 = 220 Hz').toBeCloseTo(220, 1);
   expect(ranks[1] / ranks[0], 'a just 3:2, not the tempered 1.49831').toBeCloseTo(1.5, 4);
   expect(ranks[1] / ranks[0]).not.toBeCloseTo(Math.pow(2, 7 / 12), 4);
 
@@ -86,7 +189,7 @@ test('the stack is just, and it re-voices while sounding', async ({ page }) => {
   await expect(page.getByTestId('semi-4')).toHaveAttribute('aria-pressed', 'true');
   ranks = await page.evaluate(() => (window as any).__mt.droneRanks);
   expect(ranks, 'root + third + fifth').toHaveLength(3);
-  expect(ranks[0], 'the root survived the re-voice').toBeCloseTo(440, 1);
+  expect(ranks[0], 'the root survived the re-voice').toBeCloseTo(220, 1);
   expect(ranks[1] / ranks[0], 'a just 5:4, not the tempered 1.2599').toBeCloseTo(1.25, 4);
   expect(ranks[1] / ranks[0]).not.toBeCloseTo(Math.pow(2, 4 / 12), 3);
 
@@ -116,15 +219,15 @@ test('the stack is just, and it re-voices while sounding', async ({ page }) => {
 // the failure this test exists for.
 test('the strip names its intervals, and the names follow the root', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
-  await expect(page.getByTestId('semi-7')).toHaveAttribute('aria-label', '5 — E5');
-  await expect(page.getByTestId('semi-4')).toHaveAttribute('aria-label', '3 — C♯5');
-  await expect(page.getByTestId('semi-16')).toHaveAttribute('aria-label', '10 — C♯6');
+  await expect(page.getByTestId('semi-7')).toHaveAttribute('aria-label', '5 — E4');
+  await expect(page.getByTestId('semi-4')).toHaveAttribute('aria-label', '3 — C♯4');
+  await expect(page.getByTestId('semi-16')).toHaveAttribute('aria-label', '10 — C♯5');
   // the readout is the chord, by name, in pitch order
-  await expect(page.getByTestId('chord')).toHaveText('A4  E5');
+  await expect(page.getByTestId('chord')).toHaveText('A3  E4');
 
-  await page.getByTestId('refnote').click();          // A4 → A♯4
-  await expect(page.getByTestId('semi-7'), 'the fifth above A♯4').toHaveAttribute('aria-label', '5 — F5');
-  await expect(page.getByTestId('chord')).toHaveText('A♯4  F5');
+  await page.getByTestId('refnote').click();          // A3 → A♯3
+  await expect(page.getByTestId('semi-7'), 'the fifth above A♯3').toHaveAttribute('aria-label', '5 — F4');
+  await expect(page.getByTestId('chord')).toHaveText('A♯3  F4');
 });
 
 // THE VOICE IS A SETTING (the user's refinement: "i like 05 the section. but also the organ
@@ -180,17 +283,20 @@ test('the voice is a setting, and it changes a sounding drone', async ({ page })
 // answers that. A rectangle check would pass on a transparent element still taking the click.
 test('the stack strip does not intercept the foot line', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
+  // WHAT IS ON THE FOOT LINE CHANGED (the note control moved onto the figure and the foot's
+  // copy was deleted), so what the strip must not cover is the VOICE selector. The claim is
+  // unchanged: a 40px cell in a row above must not steal clicks from the row below.
   const hit = await page.evaluate(() => {
-    const r = document.getElementById('mt-refnote')!.getBoundingClientRect();
+    const r = document.querySelector('[data-testid="voice-cello"]')!.getBoundingClientRect();
     const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) as HTMLElement;
-    return { id: el?.id ?? null, semi: el?.dataset?.semi ?? null };
+    return { id: el?.dataset?.testid ?? el?.id ?? null, semi: el?.dataset?.semi ?? null };
   });
-  expect(hit.semi, 'a strip cell must not be over the note control').toBeNull();
-  expect(hit.id).toBe('mt-refnote');
+  expect(hit.semi, 'a strip cell must not be over the voice selector').toBeNull();
+  expect(hit.id).toBe('voice-cello');
 
   // and the control still works, which is the thing the interception broke
-  await page.getByTestId('refnote').click();
-  await expect(page.getByTestId('refnote')).toHaveText('A♯4');
+  await page.getByTestId('voice-cello').click();
+  await expect(page.getByTestId('voice-cello')).toHaveAttribute('aria-pressed', 'true');
 
   // EVERY CELL CLEARS 24px on its short axis (WCAG 2.5.8). Seventeen cells in a 154px case
   // cannot be 44 wide — 8.1px is what the case allows — so the HEIGHT carries the target, and
@@ -251,27 +357,40 @@ test('the letter carries the sounding state', async ({ page }) => {
     .toBe(rest);
 });
 
-// THE FIGURE IS THE SWITCH, the same shortcut the dial and the pendulum carry — and the
-// foot line must NOT fire it. Both halves asserted, because the caption latch sits INSIDE
-// the click target and only stopPropagation keeps a press on `start` from toggling twice
-// and netting to nothing.
-test('the figure starts and stops it; the foot line does not', async ({ page }) => {
+// THE MIDDLE'S AIR IS THE SWITCH — the figure inside it is NOT, any more.
+// This test asserted the opposite until 2026-08-07, and the reversal is the point of the
+// change: the 72px letter became the PITCH control ("use the big one in center to change pitch
+// too like left to right sliding"), so a click on it must step the note and must NOT toggle the
+// sound. One 72px target cannot mean both — and of the two meanings, pitch is the one the user
+// asked for and the one that needs the big target.
+// The shortcut itself survives on the air AROUND the letter, which is what the dial and the
+// pendulum offer on their own cases.
+test('the middle toggles it; the figure sets the pitch instead', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
   const toggle = page.getByTestId('drone-toggle');
+  const figure = page.locator('#mt-dnote');
 
-  await page.locator('#mt-dnote').click();
+  // the air beside the figure, inside `.mt-mid`
+  const mid = (await page.locator('.mt-drone .mt-mid').boundingBox())!;
+  const fig = (await figure.boundingBox())!;
+  const air = { x: (mid.x + fig.x) / 2, y: fig.y + fig.height / 2 };
+
+  await page.mouse.click(air.x, air.y);
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('#mt-dnote').click();
+  await page.mouse.click(air.x, air.y);
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
 
-  // The caption latch: one press, one net change.
+  // The caption latch: one press, one net change. It sits INSIDE the click target, so only
+  // stopPropagation keeps a press on it from toggling twice and netting to nothing.
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
 
-  // The note scrub sits in the foot line, OUTSIDE .mt-mid — stepping the note must not
-  // start the drone.
-  await page.getByTestId('refnote').click();
-  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  // THE FIGURE STEPS THE PITCH AND LEAVES THE SOUND ALONE — the same stopPropagation contract,
+  // on the control that replaced the foot line's.
+  await expect(figure).toHaveText('A3');
+  await figure.click();
+  await expect(figure, 'the click stepped the pitch').toHaveText('A♯3');
+  await expect(toggle, 'and did not start the drone').toHaveAttribute('aria-pressed', 'false');
 });

@@ -214,8 +214,9 @@ test('the control labels are lowercase; the READOUT keeps its case', async ({ pa
       .filter((t) => t !== t.toLowerCase()));
   expect(caps, 'every .mt-lb is lowercase').toEqual([]);
 
-  // The readout, for contrast: the reference-tone button still names a real note.
-  await expect(page.getByTestId('refnote')).toHaveText('A4');
+  // The readout, for contrast: the drone's figure still names a real note (A3 by default since
+  // 2026-08-07 — the register a cello drones in).
+  await expect(page.getByTestId('refnote')).toHaveText('A3');
 });
 
 test('CLICKING THE MARK toggles the accent, and the rule agrees', async ({ page }) => {

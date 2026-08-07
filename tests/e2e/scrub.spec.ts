@@ -11,24 +11,28 @@ import { test, expect } from '@playwright/test';
 // removed, so the tests move to the unit and gain the negative case: dragging the field
 // must now do nothing.
 
+// THE NOTE CONTROL IS THE FIGURE NOW (user, 2026-08-07: "use the big one in center to change
+// pitch too like left to right sliding"), and its step is 14px per semitone rather than the
+// 8px the small foot handle used — a 72px target invites a bigger sweep, and at 8px a casual
+// drag across the letter crossed nine semitones. The `refnote` testid moved with the role.
 test('the reference note scrubs on horizontal drag', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
   const note = page.getByTestId('refnote');
-  await expect(note).toHaveText('A4');
+  await expect(note).toHaveText('A3');
 
   const box = (await note.boundingBox())!;
   const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
-  // drag RIGHT 32px = +4 semitones (8px per step): A4 → C♯5 — one axis for
+  // drag RIGHT 56px = +4 semitones (14px per step): A3 → C♯4 — one axis for
   // every value now (round16), right = higher like a keyboard
   await page.mouse.move(cx, cy);
   await page.mouse.down();
-  await page.mouse.move(cx + 32, cy, { steps: 8 });
+  await page.mouse.move(cx + 56, cy, { steps: 8 });
   await page.mouse.up();
-  await expect(note).toHaveText('C♯5');
+  await expect(note).toHaveText('C♯4');
 
   // the drag must NOT also fire the click-step (drag suppresses click)
   await page.waitForTimeout(100);
-  await expect(note).toHaveText('C♯5');
+  await expect(note).toHaveText('C♯4');
 });
 
 const dragBy = async (page: any, locator: any, dx: number) => {

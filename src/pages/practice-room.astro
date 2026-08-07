@@ -384,8 +384,26 @@ import Layout from '../layouts/Layout.astro';
           </span>
         </div>
         <div class="mt-mid">
-          <figure class="mt-gauge mt-dfig" aria-hidden="true">
-            <span class="mt-dnote" id="mt-dnote">A</span>
+          <!-- ── THE FIGURE IS THE PITCH CONTROL (user, 2026-08-07: "use the big one in center
+               to change pitch too like left to right sliding") ──────────────────────────
+               It was a `<figure aria-hidden>` — a drawing, inert, with the note set from a
+               small control on the foot line. Now the drawing IS the control: drag it left or
+               right to scrub the pitch, click to step up, shift-click down, arrows when
+               focused. Same gesture as every other value on this screen (round16: one drag
+               axis for all values, right = higher), on the largest target the page has.
+               AND IT NAMES THE OCTAVE NOW — `A3`, not `A`. Three copies of one note is what
+               the earlier build was criticised for and the answer then was to delete the
+               reading between them; the user's call here goes further and better: the FIGURE
+               carries the full value and the two small copies go. One statement of the note,
+               at the size you can read from a stand, and it is the thing you operate.
+               STILL A `<figure>` semantically — it is the case's drawing — but a real
+               `<button>` so it is focusable, announced, and keyboard-operable. The
+               `aria-hidden` had to go with the promotion: a control cannot be hidden from the
+               accessibility tree. -->
+          <figure class="mt-gauge mt-dfig">
+            <button type="button" class="mt-dnote" id="mt-dnote" data-testid="refnote"
+              aria-label="Drone pitch — drag horizontally to scrub, click to raise, shift-click to lower"
+              title="drag ↔ · click +1 · shift-click −1">A3</button>
           </figure>
           <!-- THE READ ROW HOLDS THE VERB, like the other two. It briefly held `A4` — the
                sounding pitch with its octave, under the letter that names it without one —
@@ -411,15 +429,15 @@ import Layout from '../layouts/Layout.astro';
         </div>
 
         <div class="mt-cfoot">
-          <span class="mt-fl">
-            <!-- THE VALUE IS THE CONTROL (steppers Q1/02), horizontal drag (round16):
-                 click steps up, shift-click down, drag scrubs, arrows step when focused.
-                 This is the tuner's old refnote control, moved — same gesture, same
-                 testid contract, now naming the drone's own note. -->
-            <button type="button" class="tbtn scrubv" id="mt-refnote" data-testid="refnote"
-              aria-label="Drone note — click to raise, shift-click to lower, drag horizontally to scrub"
-              title="click +1 · shift-click −1 · drag ↔"><span class="w">A4</span></button>
-          </span>
+          <!-- THE FOOT'S NOTE CONTROL IS GONE (user, 2026-08-07: "can you not repeat a3 3
+               times, maybe the big one in center can say a3 and delete the other two").
+               It was `#mt-refnote`, the tuner's old reference-note scrub, moved here when the
+               drone got its own case. With the figure carrying the value AND the gesture,
+               this was the same fact drawn a second time with a smaller target — so it goes,
+               and the foot line holds only the voice.
+               The `refnote` TESTID moves to the figure rather than being retired, because the
+               contract "the thing that names and sets the drone's note" is unchanged; only
+               which element carries it moved. Three e2e specs drive it by that id. -->
           <span class="mt-fr">
             <!-- THE VOICE IS A SETTING (user, 2026-08-07: "i like 05 the section. but also the
                  organ pair maybe it can be a setting?"). Three voices, one selector, and it is
@@ -1396,7 +1414,15 @@ import Layout from '../layouts/Layout.astro';
     /* the figure's own width, not the six-column measure the arcs use: a glyph has no
        aspect ratio to preserve, so it centres on the axis and takes what it needs */
     width:100%}
-  .mt-dnote{font-size:72px;line-height:1;font-weight:400;color:var(--ink);
+  /* IT IS A BUTTON NOW (the pitch control), so it needs the reset — a UA button brings its own
+     font, border, background and padding, any of which would stop this being the figure. And it
+     needs the scrub affordance the page's other value controls use: `ew-resize` for the axis,
+     `touch-action:none` so the phone's snap-scroller does not steal the horizontal drag (the
+     same pair every scrub handle here carries). */
+  .mt-dnote{-webkit-appearance:none;appearance:none;background:transparent;border:0;
+    border-radius:0;padding:0;margin:0;font-family:inherit;
+    cursor:ew-resize;touch-action:none;
+    font-size:72px;line-height:1;font-weight:400;color:var(--ink);
     /* Optical, and measured: a cap-height glyph's line box carries its descender space, so
        the letter's INK centre sits 7.5px below the box centre in this face at this size —
        which put it 7.5px off the axis the dial and the verb sit on. The nudge is stated as
@@ -1409,6 +1435,13 @@ import Layout from '../layouts/Layout.astro';
      same value change. The accent is what this system uses for "you can act on this", and
      a sounding drone is the one thing on the screen actively doing something. */
   .mt-drone[data-sounding="true"] .mt-dnote{color:var(--accent)}
+  /* IN HAND reads accent, like every other value on this screen mid-scrub. It is the same
+     colour the sounding state uses, which is not a collision: while you are dragging the
+     letter you are looking at the letter, and the two states never need to be told apart at a
+     glance — dragging is momentary and holds the pointer. */
+  .mt-dnote.scrubbing{color:var(--accent)}
+  .mt-dnote:hover{color:var(--accent)}
+  .mt-dnote:focus-visible{outline:1px solid var(--accent);outline-offset:4px}
   /* The exact pitch, in the `read` row — the row the tuner uses for its reading and the
      metronome leaves empty. On the axis, like every reading on this screen. */
   /* No `.mt-dread` / `.mt-dfull` rules: the exact reading they styled is deleted (see the
@@ -1792,6 +1825,7 @@ import Layout from '../layouts/Layout.astro';
                 readonly droneRanks: number[];
                 readonly droneVoice: string | null;
                 readonly droneStack: number[];
+                droneHz: () => Promise<number | null>;
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
@@ -1816,6 +1850,58 @@ import Layout from '../layouts/Layout.astro';
     // asserting the sampled voice has to be able to tell those apart.
     get droneVoice() { return toneGain ? activeVoice() : null; },
     get droneStack() { return [...stack].sort((x, y) => x - y); },
+    // ── THE PITCH THAT IS ACTUALLY COMING OUT, measured off an analyser on the drone's own
+    // gain node. This exists because of the octave bug: `toneHz` reports the frequency the code
+    // INTENDED, and the ratio assertions compare ranks to each other, so a voice playing an
+    // octave high with perfectly just intervals satisfied every check while sounding wrong.
+    // Only an absolute measurement of the SIGNAL can catch a transposition — for the sampled
+    // voices especially, where the pitch is a buffer's content times a playback rate and
+    // nothing in the graph states it.
+    // Autocorrelation rather than an FFT bin: at 220 Hz a 2048-bin FFT over 48 kHz has 23 Hz
+    // buckets, which is 170 cents — too coarse to tell A3 from A♯3, let alone to check cents.
+    droneHz(): Promise<number | null> {
+      if (!toneGain || !ctx) return Promise.resolve(null);
+      const ac = ctx;
+      const an = ac.createAnalyser();
+      an.fftSize = 8192;
+      toneGain.connect(an);
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const buf = new Float32Array(an.fftSize);
+          an.getFloatTimeDomainData(buf);
+          try { toneGain?.disconnect(an); } catch {}
+          const sr = ac.sampleRate;
+          const minLag = Math.floor(sr / 700), maxLag = Math.floor(sr / 60);
+          let mean = 0;
+          for (let i = 0; i < buf.length; i++) mean += buf[i];
+          mean /= buf.length;
+          const w = Array.from(buf, (v) => v - mean);
+          const vals: number[] = [];
+          let best = -2, bestLag = minLag;
+          for (let lag = minLag; lag < maxLag; lag++) {
+            let ac2 = 0, norm = 0;
+            for (let i = 0; i < w.length - maxLag; i += 2) {
+              const a = w[i], b = w[i + lag];
+              ac2 += a * b;
+              norm += a * a + b * b;
+            }
+            const v = norm ? (2 * ac2) / norm : 0;
+            vals[lag] = v;
+            if (v > best) { best = v; bestLag = lag; }
+          }
+          let lag = bestLag;
+          for (let L = minLag + 1; L < maxLag - 1; L++) {
+            if (vals[L] >= 0.85 * best && vals[L] >= vals[L - 1] && vals[L] >= vals[L + 1]) {
+              lag = L;
+              break;
+            }
+          }
+          const y0 = vals[lag - 1] ?? vals[lag], y1 = vals[lag], y2 = vals[lag + 1] ?? vals[lag];
+          const d = 2 * (2 * y1 - y0 - y2);
+          resolve(sr / (lag + (d ? (y0 - y2) / d : 0)));
+        }, 260);
+      });
+    },
     get ctx() { return ctx; },
     get mic() { return analyser; },
   };
@@ -2255,11 +2341,18 @@ import Layout from '../layouts/Layout.astro';
   // The engine is the same two-rank organ plus one new rank, the fifth.
   const toneBtn = $('mt-drone') as unknown as HTMLButtonElement;
   const droneCase = document.querySelector('.mt-drone') as HTMLElement;
-  const refNoteEl = $('mt-refnote');
-  const dNoteEl = $('mt-dnote');    // the figure: the letter alone (no octave — that is on
-                                    // the foot control, which prints the full A4)
-  let refMidi = Number(store.get('mt:ref')) || 69; // A4
-  if (!Number.isInteger(refMidi) || refMidi < 36 || refMidi > 96) refMidi = 69;
+  // THE FIGURE IS THE NOTE CONTROL — same element as `dNoteEl` now (the 72px letter), where
+  // it used to be a separate small button on the foot line. Kept as two names because the two
+  // ROLES are still distinct (one is the value's control, one is the case's figure) and the
+  // code below reads better for it, but they resolve to one node: a single place to paint.
+  const refNoteEl = $('mt-dnote');
+  const dNoteEl = refNoteEl;        // the same node; see the note on refNoteEl
+  // A3 IS THE DEFAULT (user, 2026-08-07: "can the default be a3"). 57, not A4's 69 — the
+  // register a cello actually drones in, and the pitch of the samples' own A. A4 was inherited
+  // from when this was the tuner's reference PIP, where concert A is the obvious default; a
+  // drone you play against for twenty minutes is a different instrument with a different one.
+  let refMidi = Number(store.get('mt:ref')) || 57;
+  if (!Number.isInteger(refMidi) || refMidi < 36 || refMidi > 96) refMidi = 57;
   // ── THE STACK, AND THE VOICE ────────────────────────────────────────────────
   // Two changes from the single `fifth` latch, both from chooser `practice-room-drone-stack`
   // (picked 2026-08-07): the stack is every interval up to a major 10th, switched
@@ -2332,13 +2425,16 @@ import Layout from '../layouts/Layout.astro';
   // ONE function writes every place the drone's note appears: the scrub control, the
   // 72px figure and the exact reading. Three copies of one value is three chances to
   // drift, and the figure is the one a reader trusts from across the room.
+  // ONE PLACE, ONE VALUE (user, 2026-08-07: "can you not repeat a3 3 times"). This wrote the
+  // note to two elements at two precisions — the figure got the bare letter, the foot control
+  // got letter+octave. Both are now the same node, so writing twice would have the second
+  // write silently win: the figure would have shown `A` where the label promised `A3`.
+  // THE FIGURE CARRIES THE OCTAVE. `A` alone cannot be acted on — a cellist tuning to a drone
+  // needs to know which A — and now that the figure is also the control, the thing you drag
+  // has to state the value you are setting.
   function refLabel() {
     const name = NOTE_NAMES[((refMidi % 12) + 12) % 12];
-    // TWO PLACES, at two precisions: the figure carries the letter (what you read from a
-    // stand) and the foot control carries letter + octave (the value you set). One function
-    // writes both, so they cannot drift.
-    setWord(refNoteEl, `${name}${Math.floor(refMidi / 12) - 1}`);
-    if (dNoteEl) dNoteEl.textContent = name;
+    refNoteEl.textContent = `${name}${Math.floor(refMidi / 12) - 1}`;
   }
   refLabel();
 
@@ -2404,22 +2500,34 @@ import Layout from '../layouts/Layout.astro';
   paintStack();
   paintVoice();
 
-  // THE VALUE IS THE CONTROL (Q1/02). One element, four inputs:
-  // click +1 · shift-click −1 · vertical drag scrubs (8px per semitone; the
-  // primary touch gesture) · ArrowUp/Down when focused. A drag suppresses the
-  // click that follows it (pointerup fires click), else every scrub also steps.
+  // THE FIGURE IS THE CONTROL (user, 2026-08-07). One element, four inputs:
+  // horizontal drag scrubs · click +1 · shift-click −1 · ArrowUp/Down when focused. A drag
+  // suppresses the click that follows it (pointerup fires click), else every scrub also steps.
+  //
+  // 14px PER SEMITONE, not the 8px the small foot control used. The gesture moved onto a 72px
+  // glyph, and a target that big invites a bigger sweep: at 8px a casual drag across the letter
+  // crossed nine semitones, which is uncontrollable. 14px puts the case's full 156px of width at
+  // about eleven semitones — a range you can land on a note inside. The other scrub handles keep
+  // their own numbers; this one's is set by the size of the thing you are dragging.
+  //
+  // AND IT MUST NOT START THE DRONE. The figure sits inside `.mt-mid`, which is itself a
+  // click-to-start target (the same shortcut the dial and the pendulum carry). Without
+  // stopPropagation every pitch step would also toggle the sound — the exact double-fire the
+  // caption latch already guards against. `pointerdown` is stopped too, or a drag on the letter
+  // would start the drone before the drag was even recognised as a drag.
   {
     let dragX: number | null = null;
     let dragStart = 0;
     let dragged = false;
     refNoteEl.addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
       dragX = e.clientX; dragStart = refMidi; dragged = false;
       refNoteEl.classList.add('scrubbing');
       (refNoteEl as HTMLElement).setPointerCapture(e.pointerId);
     });
     refNoteEl.addEventListener('pointermove', (e) => {
       if (dragX === null) return;
-      const d = Math.round((e.clientX - dragX) / 8);
+      const d = Math.round((e.clientX - dragX) / 14);
       if (d !== 0) dragged = true;
       const m = Math.min(96, Math.max(36, dragStart + d));
       if (m !== refMidi) {
@@ -2429,6 +2537,7 @@ import Layout from '../layouts/Layout.astro';
     });
     refNoteEl.addEventListener('pointerup', () => { dragX = null; refNoteEl.classList.remove('scrubbing'); });
     refNoteEl.addEventListener('click', (e) => {
+      e.stopPropagation();                 // `.mt-mid` is a start/stop target — see above
       if (dragged) { dragged = false; return; }
       stepRef(e.shiftKey ? -1 : 1);
     });
@@ -2449,7 +2558,7 @@ import Layout from '../layouts/Layout.astro';
   // RAW int16 IN ONE BLOB, not three wavs and not decodeAudioData: one request, no header
   // parsing, and no async decode — a decode would make the first press arrive late, and
   // "the drone starts a beat after you press it" reads as a broken instrument.
-  type Cello = { rate: number; bufs: { midi: number; buf: AudioBuffer }[] };
+  type Cello = { rate: number; bufs: { midi: number; cents: number; buf: AudioBuffer }[] };
   let cello: Cello | null = null;
   let celloLoad: Promise<Cello | null> | null = null;
   function loadCello(): Promise<Cello | null> {
@@ -2462,13 +2571,14 @@ import Layout from '../layouts/Layout.astro';
           fetch(`${base}/cello.bin`).then((r) => r.arrayBuffer()),
         ]);
         const ac = audio();
-        const bufs = meta.notes.map((n: { midi: number; byteOffset: number; frames: number }) => {
-          const pcm = new Int16Array(bin, n.byteOffset, n.frames);
-          const buf = ac.createBuffer(1, n.frames, meta.rate);
-          const d = buf.getChannelData(0);
-          for (let i = 0; i < n.frames; i++) d[i] = pcm[i] / 32768;
-          return { midi: n.midi, buf };
-        });
+        const bufs = meta.notes.map(
+          (n: { midi: number; cents?: number; byteOffset: number; frames: number }) => {
+            const pcm = new Int16Array(bin, n.byteOffset, n.frames);
+            const buf = ac.createBuffer(1, n.frames, meta.rate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < n.frames; i++) d[i] = pcm[i] / 32768;
+            return { midi: n.midi, cents: n.cents ?? 0, buf };
+          });
         cello = { rate: meta.rate, bufs };
         return cello;
       } catch {
@@ -2577,7 +2687,15 @@ import Layout from '../layouts/Layout.astro';
       // playbackRate FROM THE FREQUENCY RATIO, never from a semitone count: the intervals
       // are just, so the target is root × 5/4 and not root × 2^(4/12). A rate derived from
       // semitones would quietly temper the whole stack.
-      src.playbackRate.value = f / midiToFreq(s.midi, a4);
+      // THE RECORDING'S OWN DETUNE IS DIVIDED OUT. `s.cents` is how far this loop sits from the
+      // note it is named — measured on every build (see build-cello-samples.py), and for the B3
+      // sample it is −27.5¢, a quarter of a semitone flat. Without this the drone inherits the
+      // players' tuning on the day, and a drone a player TUNES TO cannot be a quarter-semitone
+      // off: the spread of the recording must not become the pitch of the instrument.
+      // Dividing the ratio (rather than adding to `detune`) keeps the correction in the same
+      // place as the pitch it corrects, so a sample and its offset cannot be applied apart.
+      const srcHz = midiToFreq(s.midi, a4) * Math.pow(2, (s.cents || 0) / 1200);
+      src.playbackRate.value = f / srcHz;
       if (src.detune) src.detune.value = cents;
       const g = ac.createGain();
       g.gain.value = lvl * 0.55;
@@ -2740,7 +2858,11 @@ import Layout from '../layouts/Layout.astro';
   // carry, so all three cases answer a tap in the middle. The foot line's controls sit
   // OUTSIDE `.mt-mid`, so they cannot double-fire through it; the caption latch is inside
   // it and stops propagation, exactly as the other two cases' do.
-  document.getElementById('mt-dnote')?.closest('.mt-mid')?.addEventListener('click', () => {
+  // THE MIDDLE IS STILL THE SWITCH, but the FIGURE inside it is no longer part of that target:
+  // the letter is the pitch control now, and its own handlers stopPropagation so a step or a
+  // drag cannot toggle the sound. What is left of `.mt-mid` — the air around the letter — keeps
+  // answering a tap, which is the shortcut the dial and the pendulum also carry.
+  droneCase?.querySelector('.mt-mid')?.addEventListener('click', () => {
     droning() ? stopTone() : startTone();
   });
 
