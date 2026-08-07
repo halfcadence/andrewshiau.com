@@ -54,6 +54,7 @@ import Layout from '../layouts/Layout.astro';
 <Layout
   title="pitchgraph — Andrew Shiau"
   description="Play, and watch how far off the note you are in cents. Pitch detection runs on-device; the microphone signal never leaves the page."
+  onPracticeHost
 >
   <div class="grid">
     <div class="c1-12">
@@ -132,9 +133,14 @@ import Layout from '../layouts/Layout.astro';
 
   <div class="grid">
     <div class="c1-8">
+      <!-- THE TOOL, NOT THE WRITEUP. This host is for practising on: a link from one
+           instrument to another should hand you the other instrument, not an essay about
+           it. The case study is still linked from the site's index, which is where someone
+           reading rather than playing arrives. -->
       <p class="pg-note-copy">Nothing is recorded and nothing leaves the page — the
-        microphone signal is read in the browser and thrown away. <a href="/work/practice-room/">The
-        practice room</a> has the tuner, metronome and drone.</p>
+        microphone signal is read in the browser and thrown away.
+        <a href="https://practice.andrewshiau.com/">The practice room</a> has the tuner,
+        metronome and drone.</p>
     </div>
   </div>
 </Layout>

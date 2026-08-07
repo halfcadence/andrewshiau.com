@@ -316,12 +316,28 @@ swaps them on a `prefers-color-scheme` listener.
 | vhosts | `sites-available/andrewshiau`, `practiceandrewshiau`, `andrewshiau2018` |
 | Archive | the old React site at `https://2018.andrewshiau.com` |
 
-### Two hosts, one webroot — how the instrument is served
+### Two hosts, one webroot — how the practice tools are served
 
-`practice.andrewshiau.com` is the practice room's **only public address** (moved
-2026-08-07). Both vhosts have `root /var/www/andrewshiau`, so **one `./deploy.sh` feeds
-both** and the two can never serve different content — verified byte-identical, same
-ETag.
+`practice.andrewshiau.com` is **the practice host**: the tools you open to practise on,
+each at its only public address (moved 2026-08-07). Both vhosts have
+`root /var/www/andrewshiau`, so **one `./deploy.sh` feeds both** and the two can never
+serve different content — verified byte-identical, same ETag.
+
+| tool | its address | the apex path |
+|---|---|---|
+| practice room (tuner, metronome, drone) | `practice.andrewshiau.com/` | `/practice-room/` → 301 |
+| pitchgraph (the intonation trace) | `practice.andrewshiau.com/pitchgraph/` | `/pitchgraph/` → 301 |
+
+**Adding a tool is three things**, and the e2e table in `tests/e2e/page.spec.ts` fails
+until all three are done: pass `onPracticeHost` to `Layout` (moves the canonical), add a
+`location ^~` on the practice vhost (its catch-all 301s anything unknown to the apex, so a
+missing block shows up as a redirect where a 200 belongs), and add the 301 on the apex
+vhost. The sitemap exclusion in `astro.config.mjs` is asserted by a *relationship* test —
+no sitemap URL may name a page declaring a different canonical — so that one goes red on
+the build rather than needing to be remembered.
+
+Case studies stay on the apex (`/work/practice-room/`). The practice host links tools to
+tools: if you are there, you came to play, not to read.
 
 The part worth understanding before changing either vhost, because it is easy to get
 backwards:

@@ -138,11 +138,17 @@ export default defineConfig({
         !page.includes('/work/stores-designer/') &&
         !page.includes('/stories/') &&
         !page.includes('/gate/') &&
-        // The instrument ONLY. Anchored on the host, not just the path ending: a
-        // `/practice-room\/$` regex also matches /work/practice-room/ and silently
-        // dropped the case study from the sitemap — caught by the complement test in
-        // tests/unit/built-html.test.ts, which exists for exactly this over-reach.
-        !/^https?:\/\/[^/]+\/practice-room\/$/.test(page),
+        // EVERY PAGE WHOSE ADDRESS IS ON practice.andrewshiau.com. The apex path 301s to
+        // that host, and the page declares it canonical, so advertising the apex URL here
+        // asks a crawler to index a URL the page itself disowns.
+        //
+        // Anchored on the host, not just the path ending: a `/practice-room\/$` regex also
+        // matches /work/practice-room/ and silently dropped the case study — caught by the
+        // complement test in tests/unit/built-html.test.ts, which exists for that
+        // over-reach. Adding /pitchgraph/ here was likewise not a guess: the relationship
+        // test ("no sitemap URL may name a page declaring a different canonical") went red
+        // on the build, which is the whole reason it is a rule and not a list.
+        !/^https?:\/\/[^/]+\/(practice-room|pitchgraph)\/$/.test(page),
     }),
   ],
 });

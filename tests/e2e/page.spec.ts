@@ -203,3 +203,49 @@ test('the apex sends the instrument to its own host, query intact', async ({ req
   expect(onSub.status()).toBe(200);
   expect((await onSub.json()).start_url).toBe('/');
 });
+
+// THE PRACTICE HOST IS FOR TOOLS, and every tool on it follows the same rule: served
+// there, redirected from the apex, canonical naming the practice address. Asserted as a
+// TABLE rather than one test per tool, so adding the next tool is a one-line change here
+// and a red test if the routing is forgotten.
+//
+// This exists because the practice-room version of this claim sat in a comment for two
+// days while being false — the apex served the page at 200 the whole time. A routing
+// claim that nothing checks is a routing claim that drifts.
+const PRACTICE_TOOLS = [
+  { path: '/practice-room/', canonical: 'https://practice.andrewshiau.com/' },
+  { path: '/pitchgraph/', canonical: 'https://practice.andrewshiau.com/pitchgraph/' },
+];
+
+test('every practice tool is served on the practice host and disowned by the apex',
+  async ({ request }) => {
+    // LIVE-ONLY, and the skip is the honest part: these are absolute production URLs, so
+    // running this against `astro preview` would report on the deployed site while
+    // pretending to test the build in front of it — a green that means nothing about the
+    // change you just made. It runs on the live-verify pass, where E2E_BASE_URL is set.
+    test.skip(!process.env.E2E_BASE_URL, 'routing is a deployment fact; run with E2E_BASE_URL');
+    for (const tool of PRACTICE_TOOLS) {
+      // Served, with its assets, on the practice host. The host's catch-all 301s anything
+      // it does not know to the apex, so a missing location block shows up as a redirect
+      // where a 200 belongs — which is the likeliest way adding a tool goes wrong.
+      const live = await request.get(tool.canonical, { maxRedirects: 0 });
+      expect(live.status(), `${tool.canonical} must be served here`).toBe(200);
+      const html = await live.text();
+      expect(html, `${tool.path} must declare its own canonical`)
+        .toContain(`<link rel="canonical" href="${tool.canonical}">`);
+
+      // Every asset it references must resolve ON this host, not just on the apex.
+      const assets = [...html.matchAll(/(?:href|src)="(\/_astro\/[^"]+)"/g)].map((m) => m[1]);
+      expect(assets.length, `${tool.path} referenced no bundled assets — did it build?`)
+        .toBeGreaterThan(0);
+      for (const a of assets.slice(0, 6)) {
+        const r = await request.get(`https://practice.andrewshiau.com${a}`, { maxRedirects: 0 });
+        expect(r.status(), `${a} on the practice host`).toBe(200);
+      }
+
+      // And the apex path hands it over rather than serving a second copy.
+      const apex = await request.get(`https://andrewshiau.com${tool.path}`, { maxRedirects: 0 });
+      expect(apex.status(), `apex ${tool.path} must redirect`).toBe(301);
+      expect(apex.headers().location).toBe(tool.canonical);
+    }
+  });
