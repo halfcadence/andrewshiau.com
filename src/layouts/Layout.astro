@@ -63,9 +63,20 @@ const ogImage = new URL('/og.png', Astro.site).href;
 
 // THE APP'S ADDRESS IS THE SUBDOMAIN (2026-08-05, the round-11 direction executed at
 // last): practice.andrewshiau.com serves this page at ITS ROOT off the same webroot —
-// the nginx vhost rewrites / to /practice-room/index.html — and the apex path 301s
-// there. One build, two hosts, so the canonical must be stated absolutely or the copy
-// served on the subdomain would point search engines back into a redirect.
+// the nginx vhost rewrites / to /practice-room/index.html. One build, two hosts, so the
+// canonical must be stated absolutely or the copy served on the subdomain would point
+// search engines back into a redirect.
+//
+// AND AS OF 2026-08-07 THE APEX PATH REALLY DOES 301 THERE. This comment claimed it did
+// from the day the subdomain shipped, but it did not: the apex vhost had no rule for
+// /practice-room/, so its generic `location /` catch-all served the page at 200 and the
+// instrument had two live addresses. Now `location ^~ /practice-room/` on the apex vhost
+// returns 301 to the subdomain, keeping $is_args$args.
+//
+// The distinction that made the move possible, since it is easy to get backwards: the
+// FILES under /practice-room/ must stay — the subdomain reads index.html by filesystem
+// try_files against this webroot, and one build feeds both — but the apex URL is a
+// routing choice and could always be retired. Redirecting a URL is not deleting a file.
 const canonical = installable
   ? 'https://practice.andrewshiau.com/'
   : new URL(Astro.url.pathname, Astro.site).href;

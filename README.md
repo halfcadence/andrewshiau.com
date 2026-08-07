@@ -313,8 +313,33 @@ swaps them on a `prefers-color-scheme` listener.
 | Host | `104.236.237.122`, Ubuntu 18.04, NYC3, 512 MB. SSH alias `droplet` |
 | Server | nginx 1.14.0, certbot 0.27 (`certbot.timer` active, auto-renew) |
 | Webroot | `/var/www/andrewshiau` — the `rsync --delete` target, built output only |
-| vhosts | `sites-available/andrewshiau`, `andrewshiau2018` |
+| vhosts | `sites-available/andrewshiau`, `practiceandrewshiau`, `andrewshiau2018` |
 | Archive | the old React site at `https://2018.andrewshiau.com` |
+
+### Two hosts, one webroot — how the instrument is served
+
+`practice.andrewshiau.com` is the practice room's **only public address** (moved
+2026-08-07). Both vhosts have `root /var/www/andrewshiau`, so **one `./deploy.sh` feeds
+both** and the two can never serve different content — verified byte-identical, same
+ETag.
+
+The part worth understanding before changing either vhost, because it is easy to get
+backwards:
+
+| | |
+|---|---|
+| `practice.andrewshiau.com/` | **200.** `location = /` does `try_files /practice-room/index.html` — a **filesystem** lookup, not an HTTP request to the apex |
+| `andrewshiau.com/practice-room/` | **301** to the subdomain, keeping `$is_args$args` |
+| `practice.andrewshiau.com/practice-room/…` | **200.** Its own `location ^~` serves the manifest and icons from here |
+| `practice.andrewshiau.com/practice-room/manifest.json` | **200,** but serves `manifest-root.json` — same URL, host-specific file, so `start_url`/`scope` can be `/` for the home-screen app |
+
+So the **files** under `dist/practice-room/` must exist; the **apex URL** was only ever a
+routing choice. Redirecting a URL is not deleting a file — that confusion is what kept
+the duplicate address alive for two days.
+
+Non-app paths on the subdomain 301 to the apex, so the subdomain is not a second copy of
+the site. And `$is_args$args` on every one of these redirects is deliberate: dropping
+`?e2e` once broke 21 tests.
 
 Certs were added with `certbot --nginx` rather than swapping in Caddy: nginx was already
 healthy serving every vhost, so adding certs in place had far lower blast radius than

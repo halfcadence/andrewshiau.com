@@ -98,13 +98,29 @@ test('all three transports take focus', async ({ page }) => {
   }
 });
 
+// WHERE THE INSTRUMENT LIVES, PER HOST. `/practice-room/` is no longer a page on the
+// apex — as of 2026-08-07 it 301s to practice.andrewshiau.com, so the instrument has one
+// public address. These two specs used to `goto('/practice-room/')` unconditionally and
+// went red the moment the redirect shipped: Playwright followed it to the subdomain while
+// `request.get()` stayed on the configured baseURL, so the page and the fetched files were
+// on different hosts. That is a correct failure, and the fix is to ask each host for the
+// instrument at the address that host serves it from.
+//
+// Local preview has no subdomain vhost, so there the path IS still the instrument.
+const ON_SUBDOMAIN = (process.env.E2E_BASE_URL || '').includes('practice.');
+const APEX_REDIRECTS = /^https?:\/\/(www\.)?andrewshiau\.com/.test(process.env.E2E_BASE_URL || '');
+const INSTRUMENT = ON_SUBDOMAIN ? '/' : '/practice-room/';
+
 // THE HOME-SCREEN INSTALL CONTRACT (Layout's `installable` prop). What iOS actually
 // reads: `apple-touch-icon` for the tile, the manifest for standalone display. The
 // assertions fetch both referenced files and decode the icon's header — a link whose
 // target 404s (or, on this nginx, answers 200 with index.html typed text/html) is the
 // favicon-square bug again, and only checking bytes catches it.
 test('home-screen install: manifest + touch icon resolve and are real', async ({ page, request }) => {
-  await page.goto('/practice-room/');
+  // On the apex the instrument is not a page any more, so the contract there is the
+  // REDIRECT, asserted below in its own test rather than skipped silently.
+  test.skip(APEX_REDIRECTS, 'the apex 301s the instrument to its own host');
+  await page.goto(INSTRUMENT);
 
   const touchIcon = page.locator('link[rel="apple-touch-icon"]');
   await expect(touchIcon).toHaveAttribute('href', '/practice-room/icon-180.png');
@@ -124,7 +140,7 @@ test('home-screen install: manifest + touch icon resolve and are real', async ({
   expect(manifest.display).toBe('standalone');
   // Same link URL, host-specific file: the subdomain's vhost serves manifest-root.json
   // there (the app IS its root), the apex serves the path-scoped one.
-  const appRoot = (process.env.E2E_BASE_URL || '').includes('practice.') ? '/' : '/practice-room/';
+  const appRoot = ON_SUBDOMAIN ? '/' : '/practice-room/';
   expect(manifest.start_url).toBe(appRoot);
   expect(manifest.scope).toBe(appRoot);
   for (const icon of manifest.icons) {
@@ -137,7 +153,7 @@ test('home-screen install: manifest + touch icon resolve and are real', async ({
 test('the rest of the site does not carry the install head', async ({ page, baseURL }) => {
   // On practice.andrewshiau.com "/" IS the instrument, so this contract only exists
   // where "/" is the homepage — the apex and local preview.
-  test.skip((process.env.E2E_BASE_URL || '').includes('practice.'), 'subdomain serves the app at /');
+  test.skip(ON_SUBDOMAIN, 'subdomain serves the app at /');
   await page.goto('/');
   await expect(page.locator('link[rel="manifest"]')).toHaveCount(0);
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveCount(0);
@@ -148,7 +164,8 @@ test('the rest of the site does not carry the install head', async ({ page, base
 // must derive its base from the link (an is:inline script can't read frontmatter),
 // so the assertion pins the href it derives from.
 test('the instrument carries its own favicon set', async ({ page, request }) => {
-  await page.goto('/practice-room/');
+  test.skip(APEX_REDIRECTS, 'the apex 301s the instrument to its own host');
+  await page.goto(INSTRUMENT);
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/practice-room/favicon.svg');
   await expect(page.locator('#favico')).toHaveAttribute('href', /\/practice-room\/favicon(-dark)?\.ico/);
   for (const f of ['favicon.svg', 'favicon.ico', 'favicon-dark.ico']) {
@@ -160,8 +177,29 @@ test('the instrument carries its own favicon set', async ({ page, request }) => 
   }
   // The homepage keeps the site's — except on the subdomain, where / IS the instrument.
   await page.goto('/');
-  const homeIcon = (process.env.E2E_BASE_URL || '').includes('practice.')
-    ? '/practice-room/favicon.svg'
-    : '/favicon.svg';
+  const homeIcon = ON_SUBDOMAIN ? '/practice-room/favicon.svg' : '/favicon.svg';
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', homeIcon);
+});
+
+// THE MOVE ITSELF, as a contract. Skipping the two specs above on the apex would leave the
+// redirect untested — "it 301s now" is a claim, and an unasserted claim is how the old
+// comment in Layout.astro came to say the apex redirected for two days while it served 200.
+test('the apex sends the instrument to its own host, query intact', async ({ request }) => {
+  test.skip(!APEX_REDIRECTS, 'only the apex redirects; the subdomain and preview serve it');
+  for (const path of ['/practice-room/', '/practice-room']) {
+    const res = await request.get(path, { maxRedirects: 0 });
+    expect(res.status(), `${path} must be a permanent redirect`).toBe(301);
+    expect(res.headers().location).toBe('https://practice.andrewshiau.com/');
+  }
+  // The query has to survive: dropping ?e2e once broke 21 tests on the other vhost, and
+  // the same $is_args$args is what carries it here.
+  const withQuery = await request.get('/practice-room/?e2e', { maxRedirects: 0 });
+  expect(withQuery.headers().location).toBe('https://practice.andrewshiau.com/?e2e');
+
+  // And the files under the path must STILL be there, because the subdomain reads this
+  // same webroot. A redirect is not a deletion — that is the whole distinction the move
+  // rests on, so it is asserted rather than assumed.
+  const onSub = await request.get('https://practice.andrewshiau.com/practice-room/manifest.json');
+  expect(onSub.status()).toBe(200);
+  expect((await onSub.json()).start_url).toBe('/');
 });
