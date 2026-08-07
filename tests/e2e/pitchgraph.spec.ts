@@ -41,7 +41,10 @@ async function panelsAfter(page: Page, n: number, timeout = 30_000) {
 
 test('the page reads pitch at all, and names the note it hears', async ({ page }) => {
   await listen(page);
-  await expect(page.getByTestId('note')).toHaveText(/^[A-G]♯?\d$/, { timeout: 10_000 });
+  // ♯ OR ♭ — the naming module spells three of the five black keys flat (E♭/A♭/B♭), so a
+  // sharp-only pattern would reject a correct reading. It passed only because this fixture
+  // happens to play naturals: a latent failure waiting for the first E♭ anyone tests.
+  await expect(page.getByTestId('note')).toHaveText(/^[A-G][♯♭]?\d$/, { timeout: 10_000 });
   const cents = await page.getByTestId('cents').textContent();
   expect(cents).toMatch(/[+−]\d+\.\d¢/);
 });
@@ -49,7 +52,7 @@ test('the page reads pitch at all, and names the note it hears', async ({ page }
 test('a finished note prints its own panel, and the panel names the note', async ({ page }) => {
   await listen(page);
   const panels = await panelsAfter(page, 1);
-  expect(panels[0].note).toMatch(/^[A-G]♯?\d$/);
+  expect(panels[0].note).toMatch(/^[A-G][♯♭]?\d$/);   // ♭ too — see the note above
   // The DOM and the hook must agree — the hook is a verification aid, not the product.
   await expect(page.getByTestId('panel').first()).toBeVisible();
   const domNote = await page.getByTestId('panel').first().getAttribute('data-note');

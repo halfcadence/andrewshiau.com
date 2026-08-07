@@ -5,32 +5,16 @@
 // the tone generator and the tests all pass the same number in, so there is no copy
 // of "what is A" that can drift.
 
-// ── THE FIVE BLACK KEYS, SPELLED THE WAY MUSICIANS MEET THEM ─────────────────────
-// User call, 2026-08-07: "can u also assume flats/sharps for the more common one? like assume
-// eb over d# since its more common in key sigs."
-//
-// Every one of the five has two names for the same pitch, and the choice is not arbitrary —
-// it follows which key signatures actually occur. Counting the standard keys, flats outnumber
-// sharps for three of the five and sharps win the other two:
-//
-//   C♯/D♭ → C♯   (D♭ major has 5 flats; C♯ appears in D, A, E, B major — far commoner)
-//   D♯/E♭ → E♭   (E♭ major, B♭ major, C minor, G minor … D♯ needs 6+ sharps)
-//   F♯/G♭ → F♯   (G major onward; G♭ major has 6 flats)
-//   G♯/A♭ → A♭   (A♭ major, E♭ major, F minor, C minor … G♯ needs 5+ sharps)
-//   A♯/B♭ → B♭   (B♭ major, F major, G minor, D minor — the commonest black key of all)
-//
-// So: C♯ and F♯ stay sharp, and D♯/G♯/A♯ become E♭/A♭/B♭. That is the spelling on a wind
-// player's fingering chart and in every string method book, which is the test that matters —
-// this drone is for practising against, and a player should not have to translate.
-//
-// A NOTE ON WHAT THIS IS NOT: correct spelling depends on the KEY, and the instrument has no
-// key. B♭ in D major should read A♯. Offering a key selector to fix that would add a mode to
-// an instrument that has deliberately avoided them, so this picks the likelier name for each
-// pitch and accepts being wrong in sharp keys. The pitch is identical either way; only the
-// label moves.
-export const NOTE_NAMES = [
-  'C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B',
-] as const;
+// ── NAMING LIVES IN ITS OWN MODULE ────────────────────────────────────────────────
+// `NOTE_NAMES` was declared here and read by the tuner, the pitch graph and the drone, which
+// made this file the de-facto owner of two unrelated jobs: frequency↔MIDI arithmetic, and how a
+// pitch is SPELLED. Spelling turned out to need real music theory (an interval's letter depends
+// on the root — a minor third above E♭ is G♭, not F♯), so it moved to `naming.ts` and is
+// re-exported here. One place decides a note's name; this file keeps the maths.
+// (User call, 2026-08-07: "make some kind of centralized naming module and use it everywhere
+// like in the tuner".)
+export { NOTE_NAMES, nameOf, pitchClassOf, nameInChord, chordNames, octaveOf } from './naming';
+import { NOTE_NAMES as NAMES } from './naming';
 
 export const A4_MIN = 400;
 export const A4_MAX = 480;
@@ -62,7 +46,10 @@ export function freqToReading(freq: number, a4: number = A4_DEFAULT): Reading | 
   const cents = (exact - midi) * 100;
   return {
     midi,
-    name: NOTE_NAMES[((midi % 12) + 12) % 12],
+    // THE NAME COMES FROM `naming.ts`, so the tuner, the graph and the drone cannot disagree
+    // about what a pitch is called. A reading has no chord context — it is one pitch heard on
+    // its own — so it takes the context-free spelling.
+    name: NAMES[((midi % 12) + 12) % 12],
     octave: Math.floor(midi / 12) - 1,
     cents,
     freq,

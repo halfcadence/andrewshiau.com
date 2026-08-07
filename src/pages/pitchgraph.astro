@@ -325,6 +325,12 @@ import Layout from '../layouts/Layout.astro';
 <script>
   import { detectPitch } from '../lib/practice-room/pitch';
   import { freqToReading, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/practice-room/notes';
+  // ONE NAMING MODULE across the instrument (user, 2026-08-07). This page reads pitches heard on
+  // their own — an axis label, a panel's note — so it takes the context-free spelling, which is
+  // exactly what `freqToReading().name` already returns now that `notes.ts` delegates. `nameOf`
+  // is imported for the places that build a name from a MIDI number rather than a frequency, so
+  // those cannot drift from the readout beside them.
+  import { nameOf } from '../lib/practice-room/naming';
   import {
     createSegmenter, shown, centerWeighted, noteRuns,
     AXIS_LIMIT_CENTS, IN_TUNE_CENTS, PRACTICE_BANDS,
@@ -533,8 +539,11 @@ import Layout from '../layouts/Layout.astro';
     // listener's perception of pitch", and an attack overshoot is not intonation. A real
     // attack runs 40¢ sharp before settling; the flat mean would report that as sharp.
     const mean = centerWeighted(onAxis);
-    const r = freqToReading(a4 * 2 ** ((midi - 69) / 12), a4);
-    const name = r ? `${r.name}${r.octave}` : String(midi);
+    // NAMED FROM THE MIDI NUMBER, not from a frequency round-trip. It used to synthesise a Hz
+    // from the midi, hand it to `freqToReading`, and read the name back off the result — which
+    // works but routes an exact integer through two logarithms to get a string that `nameOf`
+    // answers directly. Same output, one less place for the axis and the readout to disagree.
+    const name = nameOf(midi);
 
     // Width in proportion to how long you held it (the sheet's Q1/07): a short note is
     // honestly narrow. Capped so one very long note cannot own the row.

@@ -107,6 +107,42 @@ test('the organ voice is exactly 220 Hz — the detector\'s own calibration', as
     .toBeLessThan(1);
 });
 
+// ── A CHORD IS SPELLED FROM ITS ROOT, WHICH IS NOT THE SAME AS SPELLING EACH PITCH ────
+// User call, 2026-08-07: "E♭4 F♯4 should actually read like eb gb, so for chords can u spell
+// based on the implied key of the root?" — correct theory, not a preference. An interval's name
+// is fixed by the LETTERS it spans: E to G is a third, E to F is a second, so nothing called a
+// third can be spelled F-anything above an E. The context-free table gives F♯ for that pitch,
+// which is right on its own and wrong inside an E♭ chord.
+// Driven through the REAL UI rather than the module's own unit tests (which cover the theory
+// exhaustively): the question here is whether the PAGE asks the right question — the strip and
+// readout using the chord-aware call, the figure deliberately not.
+test('the stack spells its intervals from the root, and the root keeps its own name', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  const figure = page.locator('#mt-dnote');
+  for (let i = 0; i < 6; i++) await page.getByTestId('refnote').click();   // A3 → E♭4
+  await expect(figure, 'the ROOT keeps the context-free spelling').toHaveText('E♭4');
+
+  // the user's exact example: a minor third above E♭ is G♭, never F♯
+  await expect(page.getByTestId('semi-3')).toHaveAttribute('aria-label', '♭3 — G♭4');
+  const third = await page.getByTestId('semi-3').getAttribute('aria-label');
+  expect(third, 'no F♯ in an E♭ chord').not.toContain('F♯');
+
+  // the readout agrees with the labels — one module names both, so a disagreement would mean
+  // one of them is calling the wrong function
+  await page.evaluate(() => document.querySelectorAll('[data-semi]').forEach((c) => {
+    if (c.getAttribute('aria-pressed') === 'true') (c as HTMLButtonElement).click();
+  }));
+  await page.getByTestId('semi-3').click();
+  await page.getByTestId('semi-7').click();
+  await expect(page.getByTestId('chord'), 'E♭ minor, spelled').toHaveText('E♭4  G♭4  B♭4');
+
+  // THREE MEMBERS, THREE LETTERS — what makes it read as a chord rather than a cluster, and the
+  // invariant that catches an enharmonically-correct spelling a musician would still call wrong.
+  const letters = (await page.getByTestId('chord').textContent())!.trim().split(/\s+/)
+    .map((n) => n[0]);
+  expect(new Set(letters).size, 'three letters').toBe(3);
+});
+
 // ── THE BLACK KEYS ARE SPELLED THE WAY KEY SIGNATURES SPELL THEM ────────────────────
 // User call, 2026-08-07: "assume eb over d# since its more common in key sigs". Three of the
 // five flip to flats and two stay sharp, and the split is not a preference — it follows which
@@ -124,12 +160,29 @@ test('the five black keys use their commonest spelling', async ({ page }) => {
     await step();
     await expect(figure).toHaveText(name);
   }
-  // and NO sharp spelling survives for the three that flipped
-  const strip = await page.evaluate(() =>
-    [...document.querySelectorAll('[data-semi]')].map((c) => c.getAttribute('aria-label')));
-  expect(strip.join(' '), 'no D♯ / G♯ / A♯ anywhere').not.toMatch(/[DGA]♯/);
-  // the two that stay sharp must still be sharp — a blanket flat conversion is also wrong
-  expect(strip.join(' '), 'C♯ and F♯ stay sharp').toMatch(/[CF]♯/);
+  // ── AND THE STRIP IS *NOT* HELD TO THIS TABLE, which is the point of the chord-aware
+  // naming and the reason this assertion changed. It used to demand no D♯/G♯/A♯ anywhere on the
+  // strip, and that was wrong once intervals are spelled from the root: above an A root, the
+  // raised fourth MUST read D♯, because A to D is a fourth and A to E♭ is a fifth. The
+  // context-free table (which this test covers, above) and the interval spelling (covered by
+  // `naming.test.ts` and the chord test) answer two different questions.
+  // What the strip owes is INTERNAL CONSISTENCY: each label's accidental must belong to the
+  // interval it names, so a "4" is always spelled on the fourth letter up. Asserted as the
+  // letter-count rule rather than as a list of forbidden strings.
+  const rows = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-semi]')].map((c) => ({
+      semi: Number((c as HTMLElement).dataset.semi),
+      label: c.getAttribute('aria-label')!,
+    })));
+  const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  const STEPS = [0, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 8, 8, 9, 9];
+  const rootLetter = (await page.locator('#mt-dnote').textContent())!.trim()[0];
+  const li = LETTERS.indexOf(rootLetter);
+  for (const { semi, label } of rows) {
+    const name = label.split('—')[1].trim();
+    expect(name[0], `${semi} semitones above ${rootLetter} must be spelled on a ${
+      LETTERS[(li + STEPS[semi]) % 7]}`).toBe(LETTERS[(li + STEPS[semi]) % 7]);
+  }
 });
 
 // ── THE STRIP'S MARKS NAME THE PERFECT INTERVALS, they do not count cells ────────────
