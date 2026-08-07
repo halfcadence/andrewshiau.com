@@ -326,7 +326,12 @@ serve different content — verified byte-identical, same ETag.
 | tool | its address | the apex path |
 |---|---|---|
 | practice room (tuner, metronome, drone) | `practice.andrewshiau.com/` | `/practice-room/` → 301 |
-| pitchgraph (the intonation trace) | `practice.andrewshiau.com/pitchgraph/` | `/pitchgraph/` → 301 |
+| readings (the intonation trace) | `practice.andrewshiau.com/readings/` | `/readings/` → 301 |
+
+**Renamed 2026-08-07: `readings` was `pitchgraph`.** `/pitchgraph/` on the apex **keeps its
+301** — it points at the new address, because it was published under the old name and a
+retired name is not a retired URL. Asserted by the `RETIRED_PATHS` test in
+`tests/e2e/page.spec.ts`, which also checks the query string survives.
 
 **Adding a tool is three things**, and the e2e table in `tests/e2e/page.spec.ts` fails
 until all three are done: pass `onPracticeHost` to `Layout` (moves the canonical), add a

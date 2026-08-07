@@ -70,7 +70,7 @@ function pulsedWav(freq, seconds, name, onSec = 1.2, offSec = 1.8) {
   console.log(`wrote ${name}: ${freq} Hz pulsed ${onSec}s on / ${offSec}s off, ${seconds}s`);
 }
 
-// A PHRASE, for /pitchgraph/ — the page whose whole subject is what happens between
+// A PHRASE, for /readings/ — the page whose whole subject is what happens between
 // notes, which a single sustained tone cannot exercise at all. Four notes with a rest
 // between each, every one held at a DIFFERENT known offset, so the per-note panels have
 // four different truths to be checked against rather than one.
