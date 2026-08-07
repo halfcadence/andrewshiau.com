@@ -60,7 +60,7 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
   it.each([
     ['the row ladder', 'case-top'],
     ['both cases subgrid onto it', 'subgrid'],
-    ['the transport row (the reported defect)', 'grid-row:transport'],
+    ['the reading row, which now holds the verb too', 'grid-row:read'],
     ['the accent mark reservation', '.rm-accbtn'],
     ['the meter digits', '.rbtn'],
     ['the track grammar', '.tbtn'],
@@ -99,9 +99,33 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
 
   // ── the alignment contract, as declarations ────────────────────────────────
   it('places every ladder row explicitly', () => {
-    for (const row of ['spec', 'figure', 'read', 'transport', 'foot', 'hint']) {
+    for (const row of ['spec', 'figure', 'read', 'foot', 'hint']) {
       expect(css, `grid-row:${row} must be placed`).toContain(`grid-row:${row}`);
     }
+  });
+
+  // ── THE VERB IS IN THE READING'S LINE (transport chooser Q1/02, 2026-08-06) ─
+  // The `transport` row is deleted, and this is the guard that makes bringing it back a
+  // visible change rather than a silent one. Both halves matter:
+  //   · nothing may claim `grid-row:transport` — a re-parented `.mt-cap` that kept the old
+  //     row placement is exactly how this change first failed to appear (the subgrid put the
+  //     verb back on the old line and the reading row looked untouched).
+  //   · the row must not be re-declared on any of the three ladders.
+  it('has no transport row left to place anything on', () => {
+    expect(css, 'nothing may sit on a row that no longer exists')
+      .not.toContain('grid-row:transport');
+    expect(css, 'the row must be gone from every ladder copy')
+      .not.toMatch(/\[transport\]/);
+  });
+
+  // The centre column is what puts the verb on the axis — `1fr auto 1fr`, so the two side
+  // columns are equal BY DECLARATION. The old mechanism was a flush spread (`display:flex`
+  // plus one `flex:1` spacer), which has no middle; reverting to it would put the verb in a
+  // slot rather than on the axis, and the render would look plausible.
+  it('centres the verb with a real centre column, not a flex spacer', () => {
+    expect(css).toMatch(/grid-template-columns:1fr auto 1fr/);
+    expect(css, 'the .ends spacer belonged to the flush spread and is gone')
+      .not.toContain('.mt-read .ends');
   });
 
   it('aligns the control rows to the row start, not centred', () => {
@@ -131,8 +155,9 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
   // AND THE ROW LADDER'S 32 LINES ARE GONE TOO (vertical datum pass), for the same reason on
   // the other axis: measured, the first `1fr` slack row resolves to a fraction and every line
   // below it is 9.06px off a lead, so 20 of the 32 could never be met. The overlay now draws
-  // FOUR horizontal lines — top, the centre pair, bottom — and three vertical. Seven marks,
-  // every one of them a datum something actually sits on.
+  // THREE horizontal lines — top, the centre, bottom — and three vertical. Six marks, every
+  // one of them a datum something actually sits on. (It was seven: the centre was a pair
+  // until the verb joined the reading's row and the second line stopped describing anything.)
   // So the rule is now absolute: NO repeating gradient anywhere in this sheet's overlay.
   it('the ⌥G overlay draws discrete datums, never a repeating grid', () => {
     const repeats = css.match(/repeating-linear-gradient\([^)]*/g) || [];
@@ -180,9 +205,13 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     // all present, because none of them lived in the rule that died.
     ['the figure spans six columns', '--mt-track'],
     // the VERTICAL datums, which replaced the 32-line ladder: two on `.mt-pages::before`
-    // (top and bottom, grid-derived) and the centre pair on `.mt-mid::after`.
+    // (top and bottom, grid-derived) and the centre one on `.mt-mid::after`.
+    // IT WAS A PAIR until the verb moved into the reading's line (2026-08-06). The pair's
+    // second line described the `transport` row a lead below; that row is gone, so the two
+    // lines would name one baseline and the overlay would draw a datum with no ink on it —
+    // the "25 cols" complaint in miniature. The sentinel below is the surviving line.
     ['the top/bottom vertical datums', 'calc(var(--lead) * 2 - 1px)'],
-    ['the centre datum pair', 'calc(100% - var(--lead) - 1px)'],
+    ['the centre datum', 'calc(100% - 1px)'],
     // THE TWO DATUMS. The ⌥G overlay used to paint twelve tracks per case as a pair of
     // hairlines each — 24 lines inside every case plus 12 across the screen, which is what
     // the reader saw as "like 25 cols". It draws three lines now: the axis at 50%, and one
@@ -191,7 +220,14 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     // `.5px`, not `0.5px`: lightningcss strips the leading zero, and this test reads the
     // BUILT sheet. Asserting the source spelling failed here for exactly that reason.
     ['the axis datum', 'calc(50% - .5px)'],
-    ['the inset datum', 'calc(100% - var(--lead))'],
+    // `--mt-inset`, NOT `--lead`. This line read `calc(100% - var(--lead))` and was
+    // mislabelled: that string does not appear in `.mt-half::after` at all — it was matching
+    // the CENTRE PAIR's second stop over on `.mt-mid::after`, so the "inset datum" sentinel
+    // was guarding a different rule on a different axis. It went unnoticed because both were
+    // present. Deleting the pair (the verb joined the reading's row) is what surfaced it: the
+    // test failed naming the inset while the inset was fine. Now it names the declaration the
+    // inset rule actually contains — the one the 3ch pass introduced.
+    ['the inset datum', 'calc(100% - var(--mt-inset))'],
   ])('keeps the declaration that carries %s (%s)', (_label, decl) => {
     expect(css).toContain(decl);
   });

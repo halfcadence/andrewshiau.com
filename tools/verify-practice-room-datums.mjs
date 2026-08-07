@@ -53,7 +53,10 @@ for (const scheme of ['light', 'dark']) {
     // Wait on the marks themselves, and let a genuine absence fail on its own merit.
     await page.goto(URL, { waitUntil: 'load' });
     await page.waitForSelector('#mt-dial', { state: 'attached', timeout: 15000 });
-    await page.waitForSelector('#mt-mic .w', { state: 'attached', timeout: 15000 });
+    // `#mt-mic .rd` — the Rams field, not `.w`. The transports have no word since the
+    // chooser's treatment 05; waiting on `.w` here would have timed out and taken every
+    // check with it.
+    await page.waitForSelector('#mt-mic .rd', { state: 'attached', timeout: 15000 });
     await page.waitForFunction(() => {
       const g = document.querySelector('.mt-half[aria-label="Tuner"] .mt-gauge');
       return g && g.getBoundingClientRect().width > 10;
@@ -176,30 +179,46 @@ for (const scheme of ['light', 'dark']) {
         if (Math.abs(d - INSET) > TOL) insetFails.push(`${name} at ${d.toFixed(2)}px`);
       }
 
-      // ── THE WORD ON THE AXIS, NOT THE BUTTON'S INK EXTENT ─────────────────
-      // The axis check above measures each mark's ink EXTENT and centres that. For the
-      // transport that is not enough and it hid a real defect for two passes: `.tbtn` is
-      // [track][gap][word], so the extent centred on the axis (0.00) while the word "start"
-      // sat 17.50px right of it. The word is what the eye reads as the figure's caption, and
-      // instrument-panel practice makes the pointer the datum its furniture aligns to
-      // (14 CFR 25.1321(b); MIL-STD-1472G §5.2.2.5.3c(7)) — so the WORD is checked against
-      // the dial's own PIVOT, computed from the drawing rather than from the case box.
+      // ── THE MARK ON THE PIVOT ─────────────────────────────────────────────
+      // WAS "the word on the axis". The axis check above measures each mark's ink EXTENT and
+      // centres that; for the old two-mark transport ([track][gap][word]) the extent centred
+      // at 0.00 while the word sat 17.50px right of it, which hid a real defect for two
+      // passes. Then the fix for THAT (track out of flow) left the track hanging 17.50px
+      // LEFT — the "not aligned and ugly" this round started from.
+      // Treatment 05 removes the cause rather than re-positioning the symptom: the control is
+      // ONE mark, so extent and mark are the same thing and there is nothing left to disagree.
+      // What still has to be proven is that the mark lands on the FIGURE'S PIVOT, computed
+      // from the drawing rather than from the case box — instrument-panel practice makes the
+      // pointer the datum its furniture aligns to (14 CFR 25.1321(b); MIL-STD-1472G
+      // §5.2.2.5.3c(7)). Measured on the FIELD's rect, which is the whole control's ink.
+      // All THREE cases now, not two: the drone case has a verb on the same row.
       const wordFails = [];
       for (const [name, btn, fig] of [
         ['the tuner’s verb', '#mt-mic', '#mt-dial'],
         ['the metronome’s verb', '#mt-run', '#mt-metro-fig'],
       ]) {
-        const w = q(`${btn} .w`);
+        const mark = q(`${btn} .rd`);
         const svg = q(fig);
-        if (!w || !svg) continue;
+        if (!mark || !svg) continue;
         const sb = svg.getBoundingClientRect();
         const pivot = sb.left + sb.width * (160 / 320);   // viewBox 320x184, pivot at x=160
-        const rg = document.createRange();
-        rg.selectNodeContents(w);
-        const wb = rg.getBoundingClientRect();
-        const off = (wb.left + wb.right) / 2 - pivot;
+        const mb = mark.getBoundingClientRect();
+        const off = (mb.left + mb.right) / 2 - pivot;
         if (Math.abs(off) > TOL) {
           wordFails.push(`${name} reads ${off.toFixed(2)}px off its figure’s pivot`);
+        }
+      }
+      // The drone's figure is a 72px LETTER, not the arc-and-bob, so there is no viewBox
+      // pivot to derive — its datum is the case axis, which is what the letter is centred on.
+      {
+        const mark = q('#mt-drone .rd');
+        const half = q('.mt-half.mt-drone');
+        if (mark && half) {
+          const hb = half.getBoundingClientRect(), mb = mark.getBoundingClientRect();
+          const off = (mb.left + mb.right) / 2 - (hb.left + hb.right) / 2;
+          if (Math.abs(off) > TOL) {
+            wordFails.push(`the drone’s verb reads ${off.toFixed(2)}px off its case axis`);
+          }
         }
       }
 
@@ -347,35 +366,60 @@ for (const scheme of ['light', 'dark']) {
             vertFails.push(`stacked subdivide sits ${gap.toFixed(2)}px below beats, not a whole lead`);
           }
         }
-        // CENTRE — the reading, and the verb exactly one lead below it. Both verbs agree.
+        // CENTRE — ONE LINE NOW, not a pair a lead apart (transport chooser Q1/02).
+        // It used to assert `verb − reading == LEAD`, because the verb had its own row below.
+        // The verb moved INTO the reading's row, so that assertion would now be checking that
+        // two things on one line are 28px apart — it would fail on the correct layout, which
+        // is the worst kind of check. What has to hold instead:
+        //   · the three verbs' marks sit on ONE horizontal line (they are one row across three
+        //     cases; this is the original complaint, "the start uui ... not veritcally aligned")
+        //   · the tuner's reading and its verb share that line, since they are the same row
+        // Measured on the MARK's box, not a baseline: the field is an svg with no text, and an
+        // svg's baseline is its bottom edge, which is not where its ink centres.
+        const midY = (sel) => {
+          const e = q(sel);
+          if (!e) return null;
+          const b = e.getBoundingClientRect();
+          return b.height ? b.top + b.height / 2 : null;
+        };
+        const verbs = uniq([midY('#mt-mic .rd'), midY('#mt-run .rd'), midY('#mt-drone .rd')]);
+        if (verbs.length !== 1) {
+          vertFails.push(`the verbs sit on ${verbs.length} lines: ${verbs.join(', ')}`);
+        }
+        // The reading shares the verb's row: its x-height band must contain the mark's centre.
+        // (Baseline-to-centre is not zero — the dot is optically centred on the x-height, which
+        // is what `translateY(1px)` tunes — so this asserts the band, not an exact equality.)
         const read = baseline('#mt-note');
-        const vT = baseline('#mt-mic .w'), vM = baseline('#mt-run .w');
-        if (read != null && vT != null && Math.abs((vT - read) - LEAD) > TOL) {
-          vertFails.push(`the reading and the verb are ${(vT - read).toFixed(2)}px apart, not one lead`);
+        const vT = midY('#mt-mic .rd');
+        if (read != null && vT != null && (read - vT) > LEAD / 2) {
+          vertFails.push(`the reading sits ${(read - vT).toFixed(2)}px below the verb, not on its row`);
         }
-        if (vT != null && vM != null && Math.abs(vT - vM) > TOL) {
-          vertFails.push(`the two verbs are ${(vT - vM).toFixed(2)}px apart`);
-        }
-        // BOTTOM — the played controls share one line.
-        const bot = uniq([baseline('#mt-tone .w'), baseline('#mt-refnote .w'),
+        // BOTTOM — the played controls share one line. `#mt-tone`/`#mt-refnote` left the tuner
+        // with the drone split; the drone's own foot carries them now.
+        const bot = uniq([baseline('#mt-refnote .w'),
           baseline('#mt-bpm-scrub .mt-lb'), baseline('#mt-tap .w')]);
         if (bot.length !== 1) vertFails.push(`the bottom datum is ${bot.length} lines: ${bot.join(', ')}`);
       }
 
       // ── nothing may regress while satisfying the datums ───────────────────
+      // `Infinity` for a MISSING node is a silent pass, and the treatment-05 change proved it:
+      // `#mt-tone` no longer exists (it left the tuner with the drone), and this check would
+      // have gone on reporting a healthy smallest target while measuring one fewer control
+      // every run. A named control that is absent is now a FAILURE, not a skip.
+      const missing = [];
       const tgt = (s) => {
         const e = q(s);
-        if (!e) return Infinity;
+        if (!e) { missing.push(s); return Infinity; }
         const b = e.getBoundingClientRect();
         return Math.min(b.width, b.height);
       };
-      const smallest = Math.min(...['#mt-mic', '#mt-run', '#mt-tone', '#mt-tap', '#mt-refnote',
+      const smallest = Math.min(...['#mt-mic', '#mt-run', '#mt-drone', '#mt-tap', '#mt-refnote',
         '#mt-a4', '#mt-bpm'].map(tgt));
 
       return {
         axisFails, insetFails, glyphFails, vertFails, wordFails, unitFails, radiiFails,
         distinct: [...seen].sort((a, b) => a - b),
-        smallest,
+        smallest, missing,
         overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
         // the reading must still be able to SHOW a frequency — the `:empty` rule must not
         // have hidden it outright
@@ -385,7 +429,8 @@ for (const scheme of ['light', 'dark']) {
 
     const ok = !r.axisFails.length && !r.insetFails.length && !r.glyphFails.length
       && !r.vertFails.length && !r.wordFails.length && !r.unitFails.length
-      && !r.radiiFails.length && !r.overflow && r.smallest >= 24 && r.hzExists;
+      && !r.radiiFails.length && !r.overflow && r.smallest >= 24 && r.hzExists
+      && !r.missing.length;
     if (!ok) bad++;
     const notes = [
       r.axisFails.length ? `AXIS: ${r.axisFails.join('; ')}` : '',
@@ -399,6 +444,7 @@ for (const scheme of ['light', 'dark']) {
       r.overflow ? 'HORIZONTAL OVERFLOW' : '',
       r.smallest < 24 ? `target ${r.smallest}px < 24` : '',
       !r.hzExists ? 'the reading’s Hz element is gone' : '',
+      r.missing.length ? `MISSING CONTROLS: ${r.missing.join(', ')}` : '',
     ].filter(Boolean).join('  |  ');
     console.log(`${ok ? 'ok  ' : 'FAIL'} ${scheme.padEnd(5)} ${String(width).padStart(4)}` +
       (notes ? `  ${notes}` : ''));

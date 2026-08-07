@@ -111,30 +111,46 @@ import Layout from '../layouts/Layout.astro';
             </svg>
           </figure>
 
+          <!-- ── THE VERB IS IN THE READING'S LINE, ON THE AXIS ────────────────────────
+               (chooser practice-room-transport, Q1/02 "in line with the reading" + the user's
+               correction: "inline with reading means in the middle lol")
+               The transport used to be the figure's caption on its own `transport` row, one
+               lead below this one. Two rows for one instrument group, and the row it sat on
+               was where the 17.50px misalignment lived.
+               WHY A 3-COLUMN GRID AND NOT THE OLD FLEX SPREAD. The row was
+               `display:flex` + one `.ends{flex:1}` spacer, which is a FLUSH SPREAD: note
+               against the left inset, cents/Hz against the right. There is no middle in
+               that — dropping the verb in gives it a slot in the spread, off the axis, and
+               the axis is the whole point (it is the datum the dial's pivot is on). So the
+               row becomes three explicit columns, `1fr auto 1fr`: the verb is the centre
+               column and lands on the axis BY CONSTRUCTION, and the two 1fr columns are
+               equal by definition rather than by a spacer that happens to balance.
+               The `.ends` spacer is deleted — its job was to push, and the grid's own
+               columns do that now. The reading keeps its flush edges: `mrn` is start-aligned
+               in the left column, the cents/Hz group end-aligned in the right.
+               THE READING IS STILL THE FIGURE'S WIDTH, so the note stays under the dial's
+               left end and the Hz under its right — see `.mt-read`'s width, unchanged. -->
           <div class="mt-read">
             <span class="mrn" id="mt-note" data-testid="note">—</span>
-            <span class="ends"></span>
-            <span class="mrc" id="mt-cents" data-testid="cents">–</span>
-            <span class="mrh" id="mt-hz" data-testid="hz"></span>
+            <!-- The latch stops propagation because it sits inside .mt-mid, which is itself
+                 a start/stop click target — without it every press would toggle twice and
+                 net to nothing. The full name lives on aria-label: with treatment 05 there
+                 is no word, so the accessible name carries the whole verb. -->
+            <div class="mt-cap">
+              <button type="button" class="tbtn latch" id="mt-mic" data-testid="mic-toggle"
+                aria-pressed="false" aria-label="start the tuner">
+                <svg class="rd" width="22" height="11" viewBox="0 0 22 11" aria-hidden="true">
+                  <rect class="fld" x="0.5" y="0.5" width="21" height="10"/>
+                  <circle class="dt" cx="5.5" cy="5.5" r="2.2"/>
+                </svg>
+              </button>
+            </div>
+            <span class="mt-rr">
+              <span class="mrc" id="mt-cents" data-testid="cents">–</span>
+              <span class="mrh" id="mt-hz" data-testid="hz"></span>
+            </span>
           </div>
           <div id="mt-sr" class="visually-hidden" role="status" aria-live="polite"></div>
-          <!-- THE BARE VERB (chooser metrotuner-transport-placement, Q1/05): the
-               transport is the figure's CAPTION — one word plus the latch, centred
-               under the instrument it drives. The figure supplies the noun; the
-               full name lives on aria-label. The latch stops propagation because
-               it sits inside .mt-mid, which is itself a start/stop click target —
-               without it every press would toggle twice and net to nothing. -->
-          <div class="mt-cap">
-            <button type="button" class="tbtn latch" id="mt-mic" data-testid="mic-toggle"
-              aria-pressed="false" aria-label="start the tuner">
-              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
-                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
-                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
-                <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w fixw" style="--w:5ch">start</span>
-            </button>
-          </div>
         </div>
 
         <!-- THE TUNER'S FOOT IS EMPTY NOW (chooser metrotuner-drone-box, Q4/01 "nothing
@@ -282,17 +298,23 @@ import Layout from '../layouts/Layout.astro';
               <circle cx="160" cy="160" r="2.5" fill="var(--ink)"/>
             </svg>
           </figure>
-          <!-- The bare verb (Q1/05), same as the tuner's: the metronome's caption. -->
-          <div class="mt-cap">
+          <!-- THE VERB IN THE READ ROW, same as the tuner's — and THIS is what keeps the
+               three cases one drawing. The tuner's verb moved up a row into its reading;
+               if this one stayed on the `transport` row the two would sit a lead apart,
+               which is the misalignment the user reported in the first place. So the
+               metronome's `read` row — empty until now, and empty BECAUSE the tuner had a
+               reading — carries the verb instead. The row's emptiness was never the point;
+               holding the two cases in phase was. It still does that, by holding the verb. -->
+          <div class="mt-read mt-read-bare">
+            <div class="mt-cap">
             <button type="button" class="tbtn latch" id="mt-run" data-testid="metro-toggle"
               aria-pressed="false" aria-label="start the metronome">
-              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
-                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
-                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
-                <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w fixw" style="--w:5ch">start</span>
+              <svg class="rd" width="22" height="11" viewBox="0 0 22 11" aria-hidden="true">
+                <rect class="fld" x="0.5" y="0.5" width="21" height="10"/>
+                <circle class="dt" cx="5.5" cy="5.5" r="2.2"/>
+              </svg>
             </button>
+            </div>
           </div>
         </div>
 
@@ -365,25 +387,26 @@ import Layout from '../layouts/Layout.astro';
           <figure class="mt-gauge mt-dfig" aria-hidden="true">
             <span class="mt-dnote" id="mt-dnote">A</span>
           </figure>
-          <!-- THE READ ROW STAYS EMPTY, like the metronome's. It briefly held `A4` — the
+          <!-- THE READ ROW HOLDS THE VERB, like the other two. It briefly held `A4` — the
                sounding pitch with its octave, under the letter that names it without one —
                and looking at the render killed it: the case then stated its note THREE
                times (the 72px letter, that reading, and the foot's scrub control) inside
                210px. The letter is the figure and the foot control is the value; a third
-               copy between them is the same fact drawn again.
-               The empty row still does work — it is what keeps this case's transport on the
-               same line as the other two (the metronome leaves the same row empty). -->
-          <!-- The bare verb (Q1/05), the same caption both other cases carry. -->
-          <div class="mt-cap">
+               copy between them is the same fact drawn again. That reading is still gone.
+               What the row carries NOW is the transport, one row up from where it was, so
+               this case's verb stays on the same line as the tuner's and the metronome's.
+               The row was always the thing holding the three in phase; it does it by
+               holding the verb rather than by being empty. -->
+          <div class="mt-read mt-read-bare">
+            <div class="mt-cap">
             <button type="button" class="tbtn latch" id="mt-drone" data-testid="drone-toggle"
               aria-pressed="false" aria-label="start the drone">
-              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
-                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
-                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
-                <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w fixw" style="--w:5ch">start</span>
+              <svg class="rd" width="22" height="11" viewBox="0 0 22 11" aria-hidden="true">
+                <rect class="fld" x="0.5" y="0.5" width="21" height="10"/>
+                <circle class="dt" cx="5.5" cy="5.5" r="2.2"/>
+              </svg>
             </button>
+            </div>
           </div>
         </div>
 
@@ -556,8 +579,16 @@ import Layout from '../layouts/Layout.astro';
       [spec]      calc(var(--lead) * 2) /* a4 | beats + subdivide */
       [slack-a]   minmax(0, 1fr)        /* placed air, above the instrument */
       [figure]    auto                  /* the drawing, at its own height */
-      [read]      var(--lead)           /* the tuner's reading; empty on the metronome */
-      [transport] var(--lead)           /* the bare verb — THE REPORTED ROW */
+      /* THE READING AND THE VERB ARE ONE ROW (transport chooser Q1/02, 2026-08-06).
+         There WAS a `[transport]` row here, one lead below this one, holding the bare
+         verb on all three cases. The verb moved into the reading's own line, so the row
+         had nothing left in it — and a row of the ladder that nothing occupies is 28px
+         of dead air pretending to be structure. Deleted rather than left empty: the
+         `read` row is empty on two cases BY DESIGN (it holds their verb and no reading),
+         which is a different thing from a row no case uses at all.
+         What this costs: the instrument group is one row shorter, so the two slack rows
+         each absorb 14px more. Measured, not assumed — see the verify harness. */
+      [read]      var(--lead)           /* the reading AND the verb; verb only on 2 of 3 */
       [slack-b]   minmax(0, 1fr)        /* placed air, below it */
       [foot]      var(--lead)           /* played controls: tone/ref | bpm/tap */
       [hint]      var(--lead)           /* errors; empty on the metronome */
@@ -616,15 +647,17 @@ import Layout from '../layouts/Layout.astro';
       linear-gradient(to bottom, transparent calc(100% - var(--lead) * 2 - 1px),
         color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - var(--lead) * 2 - 1px) calc(100% - var(--lead) * 2),
         transparent calc(100% - var(--lead) * 2))}
-  /* THE CENTRE PAIR rides on `.mt-mid` because its position is not derivable from the ladder —
-     the elastic slack decides it. `.mt-mid`'s last two rows ARE the reading and the transport,
-     so the pair is its bottom edge and one lead above. */
+  /* THE CENTRE DATUM rides on `.mt-mid` because its position is not derivable from the ladder —
+     the elastic slack decides it. `.mt-mid`'s last row IS the reading, which now holds the verb
+     too, so the datum is its bottom edge.
+     IT WAS A PAIR — two lines, one for the reading and one for the transport a lead below.
+     They describe the same line now, so drawing both would draw a datum where no ink sits,
+     which is exactly the complaint that produced this overlay ("i thought we chose just a few
+     datums i see like 25 cols"). One row, one line. The guard test asserts this file draws
+     discrete datums and never a repeating gradient — it counts these, so it changes with them. */
   .mt-mid::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
     transition:opacity var(--dur-fast) var(--ease);
     background:
-      linear-gradient(to bottom, transparent calc(100% - var(--lead) - 1px),
-        color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - var(--lead) - 1px) calc(100% - var(--lead)),
-        transparent calc(100% - var(--lead))),
       linear-gradient(to bottom, transparent calc(100% - 1px),
         color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - 1px) 100%, transparent 100%)}
   /* The phone keeps the same three datums — the ladder is the same one, and the cases hold
@@ -698,7 +731,18 @@ import Layout from '../layouts/Layout.astro';
      The reading takes the same treatment for the same reason (see `.mt-read`) — and it has to
      be BOTH: with only one of the two changed the interval reads 32.50 or 24.50. That pair is
      why an earlier single-rule test looked like it did nothing. */
-  .mt-cap{grid-row:transport;display:flex;justify-content:center;align-self:start}
+  /* NO `grid-row` ANY MORE: `.mt-cap` is not a row of the ladder, it is a cell INSIDE
+     `.mt-read` (see the three-column note there). It kept `grid-row:transport` through one
+     draft of this change and the effect was silent and total — the verb was still placed on
+     the old row by the subgrid, so the reading row looked untouched and nothing appeared to
+     have moved. Stated because a stale `grid-row` on a re-parented element does not error;
+     it just quietly wins.
+     `align-self:start` is what survives, and for the reason the long note above gives: the
+     44px tap target is taller than the 28px row, so `center` would hang it 8px above the
+     row line. `start` puts its top on the line and lets the overhang fall into the slack
+     below, where it is air. No target shrinks — 2.5.5 untouched. */
+  .mt-cap{display:flex;justify-content:center;align-self:start;align-items:center;
+    min-height:var(--lead)}
   /* A foot line: left group flush left, right group flush right, one baseline.
      The top line is the same device at the case's other edge (user nit 2): spec
      controls up top, played controls at the foot. */
@@ -770,8 +814,7 @@ import Layout from '../layouts/Layout.astro';
       [spec]      calc(var(--lead) * 4)  /* two stacked meters, two leads each */
       [slack-a]   minmax(0, 1fr)
       [figure]    auto
-      [read]      var(--lead)
-      [transport] var(--lead)
+      [read]      var(--lead)            /* reading + verb, one row (see the 1480+ ladder) */
       [slack-b]   minmax(0, 1fr)
       [foot]      var(--lead)
       [hint]      var(--lead)
@@ -1003,8 +1046,7 @@ import Layout from '../layouts/Layout.astro';
         [spec]      calc(var(--lead) * 2)   /* measured: the phone's spec row is 2 leads */
         [slack-a]   minmax(0, 1fr)
         [figure]    auto
-        [read]      var(--lead)
-        [transport] var(--lead)
+        [read]      var(--lead)          /* reading + verb, one row (see the 1480+ ladder) */
         [slack-b]   minmax(0, 1fr)
         [foot]      var(--lead)
         [hint]      var(--lead)
@@ -1211,11 +1253,35 @@ import Layout from '../layouts/Layout.astro';
   /* `start` for the same reason as `.mt-cap` — the two are one change. See the note there: the
      pair is what makes the reading and the verb exactly one lead apart (28.00), and changing
      only one of them moves the interval to 24.50 or 32.50. */
+  /* ── THREE COLUMNS, BECAUSE THE MIDDLE HAS TO BE THE AXIS ───────────────────
+     The verb now shares this row (chooser practice-room-transport Q1/02 + the user's
+     correction, "in the middle"). It was `display:flex` with one `.ends{flex:1}` spacer —
+     a flush spread, note against the left inset and cents/Hz against the right, with no
+     middle to put anything in. A slot in that spread would have put the verb OFF the
+     axis, which is the datum this whole screen radiates from.
+     `1fr auto 1fr` makes the centre column the axis by construction: the two 1fr columns
+     are equal because they are declared equal, so whatever sits in the middle is centred
+     no matter how wide the note or the cents get. That is the property the old spacer
+     could only approximate — and did get wrong once (the 9px reading offset that
+     `.mrh:empty` fixed came from exactly this class of thing: a box centred while its
+     ink was not).
+     `justify-items` per column keeps the reading's flush edges: the note reads from the
+     left inset, the cents/Hz group to the right one, unchanged. */
   .mt-read{grid-row:read;align-self:start;justify-self:center;
     --mt-track:calc((100% - var(--gutter) * 11) / 12);
     width:min(100%, max(calc(var(--mt-track) * 6 + var(--gutter) * 5), 240px));
-    display:flex;align-items:baseline;gap:2ch}
-  .mt-read .ends{flex:1}
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;
+    column-gap:2ch}
+  .mt-read > .mrn{justify-self:start}
+  .mt-read > .mt-cap{justify-self:center}
+  /* The cents and the Hz stay ONE group on the right — they are one reading at two
+     precisions, and the Hz appearing must not move the cents. */
+  .mt-rr{justify-self:end;display:inline-flex;align-items:baseline;gap:2ch}
+  /* The metronome and the drone have no reading, so their row holds only the verb — but it
+     must be the SAME row and the SAME centre, or the three verbs stop agreeing. One column,
+     centred: the empty side columns would do nothing here, and declaring them invites a
+     future reading to land in one by accident. */
+  .mt-read-bare{grid-template-columns:minmax(0, 1fr)}
   /* IN TUNE is the invert (round-1 pick Q2/02): selection colours on the reading.
      The padding is carved out of the margin so the text never moves. */
   .mrn{color:var(--ink);padding:0 .5ch;margin-left:-.5ch;
@@ -1306,10 +1372,54 @@ import Layout from '../layouts/Layout.astro';
      permission, `aria-pressed` false → true from each. The 44px height is untouched, so 2.5.5
      still holds on the axis that matters for a thumb.
      `translateY(-50%) translateY(2px)` keeps the 2px optical nudge the flex version had (see
-     the note above about the svg's baseline) on top of the centring the absolute position needs. */
-  .mt-cap .tbtn.latch{position:relative}
-  .mt-cap .tbtn.latch .tk{position:absolute;right:100%;margin-right:1ch;
-    top:50%;transform:translateY(-50%) translateY(2px)}
+     the note above about the svg's baseline) on top of the centring the absolute position needs.
+     ── AND IT IS ALL DELETED NOW (transport chooser, treatment 05) ─────────────
+     That whole fix existed to centre a WORD that sat beside a track. Treatment 05 has no
+     word: the control is one mark, so the mark is the only thing to centre and the grid
+     column above does it. Taking the track out of flow to rescue a word from a two-mark
+     button was a fix for a problem this treatment does not have — and it is what left the
+     track hanging 17.50px to the left, which is the "not aligned and ugly" that started
+     this round. The right repair was to stop having two marks, not to keep re-positioning
+     the second one. */
+  /* ── THE RAMS SWITCH (transport chooser, treatment 05 "the snow-white dot") ──
+     Braun's switch reduced to what changes: a hairline field and a dot that travels to the
+     far side and takes the accent. It replaces the two-pocket track for the TRANSPORT only —
+     the track grammar above still governs every other latch on the page (the fifth, the
+     accent), because those sit in a row of words where a bare mark would have nothing to
+     say which value it belongs to.
+     THE COST, stated because the site's rule is "structure is rules and whitespace, not
+     boxes": the field IS a box, the only one on the screen. It earns the exception by being
+     the one control that has to read at a glance from across a room with no word to help —
+     and it is a hairline box, `--line`, the same stroke the case frames use.
+     STATE IS FORM AND NOT ONLY HUE: hollow-to-filled would be one signal, and colour alone
+     fails the ink-vs-accent contrast check (3.54:1) that the accent-mark chooser rejected.
+     So the dot BOTH travels 11px and takes the accent — position carries it, colour
+     confirms it. */
+  /* ── THE TARGET IS PADDING, THE INK IS 22×11 (measured, both directions) ────
+     Two defects the harness caught on the first run of this treatment, and neither was
+     visible in a screenshot:
+     1. THE TARGET WENT TO 22px WIDE. `min-height:44px` only ever guarded the HEIGHT; the old
+        button was 45px wide because it contained a word, so nothing needed to guard the width.
+        Delete the word and the box collapses to the field's 22px — under the 24px floor, and
+        the harness's `Math.min(width, height)` is what surfaced it. WCAG 2.5.8 is a minimum on
+        BOTH axes and this page holds 44 everywhere.
+     2. THE 44px BOX WAS INFLATING THE ROW. The reading and the verb share one 28px row now, so
+        a 44px participant makes the row 44px and shoves the reading's baseline 21.50px below
+        the mark — measured at all 16 widths, in both colourways. The row was correct; the
+        control in it was not.
+     ONE FIX FOR BOTH, and it is the page's own idiom (`.mt-hd` does exactly this, and the
+     meter's digits too): pad out to the target and pull the padding back with a matching
+     negative margin. The ink then sits where the row wants it and the target overhangs into
+     the slack, which is air. 11px each side → 44 wide; 17px each end → 45 tall. `min-height:0`
+     because the padding now carries the height and leaving 44 there would re-inflate the row.
+     Deliberately NOT shrinking anything to fit: no target gets smaller, the row gets its lead
+     back, and the two facts are independent of each other. */
+  .mt-cap .tbtn.latch{min-height:0;padding:17px 11px;margin:-17px -11px}
+  .rd{flex:none;display:block;transform:translateY(1px)}
+  .fld{fill:none;stroke:var(--line);stroke-width:1}
+  .dt{fill:var(--ink);
+    transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
+  .latch[aria-pressed="true"] .dt{fill:var(--accent);transform:translateX(11px)}
   .latch .tk .run{stroke:var(--line);stroke-width:1}
   .latch .tk .pk{fill:none;stroke:var(--faint);stroke-width:1.2}
   /* The disc: ink at the near pocket (off), ACCENT at the far pocket (latched).
@@ -1531,6 +1641,12 @@ import Layout from '../layouts/Layout.astro';
 
   // TRACK GRAMMAR plumbing: every latch keeps its word in a .w span so setting
   // the label can't wipe the track SVG out of the button.
+  /* Still used by the ref-note / drone-note scrub control, whose VALUE is its word.
+     The three transports no longer have a `.w` at all (chooser treatment 05: the control is
+     one mark, no label), so calling this on them is a no-op — the `if (w)` guard is what
+     makes that safe, and the calls are gone rather than left to rot. What carries transport
+     state now: `aria-pressed` for assistive tech, `aria-label` for the verb, and the dot's
+     position plus accent for the eye. */
   const setWord = (btn: HTMLElement, s: string) => {
     const w = btn.querySelector('.w');
     if (w) w.textContent = s;
@@ -1868,7 +1984,6 @@ import Layout from '../layouts/Layout.astro';
     analyser = ac.createAnalyser();
     analyser.fftSize = 2048;
     src.connect(analyser);
-    setWord(micBtn, 'stop');
     micBtn.setAttribute('aria-label', 'stop the tuner');
     micBtn.setAttribute('aria-pressed', 'true');
     hintEl.textContent = '';
@@ -1907,7 +2022,6 @@ import Layout from '../layouts/Layout.astro';
     recent.length = 0;
     quietFrames = 99;
     renderSilence();
-    setWord(micBtn, 'start');
     micBtn.setAttribute('aria-label', 'start the tuner');
     micBtn.setAttribute('aria-pressed', 'false');
     hintEl.textContent = ''; // errors only — a stop clears any denial guidance
@@ -2063,7 +2177,6 @@ import Layout from '../layouts/Layout.astro';
     toneOsc.start();
     toneOsc2.start();
     toneOsc3?.start();
-    setWord(toneBtn, 'stop');
     toneBtn.setAttribute('aria-pressed', 'true');
     toneBtn.setAttribute('aria-label', 'stop the drone');
     // The figure carries the running state (the letter goes accent) — the drone's one
@@ -2083,7 +2196,6 @@ import Layout from '../layouts/Layout.astro';
     toneOsc2 = null;
     toneOsc3 = null;
     toneGain = null;
-    setWord(toneBtn, 'start');
     toneBtn.setAttribute('aria-pressed', 'false');
     toneBtn.setAttribute('aria-label', 'start the drone');
     if (droneCase) delete droneCase.dataset.sounding;
@@ -2364,7 +2476,6 @@ import Layout from '../layouts/Layout.astro';
     pending.length = 0;
     lastBeat = null;
     scheduler.start();
-    setWord(runBtn, 'stop');
     runBtn.setAttribute('aria-label', 'stop the metronome');
     runBtn.setAttribute('aria-pressed', 'true');
     pend.classList.remove('rest');
@@ -2412,7 +2523,6 @@ import Layout from '../layouts/Layout.astro';
       // here — finishSweep's frames read it after this returns; startMetro resets it.
       finishSweep();
     }
-    setWord(runBtn, 'start');
     runBtn.setAttribute('aria-label', 'start the metronome');
     runBtn.setAttribute('aria-pressed', 'false');
   }
