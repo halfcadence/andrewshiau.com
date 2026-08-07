@@ -396,8 +396,19 @@ for (const scheme of ['light', 'dark']) {
         }
         // BOTTOM — the played controls share one line. `#mt-tone`/`#mt-refnote` left the tuner
         // with the drone split; the drone's own foot carries them now.
-        const bot = uniq([baseline('#mt-refnote .w'),
-          baseline('#mt-bpm-scrub .mt-lb'), baseline('#mt-tap .w')]);
+        // THE DRONE'S NOTE LEFT THIS DATUM ENTIRELY, and the harness had to be corrected
+        // rather than the page. `#mt-refnote` was a foot-line scrub control, so it belonged
+        // on the bottom datum. It became `#mt-dnote` when the drone's FIGURE was promoted to
+        // be the pitch control — and a figure is not a foot control: measured, it is a 72px
+        // letter whose box sits at y405 while the foot line sits at y784. Asserting the two
+        // share a baseline is asserting the case has no middle.
+        // The failure this produced is worth recording because it arrived in two disguises:
+        // first as `MISSING CONTROLS: #mt-refnote` (the id moved, the testid did not, so the
+        // e2e specs never noticed), and once that was pointed at the new id, as a genuine
+        // "bottom datum is 2 lines: 444, 784". Both times 32/32 red, neither time about
+        // alignment. A harness that outlives the layout it measures reports on a page that
+        // no longer exists.
+        const bot = uniq([baseline('#mt-bpm-scrub .mt-lb'), baseline('#mt-tap .w')]);
         if (bot.length !== 1) vertFails.push(`the bottom datum is ${bot.length} lines: ${bot.join(', ')}`);
       }
 
@@ -413,7 +424,7 @@ for (const scheme of ['light', 'dark']) {
         const b = e.getBoundingClientRect();
         return Math.min(b.width, b.height);
       };
-      const smallest = Math.min(...['#mt-mic', '#mt-run', '#mt-drone', '#mt-tap', '#mt-refnote',
+      const smallest = Math.min(...['#mt-mic', '#mt-run', '#mt-drone', '#mt-tap', '#mt-dnote',
         '#mt-a4', '#mt-bpm'].map(tgt));
 
       return {

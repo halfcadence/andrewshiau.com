@@ -139,9 +139,9 @@ import Layout from '../layouts/Layout.astro';
             <div class="mt-cap">
               <button type="button" class="tbtn latch" id="mt-mic" data-testid="mic-toggle"
                 aria-pressed="false" aria-label="start the tuner">
-                <svg class="rd" width="22" height="11" viewBox="0 0 22 11" aria-hidden="true">
-                  <rect class="fld" x="0.5" y="0.5" width="21" height="10"/>
-                  <circle class="dt" cx="5.5" cy="5.5" r="2.2"/>
+                <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                  <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                  <circle class="dt" cx="8" cy="8" r="3.2"/>
                 </svg>
               </button>
             </div>
@@ -309,9 +309,9 @@ import Layout from '../layouts/Layout.astro';
             <div class="mt-cap">
             <button type="button" class="tbtn latch" id="mt-run" data-testid="metro-toggle"
               aria-pressed="false" aria-label="start the metronome">
-              <svg class="rd" width="22" height="11" viewBox="0 0 22 11" aria-hidden="true">
-                <rect class="fld" x="0.5" y="0.5" width="21" height="10"/>
-                <circle class="dt" cx="5.5" cy="5.5" r="2.2"/>
+              <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                <circle class="dt" cx="8" cy="8" r="3.2"/>
               </svg>
             </button>
             </div>
@@ -419,9 +419,9 @@ import Layout from '../layouts/Layout.astro';
             <div class="mt-cap">
             <button type="button" class="tbtn latch" id="mt-drone" data-testid="drone-toggle"
               aria-pressed="false" aria-label="start the drone">
-              <svg class="rd" width="22" height="11" viewBox="0 0 22 11" aria-hidden="true">
-                <rect class="fld" x="0.5" y="0.5" width="21" height="10"/>
-                <circle class="dt" cx="5.5" cy="5.5" r="2.2"/>
+              <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                <circle class="dt" cx="8" cy="8" r="3.2"/>
               </svg>
             </button>
             </div>
@@ -1623,16 +1623,22 @@ import Layout from '../layouts/Layout.astro';
      ONE FIX FOR BOTH, and it is the page's own idiom (`.mt-hd` does exactly this, and the
      meter's digits too): pad out to the target and pull the padding back with a matching
      negative margin. The ink then sits where the row wants it and the target overhangs into
-     the slack, which is air. 11px each side → 44 wide; 17px each end → 45 tall. `min-height:0`
-     because the padding now carries the height and leaving 44 there would re-inflate the row.
+     the slack, which is air. `min-height:0` because the padding now carries the height and
+     leaving 44 there would re-inflate the row.
      Deliberately NOT shrinking anything to fit: no target gets smaller, the row gets its lead
-     back, and the two facts are independent of each other. */
-  .mt-cap .tbtn.latch{min-height:0;padding:17px 11px;margin:-17px -11px}
+     back, and the two facts are independent of each other.
+     THE PAD IS DERIVED FROM THE INK, so it changed when the ink did (chooser
+     practice-room-control-size, pick 02 "the same drawing, 1.45× larger", 2026-08-07). At
+     22×11 it was 11px each side and 17px each end. At 32×16 it is 6px and 14px: 32+6+6 = 44
+     wide, 16+14+14 = 44 tall. Less of the target overhangs into air than before — that is
+     the pick's stated cost, not an oversight — but both axes still clear 44, which is the
+     line that matters and is asserted in the e2e suite. */
+  .mt-cap .tbtn.latch{min-height:0;padding:14px 6px;margin:-14px -6px}
   .rd{flex:none;display:block;transform:translateY(1px)}
-  .fld{fill:none;stroke:var(--line);stroke-width:1}
+  .fld{fill:none;stroke:var(--line);stroke-width:1.5}
   .dt{fill:var(--ink);
     transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
-  .latch[aria-pressed="true"] .dt{fill:var(--accent);transform:translateX(11px)}
+  .latch[aria-pressed="true"] .dt{fill:var(--accent);transform:translateX(16px)}
   .latch .tk .run{stroke:var(--line);stroke-width:1}
   .latch .tk .pk{fill:none;stroke:var(--faint);stroke-width:1.2}
   /* The disc: ink at the near pocket (off), ACCENT at the far pocket (latched).
@@ -1827,6 +1833,7 @@ import Layout from '../layouts/Layout.astro';
                 readonly droneStack: number[];
                 droneHz: () => Promise<number | null>;
                 readonly droneOut: GainNode | null;
+                readonly droneSources: { want: number; sample: string; srcHz: number; rate: number; sounds: number }[];
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
@@ -1900,44 +1907,21 @@ import Layout from '../layouts/Layout.astro';
             }
             return total;
           };
-          // ── PREFER THE SUBHARMONIC — this is the octave error, and it is not academic.
-          // A bare "take the strongest candidate" sweep reported the section voice an octave
-          // HIGH for the first ~2.5 s of its swell. Measured, at 2.2 s: |440| = 1.000 and
-          // |220| = 0.371 — the second partial genuinely dominates while the bow is still
-          // filling in — and since 440's harmonics (440/880/1320) are ALSO harmonics of 220,
-          // the objective scores the octave higher than the fundamental. The audio was right
-          // the whole time; the instrument reported it as a 1204-cent error, and I nearly
-          // "fixed" the samples because of it. (Twice now: the same class of mistake as the
-          // biased lag detector this replaced.)
-          // THE FIX is the standard one for pitch tracking: having found a peak, check whether
-          // half of it is also present, and prefer the lower octave when it is. A real
-          // fundamental at f/2 means energy at f/2 AND at 1.5·f/2 (its own odd partial, which
-          // is NOT a harmonic of f) — so the test is not "is f/2 present" but "is f/2 present
-          // with its own odd partials", which an octave-up artefact cannot fake.
+          // ── THE PLAIN SWEEP IS CORRECT, and the subharmonic preference that used to sit
+          // here is deleted. It was written to fix an octave the audio never had: a probe that
+          // left its own analyser connected to this same gain node changed what the NEXT
+          // measurement saw, and I read the artefact as a 1204-cent error in the instrument.
+          // The trace that settled it (`__mt.droneSources`) shows all three sampled sources
+          // playing the A2 loop at rate 1.0023, sounding 219.99999 Hz — exactly the A3 asked
+          // for — while a clean `droneHz()` reads 220.35 on five consecutive fresh runs.
+          // THE LESSON, for the third time in this session: measure ONCE, with one tap, and
+          // suspect the instrument before the thing it measures. Two "bugs" in the audio were
+          // both bugs in how I was listening.
           let seed = 220, bestP = -1;
           for (let m = 24; m <= 96; m++) {
             const f = 440 * Math.pow(2, (m - 69) / 12);
             const pw = power(f);
             if (pw > bestP) { bestP = pw; seed = f; }
-          }
-          for (let k = 0; k < 2 && seed / 2 >= 55; k++) {
-            const half = seed / 2;
-            const mag = (f: number) => {
-              const om = (2 * Math.PI * f) / sr;
-              let re = 0, im = 0;
-              for (let i = 0; i < w.length; i += 2) {
-                const win = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (w.length - 1));
-                const v = w[i] * win;
-                re += v * Math.cos(om * i);
-                im -= v * Math.sin(om * i);
-              }
-              return Math.hypot(re, im);
-            };
-            // `half` counts as the true fundamental if it carries real energy AND its 3rd
-            // partial (1.5·seed) does too — the latter belongs to `half` alone.
-            const ref = mag(seed);
-            if (mag(half) > 0.12 * ref && mag(half * 3) > 0.04 * ref) seed = half;
-            else break;
           }
           let lo = seed * Math.pow(2, -1 / 12), hi = seed * Math.pow(2, 1 / 12);
           for (let k = 0; k < 40; k++) {
@@ -1957,6 +1941,11 @@ import Layout from '../layouts/Layout.astro';
     get mic() { return analyser; },
     // the drone's own output node, so a probe can tap exactly what `droneHz` taps
     get droneOut() { return toneGain; },
+    // WHAT EACH SAMPLED SOURCE IS DOING — the buffer it holds, the rate it plays at, and
+    // therefore the pitch it sounds. Added while tracing an octave that the rank list said was
+    // not there: `droneRanks` reports the pitch the code INTENDED per note, and for a sampled
+    // voice the pitch is the buffer's content times a rate, which nothing else states.
+    get droneSources() { return sampleDebug.slice(); },
   };
   if (E2E) (window as any).__mt = hook;
 
@@ -2474,6 +2463,7 @@ import Layout from '../layouts/Layout.astro';
   let droneNodes: AudioScheduledSourceNode[] = [];
   let rankHz: number[] = [];                   // one entry per SOUNDING NOTE, in pitch order
   let droneWet: GainNode | null = null;
+  let sampleDebug: { want: number; sample: string; srcHz: number; rate: number; sounds: number }[] = [];
 
   // ONE function writes every place the drone's note appears: the scrub control, the
   // 72px figure and the exact reading. Three copies of one value is three chances to
@@ -2611,7 +2601,7 @@ import Layout from '../layouts/Layout.astro';
   // RAW int16 IN ONE BLOB, not three wavs and not decodeAudioData: one request, no header
   // parsing, and no async decode — a decode would make the first press arrive late, and
   // "the drone starts a beat after you press it" reads as a broken instrument.
-  type Cello = { rate: number; bufs: { midi: number; cents: number; buf: AudioBuffer }[] };
+  type Cello = { rate: number; bufs: { midi: number; cents: number; name: string; buf: AudioBuffer }[] };
   let cello: Cello | null = null;
   let celloLoad: Promise<Cello | null> | null = null;
   function loadCello(): Promise<Cello | null> {
@@ -2625,12 +2615,12 @@ import Layout from '../layouts/Layout.astro';
         ]);
         const ac = audio();
         const bufs = meta.notes.map(
-          (n: { midi: number; cents?: number; byteOffset: number; frames: number }) => {
+          (n: { midi: number; cents?: number; name: string; byteOffset: number; frames: number }) => {
             const pcm = new Int16Array(bin, n.byteOffset, n.frames);
             const buf = ac.createBuffer(1, n.frames, meta.rate);
             const d = buf.getChannelData(0);
             for (let i = 0; i < n.frames; i++) d[i] = pcm[i] / 32768;
-            return { midi: n.midi, cents: n.cents ?? 0, buf };
+            return { midi: n.midi, cents: n.cents ?? 0, name: n.name, buf };
           });
         cello = { rate: meta.rate, bufs };
         return cello;
@@ -2749,6 +2739,8 @@ import Layout from '../layouts/Layout.astro';
       // place as the pitch it corrects, so a sample and its offset cannot be applied apart.
       const srcHz = midiToFreq(s.midi, a4) * Math.pow(2, (s.cents || 0) / 1200);
       src.playbackRate.value = f / srcHz;
+      if (E2E) sampleDebug.push({ want: f, sample: s.name, srcHz, rate: src.playbackRate.value,
+                                  sounds: srcHz * src.playbackRate.value });
       if (src.detune) src.detune.value = cents;
       const g = ac.createGain();
       g.gain.value = lvl * 0.55;
@@ -2803,7 +2795,12 @@ import Layout from '../layouts/Layout.astro';
     const v = activeVoice();
     // The samples are fetched on the first press of a cello voice; when they land, re-voice
     // so the note the user asked for is what they end up hearing.
-    if (voice === 'section' && !cello) loadCello().then((c) => { if (c && toneGain) revoice(); });
+    // Same hazard as the voice selector's (see the note there): only re-voice if the samples
+    // were NOT already in hand, or a cached load resolves into a stack that is already correct
+    // and rebuilds it for nothing — which is how two stacks end up overlapping.
+    if (voice === 'section' && !cello) {
+      loadCello().then((c) => { if (c && toneGain && activeVoice() !== 'section') revoice(); });
+    }
 
     toneGain = ac.createGain();
     toneGain.gain.setValueAtTime(0.0001, ac.currentTime);
@@ -2824,6 +2821,7 @@ import Layout from '../layouts/Layout.astro';
       toneGain.connect(ac.destination);
     }
 
+    if (E2E) sampleDebug = [];
     rankHz = stackHz();
     // LEVEL FALLS AS 1/√n, not 1/n. Decorrelated voices sum in POWER, so 1/n makes a full
     // stack quieter than a single note and 1/1 clips it. Measured on the chooser's analyser
@@ -2857,8 +2855,15 @@ import Layout from '../layouts/Layout.astro';
   // restarting would leave a gap plus a fresh 1.2 s swell — which would make the strip feel
   // broken to use. The old stack fades over 50 ms while the new one comes up over 90, so the
   // change is heard as the chord moving rather than as the drone restarting.
+  let revoicing = false;
   function revoice() {
     if (!toneGain) return;
+    // NOT RE-ENTRANT. Two revoices in the same tick each capture `droneNodes`, but the second
+    // captures what the first's `startTone()` already replaced — so the first stack's sources
+    // never get stopped and two chords sound at once. The flag is belt-and-braces next to the
+    // caller fixes above: any future path that manages to call this twice fails safe.
+    if (revoicing) return;
+    revoicing = true;
     const ac = audio();
     const old = toneGain;
     const oldNodes = droneNodes;
@@ -2868,6 +2873,7 @@ import Layout from '../layouts/Layout.astro';
     setTimeout(() => { try { old.disconnect(); } catch {} }, 700);
     toneGain = null;
     startTone(0.09);
+    revoicing = false;
   }
 
   function stopTone() {
@@ -2943,8 +2949,25 @@ import Layout from '../layouts/Layout.astro';
     voice = b.dataset.voice as Voice;
     store.set('mt:voice', voice);
     paintVoice();
-    if (voice !== 'organ') loadCello().then((c) => { if (c && droning()) revoice(); });
-    if (droning()) revoice();
+    // ── ONE REVOICE PER SWITCH, and this was a real bug: TWO overlapping stacks.
+    // It read `loadCello().then(revoice)` AND `revoice()` — so switching to a cello voice
+    // re-voiced twice, and when the samples were already cached the promise resolved on the
+    // NEXT microtask, i.e. between the synchronous revoice's `startTone()` and its scheduled
+    // node stops. `startTone()` reassigns `droneNodes`, so the second revoice took the fade of
+    // the list the first one had just replaced and left the first stack's sources running.
+    // MEASURED, on the live page: `cello → section` read 440.21 Hz where A3 is 220 — the cello
+    // voice's octave partial still sounding over the section's fundamental, which reads as a
+    // perfect octave. `organ → section` was clean, and so was a fresh page, which is why the
+    // sequence mattered and a single-voice test never caught it.
+    // The samples are needed before a cello voice can sound as itself, so the await comes
+    // FIRST and there is exactly one revoice after it. `loadCello()` is memoised, so a
+    // second switch costs nothing.
+    if (!droning()) {
+      if (voice !== 'organ') loadCello();          // warm it for the next start
+      return;
+    }
+    if (voice === 'organ' || cello) revoice();
+    else loadCello().then(() => { if (droning()) revoice(); });
   });
 
   const stepRef = (d: number) => {
