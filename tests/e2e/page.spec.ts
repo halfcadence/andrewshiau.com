@@ -15,7 +15,8 @@ test('page boots clean: no console errors, controls present', async ({ page }) =
   // and `tone-toggle` is gone with the tuner's second job. Its transport is the caption
   // under its own figure, like the other two.
   await expect(page.getByTestId('drone-toggle')).toBeVisible();
-  await expect(page.getByTestId('fifth-toggle')).toBeVisible();
+  await expect(page.getByTestId('semi-7'), 'the stack strip replaced the fifth latch').toBeVisible();
+  await expect(page.getByTestId('voice-section'), 'and the voice is a setting').toBeVisible();
   await expect(page.getByTestId('tone-toggle')).toHaveCount(0);
   // BOTH calibration fields, ONE value (the user's refinement on Q4).
   await expect(page.getByTestId('a4')).toHaveValue('440');
@@ -214,7 +215,15 @@ test('the apex sends the instrument to its own host, query intact', async ({ req
 // claim that nothing checks is a routing claim that drifts.
 const PRACTICE_TOOLS = [
   { path: '/practice-room/', canonical: 'https://practice.andrewshiau.com/' },
-  { path: '/pitchgraph/', canonical: 'https://practice.andrewshiau.com/pitchgraph/' },
+  { path: '/readings/', canonical: 'https://practice.andrewshiau.com/readings/' },
+];
+
+// THE OLD ADDRESS KEEPS WORKING. /pitchgraph/ was published before the 2026-08-07 rename,
+// so retiring the name does not retire the URL: the apex 301s it to the tool's new address
+// on the practice host. Asserted separately from the table above because there is no page
+// at /pitchgraph/ any more — only a redirect, so it has no canonical and no assets to check.
+const RETIRED_PATHS = [
+  { path: '/pitchgraph/', to: 'https://practice.andrewshiau.com/readings/' },
 ];
 
 test('every practice tool is served on the practice host and disowned by the apex',
@@ -247,5 +256,21 @@ test('every practice tool is served on the practice host and disowned by the ape
       const apex = await request.get(`https://andrewshiau.com${tool.path}`, { maxRedirects: 0 });
       expect(apex.status(), `apex ${tool.path} must redirect`).toBe(301);
       expect(apex.headers().location).toBe(tool.canonical);
+    }
+  });
+
+test('a retired tool address still 301s to the tool, query string intact',
+  async ({ request }) => {
+    // A renamed tool's old URL is a promise already made to whoever has the link. Same
+    // live-only reason as above: this is a routing fact, and only the deployment has it.
+    test.skip(!process.env.E2E_BASE_URL, 'routing is a deployment fact; run with E2E_BASE_URL');
+    for (const old of RETIRED_PATHS) {
+      const r = await request.get(`https://andrewshiau.com${old.path}`, { maxRedirects: 0 });
+      expect(r.status(), `apex ${old.path} must still redirect`).toBe(301);
+      expect(r.headers().location).toBe(old.to);
+      // $is_args$args, asserted the same way the practice-room redirect asserts it — a
+      // rule written without it silently eats ?e2e and every other query.
+      const q = await request.get(`https://andrewshiau.com${old.path}?e2e`, { maxRedirects: 0 });
+      expect(q.headers().location).toBe(`${old.to}?e2e`);
     }
   });

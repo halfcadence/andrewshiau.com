@@ -421,19 +421,47 @@ import Layout from '../layouts/Layout.astro';
               title="click +1 · shift-click −1 · drag ↔"><span class="w">A4</span></button>
           </span>
           <span class="mt-fr">
-            <!-- THE FIFTH is a two-pocket latch, the Track grammar's toggle. JUST (3:2),
-                 not tempered: the beating against an equal-tempered instrument is the
-                 whole reason to drone against a fifth. -->
-            <button type="button" class="tbtn latch" id="mt-fifth" data-testid="fifth-toggle"
-              aria-pressed="false" aria-label="Sound the fifth above">
-              <svg class="tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-                <line class="run" x1="4" y1="6" x2="22" y2="6"/>
-                <circle class="pk pk0" cx="4" cy="6" r="2.4"/>
-                <circle class="pk pk1" cx="22" cy="6" r="2.4"/>
-                <circle class="disc" cy="6" r="3.2"/>
-              </svg><span class="w">fifth</span>
-            </button>
+            <!-- THE VOICE IS A SETTING (user, 2026-08-07: "i like 05 the section. but also the
+                 organ pair maybe it can be a setting?"). Three voices, one selector, and it is
+                 a SELECTOR rather than three latches because they are mutually exclusive — the
+                 Track grammar's rule is that form announces operation, and a row of latches
+                 would promise you could hold two at once.
+                 The words, not glyphs: `organ · cello · section` is what these differ by, and
+                 no drawing distinguishes a sampled section from an additive cello. Lowercase,
+                 the page's own register. -->
+            <span class="mt-voice" id="mt-voice" role="group" aria-label="Drone voice">
+              <button type="button" class="vbtn" data-voice="organ" data-testid="voice-organ"
+                aria-pressed="false">organ</button>
+              <button type="button" class="vbtn" data-voice="cello" data-testid="voice-cello"
+                aria-pressed="false">cello</button>
+              <button type="button" class="vbtn" data-voice="section" data-testid="voice-section"
+                aria-pressed="true">section</button>
+            </span>
           </span>
+        </div>
+
+        <!-- ── THE STACK — the chromatic strip (chooser practice-room-drone-stack Q1/06) ──
+             The `fifth` latch is GONE, and the strip is what replaces it: sixteen semitone
+             cells, the root at the left, each cell a toggle. Its claim is that DISTANCE IS
+             THE INTERVAL, so "major or minor" stops being a mode you set and becomes a
+             position you point at — and a 5th is where a 5th is, seven cells along.
+             SIXTEEN CELLS, NOT THE NINE NAMED DEGREES (the user picked Q2/02, fifteen with
+             both qualities, and the strip is how fifteen fit). A strip with holes where the
+             unnamed intervals go would be a degree set wearing a strip's clothes. The NAMES
+             the user asked for live in each cell's `aria-label` and in the readout below, so
+             nothing has to be counted: the label says `5 — E3`, not "seven cells".
+             IT SITS IN THE `hint` ROW, WHICH THIS CASE ALREADY HAD AND LEFT EMPTY — so the
+             stack costs the ladder NO new row, which is better than the chooser's own stated
+             cost for this option. That row exists on all three cases to hold the tuner's
+             error line; the drone's copy was reserved air, and this is what it was reserving.
+             The readout is the strip's own caption: which intervals are on, by NAME, as a
+             chord — `A2 · C♯3 · E3`. It replaces the exact reading that was deleted from the
+             read row for stating the note a third time; this states something the letter
+             cannot, which is the rest of the chord. -->
+        <div class="mt-stackline">
+          <span class="mt-strip" id="mt-strip" role="group"
+            aria-label="Intervals above the root, in semitones"></span>
+          <span class="mt-chord" id="mt-chord" data-testid="chord" aria-live="off"></span>
         </div>
       </section>
     </div>
@@ -483,6 +511,157 @@ import Layout from '../layouts/Layout.astro';
      part to a scope class those elements never carry (found: overlay never
      painted from the scoped block). */
   body:has(#mt-app) .guide{display:none !important}
+
+  /* ══════════════════════════════════════════════════════════════════════════════════
+     THE STACK'S RULES ARE GLOBAL, AND THAT IS NOT A STYLE CHOICE — IT IS REQUIRED.
+     Astro scopes a component's `<style>` by appending an attribute selector, so
+     `.mt-cell` compiles to `.mt-cell[data-astro-cid-3jerlmmv]`. The strip's cells are
+     BUILT BY buildStrip() at runtime and carry no such attribute, so every rule silently
+     matched nothing: the cells rendered 8×0 px, the e2e reported `semi-7` as "hidden", and
+     the page looked like it had no strip at all.
+     This is the same trap this file already records for the ⌥G overlay (`:is(html,body)
+     .showgrid` had to move here for the same reason). THE RULE: markup this page creates in
+     JS needs its CSS in the `is:global` chunk. The selectors are prefixed `mt-` and
+     `#mt-app`-adjacent, so they match nothing anywhere else on the site.
+     ══════════════════════════════════════════════════════════════════════════════════ */
+  /* ══ THE STACK — the chromatic strip (chooser practice-room-drone-stack, Q1/06) ══════
+     IT COSTS THE LADDER NO NEW ROW. It sits in `hint`, the row every case already declares
+     and this one left empty (the tuner uses it for errors). That row was reserved air; this
+     is what it was reserving. `align-self:center` comes from `.mt-hintline` above, and the
+     strip is deliberately SHORTER than the 28px row so the row's height does not change —
+     which is what keeps three cases' feet in phase.
+     WHY A STRIP OF CELLS AND NOT A ROW OF DIGITS: the alternative on the sheet was the
+     metronome's ruled measure with each digit independently lit. At nine intervals its cells
+     measure 17px — under the 24px floor — and at fifteen they are 10px. A cell has no glyph
+     to be legible, so the strip spends its 156px on TARGETS instead of on type, and the
+     names move to the labels and the readout below. */
+  /* ── THE CELLS DIVIDE THE ROW; NOTHING COMPUTES A WIDTH. ────────────────────────
+     First attempt derived the cell width in CSS —
+       `round(down, (210px − 2×3ch − 2px − 16×1px) / 17, 1px)`
+     — and every cell rendered 0×0. `round()` is not in the Chrome the harness drives (nor in
+     Safari before 15.4), and an unsupported math function does not fall back to the `var()`
+     default: the declaration is invalid at computed-value time, so `width` became 0 and the
+     whole strip was 16px of gaps. The e2e caught it as "resolved to <button …> — hidden",
+     which is what a 0×0 button is.
+     A GRID NEEDS NO ARITHMETIC. `repeat(17, 1fr)` divides whatever the case gives it, exactly,
+     at any width and in any browser — the same reason the drone-box sheet's rooms are grids
+     and not flex rows (a track's width does not consult its contents). It also means the
+     strip cannot overflow a narrower case: the cells shrink, the count stays 17. */
+  /* ── THE STRIP MUST NOT SWALLOW ITS NEIGHBOURS' CLICKS ──────────────────────────
+     The cells are 40px targets holding 20px of ink, so 10px of each hangs above and below
+     into the slack — and that overhang sits OVER the foot line. Playwright found it exactly:
+     87 retries of a click on `refnote`, each reporting `<button data-semi="2">… intercepts
+     pointer events`. A human would have read that as a dead note control.
+     `pointer-events` on the ROW is `none` and each CELL turns it back on, so the row's own
+     box (which is what overlaps the foot) is transparent to a pointer while every cell stays
+     a full 40px target. The alternative — shrinking the cells to their 20px of ink — would
+     have fixed the overlap by putting every target under WCAG 2.5.8's floor.
+     `position:relative` + `z-index:1` on the cells keeps them ABOVE the row's background but
+     the row itself out of the hit-test. */
+  .mt-strip{display:grid;grid-template-columns:repeat(17, 1fr);align-items:stretch;
+    gap:1px;width:100%;pointer-events:none;
+    /* the row is 28px; the cells are 20px and the padding makes the TARGET 40px tall,
+       overhanging into the slack above and below, where it is air. Same idiom as `.mt-hd`
+       and the meter digits: pad out to a target, pull the padding back, don't grow the row. */
+    margin:0 auto}
+  .mt-cell{-webkit-appearance:none;appearance:none;font:inherit;background:transparent;
+    border:0;border-radius:0;margin:0;cursor:pointer;
+    /* THE INK IS 20px AND THE TARGET IS 40, and the mechanism is NOT the page's usual
+       pad-then-negative-margin: inside a grid item `align-items:stretch` resolves the height
+       from the track, and a `height:20px` + `padding:10px 0` box measured 8×0 — the padding
+       and the negative margins cancelled to nothing. Measured, not guessed (the harness read
+       `rect: 8.125x0`, and a zero-height button is a control nobody can press).
+       So the box states its own 40px height and the INK is drawn with a background inset by
+       `background-clip:content-box` over 10px of vertical padding. Same result, one box: a
+       20px mark inside a 40px target, and the row keeps its 28px lead because the strip is
+       `align-self:center` in it and the overhang falls into the slack. */
+    height:40px;padding:10px 0;
+    min-width:0;                      /* a grid item's default min-width:auto refuses to shrink */
+    pointer-events:auto;              /* the row is transparent; the cells are not (see above) */
+    /* THE HAIRLINE IS A BACKGROUND, not a box-shadow: `inset` shadows ignore
+       `background-clip`, so a shadow would outline the 40px TARGET while the fill sat in the
+       20px ink box — a cell whose border and whose fill were different sizes. Two layers on
+       the content box instead: the 1px frame is a gradient, the fill sits over it. */
+    background-image:linear-gradient(var(--line),var(--line));
+    background-clip:content-box;background-repeat:no-repeat;
+    background-size:100% 100%;background-position:center;
+    box-shadow:none;
+    transition:background-image var(--dur-fast) var(--ease)}
+  /* ON is a FILLED cell — the hollow/filled pair this page already uses for the accent mark
+     and the page dots, borrowed rather than invented. Value alone would not do it: --ink
+     against --faint measures 3.54:1, which the accent-clarity chooser already rejected at
+     small sizes. */
+  .mt-cell.on{background-image:linear-gradient(var(--ink),var(--ink))}
+  /* THE ROOT CELL is filled and inert: it always sounds, so it must not look switchable.
+     It is the datum the rest of the strip is measured from. */
+  .mt-cell-root{background-image:linear-gradient(var(--ink),var(--ink));
+    cursor:default;pointer-events:none}
+  /* SOUNDING IS ACCENT — INCLUDING THE ROOT. The root cell stayed --ink while the switched
+     cells went --accent, so the strip drew the always-sounding note as though it were the one
+     thing NOT sounding. Caught by looking at the render: one black cell in a row of navy. On
+     this screen the accent means "this is happening", and the root is happening. */
+  .mt-drone[data-sounding="true"] .mt-cell.on,
+  .mt-drone[data-sounding="true"] .mt-cell-root{
+    background-image:linear-gradient(var(--accent),var(--accent))}
+  .mt-cell:hover:not(.on){background-image:linear-gradient(
+    color-mix(in srgb,var(--accent) 34%,transparent),
+    color-mix(in srgb,var(--accent) 34%,transparent))}
+  .mt-cell:focus-visible{outline:1px solid var(--accent);outline-offset:1px}
+  /* THE SCALE: a tick under every fifth cell. Sixteen printed numbers under a 156px strip
+     would be illegible, and an unscaled strip cannot be counted at all — so the marks are
+     the same compromise the metronome's ruled measure makes. */
+  /* the scale rides the SAME grid, so a tick is always under the cell it counts */
+  .mt-scale{display:grid;grid-template-columns:repeat(17, 1fr);gap:1px;width:100%;
+    pointer-events:none}
+  .mt-scale i{height:3px;display:block;min-width:0}
+  .mt-scale i.tk5{border-left:1px solid var(--faint)}
+  /* THE CHORD READOUT — the strip's caption, and the only place the stack is stated in the
+     names a player thinks in. It says what the 72px letter cannot: the rest of the notes. */
+  /* ── THE CHORD WRAPS; IT MUST NOT TRUNCATE. First build had `nowrap` + ellipsis, which
+     read fine at two notes and printed `A4 · C5 · E5 · C…` at four — an ellipsis on a chord
+     hides the very note the user just added, which is worse than saying nothing. My own
+     phone check missed it because it measured the DEFAULT stack (two notes); the render at
+     four is what showed it.
+     Wrapping is free here: this sits in `slack-b`, placed air with height to give, so a
+     second line costs nothing structural. `text-wrap:balance` keeps two lines even rather
+     than one long and one orphan. */
+  .mt-chord{color:var(--faint);text-align:center;max-width:100%;
+    text-wrap:balance;overflow-wrap:break-word}
+  /* The stack line is two stacked rows of marks plus a caption, so it needs to be a column
+     rather than inheriting the hint line's single baseline. It stays `align-self:center` in
+     the `hint` row, so it grows symmetrically into the slack above and below. */
+  /* ── IT LIVES IN `slack-b`, THE PLACED AIR BELOW THE INSTRUMENT — not in `hint`.
+     In `hint` (one lead, 28px) this 75px group was `align-self:center` and therefore hung
+     23px INTO THE FOOT ROW above it, where the note scrub sits, and its 40px cells
+     intercepted every click aimed at that control. Playwright reported it precisely: 87
+     retries, each `<button data-semi="2"> … intercepts pointer events`. A person would have
+     called the note control broken.
+     `slack-b` is `minmax(0,1fr)` — it is where this screen puts placed air, so it has real
+     height to give and the ladder absorbs whatever is taken. The other two cases leave it
+     empty, which is unchanged; the drone's copy now holds the stack. `hint` goes back to
+     being the tuner's error line only. */
+  .mt-stackline{grid-row:slack-b;align-self:center;
+    display:flex;flex-direction:column;align-items:stretch;gap:2px;min-height:0}
+
+  /* ══ THE VOICE SELECTOR ════════════════════════════════════════════════════════════
+     A SELECTOR, NOT THREE LATCHES, and the form has to say so: the voices are mutually
+     exclusive, and a row of two-pocket tracks would promise you could hold two at once.
+     The Track grammar's rule is that form announces operation — so this is the selector
+     idiom the meters use (the members are the marks, the selected one is ink) rather than
+     the toggle idiom.
+     WORDS AND NOT GLYPHS: no drawing distinguishes a sampled section from an additive
+     cello, and these differ by exactly the thing the words name. */
+  .mt-voice{display:inline-flex;align-items:baseline;gap:1ch}
+  .vbtn{font:inherit;background:transparent;border:0;border-radius:0;margin:0;
+    padding:8px 0;margin-top:-8px;margin-bottom:-8px;   /* 44px target, row keeps its lead */
+    cursor:pointer;color:var(--faint);
+    transition:color var(--dur-fast) var(--ease)}
+  .vbtn.on{color:var(--ink)}
+  .vbtn:hover:not(.on){color:var(--accent)}
+  .vbtn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .mt-drone[data-sounding="true"] .vbtn.on{color:var(--accent)}
+
+
   :is(html,body).showgrid .mt-half::after{opacity:1}
   :is(html,body).showgrid .mt-pages::before{opacity:1}
   /* the CENTRE pair of vertical datums, which rides on `.mt-mid` because the elastic slack
@@ -1316,6 +1495,7 @@ import Layout from '../layouts/Layout.astro';
      forbids ("No off-grid margins like 17px"). A row on the ladder reserves the line by
      existing, in both cases, so neither the declaration nor the 2px is needed. */
   .mt-hintline{grid-row:hint;align-self:center}
+
   .mt-lb{color:var(--faint)}
 
   .mt-refnote{color:var(--ink);min-width:4ch;text-align:center;display:inline-block}
@@ -1610,6 +1790,8 @@ import Layout from '../layouts/Layout.astro';
                 // re-derives the ratio from the source instead of the graph would pass on a
                 // page that sounds the wrong one.
                 readonly droneRanks: number[];
+                readonly droneVoice: string | null;
+                readonly droneStack: number[];
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
@@ -1623,12 +1805,17 @@ import Layout from '../layouts/Layout.astro';
     bleed: null, gated: 0,
     get a4() { return a4; },
     get bpm() { return bpm; },
-    // In start order: fundamental, octave, and the fifth when latched.
-    get droneRanks() {
-      return [toneOsc, toneOsc2, toneOsc3]
-        .filter((o): o is OscillatorNode => !!o)
-        .map((o) => o.frequency.value);
-    },
+    // ONE ENTRY PER SOUNDING NOTE, in pitch order: the root, then each switched interval.
+    // It was three named oscillator handles, which cannot work now for two reasons — the
+    // stack is up to seventeen notes, and the SECTION voice starts no oscillators at all
+    // (buffer sources), so the old getter reported an empty stack while a cello section was
+    // audibly sounding. `rankHz` is what startTone() actually scheduled.
+    get droneRanks() { return rankHz.slice(); },
+    // WHAT IS ACTUALLY SOUNDING, which is not always what is selected: `section` falls back
+    // to the organ until its samples arrive (and permanently if the fetch fails). A test
+    // asserting the sampled voice has to be able to tell those apart.
+    get droneVoice() { return toneGain ? activeVoice() : null; },
+    get droneStack() { return [...stack].sort((x, y) => x - y); },
     get ctx() { return ctx; },
     get mic() { return analyser; },
   };
@@ -1681,7 +1868,10 @@ import Layout from '../layouts/Layout.astro';
     a4 = Math.min(A4_MAX, Math.max(A4_MIN, v));
     store.set('mt:a4', String(a4));
     paintA4();
-    if (toneOsc) retune();
+    // The drone follows the calibration too — a4 is what the whole ROOM means by a note.
+    // `droning()` is a hoisted function declaration for exactly this: setA4 is defined
+    // above the drone block and still has to ask whether the drone is running.
+    if (droning()) retune();
   };
   for (const f of a4Fields) {
     f.value = String(a4);
@@ -2070,17 +2260,74 @@ import Layout from '../layouts/Layout.astro';
                                     // the foot control, which prints the full A4)
   let refMidi = Number(store.get('mt:ref')) || 69; // A4
   if (!Number.isInteger(refMidi) || refMidi < 36 || refMidi > 96) refMidi = 69;
-  // THE FIFTH is persisted like every other set-once value on this screen. JUST, not
-  // tempered — see the markup note: the beating is the point of droning on a fifth.
-  let fifthOn = store.get('mt:fifth') === '1';
-  const fifthBtn = $('mt-fifth') as unknown as HTMLButtonElement;
-  // THE ORGAN PAIR (timbre chooser pick, 2026-08-04): the fundamental plus one
-  // octave partial at −12 dB — the two-rank flute organ. Fills out without buzz,
-  // and the octave makes unisons easier to hear against a real instrument.
-  let toneOsc: OscillatorNode | null = null;   // the fundamental — the hook reads this one
-  let toneOsc2: OscillatorNode | null = null;  // the octave partial
-  let toneOsc3: OscillatorNode | null = null;  // the fifth, when latched
+  // ── THE STACK, AND THE VOICE ────────────────────────────────────────────────
+  // Two changes from the single `fifth` latch, both from chooser `practice-room-drone-stack`
+  // (picked 2026-08-07): the stack is every interval up to a major 10th, switched
+  // independently (Q1/06 the chromatic strip, Q2/02 both qualities), and the VOICE is a
+  // setting with three values rather than one hardcoded timbre (the user's refinement on
+  // Q3: "i like 05 the section. but also the organ pair maybe it can be a setting?").
+  //
+  // THE INTERVALS ARE JUST RATIOS, indexed by semitones — small whole numbers, not
+  // 2^(n/12). This is the whole reason to stack them: a just major third is 5:4, which is
+  // 14 cents flat of the piano's, and hearing that interval lock is the exercise. A
+  // tempered stack would beat against itself and teach the wrong thing. The old `FIFTH`
+  // constant is row 7 of this table.
+  // Two small helpers the stack needs. `nameOf` prints letter+octave, which is what a
+  // player reads; `el` builds one node from markup so the strip's cells are written as
+  // markup rather than as six imperative property assignments each.
+  const nameOf = (m: number) => `${NOTE_NAMES[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
+  const el = (h: string) => {
+    const t = document.createElement('template');
+    t.innerHTML = h.trim();
+    return t.content.firstElementChild as HTMLElement;
+  };
+
+  const JUST: Record<number, { r: number; d: string }> = {
+    1:  { r: 16 / 15, d: '♭2' },  2:  { r: 9 / 8,   d: '2'  },
+    3:  { r: 6 / 5,   d: '♭3' },  4:  { r: 5 / 4,   d: '3'  },
+    5:  { r: 4 / 3,   d: '4'  },  6:  { r: 45 / 32, d: '♯4' },
+    7:  { r: 3 / 2,   d: '5'  },  8:  { r: 8 / 5,   d: '♭6' },
+    9:  { r: 5 / 3,   d: '6'  },  10: { r: 9 / 5,   d: '♭7' },
+    11: { r: 15 / 8,  d: '7'  },  12: { r: 2,       d: '8'  },
+    // COMPOUND INTERVALS ARE THE SIMPLE RATIO DOUBLED — a 9th is 9:8 × 2 = 9:4. That is
+    // what "an octave higher" means arithmetically, and it keeps a 10th exactly as just as
+    // the 3rd it is built from.
+    13: { r: 32 / 15, d: '♭9' },  14: { r: 9 / 4,   d: '9'  },
+    15: { r: 12 / 5,  d: '♭10'},  16: { r: 5 / 2,   d: '10' },
+  };
+  const SEMIS = Object.keys(JUST).map(Number).sort((a, b) => a - b);   // 1..16
+
+  // THE STACK'S STATE, persisted like every other set-once value here: a semitone set.
+  // Stored as a comma list rather than a bitmask so a stale localStorage value from a
+  // future version is readable and a bad one is discardable member by member.
+  const stack = new Set<number>();
+  (store.get('mt:stack') ?? '7').split(',').forEach((t) => {
+    const n = Number(t);
+    if (Number.isInteger(n) && JUST[n]) stack.add(n);
+  });
+
+  // THE VOICE. `section` is the default because it is what the chooser's sound question was
+  // asking about and what a drone is for; `organ` is the two-rank pair that shipped before
+  // and is kept, per the user, as a setting rather than deleted.
+  type Voice = 'organ' | 'cello' | 'section';
+  const VOICES_D: Voice[] = ['organ', 'cello', 'section'];
+  let voice: Voice = (store.get('mt:voice') as Voice) ?? 'section';
+  if (!VOICES_D.includes(voice)) voice = 'section';
+  const voiceWrap = $('mt-voice');
+  const stripEl = $('mt-strip');
+  const chordEl = $('mt-chord');
+
+  // THE SOUNDING GRAPH. It was three named oscillators; a stack of up to seventeen notes in
+  // three timbres needs a list. `droneNodes` is everything started (so stop() can reach it)
+  // and `droneRankNodes` is only the nodes whose frequency IS a rank's pitch — the e2e hook
+  // reads ratios off that, and a partial or a bow-noise source in the list would corrupt it.
+  let toneOsc: OscillatorNode | null = null;   // the root's fundamental — `toneHz` reads this
+  let toneOsc2: OscillatorNode | null = null;  // kept: the octave partial, organ voice
+  let toneOsc3: OscillatorNode | null = null;  // kept: the first switched interval, organ voice
   let toneGain: GainNode | null = null;
+  let droneNodes: AudioScheduledSourceNode[] = [];
+  let rankHz: number[] = [];                   // one entry per SOUNDING NOTE, in pitch order
+  let droneWet: GainNode | null = null;
 
   // ONE function writes every place the drone's note appears: the scrub control, the
   // 72px figure and the exact reading. Three copies of one value is three chances to
@@ -2095,10 +2342,67 @@ import Layout from '../layouts/Layout.astro';
   }
   refLabel();
 
-  function paintFifth() {
-    fifthBtn.setAttribute('aria-pressed', String(fifthOn));
+  // ── THE STRIP IS BUILT ONCE AND PAINTED, never re-rendered. A cell is a toggle whose
+  // state is an attribute; rebuilding the row on every click would drop focus mid-stack and
+  // is the sort of thing that makes a keyboard user's place vanish.
+  // THE ROOT CELL IS NOT A BUTTON: the root always sounds, so a control that cannot be
+  // switched must not look switchable (the same rule the ledger's root row obeys).
+  function buildStrip() {
+    if (!stripEl) return;
+    stripEl.appendChild(el('<span class="mt-cell mt-cell-root" aria-hidden="true"></span>'));
+    SEMIS.forEach((n) => {
+      const b = el(`<button type="button" class="mt-cell" data-semi="${n}" data-testid="semi-${n}"
+        aria-pressed="false"></button>`) as HTMLButtonElement;
+      stripEl.appendChild(b);
+    });
+    // THE SCALE: a tick under every fifth cell. Sixteen printed numbers under a 156px strip
+    // would be unreadable, and a strip with no scale cannot be counted at all — so the marks
+    // are the compromise the metronome's ruled measure already uses.
+    const sc = el('<span class="mt-scale" aria-hidden="true"></span>');
+    for (let i = 0; i <= 16; i++)
+      sc.appendChild(el(`<i class="${i % 5 === 0 ? 'tk5' : ''}"></i>`));
+    stripEl.parentElement?.insertBefore(sc, stripEl.nextSibling);
   }
-  paintFifth();
+
+  // ONE FUNCTION PAINTS THE WHOLE STACK: the cells' state, their labels, and the chord
+  // readout. The labels carry the NAMES the strip's geometry drops — `5 — E3`, so nothing has
+  // to be counted — and they must be rewritten when the root moves, not only when a cell is
+  // clicked, or the strip announces intervals above a note that is no longer the root.
+  function paintStack() {
+    const names: string[] = [nameOf(refMidi)];
+    stripEl?.querySelectorAll<HTMLButtonElement>('[data-semi]').forEach((b) => {
+      const n = Number(b.dataset.semi);
+      const on = stack.has(n);
+      b.setAttribute('aria-pressed', String(on));
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-label', `${JUST[n].d} — ${nameOf(refMidi + n)}`);
+      b.title = `${JUST[n].d}  ${nameOf(refMidi + n)}`;
+      if (on) names.push(nameOf(refMidi + n));
+    });
+    // THE CHORD IS THE STRIP'S CAPTION — what is sounding, by name, in pitch order. It says
+    // the one thing the 72px letter cannot: the rest of the notes. (The exact reading deleted
+    // from the read row stated the root a third time; this does not.)
+    // THE SEPARATOR IS GONE, and that is the fix rather than a third attempt at placing it.
+    // A wrapping list cannot keep an interpunct tidy: `' · '` broke AFTER the dot
+    // (`A4 · C5 ·` / `E5 · C♯6`), binding it forward broke BEFORE it (`· E5 · C♯6`), and
+    // binding it back still left a dot at the end of line one. Three placements, three
+    // dangling marks — the mark itself was the problem.
+    // In a monospace face at this size the space IS the separator: `A4 C5 E5 C♯6` reads as a
+    // list with nothing to dangle, at any wrap point. (The foot's page words keep their dots
+    // because that row never wraps — one line, three fixed words.)
+    if (chordEl) chordEl.textContent = names.join('  ');
+  }
+
+  function paintVoice() {
+    voiceWrap?.querySelectorAll<HTMLButtonElement>('[data-voice]').forEach((b) => {
+      const on = b.dataset.voice === voice;
+      b.setAttribute('aria-pressed', String(on));
+      b.classList.toggle('on', on);
+    });
+  }
+  buildStrip();
+  paintStack();
+  paintVoice();
 
   // THE VALUE IS THE CONTROL (Q1/02). One element, four inputs:
   // click +1 · shift-click −1 · vertical drag scrubs (8px per semitone; the
@@ -2118,7 +2422,10 @@ import Layout from '../layouts/Layout.astro';
       const d = Math.round((e.clientX - dragX) / 8);
       if (d !== 0) dragged = true;
       const m = Math.min(96, Math.max(36, dragStart + d));
-      if (m !== refMidi) { refMidi = m; store.set('mt:ref', String(refMidi)); refLabel(); if (toneOsc) retune(); }
+      if (m !== refMidi) {
+        refMidi = m; store.set('mt:ref', String(refMidi)); refLabel(); paintStack();
+        if (droning()) retune();
+      }
     });
     refNoteEl.addEventListener('pointerup', () => { dragX = null; refNoteEl.classList.remove('scrubbing'); });
     refNoteEl.addEventListener('click', (e) => {
@@ -2131,80 +2438,302 @@ import Layout from '../layouts/Layout.astro';
     });
   }
 
-  // THE JUST FIFTH, not the tempered one: 3:2 exactly. An equal-tempered fifth is
-  // 2^(7/12) = 1.49831, two cents narrow, and those two cents are the difference between
-  // a drone you can tune a third against and one that beats against itself.
-  const FIFTH = 3 / 2;
-
-  // ONE function owns every oscillator's frequency AND the hook's copy.
-  function retune() {
-    const f = midiToFreq(refMidi, a4);
-    const now = audio().currentTime;
-    if (toneOsc) toneOsc.frequency.setValueAtTime(f, now);
-    if (toneOsc2) toneOsc2.frequency.setValueAtTime(f * 2, now);
-    if (toneOsc3) toneOsc3.frequency.setValueAtTime(f * FIFTH, now);
-    if (E2E) hook.toneHz = toneOsc ? f : null;
+  // ── THE CELLO SAMPLES, fetched ONCE and only if wanted ──────────────────────
+  // A cello SECTION playing sustained vibrato (VSCO-2 Community Edition, CC0), looped with
+  // an equal-power crossfade — see scripts/build-cello-samples.py for the recipe and why a
+  // section beats a soloist (many players' vibrato beating against each other is most of
+  // what makes a cello drone lush).
+  // LAZY, AND THAT IS THE POINT: 258 kB must not land on every visitor who opens the tuner.
+  // It is fetched on the first press of a cello voice, so the default page weight is
+  // unchanged and a tuner-only user never pays for it.
+  // RAW int16 IN ONE BLOB, not three wavs and not decodeAudioData: one request, no header
+  // parsing, and no async decode — a decode would make the first press arrive late, and
+  // "the drone starts a beat after you press it" reads as a broken instrument.
+  type Cello = { rate: number; bufs: { midi: number; buf: AudioBuffer }[] };
+  let cello: Cello | null = null;
+  let celloLoad: Promise<Cello | null> | null = null;
+  function loadCello(): Promise<Cello | null> {
+    if (celloLoad) return celloLoad;
+    const base = location.pathname.startsWith('/practice-room') ? '/practice-room' : '/practice-room';
+    celloLoad = (async () => {
+      try {
+        const [meta, bin] = await Promise.all([
+          fetch(`${base}/cello.json`).then((r) => r.json()),
+          fetch(`${base}/cello.bin`).then((r) => r.arrayBuffer()),
+        ]);
+        const ac = audio();
+        const bufs = meta.notes.map((n: { midi: number; byteOffset: number; frames: number }) => {
+          const pcm = new Int16Array(bin, n.byteOffset, n.frames);
+          const buf = ac.createBuffer(1, n.frames, meta.rate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < n.frames; i++) d[i] = pcm[i] / 32768;
+          return { midi: n.midi, buf };
+        });
+        cello = { rate: meta.rate, bufs };
+        return cello;
+      } catch {
+        // A FAILED FETCH FALLS BACK TO THE ORGAN rather than going silent. A drone that makes
+        // no sound because a file 404'd is indistinguishable from a broken button.
+        return null;
+      }
+    })();
+    return celloLoad;
+  }
+  // Pick the sample needing the SMALLEST shift, counting whole octaves as free: minimise
+  // |target − (sample + 12k)|. Three samples a fifth apart then keep every pitch within 3
+  // semitones of a real recording, and the remaining distance is octaves — which a sustained
+  // bowed string tolerates and a 5-semitone stretch does not.
+  function nearestSample(midi: number) {
+    let best = cello!.bufs[0], bestD = Infinity;
+    for (const c of cello!.bufs) {
+      const k = Math.round((midi - c.midi) / 12);
+      const d = Math.abs(midi - (c.midi + 12 * k));
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    return best;
   }
 
-  function startTone() {
+  // A HALL, SYNTHESISED: exponentially decaying noise through a one-pole lowpass. No impulse
+  // file (that would be another 300 kB for a thing ten lines can do). The lowpass is what
+  // stops it sounding like a spring — a real room absorbs treble faster than bass.
+  let hallIR: AudioBuffer | null = null;
+  function hall() {
+    if (hallIR) return hallIR;
     const ac = audio();
-    const f = midiToFreq(refMidi, a4);
-    toneOsc = ac.createOscillator();
-    toneOsc.type = 'sine';
-    toneOsc.frequency.value = f;
-    toneOsc2 = ac.createOscillator();
-    toneOsc2.type = 'sine';
-    toneOsc2.frequency.value = f * 2;
-    const g2 = ac.createGain();
-    g2.gain.value = 0.25; // the octave rank, −12 dB
-    toneGain = ac.createGain();
-    // Soft attack — a tone that starts at full gain clicks.
-    toneGain.gain.setValueAtTime(0.0001, ac.currentTime);
-    toneGain.gain.exponentialRampToValueAtTime(0.12, ac.currentTime + 0.06);
-    toneOsc.connect(toneGain);
-    toneOsc2.connect(g2).connect(toneGain);
-    // The fifth is its own rank at −6 dB: quieter than the fundamental so the root still
-    // reads as the note, louder than the octave so the interval is audible to tune against.
-    if (fifthOn) {
-      toneOsc3 = ac.createOscillator();
-      toneOsc3.type = 'sine';
-      toneOsc3.frequency.value = f * FIFTH;
-      const g3 = ac.createGain();
-      g3.gain.value = 0.5;
-      toneOsc3.connect(g3).connect(toneGain);
+    const n = Math.floor(ac.sampleRate * 2.6);
+    hallIR = ac.createBuffer(2, n, ac.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = hallIR.getChannelData(ch);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.4);
+      let y = 0;
+      for (let i = 0; i < n; i++) { y += 0.42 * (d[i] - y); d[i] = y; }
     }
-    toneGain.connect(ac.destination);
-    toneOsc.start();
-    toneOsc2.start();
-    toneOsc3?.start();
+    return hallIR;
+  }
+
+  // ── THE THREE VOICES. Each builds ONE note at a given frequency and level onto `out`,
+  // and returns the nodes it started. The stack calls one of these per sounding note.
+  //
+  // A bowed cello's partial amplitudes, roughly — NOT 1/n, which is a sawtooth and reads as
+  // a buzz. A cello dips at the 2nd partial and bumps around the 3rd-5th, and that bump is
+  // most of what makes an ear say "cello" instead of "organ".
+  const CELLO_PARTIALS = [1, 0.42, 0.62, 0.48, 0.35, 0.19, 0.14, 0.09, 0.06, 0.04];
+  function voiceOrgan(f: number, lvl: number, out: GainNode) {
+    // THE ORGAN PAIR, unchanged from what shipped: fundamental plus one octave at −12 dB.
+    const ac = audio();
+    const out2: OscillatorNode[] = [];
+    for (const [mult, amp] of [[1, 1], [2, 0.25]] as const) {
+      const o = ac.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f * mult;
+      const g = ac.createGain();
+      g.gain.value = lvl * amp;
+      o.connect(g).connect(out);
+      o.start();
+      out2.push(o);
+    }
+    return out2;
+  }
+  function voiceCello(f: number, lvl: number, out: GainNode) {
+    // ADDITIVE, with each rank detuned and vibrating at its own rate so the ranks DRIFT.
+    // Ranks locked in phase are exactly what makes additive synthesis sound like a church
+    // organ rather than a string.
+    const ac = audio();
+    const nodes: AudioScheduledSourceNode[] = [];
+    CELLO_PARTIALS.forEach((amp, i) => {
+      const h = i + 1;
+      if (f * h > 12000) return;
+      const o = ac.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f * h;
+      o.detune.value = (i % 2 ? 1 : -1) * (1.5 + i * 0.4);
+      const g = ac.createGain();
+      g.gain.value = lvl * amp * 0.5;
+      o.connect(g).connect(out);
+      const lfo = ac.createOscillator();
+      lfo.frequency.value = 4.5 + i * 0.11;
+      const la = ac.createGain();
+      la.gain.value = 9 + i * 0.7;          // cents
+      lfo.connect(la).connect(o.detune);
+      lfo.start();
+      o.start();
+      nodes.push(o, lfo);
+    });
+    return nodes;
+  }
+  function voiceSection(f: number, lvl: number, out: GainNode) {
+    // THREE SAMPLED SOURCES PER NOTE, and all three differences matter: the DETUNE stops
+    // them being one player at three volumes, the loop OFFSET decorrelates their vibrato
+    // (the same recording started at the same place three times is just one player louder),
+    // and the PAN gives the beating somewhere to happen.
+    const ac = audio();
+    const nodes: AudioScheduledSourceNode[] = [];
+    const midi = 69 + 12 * Math.log2(f / a4);
+    const s = nearestSample(midi);
+    for (const [cents, offset, pan] of [[-5, 0.02, -0.55], [0, 0.71, 0.1], [4, 1.33, 0.6]] as const) {
+      const src = ac.createBufferSource();
+      src.buffer = s.buf;
+      src.loop = true;
+      // playbackRate FROM THE FREQUENCY RATIO, never from a semitone count: the intervals
+      // are just, so the target is root × 5/4 and not root × 2^(4/12). A rate derived from
+      // semitones would quietly temper the whole stack.
+      src.playbackRate.value = f / midiToFreq(s.midi, a4);
+      if (src.detune) src.detune.value = cents;
+      const g = ac.createGain();
+      g.gain.value = lvl * 0.55;
+      if (ac.createStereoPanner) {
+        const p = ac.createStereoPanner();
+        p.pan.value = pan;
+        src.connect(g).connect(p).connect(out);
+      } else {
+        src.connect(g).connect(out);
+      }
+      src.start(ac.currentTime, offset);
+      nodes.push(src);
+    }
+    return nodes;
+  }
+
+  // The voice actually usable right now: `section` needs its samples, and until they arrive
+  // (or if they never do) the organ stands in. Stated as one function so no caller has to
+  // remember the fallback.
+  function activeVoice(): Voice {
+    if (voice === 'section' && !cello) return 'organ';
+    return voice;
+  }
+
+  // EVERY SOUNDING PITCH, in order: the root always, plus each switched interval as a JUST
+  // ratio of it. One function, so the audio and the readout cannot disagree about what is on.
+  function stackHz() {
+    const f0 = midiToFreq(refMidi, a4);
+    const out = [f0];
+    SEMIS.forEach((n) => { if (stack.has(n)) out.push(f0 * JUST[n].r); });
+    return out;
+  }
+
+  // ONE function owns the hook's copy of what is sounding.
+  function publishRanks() {
+    if (!E2E) return;
+    hook.toneHz = toneGain ? rankHz[0] : null;
+  }
+
+  // A retune REBUILDS rather than sliding every node's frequency: with three voices and up
+  // to seventeen notes, "set the frequency of the right node" is a different operation per
+  // voice (an oscillator's `frequency` vs a buffer's `playbackRate`), and a sampled note
+  // cannot be retuned without a rate change anyway. The rebuild crossfades, so it is not
+  // audible as a gap — see revoice().
+  function retune() {
+    if (!toneGain) { publishRanks(); return; }
+    revoice();
+  }
+
+  function startTone(attackSec?: number) {
+    const ac = audio();
+    const v = activeVoice();
+    // The samples are fetched on the first press of a cello voice; when they land, re-voice
+    // so the note the user asked for is what they end up hearing.
+    if (voice === 'section' && !cello) loadCello().then((c) => { if (c && toneGain) revoice(); });
+
+    toneGain = ac.createGain();
+    toneGain.gain.setValueAtTime(0.0001, ac.currentTime);
+
+    // THE SECTION GOES THROUGH A HALL, the other two do not. The reverb is what makes a
+    // sampled section sound like a room rather than a sample, and it is wrong on the organ
+    // (a reference pitch wants to be dry).
+    if (v === 'section') {
+      const conv = ac.createConvolver();
+      conv.buffer = hall();
+      droneWet = ac.createGain();
+      droneWet.gain.value = 0.6;
+      const dry = ac.createGain();
+      dry.gain.value = 0.72;
+      toneGain.connect(dry).connect(ac.destination);
+      toneGain.connect(conv).connect(droneWet).connect(ac.destination);
+    } else {
+      toneGain.connect(ac.destination);
+    }
+
+    rankHz = stackHz();
+    // LEVEL FALLS AS 1/√n, not 1/n. Decorrelated voices sum in POWER, so 1/n makes a full
+    // stack quieter than a single note and 1/1 clips it. Measured on the chooser's analyser
+    // across every voice with all sixteen intervals on.
+    const base = v === 'organ' ? 0.22 : v === 'cello' ? 0.26 : 0.38;
+    const lvl = base / Math.sqrt(rankHz.length);
+    const build = v === 'organ' ? voiceOrgan : v === 'cello' ? voiceCello : voiceSection;
+    droneNodes = [];
+    rankHz.forEach((f) => { droneNodes = droneNodes.concat(build(f, lvl, toneGain!)); });
+
+    // The named handles the e2e hook and `droneRanks` read: the root's fundamental first.
+    toneOsc = (droneNodes[0] as OscillatorNode)?.frequency ? droneNodes[0] as OscillatorNode : null;
+    toneOsc2 = null;
+    toneOsc3 = null;
+
+    // A BOW TAKES TIME, and how long depends on the voice: a section swells, an organ does
+    // not. Exponential rather than linear because loudness is logarithmic — a linear fade-in
+    // on a drone sounds like it arrives at once and then waits.
+    const atk = attackSec ?? (v === 'section' ? 1.2 : v === 'cello' ? 0.3 : 0.06);
+    toneGain.gain.exponentialRampToValueAtTime(v === 'organ' ? 0.12 : 0.95, ac.currentTime + atk);
+
     toneBtn.setAttribute('aria-pressed', 'true');
     toneBtn.setAttribute('aria-label', 'stop the drone');
     // The figure carries the running state (the letter goes accent) — the drone's one
     // state, and the only thing on this screen the accent means here.
     if (droneCase) droneCase.dataset.sounding = 'true';
-    if (E2E) hook.toneHz = f;
+    publishRanks();
+  }
+
+  // RE-VOICE WITHOUT A HOLE. A cell toggled mid-drone changes the chord, and stopping and
+  // restarting would leave a gap plus a fresh 1.2 s swell — which would make the strip feel
+  // broken to use. The old stack fades over 50 ms while the new one comes up over 90, so the
+  // change is heard as the chord moving rather than as the drone restarting.
+  function revoice() {
+    if (!toneGain) return;
+    const ac = audio();
+    const old = toneGain;
+    const oldNodes = droneNodes;
+    old.gain.cancelScheduledValues(ac.currentTime);
+    old.gain.setTargetAtTime(0.0001, ac.currentTime, 0.05);
+    oldNodes.forEach((o) => { try { o.stop(ac.currentTime + 0.4); } catch {} });
+    setTimeout(() => { try { old.disconnect(); } catch {} }, 700);
+    toneGain = null;
+    startTone(0.09);
   }
 
   function stopTone() {
-    if (!toneOsc || !toneGain) return;
+    if (!toneGain) return;
     const ac = audio();
+    // GATE FIRST, THEN STOP. The gain ramps down over ~30 ms and every source is stopped a
+    // fifth of a second later, so a stack of up to fifty nodes releases together instead of
+    // cutting — a hard stop on seventeen sampled notes is an audible thump.
+    toneGain.gain.cancelScheduledValues(ac.currentTime);
     toneGain.gain.setTargetAtTime(0.0001, ac.currentTime, 0.03);
-    toneOsc.stop(ac.currentTime + 0.2);
-    toneOsc2?.stop(ac.currentTime + 0.2);
-    toneOsc3?.stop(ac.currentTime + 0.2);
+    droneNodes.forEach((o) => { try { o.stop(ac.currentTime + 0.25); } catch {} });
+    const dead = toneGain;
+    setTimeout(() => { try { dead.disconnect(); } catch {} }, 600);
+    droneNodes = [];
+    rankHz = [];
     toneOsc = null;
     toneOsc2 = null;
     toneOsc3 = null;
     toneGain = null;
+    droneWet = null;
     toneBtn.setAttribute('aria-pressed', 'false');
     toneBtn.setAttribute('aria-label', 'start the drone');
     if (droneCase) delete droneCase.dataset.sounding;
     if (E2E) hook.toneHz = null;
   }
 
+  // `toneGain` IS THE RUNNING FLAG NOW, not `toneOsc`. The section voice starts no
+  // oscillators at all — it is buffer sources — so a `toneOsc ?` test would have read "not
+  // running" while a cello section was sounding, and the transport would have started a
+  // second stack on top of the first.
+  // NAMED `droning`, not `sounding`: this file already has a `sounding[]` — the bleed gate's
+  // list of spans the speaker was busy in (round 21) — and the build caught the collision.
+  function droning() { return !!toneGain; }
+
   toneBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
-    toneOsc ? stopTone() : startTone();
+    droning() ? stopTone() : startTone();
   });
 
   // THE FIGURE IS THE SWITCH HERE TOO — the same shortcut the dial and the pendulum
@@ -2212,23 +2741,43 @@ import Layout from '../layouts/Layout.astro';
   // OUTSIDE `.mt-mid`, so they cannot double-fire through it; the caption latch is inside
   // it and stops propagation, exactly as the other two cases' do.
   document.getElementById('mt-dnote')?.closest('.mt-mid')?.addEventListener('click', () => {
-    toneOsc ? stopTone() : startTone();
+    droning() ? stopTone() : startTone();
   });
 
-  // The fifth toggles WHILE SOUNDING: adding or removing a rank means restarting the
-  // stack, so a latch mid-drone re-voices it. Stopped, it just records the choice.
-  fifthBtn.addEventListener('click', () => {
-    fifthOn = !fifthOn;
-    store.set('mt:fifth', fifthOn ? '1' : '0');
-    paintFifth();
-    if (toneOsc) { stopTone(); startTone(); }
+  // ── THE STRIP'S CLICKS, delegated on the row. One listener for sixteen cells, and it
+  // re-voices a sounding drone rather than restarting it: toggling an interval must change
+  // the chord you are hearing, in place.
+  stripEl?.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-semi]');
+    if (!b) return;
+    e.stopPropagation();
+    const n = Number(b.dataset.semi);
+    stack.has(n) ? stack.delete(n) : stack.add(n);
+    store.set('mt:stack', [...stack].sort((x, y) => x - y).join(','));
+    paintStack();
+    if (droning()) revoice();
+  });
+
+  // ── THE VOICE SELECTOR. Changing voice mid-drone re-voices, which is the whole point of
+  // it being a setting: you compare the organ against the section by clicking between them
+  // while the same chord sounds.
+  voiceWrap?.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-voice]');
+    if (!b) return;
+    e.stopPropagation();
+    voice = b.dataset.voice as Voice;
+    store.set('mt:voice', voice);
+    paintVoice();
+    if (voice !== 'organ') loadCello().then((c) => { if (c && droning()) revoice(); });
+    if (droning()) revoice();
   });
 
   const stepRef = (d: number) => {
     refMidi = Math.min(96, Math.max(36, refMidi + d)); // C2..C7
     store.set('mt:ref', String(refMidi));
     refLabel();
-    if (toneOsc) retune();
+    paintStack();          // the strip's labels name intervals ABOVE THE ROOT — they move with it
+    if (droning()) retune();
   };
 
 
