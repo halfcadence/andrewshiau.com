@@ -61,8 +61,8 @@ import Layout from '../layouts/Layout.astro';
        error when there is one. This page had both a dek and a closing note; the owner:
        "i dont want to see this". Right: a tool that explains itself every time you open it
        is a tool you are reading instead of playing. The instrument's plate names it, the
-       axis labels say which way is sharp, and the empty panel row says what it is for. All
-       the prose moved to /work/pitchgraph/.
+       axis labels say which way is sharp, and the first note you play shows what the
+       panel row is for. All the prose moved to /work/pitchgraph/.
        The h1 stays for screen readers and the document outline. -->
   <h1 class="pg-sr-h1">pitchgraph</h1>
 
@@ -108,11 +108,17 @@ import Layout from '../layouts/Layout.astro';
         <!-- THE REVIEW ROW: one panel per finished note, filling in as you play. -->
         <div class="pg-panels" id="pg-panels" data-testid="panels" aria-live="off"></div>
 
-        <!-- the transport: the bare verb, centred under the figure (practice room's
-             round-17 pick, same vocabulary) -->
+        <!-- THE TRANSPORT, in the practice room's CURRENT form (2026-08-07). Two things
+             changed there since this page copied it, and both are the point of the newer
+             style: the track sits ABSOLUTELY OUTSIDE the button so the WORD lands on the
+             case's centre axis rather than the word-plus-track pair being centred (which
+             pushed the verb off the figure it captions), and the width reservation moved
+             onto the `.w` span. The word is "start"/"stop", the same verb the other three
+             instruments use — "listen" was this page inventing a fourth word for the
+             action all four of them share. -->
         <div class="pg-cap">
           <button
-            type="button" class="pg-btn pg-latch pg-fixw" style="--w:6ch"
+            type="button" class="pg-btn pg-latch"
             id="pg-listen" data-testid="listen-toggle"
             aria-pressed="false" aria-label="start listening"
           >
@@ -121,7 +127,7 @@ import Layout from '../layouts/Layout.astro';
               <circle class="pg-pk" cx="4" cy="6" r="2.4"></circle>
               <circle class="pg-pk" cx="22" cy="6" r="2.4"></circle>
               <circle class="pg-disc" cy="6" r="3.2"></circle>
-            </svg><span class="pg-w">listen</span>
+            </svg><span class="pg-w pg-fixw" style="--w:5ch">start</span>
           </button>
         </div>
 
@@ -243,8 +249,10 @@ import Layout from '../layouts/Layout.astro';
     display:flex;align-items:stretch;gap:1px;overflow-x:auto;overflow-y:hidden;
     scrollbar-width:none}
   .pg-panels::-webkit-scrollbar{display:none}
-  .pg-panels:empty::before{content:"each note you finish prints here";
-    color:var(--faint);align-self:center}
+  /* NO EMPTY-STATE COPY. It read "each note you finish prints here", which is the page
+     explaining itself — the same thing the dek was doing, in a smaller voice. The row
+     holds its height when empty, so the space is placed rather than missing, and the
+     first note you play explains it better than a sentence can. */
   .pg-panel{flex:none;position:relative;border-left:1px solid var(--line);
     padding:0 2px;min-width:14px}
   .pg-panel:first-child{border-left:0}
@@ -262,16 +270,29 @@ import Layout from '../layouts/Layout.astro';
     transition:color var(--dur-fast) var(--ease)}
   .pg-btn:hover{color:var(--accent)}
   .pg-btn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
-  .pg-btn .pg-tk{flex:none;display:block;overflow:visible;transform:translateY(2px)}
+  /* THE TRACK SITS OUTSIDE THE BUTTON. Centring the button centres the word-plus-track
+     PAIR, which puts the verb off the axis of the figure it captions by half the track's
+     width. Absolute-positioning the track to the left of the word centres the WORD, and
+     `margin-right:1ch` reproduces the gap the flex version gave it. The track stays inside
+     the button's hit area, and the 44px height is untouched, so the tap target holds.
+     The `translateY(2px)` keeps the optical nudge the svg's baseline needed, on top of the
+     centring the absolute position needs. Copied from the practice room's .mt-cap rule. */
+  .pg-cap .pg-btn.pg-latch{position:relative}
+  .pg-cap .pg-btn.pg-latch .pg-tk{position:absolute;right:100%;margin-right:1ch;
+    top:50%;transform:translateY(-50%) translateY(2px);display:block;overflow:visible}
   .pg-latch .pg-tk .pg-run{stroke:var(--line);stroke-width:1}
   .pg-latch .pg-tk .pg-pk{fill:none;stroke:var(--faint);stroke-width:1.2}
   .pg-latch .pg-tk .pg-disc{fill:var(--ink);cx:4px;
     transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
   .pg-latch[aria-pressed="true"] .pg-tk .pg-disc{fill:var(--accent);
     transform:translateX(18px)}
-  /* Reserve the longer label's width so start/stop does not reflow the row — the
-     practice room's round-9 fix, same reason. */
-  .pg-btn.pg-fixw .pg-w{display:inline-block;min-width:var(--w);text-align:left}
+  .pg-latch[aria-pressed="true"] .pg-w{color:var(--ink)}
+  /* Reserve the longer label's width so start/stop does not reflow the row — the practice
+     room's round-9 fix, same reason. The selector matches the SPAN, because that is where
+     the class now lives: the practice room still carries `.tbtn.fixw .w`, which stopped
+     matching anything when `fixw` moved onto the span, so its width reservation is
+     currently inert. Not mine to fix in that file, but worth not reproducing here. */
+  .pg-w.pg-fixw{display:inline-block;min-width:var(--w);text-align:center}
 
   @media (prefers-reduced-motion:reduce){
     .pg-latch .pg-tk .pg-disc{transition:none}
@@ -676,7 +697,7 @@ import Layout from '../layouts/Layout.astro';
     quietFrames = 99;
     listenBtn.setAttribute('aria-pressed', 'false');
     listenBtn.setAttribute('aria-label', 'start listening');
-    listenBtn.querySelector('.pg-w')!.textContent = 'listen';
+    listenBtn.querySelector('.pg-w')!.textContent = 'start';
     noteEl.textContent = '—';
     noteEl.classList.remove('pg-intune');
     centsEl.textContent = '–';

@@ -163,11 +163,42 @@ test('every control clears the 44px tap target', async ({ page }) => {
   }
 });
 
-test('the panel row is empty before you play, and says so', async ({ page }) => {
+test('the panel row is empty before you play, and holds its space silently', async ({ page }) => {
+  // It used to print "each note you finish prints here". That is the page explaining
+  // itself, which is the thing being removed from this tool — so the assertion inverted:
+  // no copy, and the row still RESERVES its height so the transport does not jump down
+  // when the first panel lands. An empty row that collapses would shift every control
+  // below it on the first note played.
   await page.goto('/pitchgraph/?e2e');
   await expect(page.getByTestId('panels')).toBeEmpty();
-  // The empty state is a CSS ::before, so assert the rendered text rather than the DOM.
   const said = await page.evaluate(() =>
     getComputedStyle(document.getElementById('pg-panels')!, '::before').content);
-  expect(said).toContain('prints here');
+  expect(said, 'the row must not carry instructional copy').toBe('none');
+  const h = await page.getByTestId('panels').evaluate((el) => el.getBoundingClientRect().height);
+  expect(h, 'the empty row must still hold its height').toBeGreaterThan(40);
+});
+
+test('the transport is the site-wide verb, and the word sits on the case axis', async ({ page }) => {
+  // The newer practice-room style: the track is positioned OUTSIDE the button so the WORD
+  // is centred, not the word-plus-track pair — which otherwise pushes the verb off the
+  // axis of the figure it captions by half the track's width. Measured, because this is a
+  // geometry claim and the old version looked fine while being 13px off.
+  await page.goto('/pitchgraph/?e2e');
+  const btn = page.getByTestId('listen-toggle');
+  await expect(btn.locator('.pg-w')).toHaveText('start');
+  const m = await page.evaluate(() => {
+    const b = document.getElementById('pg-listen')!;
+    const w = b.querySelector('.pg-w')!.getBoundingClientRect();
+    const c = document.querySelector('.pg-case')!.getBoundingClientRect();
+    const t = b.querySelector('.pg-tk')!.getBoundingClientRect();
+    return {
+      offAxis: Math.abs((w.left + w.width / 2) - (c.left + c.width / 2)),
+      trackOutside: t.right <= b.getBoundingClientRect().left + 0.5,
+      height: b.getBoundingClientRect().height,
+    };
+  });
+  expect(m.offAxis, 'the verb must sit on the case centre').toBeLessThan(1);
+  expect(m.trackOutside, 'the track belongs outside the button box').toBe(true);
+  // The geometry change must not cost the tap target.
+  expect(m.height).toBeGreaterThanOrEqual(44);
 });
