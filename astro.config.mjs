@@ -121,13 +121,28 @@ export default defineConfig({
       // publish. A search result for it puts the working-out in front of a reader who has not
       // seen the claim, which is the wrong order to meet someone in.
       //
+      // /practice-room/ — the instrument, whose ONE public address is
+      // https://practice.andrewshiau.com/ (2026-08-06). The apex path serves the identical
+      // bytes (the subdomain's vhost does `try_files /practice-room/index.html` off the
+      // same webroot — verified byte-identical, same ETag), and the page has declared the
+      // subdomain canonical since the subdomain shipped. Advertising the apex path in the
+      // sitemap CONTRADICTED that canonical: it asks a crawler to index a URL the page
+      // itself says is not the address. The path is NOT deleted and cannot be — the app is
+      // served from it, and the manifest and icons live under it — it is just no longer
+      // advertised or linked.
+      //
       // NOT excluded: the /writing/ explainers embedded on /work/aping/ and
       // /work/explain/. Those are full pages that stand alone and should be indexed.
       filter: (page) =>
         !page.includes('/demo/') &&
         !page.includes('/work/stores-designer/') &&
         !page.includes('/stories/') &&
-        !page.includes('/gate/'),
+        !page.includes('/gate/') &&
+        // The instrument ONLY. Anchored on the host, not just the path ending: a
+        // `/practice-room\/$` regex also matches /work/practice-room/ and silently
+        // dropped the case study from the sitemap — caught by the complement test in
+        // tests/unit/built-html.test.ts, which exists for exactly this over-reach.
+        !/^https?:\/\/[^/]+\/practice-room\/$/.test(page),
     }),
   ],
 });

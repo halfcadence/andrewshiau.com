@@ -39,9 +39,16 @@ import PanelHead from '../../components/PanelHead.astro';
 
       <div class="grid">
         <div class="c1-12">
-          <p><a href="/practice-room/">Open the instrument</a>. The tuner reads the offset
-          in cents, the metronome takes a typed tempo or a tapped one, and on a phone
-          you swipe between them.</p>
+          <!-- The instrument's ONE public address is the subdomain (2026-08-06). It was
+               /practice-room/ here, which served the identical bytes — same file, same
+               ETag, one webroot — but two addresses for one thing is one more than the
+               page needs, and the subdomain is the one that can be pinned to a phone.
+               The path still exists and must: the vhost serves the app FROM it
+               (`try_files /practice-room/index.html`), and the manifest and icons live
+               under it. What is retired is linking to it, not the path. -->
+          <p><a href="https://practice.andrewshiau.com/">Open the instrument</a>. The tuner
+          reads the offset in cents, the metronome takes a typed tempo or a tapped one, and
+          on a phone you swipe between them — or add it to your home screen.</p>
         </div>
       </div>
 

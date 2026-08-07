@@ -79,3 +79,50 @@ describe('built HTML', () => {
     expect(scan(files, OPENING_FUSED)).toEqual([]);
   });
 });
+
+// THE SITEMAP MUST NOT CONTRADICT A CANONICAL. This existed unnoticed and is exactly the
+// "one of them will get out of date" failure: /practice-room/ has declared
+// https://practice.andrewshiau.com/ canonical since the subdomain shipped, while the
+// sitemap went on advertising the apex path as a page. A sitemap is a request to index; a
+// canonical says "this is not the address". Asking a crawler to index a URL the page
+// itself disowns is a contradiction the build was happy to ship.
+//
+// Asserted as a RELATIONSHIP rather than a list of paths, so it catches the next one too:
+// any page whose canonical points somewhere else must not be in the sitemap. That makes
+// the rule self-maintaining — a new cross-host canonical is covered without editing this.
+describe('the sitemap agrees with the canonicals', () => {
+  const sitemapPath = join(DIST, 'sitemap-0.xml');
+  const has = existsSync(sitemapPath);
+
+  it.skipIf(!has)('advertises no URL whose page declares a different canonical', () => {
+    const xml = readFileSync(sitemapPath, 'utf8');
+    const listed = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    expect(listed.length, 'the sitemap is empty — did the build change?')
+      .toBeGreaterThan(5);
+
+    const contradictions: string[] = [];
+    for (const url of listed) {
+      const path = new URL(url).pathname;
+      const file = join(DIST, path.replace(/^\//, ''), 'index.html');
+      if (!existsSync(file)) continue;               // not a directory-style page
+      const html = readFileSync(file, 'utf8');
+      const canon = /<link rel="canonical" href="([^"]+)"/.exec(html)?.[1];
+      if (!canon) continue;                          // no canonical is not a contradiction
+      // Compare the whole URL: a canonical pointing at another HOST is the case that bit.
+      if (canon.replace(/\/$/, '') !== url.replace(/\/$/, '')) {
+        contradictions.push(`${path} is in the sitemap but says canonical=${canon}`);
+      }
+    }
+    expect(contradictions).toEqual([]);
+  });
+
+  it.skipIf(!has)('still advertises the case study, which is a real page here', () => {
+    // The complement, so the exclusion can't over-reach: retiring the instrument's apex
+    // path must not take /work/practice-room/ with it. The regex that does the excluding
+    // ends in `/practice-room/$`, which /work/practice-room/ also matches — this is the
+    // test that would have caught that.
+    const xml = readFileSync(sitemapPath, 'utf8');
+    expect(xml).toContain('/work/practice-room/');
+    expect(xml).not.toMatch(/<loc>https:\/\/andrewshiau\.com\/practice-room\/<\/loc>/);
+  });
+});
