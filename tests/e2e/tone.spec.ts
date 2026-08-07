@@ -541,3 +541,66 @@ test('the middle toggles it; the figure sets the pitch instead', async ({ page }
   await expect(figure, 'the click stepped the pitch').toHaveText('B♭3');
   await expect(toggle, 'and did not start the drone').toHaveAttribute('aria-pressed', 'false');
 });
+
+// ── THE TUNING COMPARER (2026-08-07) ──────────────────────────────────────────────
+// The drone's tuning is a registry now, not a constant, and the comparer is hidden behind
+// ⌥T. Two things need asserting and only one of them is the UI: that the hotkey reveals the
+// row, and that picking a system RETUNES THE SOUNDING AUDIO rather than just painting a
+// label. The second is the one that would rot quietly — a comparer whose buttons only
+// highlight looks identical in a screenshot to one that works.
+test('⌥T reveals the tuning comparer, and it is hidden by default', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  await expect(page.locator('#mt-tune')).toBeHidden();
+  await page.keyboard.press('Alt+t');
+  await expect(page.locator('#mt-tune')).toBeVisible();
+  // Built from the registry, so this count tracks tuning.ts rather than a second list.
+  expect(await page.locator('#mt-tune-btns button').count()).toBeGreaterThanOrEqual(5);
+  await page.keyboard.press('Alt+t');
+  await expect(page.locator('#mt-tune')).toBeHidden();
+});
+
+test('typing in the calibration field does not toggle the comparer', async ({ page }) => {
+  // The hotkey skips inputs; without that, entering an a4 value with alt held would open it.
+  await page.goto('/practice-room/?e2e');
+  await page.getByTestId('a4-drone').click();
+  await page.keyboard.press('Alt+t');
+  await expect(page.locator('#mt-tune')).toBeHidden();
+});
+
+test('switching the system RETUNES the sounding drone', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  await page.keyboard.press('Alt+t');
+  await page.getByTestId('semi-4').click();          // stack a major third
+  await page.getByTestId('drone-toggle').click();    // and sound it
+  await expect.poll(async () =>
+    (await page.evaluate(() => (window as any).__mt.droneRanks?.length ?? 0)),
+  { timeout: 5000 }).toBeGreaterThan(1);
+
+  const thirdUnder = async (id: string) => {
+    await page.getByTestId(`tuning-${id}`).click();
+    await page.waitForTimeout(350);
+    const ranks: number[] = await page.evaluate(() => (window as any).__mt.droneRanks || []);
+    const third = ranks.find((h) => h > 250 && h < 290)!;
+    return 1200 * Math.log2(third / (220 * 2 ** (4 / 12)));   // cents from equal
+  };
+
+  // Equal is 0 by definition; just is 13.69 cents narrower; Pythagorean is wider still.
+  expect(await thirdUnder('equal')).toBeCloseTo(0, 1);
+  expect(await thirdUnder('just-chain')).toBeCloseTo(-13.69, 1);
+  expect(await thirdUnder('pythagorean')).toBeCloseTo(7.82, 1);
+
+  // And the printed beat rate must move with it — the number is computed from the sounding
+  // stack, so a frozen readout means the comparer stopped comparing.
+  await page.getByTestId('tuning-just-chain').click();
+  await expect(page.getByTestId('tuning-beat')).toHaveText(/0\.00 hz/);
+  await page.getByTestId('tuning-pythagorean').click();
+  await expect(page.getByTestId('tuning-beat')).not.toHaveText(/0\.00 hz/);
+});
+
+test('the picked default is just, stack-relative', async ({ page }) => {
+  // The pick off the practice-room-thirds sheet, option 07. Asserted so a future edit to the
+  // registry's DEFAULT_TUNING_ID has to meet this test rather than slide past it.
+  await page.goto('/practice-room/?e2e');
+  await page.keyboard.press('Alt+t');
+  await expect(page.getByTestId('tuning-just-chain')).toHaveAttribute('aria-pressed', 'true');
+});

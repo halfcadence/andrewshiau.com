@@ -458,6 +458,25 @@ import Layout from '../layouts/Layout.astro';
           </span>
         </div>
 
+        <!-- ── THE TUNING COMPARER, HIDDEN (2026-08-07: "make easy to switch and like a
+             secret page to compare") ─────────────────────────────────────────────────────
+             Not a page but a row, revealed on ⌥T, and it is hidden for a stated reason
+             rather than to be clever: a drone has ONE right tuning for the practice it
+             serves, and putting five in the visible controls invites a player to fiddle
+             with temperament instead of playing. The comparer exists to SETTLE the choice,
+             which is a thing you do once, so it lives where the ⌥G grid overlay lives —
+             off, until someone who knows it is there asks.
+             Every button is a real switch, so this is the comparison instrument, not a
+             legend: pick a system while the drone sounds and the pitches move under the
+             note you are holding. The beat rate printed beside each is COMPUTED from the
+             sounding stack's coinciding partials, not looked up. -->
+        <div class="mt-tune" id="mt-tune" hidden aria-label="Tuning system">
+          <span class="mt-lb">tuning</span>
+          <span class="mt-tune-btns" id="mt-tune-btns" role="group"
+                aria-label="Tuning system"></span>
+          <span class="mt-lb mt-tune-beat" id="mt-tune-beat" data-testid="tuning-beat"></span>
+        </div>
+
         <!-- ── THE STACK — the chromatic strip (chooser practice-room-drone-stack Q1/06) ──
              The `fifth` latch is GONE, and the strip is what replaces it: sixteen semitone
              cells, the root at the left, each cell a toggle. Its claim is that DISTANCE IS
@@ -691,6 +710,13 @@ import Layout from '../layouts/Layout.astro';
      WORDS AND NOT GLYPHS: no drawing distinguishes a sampled section from an additive
      cello, and these differ by exactly the thing the words name. */
   .mt-voice{display:inline-flex;align-items:baseline;gap:1ch}
+  /* The comparer: the voice row's own vocabulary, one row down. `[hidden]` needs the
+     explicit display:none — an authored `display` beats the attribute, a trap this page
+     already recorded once for its swipe panes. */
+  .mt-tune{display:flex;align-items:baseline;gap:1ch;flex-wrap:wrap;margin-top:var(--tight)}
+  .mt-tune[hidden]{display:none}
+  .mt-tune-btns{display:inline-flex;align-items:baseline;gap:1ch;flex-wrap:wrap}
+  .mt-tune-beat{font-variant-numeric:tabular-nums}
   .vbtn{font:inherit;background:transparent;border:0;border-radius:0;margin:0;
     padding:8px 0;margin-top:-8px;margin-bottom:-8px;   /* 44px target, row keeps its lead */
     cursor:pointer;color:var(--faint);
@@ -1827,6 +1853,7 @@ import Layout from '../layouts/Layout.astro';
 <script>
   import { detectPitch } from '../lib/practice-room/pitch';
   import { freqToReading, midiToFreq, A4_DEFAULT, A4_MIN, A4_MAX } from '../lib/practice-room/notes';
+  import { TUNINGS, DEFAULT_TUNING_ID, getTuning, beatRate } from '../lib/practice-room/tuning';
   // THE ONE NAMING MODULE. `nameOf` for a pitch on its own (the root, the tuner's readout) and
   // `nameInChord` for a pitch heard AS AN INTERVAL above the root — which is a different
   // question with a different answer: a minor third above E♭ is G♭, not F♯.
@@ -2555,6 +2582,15 @@ import Layout from '../layouts/Layout.astro';
   // Stored as a comma list rather than a bitmask so a stale localStorage value from a
   // future version is readable and a bad one is discardable member by member.
   const stack = new Set<number>();
+
+  // WHICH SYSTEM IS SOUNDING. Persisted like every other set-once value here, and validated
+  // on read: an id from a future version, or a typo, falls back to the default rather than
+  // throwing inside the audio path.
+  let tuningId = DEFAULT_TUNING_ID;
+  {
+    const saved = store.get('mt:tuning');
+    if (saved && TUNINGS.some((t) => t.id === saved)) tuningId = saved;
+  }
   (store.get('mt:stack') ?? '7').split(',').forEach((t) => {
     const n = Number(t);
     if (Number.isInteger(n) && JUST[n]) stack.add(n);
@@ -2683,9 +2719,78 @@ import Layout from '../layouts/Layout.astro';
       b.classList.toggle('on', on);
     });
   }
+  // ── THE TUNING COMPARER'S BEHAVIOUR ───────────────────────────────────────────────
+  // Buttons are BUILT FROM THE REGISTRY, not typed here, so adding a system to tuning.ts
+  // adds it to the comparer and there is no second list to forget.
+  const tuneWrap = $('mt-tune');
+  const tuneBtns = $('mt-tune-btns');
+  const tuneBeat = $('mt-tune-beat');
+
+  TUNINGS.forEach((t) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'vbtn';                      // the voice row's own control vocabulary
+    b.dataset.tuning = t.id;
+    b.dataset.testid = `tuning-${t.id}`;
+    b.setAttribute('data-testid', `tuning-${t.id}`);
+    // The cost is on the TITLE rather than on screen: five costs printed at once is an
+    // essay, and this row has to stay a row.
+    b.title = `${t.mechanism}\n\nCost: ${t.cost}`;
+    b.textContent = t.name.replace(/^just, /, '');   // "stack-relative", not "just, stack-…"
+    tuneBtns.appendChild(b);
+  });
+
+  // THE BEAT RATE IS COMPUTED FROM WHAT IS SOUNDING, every repaint — the whole point of a
+  // comparer is that the number moves when the choice does. Worst pair in the stack, because
+  // one bad interval is what you hear.
+  function paintTuning() {
+    tuneBtns.querySelectorAll<HTMLButtonElement>('[data-tuning]').forEach((b) => {
+      const on = b.dataset.tuning === tuningId;
+      b.setAttribute('aria-pressed', String(on));
+      b.classList.toggle('on', on);
+    });
+    const hz = stackHz();
+    let worst = 0;
+    for (let i = 0; i < hz.length; i++) {
+      for (let j = i + 1; j < hz.length; j++) worst = Math.max(worst, beatRate(hz[i], hz[j]));
+    }
+    // LOWERCASE `hz`, because this is a control label and the page's rule is that every
+    // `.mt-lb` is lowercase — asserted in accent.spec, which caught "0.00 Hz" here. The a4
+    // field beside it already writes `hz` for the same reason, so the SI capital would have
+    // been the odd one out on its own row as well as a test failure.
+    tuneBeat.textContent = hz.length < 2
+      ? 'add a note to compare'
+      : `worst beat ${worst.toFixed(2)} hz`;
+  }
+
+  tuneBtns.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-tuning]');
+    if (!b) return;
+    tuningId = b.dataset.tuning!;
+    store.set('mt:tuning', tuningId);
+    paintTuning();
+    // Re-voice a SOUNDING drone in place, so the comparison happens under the note you are
+    // holding rather than after a stop and a start. `retune()` no-ops when silent.
+    retune();
+  });
+
+  // ⌥T reveals it, matching ⌥G's grid overlay: the same modifier, the same "off until
+  // someone who knows asks". Skips inputs so typing a4 in the calibration field cannot
+  // toggle it.
+  window.addEventListener('keydown', (e) => {
+    if (!e.altKey || e.metaKey || e.ctrlKey) return;
+    if ((e.key || '').toLowerCase() !== 't') return;
+    const el = document.activeElement as HTMLElement | null;
+    if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+    e.preventDefault();
+    tuneWrap.hidden = !tuneWrap.hidden;
+    if (!tuneWrap.hidden) paintTuning();
+  });
+
   buildStrip();
   paintStack();
   paintVoice();
+  paintTuning();
 
   // THE FIGURE IS THE CONTROL (user, 2026-08-07). One element, four inputs:
   // horizontal drag scrubs · click +1 · shift-click −1 · ArrowUp/Down when focused. A drag
@@ -2911,11 +3016,24 @@ import Layout from '../layouts/Layout.astro';
 
   // EVERY SOUNDING PITCH, in order: the root always, plus each switched interval as a JUST
   // ratio of it. One function, so the audio and the readout cannot disagree about what is on.
+  // THE TUNING SYSTEM IS SWITCHABLE (2026-08-07). The ratios above were correct and stay
+  // as the interval NAMES — `JUST[n].d` is what the strip prints. What moved is how the
+  // FREQUENCY is derived: `src/lib/practice-room/tuning.ts` holds five named systems, each
+  // with its ratios and its cost written down, and the default is now `just-chain` — sheet
+  // option 07, "just, stack-relative", picked by ear off a playable proof sheet
+  // (work/understand/practice-room-thirds/).
+  //
+  // WHAT CHANGED AUDIBLY, and it is deliberately almost nothing: for a triad, chain-relative
+  // and root-relative are IDENTICAL (root × 5:4 is the third, and that × 6:5 is 3:2, the
+  // same fifth — asserted in tests/unit/tuning.test.ts). The two part company only in
+  // stacks of four and up, which is exactly where root-relative leaves 41-cent wolves
+  // BETWEEN upper members while every note is perfect against the root. A major third under
+  // a minor sixth was 32:25 apart — 427 cents where a just third is 386. Now it is 5:4.
   function stackHz() {
     const f0 = midiToFreq(refMidi, a4);
-    const out = [f0];
-    SEMIS.forEach((n) => { if (stack.has(n)) out.push(f0 * JUST[n].r); });
-    return out;
+    const on = SEMIS.filter((n) => stack.has(n));
+    const t = getTuning(tuningId);
+    return [f0, ...on.map((n) => t.hz(f0, n, on))];
   }
 
   // ONE function owns the hook's copy of what is sounding.
