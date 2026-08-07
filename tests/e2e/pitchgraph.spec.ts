@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// /readings/ — the intonation trace, driven by a REAL fake microphone playing a real
+// /pitchgraph/ — the intonation trace, driven by a REAL fake microphone playing a real
 // phrase. The fixture (`phrase-4.wav`, this project's launch flag) is four notes with
 // rests between them, each held at a known offset:
 //
@@ -21,21 +21,21 @@ const TRUTH: Record<string, number> = { A4: 20, B4: -18, 'C♯5': 12, D5: -6 };
 test.use({ permissions: ['microphone'] });
 
 async function listen(page: Page) {
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   await page.getByTestId('listen-toggle').click();
   await expect(page.getByTestId('listen-toggle')).toHaveAttribute('aria-pressed', 'true');
   // Wait on the hook rather than sleeping: a flat timeout is what made a sibling harness
   // report "the dial: absent" intermittently.
-  await page.waitForFunction(() => (window as any).__rd?.reads > 5, null, { timeout: 10_000 });
+  await page.waitForFunction(() => (window as any).__pg?.reads > 5, null, { timeout: 10_000 });
 }
 
 /** Wait until at least `n` panels have printed, then return them. */
 async function panelsAfter(page: Page, n: number, timeout = 30_000) {
   await page.waitForFunction(
-    (want) => ((window as any).__rd?.panels?.length ?? 0) >= want,
+    (want) => ((window as any).__pg?.panels?.length ?? 0) >= want,
     n, { timeout },
   );
-  return page.evaluate(() => (window as any).__rd.panels as
+  return page.evaluate(() => (window as any).__pg.panels as
     { note: string; mean: number; reads: number }[]);
 }
 
@@ -99,10 +99,10 @@ test('a note change breaks the trace instead of drawing a wrap as a vertical sla
     await listen(page);
     await panelsAfter(page, 2);
     const worst = await page.evaluate(() => {
-      const svg = document.getElementById('rd-svg')!;
+      const svg = document.getElementById('pg-svg')!;
       const h = svg.getBoundingClientRect().height;
       let jump = 0;
-      svg.querySelectorAll('path.rd-trace').forEach((p) => {
+      svg.querySelectorAll('path.pg-trace').forEach((p) => {
         const n = (p.getAttribute('d') || '').match(/-?\d+(\.\d+)?/g)?.map(Number) ?? [];
         for (let i = 3; i < n.length; i += 2) jump = Math.max(jump, Math.abs(n[i] - n[i - 2]));
       });
@@ -170,7 +170,7 @@ test('stopping closes the open note and clears the readout', async ({ page }) =>
 });
 
 test('the A4 field is the one set-once control and it clamps', async ({ page }) => {
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   const a4 = page.getByTestId('a4');
   await a4.fill('415');
   await a4.blur();
@@ -183,7 +183,7 @@ test('the A4 field is the one set-once control and it clamps', async ({ page }) 
 });
 
 test('every control clears the 44px tap target', async ({ page }) => {
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   for (const id of ['listen-toggle', 'a4']) {
     const box = await page.getByTestId(id).boundingBox();
     expect(box!.height, `${id} is ${box!.height}px tall`).toBeGreaterThanOrEqual(44);
@@ -196,10 +196,10 @@ test('the panel row is empty before you play, and holds its space silently', asy
   // no copy, and the row still RESERVES its height so the transport does not jump down
   // when the first panel lands. An empty row that collapses would shift every control
   // below it on the first note played.
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   await expect(page.getByTestId('panels')).toBeEmpty();
   const said = await page.evaluate(() =>
-    getComputedStyle(document.getElementById('rd-panels')!, '::before').content);
+    getComputedStyle(document.getElementById('pg-panels')!, '::before').content);
   expect(said, 'the row must not carry instructional copy').toBe('none');
   const h = await page.getByTestId('panels').evaluate((el) => el.getBoundingClientRect().height);
   expect(h, 'the empty row must still hold its height').toBeGreaterThan(40);
@@ -210,14 +210,14 @@ test('the transport is the site-wide verb, and the word sits on the case axis', 
   // is centred, not the word-plus-track pair — which otherwise pushes the verb off the
   // axis of the figure it captions by half the track's width. Measured, because this is a
   // geometry claim and the old version looked fine while being 13px off.
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   const btn = page.getByTestId('listen-toggle');
-  await expect(btn.locator('.rd-w')).toHaveText('start');
+  await expect(btn.locator('.pg-w')).toHaveText('start');
   const m = await page.evaluate(() => {
-    const b = document.getElementById('rd-listen')!;
-    const w = b.querySelector('.rd-w')!.getBoundingClientRect();
-    const c = document.querySelector('.rd-case')!.getBoundingClientRect();
-    const t = b.querySelector('.rd-tk')!.getBoundingClientRect();
+    const b = document.getElementById('pg-listen')!;
+    const w = b.querySelector('.pg-w')!.getBoundingClientRect();
+    const c = document.querySelector('.pg-case')!.getBoundingClientRect();
+    const t = b.querySelector('.pg-tk')!.getBoundingClientRect();
     return {
       offAxis: Math.abs((w.left + w.width / 2) - (c.left + c.width / 2)),
       trackOutside: t.right <= b.getBoundingClientRect().left + 0.5,

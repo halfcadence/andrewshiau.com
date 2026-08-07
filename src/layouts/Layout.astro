@@ -25,7 +25,7 @@ interface Props {
   // `scope` is /practice-room/ — following a link out of scope (the "about" word) reopens the
   // browser, which is correct: the app is the instrument, not the site.
   installable?: boolean;
-  // Set by the practice TOOLS that are not the app itself — /readings/ today. It moves the
+  // Set by the practice TOOLS that are not the app itself — /pitchgraph/ today. It moves the
   // canonical to practice.andrewshiau.com at the same path, which is what makes the apex
   // path redirectable without the page disowning its own address. Distinct from
   // `installable`: this does NOT emit a manifest, because these are pages on a host, not
@@ -87,9 +87,9 @@ const ogImage = new URL('/og.png', Astro.site).href;
 // TWO KINDS OF PAGE LIVE ON THE PRACTICE HOST NOW (2026-08-07). `installable` means "this
 // page IS the app at the host's root" — only /practice-room/ is that. `onPracticeHost`
 // means "this page's address is on practice.andrewshiau.com at its own path", which is
-// /readings/ and will be any future practice tool. They are separate flags because they
+// /pitchgraph/ and will be any future practice tool. They are separate flags because they
 // answer separate questions: one is about the home-screen install, the other about which
-// hostname owns the URL. Conflating them would either give /readings/ a manifest it should
+// hostname owns the URL. Conflating them would either give /pitchgraph/ a manifest it should
 // not have, or leave its canonical pointing at a path the apex now redirects.
 const PRACTICE_HOST = 'https://practice.andrewshiau.com';
 const canonical = installable

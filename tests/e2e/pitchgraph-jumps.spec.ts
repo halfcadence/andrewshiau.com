@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // THE FIXTURE THAT REPRODUCES THE BUG. Everything else in this suite was green while
-// /readings/ was live-printing "C2 +909.8¢" — nine semitones of error in a box one semitone
+// /pitchgraph/ was live-printing "C2 +909.8¢" — nine semitones of error in a box one semitone
 // tall — because every other fixture is a clean sustained sine and the defect needs the
 // detected pitch to JUMP while one note stays open.
 //
@@ -16,13 +16,13 @@ import { test, expect } from '@playwright/test';
 test.use({ permissions: ['microphone'] });
 
 test('THE INVARIANT under jumping pitch: no panel off its own ±50¢ axis', async ({ page }) => {
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   await page.getByTestId('listen-toggle').click();
-  await page.waitForFunction(() => ((window as any).__rd?.panels?.length ?? 0) >= 6,
+  await page.waitForFunction(() => ((window as any).__pg?.panels?.length ?? 0) >= 6,
     null, { timeout: 30_000 });
 
   const panels = await page.evaluate(() =>
-    (window as any).__rd.panels as { note: string; mean: number }[]);
+    (window as any).__pg.panels as { note: string; mean: number }[]);
   const offAxis = panels.filter((p) => Math.abs(p.mean) > 50);
   expect(
     offAxis,

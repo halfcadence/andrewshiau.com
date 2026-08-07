@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-// /readings/ AGAINST ROOM NOISE — the case the four-note fixture cannot reach.
+// /pitchgraph/ AGAINST ROOM NOISE — the case the four-note fixture cannot reach.
 //
 // WHY THIS FILE EXISTS. The owner opened the live tool in his office, played nothing, and
 // got 24 panels. Eleven of them reported offsets outside ±50¢ — "C2 +909.8¢",
@@ -25,17 +25,17 @@ import { test, expect } from '@playwright/test';
 test.use({ permissions: ['microphone'] });
 
 async function listenAWhile(page: import('@playwright/test').Page, ms: number) {
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   await page.getByTestId('listen-toggle').click();
   await expect(page.getByTestId('listen-toggle')).toHaveAttribute('aria-pressed', 'true');
   // Wait on the hook rather than sleeping for the start, then run for a fixed window —
   // this fixture may legitimately produce NO panels once the gates are added, so nothing
   // here may wait on a panel count.
-  await page.waitForFunction(() => (window as any).__rd?.reads > 3, null, { timeout: 10_000 });
+  await page.waitForFunction(() => (window as any).__pg?.reads > 3, null, { timeout: 10_000 });
   await page.waitForTimeout(ms);
   return page.evaluate(() => ({
-    panels: (window as any).__rd.panels as { note: string; mean: number; reads: number }[],
-    reads: (window as any).__rd.reads as number,
+    panels: (window as any).__pg.panels as { note: string; mean: number; reads: number }[],
+    reads: (window as any).__pg.reads as number,
   }));
 }
 
@@ -63,7 +63,7 @@ test('THE INVARIANT: no panel reports an offset its own axis cannot hold', async
 test('the live readout never prints an off-scale number either', async ({ page }) => {
   // The readout has been clamped since the proof-sheet work; this is the noise-input
   // counterpart, since noise is a harsher test of it than a held note.
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   await page.getByTestId('listen-toggle').click();
   const seen: number[] = [];
   for (let i = 0; i < 50; i++) {

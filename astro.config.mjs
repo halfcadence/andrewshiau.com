@@ -145,14 +145,14 @@ export default defineConfig({
         // Anchored on the host, not just the path ending: a `/practice-room\/$` regex also
         // matches /work/practice-room/ and silently dropped the case study — caught by the
         // complement test in tests/unit/built-html.test.ts, which exists for that
-        // over-reach. Adding /readings/ here was likewise not a guess: the relationship
+        // over-reach. Adding /pitchgraph/ here was likewise not a guess: the relationship
         // test ("no sitemap URL may name a page declaring a different canonical") went red
         // on the build, which is the whole reason it is a rule and not a list.
         //
-        // `readings` was `pitchgraph` until 2026-08-07. Only the built page needs naming
+        // `pitchgraph` was `pitchgraph` until 2026-08-07. Only the built page needs naming
         // here — /pitchgraph/ has no page any more, just a 301 on the apex vhost — so the
         // stale term is removed rather than kept as a dead alternative.
-        !/^https?:\/\/[^/]+\/(practice-room|readings)\/$/.test(page),
+        !/^https?:\/\/[^/]+\/(practice-room|pitchgraph)\/$/.test(page),
     }),
   ],
 });

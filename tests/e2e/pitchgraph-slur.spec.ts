@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-// THE SLUR — /readings/ against two notes with NO silence between them.
+// THE SLUR — /pitchgraph/ against two notes with NO silence between them.
 //
 // WHY THIS FILE EXISTS, and it is the more useful half of the story: the four-note
-// fixture in readings.spec.ts rests between every note, and a rest is the one
+// fixture in pitchgraph.spec.ts rests between every note, and a rest is the one
 // unambiguous signal that a note ended. Every segmenter in the registry resets on
 // silence, so with rests everywhere they ALL behave identically — swapping the page's
 // segmenter to `attack-lock`, which is the wrong mechanism for phrases, passed all ten
@@ -24,14 +24,14 @@ test.use({ permissions: ['microphone'] });
 
 test('a slurred pair prints TWO panels, each measured against its own note',
   async ({ page }) => {
-    await page.goto('/readings/?e2e');
+    await page.goto('/pitchgraph/?e2e');
     await page.getByTestId('listen-toggle').click();
     // Two notes plus a rest is ~2.8s per repeat; wait for two panels, not a clock.
     await page.waitForFunction(
-      () => ((window as any).__rd?.panels?.length ?? 0) >= 2,
+      () => ((window as any).__pg?.panels?.length ?? 0) >= 2,
       null, { timeout: 30_000 },
     );
-    const panels = await page.evaluate(() => (window as any).__rd.panels as
+    const panels = await page.evaluate(() => (window as any).__pg.panels as
       { note: string; mean: number; reads: number }[]);
 
     // The two notes must be DIFFERENT — one panel spanning both is the attack-lock
@@ -53,14 +53,14 @@ test('a slurred pair prints TWO panels, each measured against its own note',
 test('no panel reports an offset the axis cannot hold', async ({ page }) => {
   // The attack-lock signature, asserted directly: a note measured against its neighbour
   // lands outside ±50¢, which is not a large reading but a meaningless one.
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   await page.getByTestId('listen-toggle').click();
   await page.waitForFunction(
-    () => ((window as any).__rd?.panels?.length ?? 0) >= 3,
+    () => ((window as any).__pg?.panels?.length ?? 0) >= 3,
     null, { timeout: 30_000 },
   );
   const means = await page.evaluate(() =>
-    ((window as any).__rd.panels as { mean: number }[]).map((p) => p.mean));
+    ((window as any).__pg.panels as { mean: number }[]).map((p) => p.mean));
   const offScale = means.filter((m) => Math.abs(m) > 50);
   expect(offScale, `off-scale panel means: ${offScale.join(', ')}`).toEqual([]);
 });
@@ -69,14 +69,14 @@ test('the glide is absorbed, not printed as a third note', async ({ page }) => {
   // 60 ms is under the 100 ms a note needs to earn a panel, so the slide itself must not
   // become a panel. Two notes per repeat, so panel names must alternate A4/B4 rather
   // than admitting an A♯4 between them.
-  await page.goto('/readings/?e2e');
+  await page.goto('/pitchgraph/?e2e');
   await page.getByTestId('listen-toggle').click();
   await page.waitForFunction(
-    () => ((window as any).__rd?.panels?.length ?? 0) >= 4,
+    () => ((window as any).__pg?.panels?.length ?? 0) >= 4,
     null, { timeout: 30_000 },
   );
   const notes = await page.evaluate(() =>
-    ((window as any).__rd.panels as { note: string }[]).map((p) => p.note));
+    ((window as any).__pg.panels as { note: string }[]).map((p) => p.note));
   const strays = notes.filter((n) => n !== 'A4' && n !== 'B4');
   expect(strays, `notes between the pair: ${strays.join(', ')}`).toEqual([]);
 });

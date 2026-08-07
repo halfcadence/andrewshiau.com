@@ -55,26 +55,26 @@ export default defineConfig({
     mkProject('bleed', 'pulse-440.wav', /bleed\.spec\.ts/),
     mkProject('tuner-446', 'sine-446.wav', /tuner-446\.spec\.ts/),
     mkProject('tuner-196', 'sine-196.wav', /tuner-196\.spec\.ts/),
-    // /readings/ needs a PHRASE, not a tone: its subject is what happens between notes
+    // /pitchgraph/ needs a PHRASE, not a tone: its subject is what happens between notes
     // and what each finished note reports, neither of which a single sustained sine can
     // exercise. Four notes at four known offsets, with rests, so the panels have four
     // different truths to check.
-    mkProject('readings', 'phrase-4.wav', /readings\.spec\.ts/),
+    mkProject('pitchgraph', 'phrase-4.wav', /pitchgraph\.spec\.ts/),
     // THE SLUR, in its own project because the fake mic is a launch flag. This is the
     // fixture that can tell a working segmenter from a broken one: `phrase-4.wav` rests
     // between every note, which is precisely where even `attack-lock` is correct — swapping
     // the page to it passed the entire suite. No rest, no reset, and the wrong mechanism
     // measures B4 against A4 and pins off scale.
-    mkProject('readings-slur', 'slur-a4-b4.wav', /readings-slur\.spec\.ts/),
+    mkProject('pitchgraph-slur', 'slur-a4-b4.wav', /pitchgraph-slur\.spec\.ts/),
     // ROOM NOISE, its own project because the fake mic is a launch flag. This is the only
     // fixture that can fail the "no panel off its axis" invariant: it reproduces the owner's
     // office (50 Hz hum, LF rumble, a noise floor) where the detected pitch jumps between
     // reads. Clean sines cannot produce the bug at all.
-    mkProject('readings-noise', 'room-noise.wav', /readings-noise\.spec\.ts/),
+    mkProject('pitchgraph-noise', 'room-noise.wav', /pitchgraph-noise\.spec\.ts/),
     // LOW TONES THAT HOP. The one fixture that reproduces the owner's off-axis panels: the
     // detector picking a different period each read while one note stays open. room-noise
     // was too smooth to do it (0 false panels from 247 reads), which the red arm proved.
-    mkProject('readings-jumps', 'low-jumps.wav', /readings-jumps\.spec\.ts/),
+    mkProject('pitchgraph-jumps', 'low-jumps.wav', /pitchgraph-jumps\.spec\.ts/),
     mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts/),
   ],
 });

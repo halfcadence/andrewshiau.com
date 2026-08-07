@@ -72,14 +72,38 @@ for (const voice of ['organ', 'cello', 'section'] as const) {
     const hz = await page.evaluate(() => (window as any).__mt.droneHz());
     expect(hz, 'something must be sounding').not.toBeNull();
     const cents = 1200 * Math.log2(hz! / 220);
-    // ±25 cents: wide enough for a vibrato'd section of players (the samples ARE a section, and
-    // the vibrato is ±10-15¢ by design), tight enough that an octave (1200¢), a semitone (100¢)
-    // or an uncorrected 27.5¢ sample offset all fail. The window is the whole point — a looser
-    // one would have passed the bug this test exists for.
+    // ±12 CENTS, tightened from the ±25 the biased detector needed. The detector is now exact
+    // to 0.000¢ on synthetic tones (see build-cello-samples.py's self_check), so the only
+    // slack the window has to allow is the real vibrato of a real string section — and the
+    // samples' own detune is corrected out, so the target is a true 220.
+    // THE WINDOW IS THE ASSERTION. At ±25 this still caught the octave (1200¢), but it would
+    // have passed a 20-cent sample error — which is exactly the class of bug that shipped once.
     expect(Math.abs(cents), `${voice}: A3 is 220 Hz, got ${hz!.toFixed(2)} (${cents.toFixed(1)}¢)`)
-      .toBeLessThan(25);
+      .toBeLessThan(12);
   });
 }
+
+// THE ORGAN IS THE CALIBRATION REFERENCE, and this test is here because its absence cost a
+// shipped 30-cent detune. The organ voice is pure oscillators at exactly midiToFreq(57) =
+// 220.000 Hz — no sample, no vibrato, nothing to drift — so a correct measurement MUST read
+// 220.00. When the old detector read 221.0 here, that was the instrument confessing its own
+// bias, and I read it as the organ being fine. A known-value check on the measuring tool is
+// worth more than any number of readings taken with it.
+test('the organ voice is exactly 220 Hz — the detector\'s own calibration', async ({ page }) => {
+  await page.goto('/practice-room/?e2e');
+  await page.getByTestId('voice-organ').click();
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-semi]').forEach((c) => {
+      if (c.getAttribute('aria-pressed') === 'true') (c as HTMLButtonElement).click();
+    });
+  });
+  await page.getByTestId('drone-toggle').click();
+  await page.waitForTimeout(1200);
+  const hz = await page.evaluate(() => (window as any).__mt.droneHz());
+  const cents = 1200 * Math.log2(hz! / 220);
+  expect(Math.abs(cents), `pure 220 Hz sines must measure 220.00, got ${hz!.toFixed(3)}`)
+    .toBeLessThan(1);
+});
 
 // ── THE NOTE IS STATED ONCE, ON THE FIGURE ──────────────────────────────────────────
 // This test asserted the opposite until 2026-08-07: the note appeared in two places at two

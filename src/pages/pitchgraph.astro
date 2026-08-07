@@ -1,21 +1,28 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-// READINGS — the intonation trace, as its own page.
+// PITCHGRAPH — the intonation trace, as its own page.
 //
-// THE NAME, and why it is not "pitchgraph" any more (name ideation, 2026-08-07: 40
-// candidates ranked, this one picked, "pitchgraph" ranked LAST of the eight finalists).
-// It names the ARTIFACT, the way "proofs" does on this site. And it names the half no
-// tuner has: the row of little panels, each with its own datum and its mean engraved on
-// it, IS a set of readings — one per note. Three things sank "pitchgraph". It named the
-// MECHANISM rather than what you get. It was the one compound in a family of plain words
-// (proofs, practice room). And "pitch graph" is already the generic CATEGORY LABEL four
-// shipping products use for this figure — pitchreader.com, pitchdiagram.com, Ocavis,
-// MusicalBoard — so it is a category, not a name. "readings" came back collision-clean on
-// the App Store, GitHub, npm and web search.
+// THE NAME IS SETTLED, and the route to it is worth recording because I got the PROCESS
+// wrong first. Asked for name ideation, I ran it, then treated the ideating agent's own
+// favourite ("readings") as the decision and hard-renamed everything. The owner had asked
+// for ideation AND a /proofs chooser — the picking was his. So the chooser was built
+// afterwards (work/understand/readings-name/), rendering all eight candidates in the four
+// places a name actually appears: the engraved plate, the browser tab, the index row among
+// its real siblings, and the URL.
 //
-// The rename is this file, the URL, the h1, the plate, the CSS prefix (`rd-`) and the
-// index entry. /pitchgraph/ still 301s — it is a published URL now.
+// Shown the sheet, he kept "pitchgraph": "its fine that its similar. its a similar product
+// after all."
+//
+// That answers the strongest argument against it, which was that "pitch graph" is the
+// generic category label four shipping products already use for this figure
+// (pitchreader.com, pitchdiagram.com, Ocavis, MusicalBoard). Reading like a category is
+// only a fault if you are claiming to be something else. This IS one of those — a figure
+// of pitch over time — and a name that says so costs a reader nothing. The counter-case
+// for "readings" is on the sheet if it is ever reopened: it names the artifact the way
+// "proofs" does, and the row of per-note panels IS a set of readings.
+//
+// BOTH URLS 301 to this one, so a third name would cost one more redirect and nothing else.
 //
 // WHAT IT IS. You play; it draws how far off the note you are, in cents, over time. Two
 // figures at once, which is the decision this page exists to execute:
@@ -62,7 +69,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-  title="readings — Andrew Shiau"
+  title="pitchgraph — Andrew Shiau"
   description="Play, and watch how far off the note you are in cents. Pitch detection runs on-device; the microphone signal never leaves the page."
   onPracticeHost
 >
@@ -72,9 +79,9 @@ import Layout from '../layouts/Layout.astro';
        "i dont want to see this". Right: a tool that explains itself every time you open it
        is a tool you are reading instead of playing. The instrument's plate names it, the
        axis labels say which way is sharp, and the first note you play shows what the
-       panel row is for. All the prose moved to /work/readings/.
+       panel row is for. All the prose moved to /work/pitchgraph/.
        The h1 stays for screen readers and the document outline. -->
-  <h1 class="rd-sr-h1">readings</h1>
+  <h1 class="pg-sr-h1">pitchgraph</h1>
 
   <!-- ── THE INSTRUMENT ─────────────────────────────────────────────────────
        One hairline case, the site's own idiom (the embed-frame argument: inside is a
@@ -82,20 +89,20 @@ import Layout from '../layouts/Layout.astro';
        boxes). The name interrupts the top frame like an engraved plate. -->
   <div class="grid">
     <div class="c1-12">
-      <div class="rd-case">
-        <span class="rd-plate" aria-hidden="true">readings</span>
+      <div class="pg-case">
+        <span class="pg-plate" aria-hidden="true">pitchgraph</span>
 
         <!-- the spec line: the one set-once control, flush right on the inset -->
-        <div class="rd-ctop">
-          <span class="rd-fl"></span>
-          <span class="rd-fr">
-            <span class="rd-a4">
-              <label class="rd-lbl" for="rd-a4">a4</label>
+        <div class="pg-ctop">
+          <span class="pg-fl"></span>
+          <span class="pg-fr">
+            <span class="pg-a4">
+              <label class="pg-lbl" for="pg-a4">a4</label>
               <input
-                type="number" id="rd-a4" data-testid="a4"
+                type="number" id="pg-a4" data-testid="a4"
                 value="440" min="400" max="480" step="1"
                 aria-label="A4 calibration in hertz"
-              /><span class="rd-lbl">hz</span>
+              /><span class="pg-lbl">hz</span>
             </span>
           </span>
         </div>
@@ -103,20 +110,20 @@ import Layout from '../layouts/Layout.astro';
         <!-- THE FIGURE: the live trace. Drawn to a fixed viewBox measured from the
              element so 1px means 1px — a viewBox narrower than the element with
              preserveAspectRatio="none" stretches every label horizontally. -->
-        <div class="rd-fig" id="rd-fig">
-          <svg id="rd-svg" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="pg-fig" id="pg-fig">
+          <svg id="pg-svg" preserveAspectRatio="none" aria-hidden="true"></svg>
         </div>
 
         <!-- the reading, the instrument's own line -->
-        <div class="rd-read">
-          <span class="rd-note" id="rd-note" data-testid="note">—</span>
-          <span class="rd-ends"></span>
-          <span class="rd-cents" id="rd-cents" data-testid="cents">–</span>
-          <span class="rd-hz" id="rd-hz" data-testid="hz"></span>
+        <div class="pg-read">
+          <span class="pg-note" id="pg-note" data-testid="note">—</span>
+          <span class="pg-ends"></span>
+          <span class="pg-cents" id="pg-cents" data-testid="cents">–</span>
+          <span class="pg-hz" id="pg-hz" data-testid="hz"></span>
         </div>
 
         <!-- THE REVIEW ROW: one panel per finished note, filling in as you play. -->
-        <div class="rd-panels" id="rd-panels" data-testid="panels" aria-live="off"></div>
+        <div class="pg-panels" id="pg-panels" data-testid="panels" aria-live="off"></div>
 
         <!-- THE TRANSPORT, in the practice room's CURRENT form (2026-08-07). Two things
              changed there since this page copied it, and both are the point of the newer
@@ -126,24 +133,24 @@ import Layout from '../layouts/Layout.astro';
              onto the `.w` span. The word is "start"/"stop", the same verb the other three
              instruments use — "listen" was this page inventing a fourth word for the
              action all four of them share. -->
-        <div class="rd-cap">
+        <div class="pg-cap">
           <button
-            type="button" class="rd-btn rd-latch"
-            id="rd-listen" data-testid="listen-toggle"
+            type="button" class="pg-btn pg-latch"
+            id="pg-listen" data-testid="listen-toggle"
             aria-pressed="false" aria-label="start listening"
           >
-            <svg class="rd-tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-              <line class="rd-run" x1="4" y1="6" x2="22" y2="6"></line>
-              <circle class="rd-pk" cx="4" cy="6" r="2.4"></circle>
-              <circle class="rd-pk" cx="22" cy="6" r="2.4"></circle>
-              <circle class="rd-disc" cy="6" r="3.2"></circle>
-            </svg><span class="rd-w rd-fixw" style="--w:5ch">start</span>
+            <svg class="pg-tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
+              <line class="pg-run" x1="4" y1="6" x2="22" y2="6"></line>
+              <circle class="pg-pk" cx="4" cy="6" r="2.4"></circle>
+              <circle class="pg-pk" cx="22" cy="6" r="2.4"></circle>
+              <circle class="pg-disc" cy="6" r="3.2"></circle>
+            </svg><span class="pg-w pg-fixw" style="--w:5ch">start</span>
           </button>
         </div>
 
         <!-- errors only. An idle hint here was deleted from the practice room as ugly;
              this channel carries mic denials and nothing else. -->
-        <div class="rd-hint" id="rd-hint" data-testid="hint" role="status"></div>
+        <div class="pg-hint" id="pg-hint" data-testid="hint" role="status"></div>
       </div>
     </div>
   </div>
@@ -151,7 +158,7 @@ import Layout from '../layouts/Layout.astro';
   <!-- ONE WORD OUT, at the foot, the way the practice room carries its mark. Not a
        sentence about the microphone and not a description of the other tool — a way back to
        the rest of the tools, and nothing else. -->
-  <div class="rd-foot">
+  <div class="pg-foot">
     <a href="https://practice.andrewshiau.com/">practice room</a>
   </div>
 </Layout>
@@ -164,11 +171,11 @@ import Layout from '../layouts/Layout.astro';
      `stroke: none; stroke-width: 1px`, the fills fell back to black, and the figure
      rendered as a solid slab with the numbers correct underneath it. A screenshot found
      it in one look; no DOM assertion could, because the geometry was right.
-     So the drawing's rules live in `is:global`, namespaced under `.rd-case` so they
+     So the drawing's rules live in `is:global`, namespaced under `.pg-case` so they
      cannot leak to another page's SVG. -->
 <style is:global>
-  .rd-case .rd-datum{stroke:var(--ink);stroke-width:1;fill:none}
-  .rd-case .rd-edge{stroke:var(--faint);stroke-width:1;stroke-dasharray:2 3;fill:none}
+  .pg-case .pg-datum{stroke:var(--ink);stroke-width:1;fill:none}
+  .pg-case .pg-edge{stroke:var(--faint);stroke-width:1;stroke-dasharray:2 3;fill:none}
   /* The two practice bands, after Singing Carrots: ±5¢ is "barely noticeable even by
      most trained ears", ±12¢ "commonly audible by most untrained ears". Fields rather
      than rules because in-tune is a PLACE you are inside, not a number to compare. */
@@ -178,28 +185,28 @@ import Layout from '../layouts/Layout.astro';
      bands are context; they must lose to ink. Drawn as a HAIRLINE EDGE plus a very light
      wash instead of a heavier wash: the boundary is the information ("am I inside?"), and
      an edge states it at 1px where a fill needs 20% to say the same thing badly. */
-  .rd-case .rd-band-in{fill:var(--accent);opacity:.07;stroke:none}
-  .rd-case .rd-band-out{fill:var(--accent);opacity:.03;stroke:none}
-  .rd-case .rd-band-edge{stroke:var(--accent);stroke-width:1;fill:none;opacity:.35}
-  .rd-case .rd-trace{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round;
+  .pg-case .pg-band-in{fill:var(--accent);opacity:.07;stroke:none}
+  .pg-case .pg-band-out{fill:var(--accent);opacity:.03;stroke:none}
+  .pg-case .pg-band-edge{stroke:var(--accent);stroke-width:1;fill:none;opacity:.35}
+  .pg-case .pg-trace{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linejoin:round;
     stroke-linecap:round}
-  .rd-case .rd-trace.rd-in{stroke:var(--accent)}
-  .rd-case .rd-axl{font:inherit;font-size:11px;fill:var(--faint);stroke:none}
-  .rd-case .rd-pname{font:inherit;font-size:11px;fill:var(--ink);stroke:none}
-  .rd-case .rd-pmean{font:inherit;font-size:11px;fill:var(--dim);stroke:none}
-  .rd-case .rd-pdatum{stroke:var(--line);stroke-width:1;fill:none}
-  .rd-case .rd-ptrace{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linejoin:round}
-  .rd-case .rd-ptrace.rd-in{stroke:var(--accent)}
+  .pg-case .pg-trace.pg-in{stroke:var(--accent)}
+  .pg-case .pg-axl{font:inherit;font-size:11px;fill:var(--faint);stroke:none}
+  .pg-case .pg-pname{font:inherit;font-size:11px;fill:var(--ink);stroke:none}
+  .pg-case .pg-pmean{font:inherit;font-size:11px;fill:var(--dim);stroke:none}
+  .pg-case .pg-pdatum{stroke:var(--line);stroke-width:1;fill:none}
+  .pg-case .pg-ptrace{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-linejoin:round}
+  .pg-case .pg-ptrace.pg-in{stroke:var(--accent)}
   /* A one-read note has no line to draw — a dot is the honest mark for it. */
-  .rd-case .rd-pdot{fill:var(--ink);stroke:none}
+  .pg-case .pg-pdot{fill:var(--ink);stroke:none}
 
   /* SAME SCOPING TRAP, SECOND VICTIM. `.visually-hidden` is defined inside
      practice-room.astro's own scoped block, so it does not exist here at all — and a
      replacement defined in THIS page's scoped block would not reach the span either,
      because the panel is built with innerHTML. Both mistakes shipped in one pass and both
      rendered the same way: "A4, +20.0 cents, 1221 milliseconds" as visible copy under the
-     row. Global, namespaced under .rd-panel. */
-  .rd-panel .rd-sr{position:absolute;width:1px;height:1px;overflow:hidden;
+     row. Global, namespaced under .pg-panel. */
+  .pg-panel .pg-sr{position:absolute;width:1px;height:1px;overflow:hidden;
     clip-path:inset(50%);white-space:nowrap}
 </style>
 
@@ -207,79 +214,79 @@ import Layout from '../layouts/Layout.astro';
   /* Tokens are the site's, unchanged. Every measure here is --lead or a multiple. */
   /* The h1 is for the outline and screen readers; the plate on the case is the visible
      name. Same call the practice room makes. */
-  .rd-sr-h1{position:absolute;width:1px;height:1px;overflow:hidden;
+  .pg-sr-h1{position:absolute;width:1px;height:1px;overflow:hidden;
     clip-path:inset(50%);white-space:nowrap;margin:0}
-  .rd-foot{margin-top:var(--group);display:flex;justify-content:center}
-  .rd-foot a{color:var(--faint)}
-  .rd-foot a:hover{color:var(--accent)}
+  .pg-foot{margin-top:var(--group);display:flex;justify-content:center}
+  .pg-foot a{color:var(--faint)}
+  .pg-foot a:hover{color:var(--accent)}
 
   /* THE CASE. Same argument as the practice room's: a hairline box is sanctioned
      because inside is a machine. --lead of padding, and the plate interrupts the top
      frame. The inset is 3ch — a whole character, the practice room's own measure. */
-  .rd-case{position:relative;margin-top:var(--sect);
+  .pg-case{position:relative;margin-top:var(--sect);
     border:1px solid var(--line);padding:var(--lead) 3ch}
-  .rd-plate{position:absolute;top:calc(-1 * var(--tight));left:var(--unit);
+  .pg-plate{position:absolute;top:calc(-1 * var(--tight));left:var(--unit);
     background:var(--paper);padding:0 1ch;color:var(--faint)}
 
-  .rd-ctop{display:flex;align-items:baseline;justify-content:space-between;
+  .pg-ctop{display:flex;align-items:baseline;justify-content:space-between;
     gap:2ch;flex-wrap:wrap;min-height:44px}
-  .rd-fl{display:inline-flex;align-items:baseline;gap:2ch}
-  .rd-fr{display:inline-flex;align-items:baseline;gap:2ch;margin-left:auto}
-  .rd-lbl{color:var(--faint)}
-  .rd-a4{display:inline-flex;align-items:baseline;gap:1ch}
+  .pg-fl{display:inline-flex;align-items:baseline;gap:2ch}
+  .pg-fr{display:inline-flex;align-items:baseline;gap:2ch;margin-left:auto}
+  .pg-lbl{color:var(--faint)}
+  .pg-a4{display:inline-flex;align-items:baseline;gap:1ch}
   /* 16px so iOS does not zoom on focus; 44px min so the target clears WCAG 2.5.5 —
      both learned on the practice room, where a bare 16px input computes to 37. */
-  .rd-a4 input{font:inherit;font-size:16px;color:var(--ink);background:transparent;
+  .pg-a4 input{font:inherit;font-size:16px;color:var(--ink);background:transparent;
     border:0;border-bottom:1px solid var(--ink);padding:4px 0;width:5ch;
     text-align:center;min-height:44px;-moz-appearance:textfield;appearance:textfield;
     border-radius:0}
-  .rd-a4 input::-webkit-outer-spin-button,
-  .rd-a4 input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .pg-a4 input::-webkit-outer-spin-button,
+  .pg-a4 input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
   /* THE FIGURE. Fixed height in leads so the trace has a stable scale and the panel
      row below it never shifts — a figure that resizes with its content makes every
      finished panel move, which is the one thing a record must not do. */
-  .rd-fig{margin-top:var(--lead);height:calc(var(--lead) * 7)}
-  .rd-fig svg{display:block;width:100%;height:100%;overflow:visible}
+  .pg-fig{margin-top:var(--lead);height:calc(var(--lead) * 7)}
+  .pg-fig svg{display:block;width:100%;height:100%;overflow:visible}
 
-  .rd-read{display:flex;align-items:baseline;gap:2ch;margin-top:var(--tight);
+  .pg-read{display:flex;align-items:baseline;gap:2ch;margin-top:var(--tight);
     min-height:var(--lead)}
-  .rd-ends{flex:1}
-  .rd-note{color:var(--ink);padding:0 .5ch;margin-left:-.5ch}
-  .rd-note.rd-intune{background:var(--ink);color:var(--paper)}
-  .rd-cents{color:var(--ink);font-variant-numeric:tabular-nums}
-  .rd-hz{color:var(--faint);font-variant-numeric:tabular-nums}
+  .pg-ends{flex:1}
+  .pg-note{color:var(--ink);padding:0 .5ch;margin-left:-.5ch}
+  .pg-note.pg-intune{background:var(--ink);color:var(--paper)}
+  .pg-cents{color:var(--ink);font-variant-numeric:tabular-nums}
+  .pg-hz{color:var(--faint);font-variant-numeric:tabular-nums}
 
   /* THE REVIEW ROW. Small multiples: same scale in every panel, one row per note, so
      the only thing that differs between two panels is the playing. Set quiet and
      SMALL — this is the second figure on the screen and it must not compete with the
      live trace while you are playing. It scrolls horizontally rather than wrapping: a
      phrase is a sequence, and wrapping it to a second line breaks the reading order. */
-  .rd-panels{margin-top:var(--lead);height:calc(var(--lead) * 3);
+  .pg-panels{margin-top:var(--lead);height:calc(var(--lead) * 3);
     display:flex;align-items:stretch;gap:1px;overflow-x:auto;overflow-y:hidden;
     scrollbar-width:none}
-  .rd-panels::-webkit-scrollbar{display:none}
+  .pg-panels::-webkit-scrollbar{display:none}
   /* NO EMPTY-STATE COPY. It read "each note you finish prints here", which is the page
      explaining itself — the same thing the dek was doing, in a smaller voice. The row
      holds its height when empty, so the space is placed rather than missing, and the
      first note you play explains it better than a sentence can. */
-  .rd-panel{flex:none;position:relative;border-left:1px solid var(--line);
+  .pg-panel{flex:none;position:relative;border-left:1px solid var(--line);
     padding:0 2px;min-width:14px}
-  .rd-panel:first-child{border-left:0}
-  .rd-panel svg{display:block;height:calc(var(--lead) * 2);width:100%;overflow:visible}
+  .pg-panel:first-child{border-left:0}
+  .pg-panel svg{display:block;height:calc(var(--lead) * 2);width:100%;overflow:visible}
 
-  .rd-cap{display:flex;justify-content:center;margin-top:var(--lead)}
-  .rd-hint{min-height:var(--lead);margin-top:var(--tight);color:var(--faint);
+  .pg-cap{display:flex;justify-content:center;margin-top:var(--lead)}
+  .pg-hint{min-height:var(--lead);margin-top:var(--tight);color:var(--faint);
     max-width:62ch}
 
   /* Controls: the Track grammar, verbatim from the practice room. A toggle is a
      two-pocket track — one moving disc, the track is the class. */
-  .rd-btn{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;
+  .pg-btn{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;
     border-radius:0;min-height:44px;cursor:pointer;
     display:inline-flex;align-items:baseline;gap:1ch;
     transition:color var(--dur-fast) var(--ease)}
-  .rd-btn:hover{color:var(--accent)}
-  .rd-btn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .pg-btn:hover{color:var(--accent)}
+  .pg-btn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
   /* THE TRACK SITS OUTSIDE THE BUTTON. Centring the button centres the word-plus-track
      PAIR, which puts the verb off the axis of the figure it captions by half the track's
      width. Absolute-positioning the track to the left of the word centres the WORD, and
@@ -287,31 +294,31 @@ import Layout from '../layouts/Layout.astro';
      the button's hit area, and the 44px height is untouched, so the tap target holds.
      The `translateY(2px)` keeps the optical nudge the svg's baseline needed, on top of the
      centring the absolute position needs. Copied from the practice room's .mt-cap rule. */
-  .rd-cap .rd-btn.rd-latch{position:relative}
-  .rd-cap .rd-btn.rd-latch .rd-tk{position:absolute;right:100%;margin-right:1ch;
+  .pg-cap .pg-btn.pg-latch{position:relative}
+  .pg-cap .pg-btn.pg-latch .pg-tk{position:absolute;right:100%;margin-right:1ch;
     top:50%;transform:translateY(-50%) translateY(2px);display:block;overflow:visible}
-  .rd-latch .rd-tk .rd-run{stroke:var(--line);stroke-width:1}
-  .rd-latch .rd-tk .rd-pk{fill:none;stroke:var(--faint);stroke-width:1.2}
-  .rd-latch .rd-tk .rd-disc{fill:var(--ink);cx:4px;
+  .pg-latch .pg-tk .pg-run{stroke:var(--line);stroke-width:1}
+  .pg-latch .pg-tk .pg-pk{fill:none;stroke:var(--faint);stroke-width:1.2}
+  .pg-latch .pg-tk .pg-disc{fill:var(--ink);cx:4px;
     transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
-  .rd-latch[aria-pressed="true"] .rd-tk .rd-disc{fill:var(--accent);
+  .pg-latch[aria-pressed="true"] .pg-tk .pg-disc{fill:var(--accent);
     transform:translateX(18px)}
-  .rd-latch[aria-pressed="true"] .rd-w{color:var(--ink)}
+  .pg-latch[aria-pressed="true"] .pg-w{color:var(--ink)}
   /* Reserve the longer label's width so start/stop does not reflow the row — the practice
      room's round-9 fix, same reason. The selector matches the SPAN, because that is where
      the class now lives: the practice room still carries `.tbtn.fixw .w`, which stopped
      matching anything when `fixw` moved onto the span, so its width reservation is
      currently inert. Not mine to fix in that file, but worth not reproducing here. */
-  .rd-w.rd-fixw{display:inline-block;min-width:var(--w);text-align:center}
+  .pg-w.pg-fixw{display:inline-block;min-width:var(--w);text-align:center}
 
   @media (prefers-reduced-motion:reduce){
-    .rd-latch .rd-tk .rd-disc{transition:none}
+    .pg-latch .pg-tk .pg-disc{transition:none}
   }
 
   @media (max-width:600px){
     /* The figure keeps its height; the panels get one lead less so both fit a phone
        screen without the transport falling below the fold. */
-    .rd-panels{height:calc(var(--lead) * 2.5)}
+    .pg-panels{height:calc(var(--lead) * 2.5)}
   }
 </style>
 
@@ -397,11 +404,11 @@ import Layout from '../layouts/Layout.astro';
     reading: null as null | { name: string; cents: number; inTransition: boolean },
     series,
   };
-  if (E2E) (window as any).__rd = hook;
+  if (E2E) (window as any).__pg = hook;
 
   // ── the drawing ───────────────────────────────────────────────────────────
-  const svg = $('rd-svg') as unknown as SVGSVGElement;
-  const figEl = $('rd-fig');
+  const svg = $('pg-svg') as unknown as SVGSVGElement;
+  const figEl = $('pg-fig');
 
   // W and H are MEASURED from the element, so the viewBox maps 1:1 to pixels. With
   // preserveAspectRatio="none" a viewBox narrower than the element stretches every
@@ -434,7 +441,7 @@ import Layout from '../layouts/Layout.astro';
     const flush = () => {
       if (run.length < 2) return;
       const d = run.map((p, i) => `${i ? 'L' : 'M'}${f1(p[0])} ${f1(p[1])}`).join(' ');
-      out += `<path class="rd-trace${flag ? ' rd-in' : ''}" d="${d}"/>`;
+      out += `<path class="pg-trace${flag ? ' pg-in' : ''}" d="${d}"/>`;
     };
     for (let i = 1; i < pts.length; i++) {
       if (pts[i][2] !== flag) { run.push(pts[i]); flush(); run = [pts[i]]; flag = pts[i][2]; }
@@ -450,14 +457,14 @@ import Layout from '../layouts/Layout.astro';
     let g = '';
 
     // The bands first, so ink sits over them.
-    g += `<rect class="rd-band-out" x="0" y="${f1(yOf(PRACTICE_BANDS.outer))}" `
+    g += `<rect class="pg-band-out" x="0" y="${f1(yOf(PRACTICE_BANDS.outer))}" `
       + `width="${W}" height="${f1(yOf(-PRACTICE_BANDS.outer) - yOf(PRACTICE_BANDS.outer))}"/>`;
-    g += `<rect class="rd-band-in" x="0" y="${f1(yOf(PRACTICE_BANDS.inner))}" `
+    g += `<rect class="pg-band-in" x="0" y="${f1(yOf(PRACTICE_BANDS.inner))}" `
       + `width="${W}" height="${f1(yOf(-PRACTICE_BANDS.inner) - yOf(PRACTICE_BANDS.inner))}"/>`;
     // The ±5¢ boundary gets an edge: it is the one line on the figure that answers the
     // question the player is actually asking, and a wash cannot mark a threshold.
     for (const c of [PRACTICE_BANDS.inner, -PRACTICE_BANDS.inner]) {
-      g += `<line class="rd-band-edge" x1="0" y1="${f1(yOf(c))}" x2="${W}" y2="${f1(yOf(c))}"/>`;
+      g += `<line class="pg-band-edge" x1="0" y1="${f1(yOf(c))}" x2="${W}" y2="${f1(yOf(c))}"/>`;
     }
     // The edges of the domain, and the datum.
     // The edge rules stop short of the labels rather than running under them: a label
@@ -466,15 +473,15 @@ import Layout from '../layouts/Layout.astro';
     const LBL_SHARP = '+50¢ sharp';
     const LBL_FLAT = '−50¢ flat';
     const gap = (t: string) => 8 + t.length * 6.4;
-    g += `<line class="rd-edge" x1="${f1(gap(LBL_SHARP))}" y1="${f1(yOf(50))}" `
+    g += `<line class="pg-edge" x1="${f1(gap(LBL_SHARP))}" y1="${f1(yOf(50))}" `
       + `x2="${W}" y2="${f1(yOf(50))}"/>`;
-    g += `<line class="rd-edge" x1="${f1(gap(LBL_FLAT))}" y1="${f1(yOf(-50))}" `
+    g += `<line class="pg-edge" x1="${f1(gap(LBL_FLAT))}" y1="${f1(yOf(-50))}" `
       + `x2="${W}" y2="${f1(yOf(-50))}"/>`;
-    g += `<line class="rd-datum" x1="0" y1="${mid}" x2="${W}" y2="${mid}"/>`;
+    g += `<line class="pg-datum" x1="0" y1="${mid}" x2="${W}" y2="${mid}"/>`;
     // Baseline-centred on the rule, not offset above it, so the type reads as labelling
     // the line rather than floating over the field.
-    g += `<text class="rd-axl" x="0" y="${f1(yOf(50) + 4)}">${LBL_SHARP}</text>`;
-    g += `<text class="rd-axl" x="0" y="${f1(yOf(-50) + 4)}">${LBL_FLAT}</text>`;
+    g += `<text class="pg-axl" x="0" y="${f1(yOf(50) + 4)}">${LBL_SHARP}</text>`;
+    g += `<text class="pg-axl" x="0" y="${f1(yOf(-50) + 4)}">${LBL_FLAT}</text>`;
 
     // The trace, BROKEN at every note change: joined across one, the line draws the
     // wrap from +49 to −49 as a full-height vertical stroke — the exact artifact this
@@ -499,7 +506,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   // ── a finished note becomes a panel ───────────────────────────────────────
-  const panelsEl = $('rd-panels');
+  const panelsEl = $('pg-panels');
 
   function printPanel(midi: number, cents: number[]) {
     // A PANEL MAY NOT REPORT A NUMBER ITS OWN AXIS CANNOT HOLD. Found in the wild
@@ -538,9 +545,9 @@ import Layout from '../layouts/Layout.astro';
       pmid - Math.max(-AXIS_LIMIT_CENTS, Math.min(AXIS_LIMIT_CENTS, c))
         / AXIS_LIMIT_CENTS * (PH / 2 - 8);
 
-    let g = `<line class="rd-pdatum" x1="0" y1="${pmid}" x2="${w}" y2="${pmid}"/>`;
+    let g = `<line class="pg-pdatum" x1="0" y1="${pmid}" x2="${w}" y2="${pmid}"/>`;
     if (cents.length === 1) {
-      g += `<circle class="rd-pdot" cx="${w / 2}" cy="${f1(py(cents[0]))}" r="1.6"/>`;
+      g += `<circle class="pg-pdot" cx="${w / 2}" cy="${f1(py(cents[0]))}" r="1.6"/>`;
     } else {
       const pts: [number, number, boolean][] = cents.map((c, i) => [
         (i / (cents.length - 1)) * w, py(c), Math.abs(c) <= IN_TUNE_CENTS,
@@ -551,7 +558,7 @@ import Layout from '../layouts/Layout.astro';
       const flush = () => {
         if (run.length < 2) return;
         const d = run.map((p, i) => `${i ? 'L' : 'M'}${f1(p[0])} ${f1(p[1])}`).join(' ');
-        g += `<path class="rd-ptrace${flag ? ' rd-in' : ''}" d="${d}"/>`;
+        g += `<path class="pg-ptrace${flag ? ' pg-in' : ''}" d="${d}"/>`;
       };
       for (let i = 1; i < pts.length; i++) {
         if (pts[i][2] !== flag) { run.push(pts[i]); flush(); run = [pts[i]]; flag = pts[i][2]; }
@@ -561,7 +568,7 @@ import Layout from '../layouts/Layout.astro';
     }
 
     const el = document.createElement('div');
-    el.className = 'rd-panel';
+    el.className = 'pg-panel';
     el.dataset.note = name;
     el.dataset.mean = mean.toFixed(1);
     el.setAttribute('data-testid', 'panel');
@@ -570,11 +577,11 @@ import Layout from '../layouts/Layout.astro';
     // number is worse than none, so a narrow panel carries the name only.
     el.innerHTML =
       `<svg viewBox="0 0 ${w} ${PH}" preserveAspectRatio="none" aria-hidden="true">`
-      + `<text class="rd-pname" x="0" y="10">${name}</text>`
+      + `<text class="pg-pname" x="0" y="10">${name}</text>`
       + g
-      + (w >= 28 ? `<text class="rd-pmean" x="0" y="${PH - 2}">${sign(mean)}</text>` : '')
+      + (w >= 28 ? `<text class="pg-pmean" x="0" y="${PH - 2}">${sign(mean)}</text>` : '')
       + '</svg>'
-      + `<span class="rd-sr">${name}, ${sign(mean)} cents, `
+      + `<span class="pg-sr">${name}, ${sign(mean)} cents, `
       + `${Math.round(cents.length * READ_MS)} milliseconds</span>`;
     el.style.width = `${w}px`;
     panelsEl.appendChild(el);
@@ -599,9 +606,9 @@ import Layout from '../layouts/Layout.astro';
   }
 
   // ── the read loop ─────────────────────────────────────────────────────────
-  const noteEl = $('rd-note');
-  const centsEl = $('rd-cents');
-  const hzEl = $('rd-hz');
+  const noteEl = $('pg-note');
+  const centsEl = $('pg-cents');
+  const hzEl = $('pg-hz');
 
   function push(sample: Sample, hz: number | null) {
     const decision = seg.feed(sample);
@@ -615,7 +622,7 @@ import Layout from '../layouts/Layout.astro';
       if (++quietFrames >= SILENCE_FRAMES) {
         closeOpenNote();
         noteEl.textContent = '—';
-        noteEl.classList.remove('rd-intune');
+        noteEl.classList.remove('pg-intune');
         centsEl.textContent = '–';
         hzEl.textContent = '';
         if (E2E) hook.reading = null;
@@ -634,7 +641,7 @@ import Layout from '../layouts/Layout.astro';
 
     const r = freqToReading(hz ?? 0, a4);
     noteEl.textContent = r ? `${r.name}${r.octave}` : '—';
-    noteEl.classList.toggle('rd-intune', v.inTune);
+    noteEl.classList.toggle('pg-intune', v.inTune);
     // A number the axis cannot hold is not a precise reading, it is a broken one. While
     // the segmenter holds a note the pitch has already left, the true offset runs off the
     // ±50 scale — measured at 141¢ and once 187¢ on the proof sheet. Print a dash for
@@ -652,8 +659,8 @@ import Layout from '../layouts/Layout.astro';
   }
 
   // ── the mic ───────────────────────────────────────────────────────────────
-  const listenBtn = $('rd-listen') as unknown as HTMLButtonElement;
-  const hintEl = $('rd-hint');
+  const listenBtn = $('pg-listen') as unknown as HTMLButtonElement;
+  const hintEl = $('pg-hint');
   let micRequest = 0;
 
   async function start() {
@@ -672,7 +679,7 @@ import Layout from '../layouts/Layout.astro';
 
       listenBtn.setAttribute('aria-pressed', 'true');
       listenBtn.setAttribute('aria-label', 'stop listening');
-      listenBtn.querySelector('.rd-w')!.textContent = 'stop';
+      listenBtn.querySelector('.pg-w')!.textContent = 'stop';
       hintEl.textContent = '';
 
       timer = window.setInterval(() => {
@@ -726,9 +733,9 @@ import Layout from '../layouts/Layout.astro';
     quietFrames = 99;
     listenBtn.setAttribute('aria-pressed', 'false');
     listenBtn.setAttribute('aria-label', 'start listening');
-    listenBtn.querySelector('.rd-w')!.textContent = 'start';
+    listenBtn.querySelector('.pg-w')!.textContent = 'start';
     noteEl.textContent = '—';
-    noteEl.classList.remove('rd-intune');
+    noteEl.classList.remove('pg-intune');
     centsEl.textContent = '–';
     hzEl.textContent = '';
     hintEl.textContent = '';
@@ -737,7 +744,7 @@ import Layout from '../layouts/Layout.astro';
   listenBtn.addEventListener('click', () => { stream ? stop() : start(); });
 
   // A4: commits on `change`, never on `input`, so nothing repaints mid-keystroke.
-  const a4El = $('rd-a4') as unknown as HTMLInputElement;
+  const a4El = $('pg-a4') as unknown as HTMLInputElement;
   a4El.addEventListener('change', () => {
     const v = Number(a4El.value);
     if (Number.isFinite(v) && v >= A4_MIN && v <= A4_MAX) a4 = v;

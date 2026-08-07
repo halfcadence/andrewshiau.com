@@ -215,7 +215,7 @@ test('the apex sends the instrument to its own host, query intact', async ({ req
 // claim that nothing checks is a routing claim that drifts.
 const PRACTICE_TOOLS = [
   { path: '/practice-room/', canonical: 'https://practice.andrewshiau.com/' },
-  { path: '/readings/', canonical: 'https://practice.andrewshiau.com/readings/' },
+  { path: '/pitchgraph/', canonical: 'https://practice.andrewshiau.com/pitchgraph/' },
 ];
 
 // THE OLD ADDRESS KEEPS WORKING. /pitchgraph/ was published before the 2026-08-07 rename,
@@ -223,7 +223,7 @@ const PRACTICE_TOOLS = [
 // on the practice host. Asserted separately from the table above because there is no page
 // at /pitchgraph/ any more — only a redirect, so it has no canonical and no assets to check.
 const RETIRED_PATHS = [
-  { path: '/pitchgraph/', to: 'https://practice.andrewshiau.com/readings/' },
+  { path: '/pitchgraph/', to: 'https://practice.andrewshiau.com/pitchgraph/' },
 ];
 
 test('every practice tool is served on the practice host and disowned by the apex',

@@ -233,22 +233,22 @@ export const experiments: Entry[] = [
   },
   {
     // Sits beside the practice room because it is the same practice and the same host:
-    // practice.andrewshiau.com/readings/.
-    // 'readings' (name ideation 2026-08-07, 40 candidates): it names the ARTIFACT the way
-    // 'proofs' does, and the panel row — one panel per note, each with its mean engraved on
-    // it — IS a set of readings. The working title 'pitchgraph' ranked last of eight: it
-    // named the mechanism, it was the one compound among plain-word siblings, and 'pitch
-    // graph' is the generic category label four shipping products already use. Full
-    // argument: the header comment of src/pages/readings.astro.
+    // practice.andrewshiau.com/pitchgraph/.
+    // THE NAME held after a chooser (work/understand/readings-name/, 2026-08-07): eight
+    // candidates rendered in the four places a name appears, including this very row among
+    // its real siblings, which is where the register question is answerable. Owner's call:
+    // "its fine that its similar. its a similar product after all" — which answers the one
+    // real objection, that 'pitch graph' is the category label four shipping products use.
+    // Reading like a category is only a fault if you are claiming to be something else.
     n: '06',
-    title: 'readings',
+    title: 'pitchgraph',
     blurb:
       'An intonation trace. Play, and it draws how far off the note you are in cents; ' +
       'each note you finish prints its own panel with the offset you actually held.',
     meta: 'Web instrument',
     // The WRITEUP, like every other row — the index is a list of case studies. The
     // instrument is one click further, on the practice host.
-    href: '/work/readings/',
+    href: '/work/pitchgraph/',
     // `both`: the segmenter and the read cadence are engineering with measured bounds; the
     // two-figures-at-once shape and the panel treatment were picked off proof sheets.
     side: 'both',

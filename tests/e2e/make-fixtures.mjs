@@ -70,7 +70,7 @@ function pulsedWav(freq, seconds, name, onSec = 1.2, offSec = 1.8) {
   console.log(`wrote ${name}: ${freq} Hz pulsed ${onSec}s on / ${offSec}s off, ${seconds}s`);
 }
 
-// A PHRASE, for /readings/ — the page whose whole subject is what happens between
+// A PHRASE, for /pitchgraph/ — the page whose whole subject is what happens between
 // notes, which a single sustained tone cannot exercise at all. Four notes with a rest
 // between each, every one held at a DIFFERENT known offset, so the per-note panels have
 // four different truths to be checked against rather than one.
@@ -149,7 +149,7 @@ function slurWav(name, fromHz, toHz, holdSec = 1.1, glideSec = 0.06, restSec = 0
 }
 
 // ROOM NOISE, NOT A NOTE. This fixture exists because the four-note phrase could not
-// reproduce a bug the owner hit in his actual office: /readings/ printed panels reading
+// reproduce a bug the owner hit in his actual office: /pitchgraph/ printed panels reading
 // "C2 +909.8¢" and "G♯1 +626.1¢" — offsets nine semitones wide on an axis one semitone
 // tall. Clean sines cannot cause it. The mechanism needs a detected pitch that JUMPS
 // between reads while the segmenter holds one note, and only broadband rumble does that.
