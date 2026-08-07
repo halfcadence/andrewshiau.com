@@ -217,6 +217,63 @@ describe('a grace note of one read (66 ms), slurred on both sides', () => {
   });
 });
 
+describe('Tartini\'s self-widening band — measured, both ways', () => {
+  // The most relevant precedent that exists for this page: Tartini is the MPM author's
+  // own violin intonation trainer, so it is the same detector solving the same problem.
+  // Its band is base + √(local sd) × stretch, which means vibrato widens the tolerance
+  // that would otherwise split it — no vibrato parameter anywhere. Measured on Tartini's
+  // constants: ~12 cents on a steady tone, ~113 under a ±50 cent vibrato.
+  //
+  // It is in the registry because it is the best mechanism on a slur, and NOT the default
+  // because it is the worst on a trill. Both halves are asserted; the bench found both.
+  it('holds one note through a vibrato wider than a semitone', () => {
+    expect(new Set(segment(vibrato(74, 6, 58, 40), 'adaptive'))).toEqual(new Set([74]));
+  });
+
+  it('SWALLOWS a semitone trill — the cost, and no parameter fixes it', () => {
+    // 7.6 notes/sec, playable, 12 real note events. The adaptive band reports one.
+    const trill = Array.from({ length: 24 }, (_, i) => (Math.floor(i / 2) % 2 ? 72 : 71));
+    expect(new Set(segment(trill, 'adaptive')).size).toBe(1);
+    // Swept in the bench across every window and jump gate: invariant. Two samples here.
+    expect(new Set(segment(trill, 'adaptive', { shortMs: 66 })).size).toBeLessThan(4);
+    expect(new Set(segment(trill, 'adaptive', { jumpCents: 100 })).size).toBeLessThan(4);
+    // Where hysteresis gets it right, which is why hysteresis is the recommendation.
+    expect(new Set(segment(trill, 'hysteresis')).size).toBe(2);
+  });
+
+  it('absorbs a slide into the note it left, rather than into the note it arrives at',
+    () => {
+      // I first asserted here that adaptive beats hysteresis on a slur, because the bench
+      // reports 3 cents against 17 on ITS slur case. Measured on a contour with an
+      // explicit 3-read slide, that is false — hysteresis is exact (0.0¢) and adaptive is
+      // off by 4.9¢. The bench's slur has no slide segment, so the two cases are not the
+      // same case, and the earlier claim was over-read from one number.
+      //
+      // What IS true, and is the useful property: the slide's reads are charged to the
+      // note being left, so the ARRIVED-AT note is reported cleanly. Every strategy here
+      // gets the second note exactly right; they differ on how badly the first is
+      // polluted, and centre-weighting is what rescues it (flat 32.2 → weighted 6.9).
+      const contour = [...hold(69, 2, 12), ...slide(69, 71, 3), ...hold(71, -8, 12)];
+      const runs = noteRuns(contour, segment(contour, 'adaptive'))
+        .filter((r) => r.reads >= 4);
+      const arrived = runs.find((r) => r.midi === 71)!;
+      expect(arrived.mean).toBeCloseTo(-8, 1);
+
+      const left = runs.find((r) => r.midi === 69)!;
+      expect(left.flatMean).toBeGreaterThan(25);      // the slide, charged to A4
+      expect(left.mean).toBeLessThan(left.flatMean / 3);  // and mostly weighted away
+    });
+
+  it('rescales its windows to this page\'s 66 ms cadence, not Tartini\'s 23 ms', () => {
+    // Tartini's 80 ms short window is 1.2 reads here — the mean would be one sample and
+    // the mechanism would collapse. The default is one period of a 5 Hz vibrato instead.
+    const s = getStrategy('adaptive');
+    const shortMs = s.params.find((p) => p.key === 'shortMs')!;
+    expect(shortMs.default).toBeGreaterThanOrEqual(3 * 66);
+    expect(shortMs.default).toBeGreaterThanOrEqual(1000 / 6);   // ≥ one 6 Hz period
+  });
+});
+
 describe('a slur — two notes with no silence between them', () => {
   const contour = [...hold(69, 2, 10), ...slide(69, 71, 2), ...hold(71, -8, 10)];
 

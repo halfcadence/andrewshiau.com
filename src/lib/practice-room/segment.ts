@@ -386,6 +386,140 @@ const contourIsland: Strategy = {
   },
 };
 
+/**
+ * TARTINI'S SELF-WIDENING BAND — the one mechanism in the survey that handles vibrato
+ * without having a vibrato parameter, and the most relevant precedent that exists for
+ * this page: Tartini is Philip McLeod's own violin intonation trainer, and McLeod wrote
+ * the MPM/NSDF detector `pitch.ts` already runs. Same detector, same problem, and his
+ * answer is not a constant.
+ *
+ * The idea: keep two running means at different timescales, and make the tolerance a
+ * function of the pitch's own LOCAL VARIANCE. Vibrato raises the short-term variance,
+ * which widens the band, which suppresses the note change. Nothing has to detect vibrato.
+ *
+ *   shortMean  over the last `shortMs`   tolerance  shortBase + √sd_short × shortStretch
+ *   longMean   over the last `longMs`    tolerance  longBase  + √sd_long  × longStretch
+ *   change when |shortMean − longMean| − (shortTol + longTol) > 0
+ *
+ * Measured on Tartini's own constants (shortBase .1, shortStretch 1.5, longBase .02,
+ * longStretch .2, units semitones): the band is ~12 cents on a dead-steady tone and
+ * ~113 cents under a ±50 cent vibrato. One formula covering both.
+ *
+ * Two departures from Tartini, both forced and both worth knowing:
+ *
+ *  1. THE CADENCE. Tartini runs a 23 ms hop; this page runs 66 ms. Its shortTime of
+ *     80 ms is 1.2 reads here — the short-term mean would be a single sample and the
+ *     mechanism would collapse. So the windows are parameters in MILLISECONDS and the
+ *     defaults are widened to survive this grid: `shortMs` 200 (3 reads) is one period
+ *     of a 5 Hz vibrato, which is the span four independent sources land on for a
+ *     vibrato-free estimate (Kroher & Gómez's 300 ms effective filter for 4 Hz;
+ *     Rossignol's 0.15–0.25 s; Herrera & Bonada's "more than one vibrato cycle").
+ *  2. `√sd` is dimensionally odd — it is variance^¼ — but it is what Tartini ships and
+ *     it is what produces the 12→113 cent spread, so it is reproduced rather than
+ *     "corrected". If it is ever changed, the bench numbers must be re-read.
+ *
+ * The instant-jump gate is Tartini's third condition, kept: a deviation past `jumpCents`
+ * from the short-term mean is a note change now, no averaging. At its 200 cent default a
+ * semitone step does NOT trip it (that is the point — a semitone is inside vibrato's
+ * reach) but a fifth or an octave slur does, within two reads.
+ */
+const adaptiveBand: Strategy = {
+  id: 'adaptive',
+  name: 'self-widening band (Tartini)',
+  mechanism: 'Two running means at different timescales; the tolerance is base + '
+    + '√(local sd) × stretch, so vibrato widens the band that would otherwise split it. '
+    + 'A jump past `jumpCents` changes the note immediately. (After Tartini, by the '
+    + 'author of the MPM detector this page uses.)',
+  cost: 'MEASURED, and worse than hysteresis on this bench: it swallows a semitone trill '
+    + 'whole — 1 note found where 12 were played — because the band it opens under '
+    + 'vibrato (~113 cents) is wider than the trill\'s own interval, and no setting of '
+    + 'its four constants fixes that (swept: invariant across every window and every '
+    + 'jump gate). It is also 4.9 cents off on a slur where hysteresis is exact. Four '
+    + 'constants with no independent meaning, so they can only be measured in pairs, '
+    + 'never reasoned about singly. In the registry for the mechanism, not as a '
+    + 'recommendation.',
+  params: [
+    {
+      key: 'shortMs',
+      label: 'short window',
+      unit: 'ms',
+      default: 200,
+      min: 66,
+      max: 600,
+      step: 66,
+      note: 'Tartini uses 80 ms at a 23 ms hop. At this page\'s 66 ms cadence 80 ms is '
+        + 'barely one read, so the default is 200 — one period of a 5 Hz vibrato, which '
+        + 'is where the published vibrato-free estimates land.',
+    },
+    {
+      key: 'longMs',
+      label: 'long window',
+      unit: 'ms',
+      default: 800,
+      min: 200,
+      max: 2000,
+      step: 100,
+      note: 'Tartini\'s longTime, unchanged — 800 ms is long enough to be the note\'s '
+        + 'settled centre rather than its current gesture.',
+    },
+    {
+      key: 'jumpCents',
+      label: 'instant jump',
+      unit: 'cents from the short mean',
+      default: 200,
+      min: 100,
+      max: 400,
+      step: 50,
+      note: 'Tartini\'s reason-2 gate. Above 100 so a semitone step does not trip it; a '
+        + 'fifth or octave slur does, in two reads.',
+    },
+  ],
+  create(p) {
+    const STEP_MS = 66;                       // this page's read cadence
+    const nShort = Math.max(2, Math.round(p.shortMs / STEP_MS));
+    const nLong = Math.max(3, Math.round(p.longMs / STEP_MS));
+    // Tartini's constants, in semitones.
+    const SHORT_BASE = 0.1; const SHORT_STRETCH = 1.5;
+    const LONG_BASE = 0.02; const LONG_STRETCH = 0.2;
+
+    let cur: number | null = null;
+    let run: number[] = [];                   // readings since this note started
+
+    const stats = (n: number) => {
+      const w = run.slice(-n);
+      const mean = w.reduce((a, b) => a + b, 0) / w.length;
+      const varc = w.reduce((a, b) => a + (b - mean) ** 2, 0) / w.length;
+      return { mean, sd: Math.sqrt(varc) };
+    };
+
+    return {
+      feed(s: Sample) {
+        if (s === null) { cur = null; run = []; return null; }
+        if (cur === null) { cur = Math.round(s); run = [s]; return cur; }
+        run.push(s);
+        if (run.length > nLong * 2) run = run.slice(-nLong * 2);
+
+        const shortS = stats(nShort);
+        // The instant gate: a big excursion from the short mean is a change now.
+        if (Math.abs((s - shortS.mean) * SEMITONE_CENTS) > p.jumpCents) {
+          cur = Math.round(s); run = [s]; return cur;
+        }
+        // The adaptive test needs enough history for the two windows to differ.
+        if (run.length >= nShort + 2) {
+          const longS = stats(nLong);
+          const shortTol = SHORT_BASE + Math.sqrt(shortS.sd) * SHORT_STRETCH;
+          const longTol = LONG_BASE + Math.sqrt(longS.sd) * LONG_STRETCH;
+          if (Math.abs(shortS.mean - longS.mean) - (shortTol + longTol) > 0) {
+            cur = Math.round(shortS.mean); run = [s]; return cur;
+          }
+        }
+        return cur;
+      },
+      reset() { cur = null; run = []; },
+    };
+  },
+};
+
 export const STRATEGIES: Strategy[] = [
   nearest,
   hysteresis,
@@ -394,6 +528,7 @@ export const STRATEGIES: Strategy[] = [
   attackLock,
   medianWindow,
   contourIsland,
+  adaptiveBand,
 ];
 
 /**
