@@ -836,13 +836,13 @@ import Layout from '../layouts/Layout.astro';
   .mt-drone[data-sounding="true"] .vbtn.on{color:var(--accent)}
 
 
-  /* ⌥G RAISES ONE OVERLAY, which carries all three lines. The HORIZONTAL datums
-     (`.mt-pages::before`) and the centre line (`.mt-mid::after`) are deleted with the rules that
-     drew them — see the long note above `.mt-half::after` for why a line on the box's top rule
-     cannot be drawn at all. A raise list naming a pseudo-element with no `background` is not
-     harmless: it reads as a line the guide draws, so the next person looks for it and doesn't
-     find it. */
+  /* ⌥G RAISES TWO OVERLAYS: the per-case one (axis + the box-rule pair) and the room's own
+     TOP datum on the box's top rule. The CENTRE line (`.mt-mid::after`) and the BOTTOM datum
+     stay deleted — see the notes on each rule. A raise list naming a pseudo-element with no
+     `background` is not harmless: it reads as a line the guide draws, so the next person looks
+     for it and doesn't find it. */
   :is(html,body).showgrid .mt-half::after{opacity:1}
+  :is(html,body).showgrid .mt-pages::before{opacity:1}
 </style>
 
 <style>
@@ -1493,6 +1493,53 @@ import Layout from '../layouts/Layout.astro';
     .mt-gauge, .mt-read{width:100%}
   }
 
+  /* ── THE TOP DATUM, ON THE BOX'S OWN TOP RULE ────────────────────────────────────
+     RESTORED after being deleted, and the deletion was my mistake: the owner asked "what about
+     the top datum, don't we still want that tool?" and the answer is yes — a guide whose only
+     horizontal information is absent cannot answer "is this row where it should be", which is
+     what the tool is FOR.
+     WHY I DELETED IT, AND WHY THAT REASONING WAS WRONG. Every candidate line at the box's top
+     rule appeared to strike through the notch's word (`calibration`), because the notch straddles
+     that rule by construction and its glyph band spans it — 9px above, 10px below. That was
+     measured on the PROOF SHEET, where the overlay carried `z-index:3` so the sheet's guide would
+     sit above its own mock content. On the real page it does not: `.mt-pages::before` belongs to
+     an ANCESTOR, and a positioned descendant paints after it in tree order, so the notch's own
+     `background:var(--paper)` covers the line exactly the way it already covers the box's rule.
+     The knock-out was there the whole time and the sheet's own scaffolding hid it.
+     VERIFIED BY SAMPLING PIXELS, not by reasoning: on the rule's y, inside the notch's glyph the
+     line is absent (no accent in the band); 40px to the right of the notch it is present. So the
+     line interrupts around the word, which is the same figure/ground move the plate makes.
+     WHAT IT NAMES: the box's top rule, at `case-top`. Measured on the live page, every box's top
+     rule ALREADY lands on a whole lead — 1, 2, 4, 26 and 27, exact, both colourways, desktop and
+     phone. It is one lead ABOVE where the old line was drawn: that one sat at `case-top + one
+     lead`, inside the box's own top padding, naming the box's air, which was the original "not
+     aligned" report.
+     ONE LINE, NOT TWO. The old rule also drew a BOTTOM datum two leads up from the ladder's end,
+     for the foot controls. That stays deleted — the foot row has no box, so a line there would
+     name type again while every other mark on this overlay names a box rule, and mixing the two
+     is what made the guide unreadable in the first place. The foot's baseline is asserted in
+     `tools/verify-practice-room-datums.mjs` instead.
+     Drawn from `--mt-case-top`, the same token the ladder states the row with, so the line and
+     the row it names are one number and cannot drift — the failure this page recorded when the
+     line was hardcoded at `--lead * 2` and the phone's row was two leads. */
+  .mt-pages::before{content:"";position:absolute;inset:var(--group) var(--group) var(--lead);
+    pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
+    /* NO `z-index`. That is load-bearing: it is what lets every notch's paper knock the line out
+       where it crosses a name. Adding one would put the line over the words. */
+    background:linear-gradient(to bottom,
+      transparent calc(var(--mt-case-top) - 1px),
+      color-mix(in srgb, var(--accent) 45%, transparent)
+        calc(var(--mt-case-top) - 1px) var(--mt-case-top),
+      transparent var(--mt-case-top))}
+  /* The phone's `case-top` is two leads, and the token follows it (declared on `.mt-pages` in
+     the media query), so this line needs no phone variant of its own. `inset:0` because the
+     scroller's padding is 0 there, and an absolutely-positioned ::before inside a scroll
+     container lays out against the scrollable padding box — so it travels with the pages instead
+     of staying stuck over page 1. */
+  @media (max-width: 1001px){
+    .mt-pages::before{inset:0}
+  }
+
   /* ══ THE GUIDE DRAWS THE BOX, NOT THE TYPE (chooser practice-room-box-guide, pick 02:
      "the guide names the box — its top rule and its side rule") ══════════════════════════
 
@@ -1509,8 +1556,9 @@ import Layout from '../layouts/Layout.astro';
          25 cols." Those columns were the system three proof sheets had already REJECTED.
        · the datum pass (2026-08-05) cut it to the axis + one inset inside each edge, plus two
          horizontal datums on the room and one on `.mt-mid`.
-       · this pass keeps the COUNT and moves the marks: axis, and one line on each of the box's
-         side rules. Three lines per case, as before — but every one now coincides with ink.
+       · this pass keeps the COUNT and moves the marks: the axis, one line on each of the box's
+         side rules, and the top datum on the box's top rule. Four lines, as before — but every
+         one of them now coincides with ink a reader can see.
 
      WHAT MOVED AND WHY, all measured on the live page before anything changed:
        · THE VERTICAL PAIR was drawn at `--mt-inset` (3ch), where the CONTROLS' ink starts. That
@@ -1520,18 +1568,23 @@ import Layout from '../layouts/Layout.astro';
          inside the frame, and the rule is what it coincides with.
        · The box's side padding went 14 → 17px so that rule lands on a whole character cell
          (1ch) while the ink stays on 3ch — see `.mt-grp`, where the border makes up the pixel.
-       · THE HORIZONTAL DATUMS ARE DELETED (`.mt-pages::before`, and the centre on
-         `.mt-mid::after`). Not because the horizontal axis stopped mattering, but because a
-         line on the box's TOP rule CANNOT be drawn: the notch straddles that rule by
-         construction (the case's engraved plate one scale down, knocked out of the rule), so
-         its glyph band spans it — 9px above and 10px below. Every candidate ran straight
-         through the middle of the word `calibration`. Rendered, looked at, measured. And the
-         old position was worse than useless: every box's top rule ALREADY lands on a whole lead
-         (1, 2, 4, 26, 27 — exact, both colourways, desktop and phone), and the line was drawn
-         one lead BELOW them, inside the box's own top padding, naming the box's air. That was
-         the "not aligned" report. The boxes were never off the ladder.
+       · THE TOP DATUM MOVED UP ONE LEAD, onto the box's top rule — see the note on
+         `.mt-pages::before` above. It used to sit at `case-top + one lead`, inside the box's
+         own top padding, naming the box's air; every box's top rule already lands on a whole
+         lead (1, 2, 4, 26, 27 — exact), so the row was never the problem, the line's position
+         was. (I deleted this line for one commit on the belief that it must strike through the
+         notch's word. It does not: the notch's paper knocks it out on the real page. That
+         reasoning came from the proof sheet, whose overlay carried a `z-index` the page has
+         no reason to.)
+       · THE CENTRE LINE (`.mt-mid::after`) AND THE BOTTOM DATUM STAY DELETED. The centre
+         described the reading's row, which the reading's own ink already marks; the bottom
+         named the foot controls' baseline, and the foot row has no box, so a line there would
+         name type while every other mark on this overlay names a box rule. Both are asserted
+         in `tools/verify-practice-room-datums.mjs` instead.
 
-     SO THE VERTICAL QUESTION IS ON THE GLASS AND THE HORIZONTAL ONE IS IN THE HARNESS:
+     WHAT IS ON THE GLASS AND WHAT IS IN THE HARNESS: the marks the boxes draw are on the
+     glass (three sides of every group box); the baselines nothing boxes — the foot controls, the
+     reading — are in the harnesses:
      `tools/verify-practice-room-datums.mjs` (16 widths × 2 colourways) and
      `tools/probe-box-as-datum.mjs` (every box's rules in leads and characters) assert the row
      positions and fail by name, which is a better instrument for "is this on the lead" than a

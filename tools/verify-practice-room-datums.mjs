@@ -497,6 +497,6 @@ console.log(bad
   ? `\n${bad} failing configuration(s)`
   : `\nall datums hold — the axis, the ${INSET}px inset (--mt-inset) the ink sits on, and the`
     + ' three shared baselines — at every width, both colourways.'
-    + '\n(⌥G draws the axis plus the box-rule pair; the box rules are checked by'
-    + ' tools/probe-box-both-datums.mjs.)');
+    + '\n(⌥G draws the axis, the box-rule pair, and the top datum on the boxes\' top rule;'
+    + ' those are checked by tools/probe-box-both-datums.mjs and probe-box-as-datum.mjs.)');
 process.exit(bad ? 1 : 0);

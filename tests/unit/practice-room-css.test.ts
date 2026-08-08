@@ -166,33 +166,50 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
   });
 
   // ── THE GUIDE DRAWS THE BOX, AND THIS COUNTS THE MARKS (chooser practice-room-box-guide,
-  // pick 02 — "the guide names the box — its top rule and its side rule").
-  // It replaces four per-datum string sentinels that were deleted with the rules they named.
-  // Counting is the stronger form and this file already learned that once: a sentinel per datum
-  // was red-cased and FAILED to catch a re-added column grid, because the sentinels were all
-  // still present alongside it. So the property is the COUNT.
-  // TWO GRADIENTS: the axis, and the pair on the group boxes' side rules. It is deliberately
-  // the same count the datum pass shipped — this pass MOVED the vertical pair from the text's
-  // 3ch inset onto the box's own rule (one character in), it did not add marks. The horizontal
-  // datums stay deleted because a line on the box's TOP rule runs through the notch's word.
-  it('the ⌥G overlay draws the axis and the box-rule pair, and nothing else', () => {
+  // pick 02 — "the guide names the box: its top rule and its side rule").
+  // Counting replaced four per-datum string sentinels, and this file already learned why: a
+  // sentinel per datum was red-cased and FAILED to catch a re-added column grid, because the
+  // sentinels were all still present alongside it. So the property is the COUNT.
+  // THREE MARKS, on TWO overlays:
+  //   · `.mt-half::after` — the axis, and the pair on the group boxes' side rules (2 gradients)
+  //   · `.mt-pages::before` — the TOP datum, on the box's top rule (1 gradient)
+  // The centre line and the bottom datum stay deleted: the centre named the reading's row, which
+  // the reading's own ink already marks, and the bottom named the foot controls, which have no
+  // box — a line there would name type while everything else here names a box rule.
+  it('the ⌥G overlay draws the axis, the box-rule pair, and the top datum', () => {
     // THE RULE THAT DRAWS, not every rule naming the pseudo-element: `:is(html,body).showgrid
     // .mt-half::after{opacity:1}` also matches, so an unqualified match found two rules and
     // failed on correct code. Select on `background`, which only the drawing rule has.
-    const overlay = (css.match(/\.mt-half[^{]*::?after\{[^}]*\}/g) || [])
+    const percase = (css.match(/\.mt-half[^{]*::?after\{[^}]*\}/g) || [])
       .filter((r) => /background/.test(r));
-    expect(overlay.length, 'exactly one rule draws the overlay').toBe(1);
-    const grads = overlay[0].match(/linear-gradient/g) || [];
-    expect(grads.length,
-      `the guide draws TWO gradients — the axis and the box-rule pair; found ${grads.length}`)
-      .toBe(2);
-    // THE PAIR IS DERIVED FROM THE BOX'S OWN TOKENS, never a hand-typed 9px. That is the fix
-    // this pass is: the datum and the rule it names are one number, so they cannot drift.
-    expect(overlay[0], 'the box-rule datum is derived from --mt-inset and --mt-box-pull')
+    expect(percase.length, 'exactly one rule draws the per-case overlay').toBe(1);
+    expect((percase[0].match(/linear-gradient/g) || []).length,
+      'the per-case overlay draws TWO gradients — the axis and the box-rule pair').toBe(2);
+    // THE PAIR IS DERIVED FROM THE BOX'S OWN TOKENS, never a hand-typed 9px. That derivation IS
+    // the fix: the datum and the rule it names are one number, so they cannot drift.
+    expect(percase[0], 'the box-rule datum is derived from --mt-inset and --mt-box-pull')
       .toMatch(/--mt-datum:\s*calc\(var\(--mt-inset\)\s*-\s*var\(--mt-box-pull\)\)/);
-    // and the deleted horizontal overlays must stay deleted
-    expect(css, 'the horizontal datums (.mt-pages::before) are deleted')
-      .not.toMatch(/\.mt-pages[^{]*::?before\s*\{[^}]*linear-gradient/);
+
+    // THE TOP DATUM: one line, at `case-top` — the box's top rule, NOT `case-top + one lead`,
+    // which is where it used to sit (inside the box's own top padding, naming the box's air).
+    const room = (css.match(/\.mt-pages[^{]*::?before\{[^}]*\}/g) || [])
+      .filter((r) => /background/.test(r));
+    expect(room.length, 'exactly one rule draws the top datum').toBe(1);
+    expect((room[0].match(/linear-gradient/g) || []).length,
+      'the top datum is ONE line — the bottom datum stays deleted').toBe(1);
+    expect(room[0], 'the top datum sits at case-top, the box\'s top rule')
+      .toMatch(/calc\(var\(--mt-case-top\)\s*-\s*1px\)/);
+    expect(room[0], 'it must NOT be drawn a lead below, inside the box\'s padding')
+      .not.toMatch(/var\(--mt-case-top\)\s*\+\s*var\(--lead\)/);
+    // NO `z-index` ON THE TOP DATUM, and this is load-bearing rather than tidy: it is what lets
+    // each notch's paper knock the line out where it crosses a name. The proof sheet forced
+    // `z-index:3` so its guide would sit over its own mock, and that is the entire reason I
+    // believed the line struck through `calibration` and deleted it for a commit. Verified on the
+    // real page by sampling pixels: absent inside the notch's glyph, present 40px to its right.
+    expect(room[0], 'a z-index would paint the line over the notches it should duck behind')
+      .not.toMatch(/z-index/);
+
+    // and the two marks that stay deleted
     expect(css, 'the centre datum (.mt-mid::after) is deleted')
       .not.toMatch(/\.mt-mid[^{]*::?after\s*\{[^}]*linear-gradient/);
   });
