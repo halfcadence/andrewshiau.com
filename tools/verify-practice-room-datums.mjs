@@ -486,8 +486,15 @@ for (const scheme of ['light', 'dark']) {
 }
 
 await browser.close();
+// THE MESSAGE NAMES WHAT THIS ASSERTS, NOT WHAT ⌥G DRAWS. It used to end "and the three
+// vertical lines", which described the overlay — and after the box-guide pass (pick 05) the
+// overlay draws ONE line, the axis. A green summary describing a guide that no longer exists is
+// the same class of lie this harness exists to catch, one level up. What is asserted here is
+// the LAYOUT: the axis, the inset, and the three horizontal baselines the marks share. The
+// overlay's own shape is asserted in tests/unit/practice-room-css.test.ts.
 console.log(bad
   ? `\n${bad} failing configuration(s)`
-  : `\nall datums hold — axis, the ${INSET}px inset (--mt-inset), and the three vertical lines`
-    + ' — at every width, both colourways');
+  : `\nall datums hold — the axis, the ${INSET}px inset (--mt-inset), and the three shared`
+    + ' baselines — at every width, both colourways.'
+    + '\n(⌥G itself draws only the axis now — the boxes draw their own rules.)');
 process.exit(bad ? 1 : 0);

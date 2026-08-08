@@ -165,6 +165,39 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
       .toEqual([]);
   });
 
+  // ── THE GUIDE IS ONE LINE, AND THIS IS THE CHECK THAT SAYS SO (chooser
+  // practice-room-box-guide, pick 05 — "the axis only — the boxes ARE the guide").
+  // It replaces four per-datum string sentinels that were deleted with the rules they named.
+  // Counting is the stronger form and this file already learned that once: a sentinel per
+  // datum was red-cased and FAILED to catch a re-added column grid, because the sentinels were
+  // all still present alongside it. So the property is the COUNT.
+  // WHY ONE: a hairline box now surrounds every control group, drawing its own top rule and
+  // its own side rules in permanent ink. The inset lines duplicated the box's side rules a
+  // third of a character away; the horizontals named the row the box's contents used to sit
+  // on. The axis is the only datum on the screen that no ink marks — the case's centre, which
+  // the dial, the letter, the reading and all three verbs are centred on.
+  // The overlay's gradient count is the number of LINES the reader sees at ⌥G, so this is the
+  // "25 cols" complaint expressed as an assertion.
+  it('the ⌥G overlay draws exactly one mark: the axis', () => {
+    // THE RULE THAT DRAWS, not every rule that names the pseudo-element: `:is(html,body)
+    // .showgrid .mt-half::after{opacity:1}` also matches `.mt-half…::after{…}`, so an
+    // unqualified match found two rules and failed on correct code. Select on the `background`,
+    // which only the drawing rule has.
+    const overlay = (css.match(/\.mt-half[^{]*::?after\{[^}]*\}/g) || [])
+      .filter((r) => /background/.test(r));
+    expect(overlay.length, 'exactly one rule draws the axis overlay').toBe(1);
+    const grads = overlay[0].match(/linear-gradient/g) || [];
+    expect(grads.length,
+      `the guide must draw ONE line (the axis); found ${grads.length} gradients in ${overlay[0]}`)
+      .toBe(1);
+    // and the deleted overlays must stay deleted — a rule with no background is not enough,
+    // the rules themselves are gone
+    expect(css, 'the horizontal datums (.mt-pages::before) are deleted')
+      .not.toMatch(/\.mt-pages[^{]*::?before\s*\{[^}]*linear-gradient/);
+    expect(css, 'the centre datum (.mt-mid::after) is deleted')
+      .not.toMatch(/\.mt-mid[^{]*::?after\s*\{[^}]*linear-gradient/);
+  });
+
   // ── EVERY LADDER THAT STATES `case-top` MUST RESTATE `--mt-case-top` ─────────────
   // The ⌥G top datum is derived from the token, so a ladder that changes the row's height
   // without restating it draws the line on a row that no longer exists — which is exactly
@@ -236,38 +269,20 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     // was 12kB, brace-balanced, comment-free, and the four declarations named above were
     // all present, because none of them lived in the rule that died.
     ['the figure spans six columns', '--mt-track'],
-    // the VERTICAL datums, which replaced the 32-line ladder: two on `.mt-pages::before`
-    // (top and bottom, grid-derived) and the centre one on `.mt-mid::after`.
-    // IT WAS A PAIR until the verb moved into the reading's line (2026-08-06). The pair's
-    // second line described the `transport` row a lead below; that row is gone, so the two
-    // lines would name one baseline and the overlay would draw a datum with no ink on it —
-    // the "25 cols" complaint in miniature. The sentinel below is the surviving line.
-    // The TOP datum is derived from `--mt-case-top` now, not hardcoded at two leads: the
-    // phone's `case-top` is two leads (widened so the plate clears the accent mark), so the
-    // old `--lead * 2` drew the spec line a whole lead ABOVE the digits at phone width.
-    // Measured from the painted pixels, with the box chrome neutralised so it was not the
-    // box question: the digits sat +28.00px below the drawn line at 390. This sentinel names
-    // the declaration the fixed rule contains — and it is deliberately the TOP one, since
-    // that is the line that moved. The BOTTOM datum still reads from the ladder's end.
-    ['the top vertical datum', 'calc(var(--mt-case-top) + var(--lead) - 1px)'],
-    ['the bottom vertical datum', 'calc(100% - var(--lead) * 2 - 1px)'],
-    ['the centre datum', 'calc(100% - 1px)'],
-    // THE TWO DATUMS. The ⌥G overlay used to paint twelve tracks per case as a pair of
-    // hairlines each — 24 lines inside every case plus 12 across the screen, which is what
-    // the reader saw as "like 25 cols". It draws three lines now: the axis at 50%, and one
-    // inset a --lead inside each edge. These two sentinels are what a future edit would have
-    // to keep, and they are declarations only this rule contains.
-    // `.5px`, not `0.5px`: lightningcss strips the leading zero, and this test reads the
-    // BUILT sheet. Asserting the source spelling failed here for exactly that reason.
-    ['the axis datum', 'calc(50% - .5px)'],
-    // `--mt-inset`, NOT `--lead`. This line read `calc(100% - var(--lead))` and was
-    // mislabelled: that string does not appear in `.mt-half::after` at all — it was matching
-    // the CENTRE PAIR's second stop over on `.mt-mid::after`, so the "inset datum" sentinel
-    // was guarding a different rule on a different axis. It went unnoticed because both were
-    // present. Deleting the pair (the verb joined the reading's row) is what surfaced it: the
-    // test failed naming the inset while the inset was fine. Now it names the declaration the
-    // inset rule actually contains — the one the 3ch pass introduced.
-    ['the inset datum', 'calc(100% - var(--mt-inset))'],
+    // ── THE GUIDE IS ONE LINE NOW: THE AXIS (chooser practice-room-box-guide, pick 05).
+    // FOUR SENTINELS WERE DELETED HERE, and the deletions are the point rather than a
+    // loosening: they guarded `.mt-pages::before` (the top + bottom horizontal datums),
+    // `.mt-mid::after` (the centre line) and `.mt-half::after`'s inset pair — rules that no
+    // longer exist, because the sub-cases boxes already draw their own top and side rules in
+    // permanent ink. A sentinel for a deleted rule fails on correct code, which is the one
+    // kind of test that is worse than no test.
+    // What replaces them is NOT a weaker check. The count test below asserts this file draws
+    // exactly ONE mark, so re-adding any of those lines fails there — the guard moved from
+    // "these strings are present" to "this many lines are drawn", which is the property the
+    // "25 cols" report was ever about.
+    // `.5px`, not `0.5px`: lightningcss strips the leading zero and this test reads the BUILT
+    // sheet. Asserting the source spelling failed here once for exactly that reason.
+    ['the axis datum — the whole guide', 'calc(50% - .5px)'],
   ])('keeps the declaration that carries %s (%s)', (_label, decl) => {
     expect(css).toContain(decl);
   });

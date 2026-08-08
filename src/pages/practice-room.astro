@@ -820,12 +820,12 @@ import Layout from '../layouts/Layout.astro';
   .mt-drone[data-sounding="true"] .vbtn.on{color:var(--accent)}
 
 
+  /* ⌥G RAISES ONE OVERLAY NOW, not three. The two horizontal datums (`.mt-pages::before`)
+     and the centre line (`.mt-mid::after`) are deleted with the rule that drew them — see the
+     long note above `.mt-half::after`. A raise list naming a pseudo-element that no longer has
+     a `background` is not harmless: it reads as a third line the guide draws, so the next
+     person looks for it on the screen and doesn't find it. */
   :is(html,body).showgrid .mt-half::after{opacity:1}
-  :is(html,body).showgrid .mt-pages::before{opacity:1}
-  /* the CENTRE pair of vertical datums, which rides on `.mt-mid` because the elastic slack
-     decides where it sits — see the note on `.mt-pages::before`. Listed here with the other two
-     because ⌥G has to raise all of them together or the guide is partial. */
-  :is(html,body).showgrid .mt-mid::after{opacity:1}
 </style>
 
 <style>
@@ -979,50 +979,43 @@ import Layout from '../layouts/Layout.astro';
      ladder's origin, and two leads up from its end. The CENTRE pair cannot be — it floats with
      the slack — so it is drawn on `.mt-mid`, which is the box that holds it. Verified: all four
      drawn lines coincide with the baselines they claim, 0.0px each. */
-  /* ── THE TOP LINE IS DERIVED FROM `case-top`, NOT HARDCODED AT TWO LEADS ──────────
-     It read `--lead * 2` on every ladder, and that is only true where `case-top` is one lead.
-     THE PHONE'S `case-top` IS TWO LEADS (it was widened so the plate clears the accent mark),
-     so the spec baseline is THREE leads down there — and the guide drew it at two, one whole
-     lead above the digits it claimed. Measured with the box chrome neutralised, which is what
-     separates this from the box question: at 390 the digits sit +28.00px below the drawn line
-     with no box in the way at all. A guide that is wrong by a whole lead at phone width is the
-     "not aligned" report, and it is the instrument's fault, not the layout's.
-     `--mt-case-top` is declared beside each ladder that states the row, so the two cannot
-     drift: the row's height and the line derived from it are one number. */
-  .mt-pages::before{content:"";position:absolute;inset:var(--group) var(--group) var(--lead);
-    pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    background:
-      /* TOP — the spec baseline: the case's own top air, then the spec row's own line */
-      linear-gradient(to bottom,
-        transparent calc(var(--mt-case-top) + var(--lead) - 1px),
-        color-mix(in srgb, var(--accent) 45%, transparent)
-          calc(var(--mt-case-top) + var(--lead) - 1px) calc(var(--mt-case-top) + var(--lead)),
-        transparent calc(var(--mt-case-top) + var(--lead))),
-      /* BOTTOM — the foot baseline, two leads up (hint, then case-bot) */
-      linear-gradient(to bottom, transparent calc(100% - var(--lead) * 2 - 1px),
-        color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - var(--lead) * 2 - 1px) calc(100% - var(--lead) * 2),
-        transparent calc(100% - var(--lead) * 2))}
-  /* THE CENTRE DATUM rides on `.mt-mid` because its position is not derivable from the ladder —
-     the elastic slack decides it. `.mt-mid`'s last row IS the reading, which now holds the verb
-     too, so the datum is its bottom edge.
-     IT WAS A PAIR — two lines, one for the reading and one for the transport a lead below.
-     They describe the same line now, so drawing both would draw a datum where no ink sits,
-     which is exactly the complaint that produced this overlay ("i thought we chose just a few
-     datums i see like 25 cols"). One row, one line. The guard test asserts this file draws
-     discrete datums and never a repeating gradient — it counts these, so it changes with them. */
-  .mt-mid::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
-    transition:opacity var(--dur-fast) var(--ease);
-    background:
-      linear-gradient(to bottom, transparent calc(100% - 1px),
-        color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - 1px) 100%, transparent 100%)}
-  /* The phone keeps the same three datums — the ladder is the same one, and the cases hold
-     identical row positions there (which is what makes the swipe move nothing vertically).
-     `inset:0` because the scroller's padding is 0 at that width, and an absolutely-positioned
-     ::before inside a scroll container is laid out against the scrollable padding box, so it
-     travels with the pages instead of staying stuck over page 1. */
-  @media (max-width: 1001px){
-    .mt-pages::before{inset:0}
-  }
+  /* ── THE HORIZONTAL DATUMS ARE DELETED. THE BOXES DRAW THEM (chooser
+     practice-room-box-guide, pick 05: "the axis only — the boxes ARE the guide").
+     THE OWNER'S CORRECTION, and it reframed the whole question: "i like the boxes. i just
+     mean the datums might have to drawn against the boxes right? rather than text?" The first
+     sheet had offered five ways to move the BOX so its text would meet a line placed for
+     text — backwards, because since the sub-cases treatment shipped the box IS the mark the
+     eye reads.
+     Asked the right way round, the answer was to draw less. A box already draws its own top
+     rule and its own side rules, in ink, permanently, for every reader — not just while ⌥G is
+     held. A guide line beside them draws the box twice.
+     WHAT THE MEASUREMENTS SAID, and this is why deleting is safe rather than merely simpler:
+       · Every box's top rule ALREADY lands on a whole lead — 1, 2, 4, 26, 27, exact, both
+         colourways, desktop and phone. The boxes were never off the ladder. The old line was
+         drawing one lead BELOW them, in the middle of the box's own top padding, naming the
+         box's air. That was the "not aligned" report.
+       · Every box's side rule already agrees with every other — all five at 1.333ch.
+       · So nothing on this page had to move to make the guide honest. The guide had to stop
+         describing the composition the boxes replaced.
+     AND A LINE ON THE BOX'S RULE CANNOT WORK ANYWAY, which is what killed the four options
+     that drew one: the notch straddles that rule by construction (it is the case's engraved
+     plate one scale down, knocked out of the rule), so its glyph band spans it — measured 9px
+     above and 10px below. Every candidate line at the box's top rule ran straight through the
+     middle of the word `calibration`. Rendered, looked at, measured.
+     WHAT IS LEFT IS THE AXIS, on `.mt-half::after` below: the case's centre line, the one
+     datum no ink of its own marks and the one the figure, the reading and the verb are all
+     centred on. One line per case.
+     WHAT THIS COSTS, stated because it is real: ⌥G can no longer answer "is this row on the
+     ladder" — a box shows you where its edge IS, not whether that edge is on a lead. That
+     question moves to `tools/verify-practice-room-datums.mjs` and to
+     `tools/probe-box-as-datum.mjs`, which assert it at 16 widths in both colourways, which is
+     a better instrument for it than a line a human squints at. And the guide now says nothing
+     about the unboxed half of the screen (the foot controls, the reading, the hint line) —
+     those keep their datums in the harness, not on the glass.
+     `--mt-case-top` STAYS, and is not dead: it states the `case-top` row's height, which the
+     phone re-declares, and the unit test that pairs every ladder with it stays too. It just
+     no longer feeds a gradient. */
+
   /* THE HAIRLINE (chooser metrotuner-reactive, Q1/02): 1px --line — the embed
      frame's own weight, the weakest mark the system has. The case is not
      interactive, so it must be the quietest line on the screen; at 1.5px ink it was
@@ -1067,9 +1060,11 @@ import Layout from '../layouts/Layout.astro';
      draws. Found by reading the placement off the built page, not from the source. */
   .mt-mid{grid-row:figure / slack-b;display:grid;grid-template-rows:subgrid;
     grid-template-columns:minmax(0, 1fr);
-    /* `relative` so the CENTRE datum pair (`.mt-mid::after`) has this box to position
-       against — it is drawn from the bottom edge, which is the transport's row line. */
-    position:relative;
+    /* `relative` IS DELETED with the centre datum it existed for (`.mt-mid::after`, gone in the
+       box-guide pass). It was a containing block for one overlay and nothing else — no other
+       descendant here is absolutely positioned — so keeping it would be a positioning context
+       held open for a rule that no longer exists. Verified after removing it: the figure, the
+       reading and the verb hold identical positions, and the datums harness passes 32/32. */
     min-height:0;cursor:pointer}
   /* THE CAPTION (transport-placement Q1/05): the transport under the figure it
      drives, centred — the figure supplies the noun, the caption is the verb. */
@@ -1476,50 +1471,54 @@ import Layout from '../layouts/Layout.astro';
     .mt-gauge, .mt-read{width:100%}
   }
 
-  /* THE GRID (round16, user ask: "is there an internal grid system we can press
-     g for?"): 12 columns + 28px baseline rows over each case's CONTENT box,
-     toggled with the G key. The overlay draws the grid the case claims: columns
-     across the padding box's content, rows on --lead. It is diagnostic chrome —
-     accent at low opacity, pointer-events:none, session-only. */
-  /* ── THE OVERLAY DRAWS THE TWO DATUMS, AND NOTHING ELSE (datum pass, 2026-08-05) ──
-     THE COLUMNS ARE DELETED. This rule used to paint twelve tracks per case as a pair of
-     hairlines each — up to 24 lines inside every case, plus twelve more across the screen
-     from `.mt-pages::before`. The user's report, and it is exactly right: "i thought we
-     chose just a few datums, i see like 25 cols."
-     A guide has to draw the system that EXISTS. The horizontal system on this screen is two
-     datums, both stated once in CSS and both verified by
-     `tools/verify-practice-room-datums.mjs`:
-       · THE AXIS  — the case's centre line. Everything the instrument radiates from sits on
-                     it: the dial, the reading, the verb. ONE line, at 50%.
-       · THE INSET — one --lead from the box. Everything else sits on it, flush left or
-                     right. TWO lines, one just inside each edge.
-     Three lines per case, not twenty-four. The twelve columns were the system three rounds
-     of proof sheets REJECTED — measured worse than doing nothing — and leaving them in the
-     overlay meant the one instrument for judging the alignment was still describing the
-     losing proposal. That is the same defect this file records for the row ladder (an
-     overlay drawn from an origin no content sat on) and the same defect STYLE.md records for
-     `--label` (two grids running at once, and the drawn one describing nothing).
-     WHY `linear-gradient` AND NOT `repeating-`: there is nothing to repeat. Three stated
-     positions is the whole guide, and a repeating gradient is what made this an accidental
-     grid in the first place.
-     The axis reads slightly stronger than the insets (55% against 34%) because it is the
-     datum the eye checks the figure against; the insets only have to be findable next to
-     the hairline they sit inside. */
+  /* ══ THE GUIDE IS ONE LINE: THE AXIS ═══════════════════════════════════════════════
+     (chooser practice-room-box-guide, pick 05 — "the axis only — the boxes ARE the guide")
+
+     THE HISTORY IS THE ARGUMENT, because this overlay has been cut down three times and each
+     cut removed marks describing a system the page had stopped using:
+       · round16 drew 12 columns + a 28px baseline row grid per case — up to 24 lines inside
+         every case plus 12 across the screen. The owner: "i thought we chose just a few
+         datums, i see like 25 cols." Those columns were the system three proof sheets had
+         already REJECTED as measurably worse than nothing.
+       · the datum pass (2026-08-05) cut it to three lines per case — the axis and one inset
+         inside each edge — plus two horizontal datums on the room and one on `.mt-mid`.
+       · this pass cuts it to ONE. The sub-cases treatment put a hairline BOX around every
+         control group, and a box draws its own top rule and its own side rules, in ink,
+         permanently, for every reader — not only while ⌥G is held. The inset lines were
+         drawing the box's side rules a third of a character from where the box already draws
+         them; the horizontal datums were naming the row the box's contents used to occupy.
+
+     THE AXIS SURVIVES because it is the one datum on this screen that NO ink marks: the case's
+     centre line, which the dial, the pendulum, the 72px letter, the reading and all three
+     verbs are centred on. Drawing it adds information. The insets and the horizontals each had
+     a box edge or a baseline sitting on them already, so drawing them repeated ink.
+
+     WHAT WAS MEASURED FIRST, so this is a decision and not a tidy-up:
+       · every box's top rule ALREADY lands on a whole lead (1, 2, 4, 26, 27 — exact, both
+         colourways, desktop and phone), so the boxes were never off the ladder; the old
+         horizontal drew one lead BELOW them, inside the box's own top padding;
+       · every box's side rule already agrees with every other (all five at 1.333ch);
+       · and a candidate line drawn ON the box's top rule runs THROUGH the notch's word — the
+         notch straddles that rule by construction, its glyph band spanning 9px above and 10px
+         below it. That is what killed the four options that drew one.
+
+     ONE STOP, NOT A REPEATING GRADIENT — the guard test in
+     `tests/unit/practice-room-css.test.ts` counts the marks this file draws and forbids
+     `repeating-linear-gradient` outright, because a repeat is what made this an accidental grid
+     in the first place. Still `--accent` at 55%: diagnostic chrome, session-only,
+     `pointer-events:none`.
+
+     WHERE THE ALIGNMENT QUESTION LIVES NOW: `tools/verify-practice-room-datums.mjs` (16 widths
+     × 2 colourways) and `tools/probe-box-as-datum.mjs` (every box's rules, in leads and in
+     characters). A harness that fails by name is a better instrument for "is this on the grid"
+     than a line a human squints at, and it covers the unboxed half of the screen — the foot
+     controls, the reading, the hint line — which this overlay no longer speaks about at all. */
   .mt-half::after{content:"";position:absolute;inset:0;
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    background:
-      /* THE AXIS — one line on the case's centre */
-      linear-gradient(to right, transparent calc(50% - 0.5px),
-        color-mix(in srgb, var(--accent) 55%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
-        transparent calc(50% + 0.5px)),
-      /* THE INSET — one line `--mt-inset` inside each edge. Drawn from the token, so the
-         guide cannot claim a datum the layout no longer uses. */
-      linear-gradient(to right,
-        transparent calc(var(--mt-inset) - 1px),
-        color-mix(in srgb, var(--accent) 34%, transparent) calc(var(--mt-inset) - 1px) var(--mt-inset),
-        transparent var(--mt-inset) calc(100% - var(--mt-inset)),
-        color-mix(in srgb, var(--accent) 34%, transparent) calc(100% - var(--mt-inset)) calc(100% - var(--mt-inset) + 1px),
-        transparent calc(100% - var(--mt-inset) + 1px))}
+    /* THE AXIS — one line on the case's centre, and the whole guide */
+    background:linear-gradient(to right, transparent calc(50% - 0.5px),
+      color-mix(in srgb, var(--accent) 55%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px))}
 
 
   /* == THE FIGURE'S WIDTH IS SIX COLUMNS, NOT 320px ==========================
