@@ -68,7 +68,8 @@ import Layout from '../layouts/Layout.astro';
                  their case: the tuner's readout still says A4, and so does the
                  reference-tone button. The aria-labels spell it out properly, so
                  nothing announced to a screen reader is wrong. -->
-            <span class="f mt-a4" id="mt-a4-scrub">
+            <span class="f mt-a4 mt-grp" id="mt-a4-scrub">
+              <span class="mt-gl" aria-hidden="true">calibration</span>
               <label for="mt-a4" class="mt-lb mt-hd" title="drag ↔ to change the calibration">a4</label>
               <input id="mt-a4" data-testid="a4" type="number" inputmode="decimal"
                      min="400" max="480" step="1" value="440" title="type a value"
@@ -195,7 +196,8 @@ import Layout from '../layouts/Layout.astro';
              drawRules() because stroke-dasharray with round gaps can't guarantee n
              visually equal dashes at every width. -->
         <div class="mt-ctop">
-          <span class="mt-fl">
+          <span class="mt-fl mt-grp">
+            <span class="mt-gl" aria-hidden="true">beats</span>
             <span class="mt-lb">beats</span>
             <!-- THE RULE IS THE SWITCH (chooser metrotuner-round15, Q1/06): the
                  "accent 1" latch is DELETED — the beats rule itself is the accent
@@ -255,7 +257,8 @@ import Layout from '../layouts/Layout.astro';
               </button>
             </span>
           </span>
-          <span class="mt-fr">
+          <span class="mt-fr mt-grp">
+            <span class="mt-gl" aria-hidden="true">subdivide</span>
             <span class="mt-lb">subdivide</span>
             <!-- THE DASHED EXTENT (chooser metrotuner-round15, Q3/04): the subdivide
                  rule now GROWS to the selected digit exactly as beats' does — one
@@ -374,7 +377,8 @@ import Layout from '../layouts/Layout.astro';
              binding: `setA4()` writes every field on the screen (see `a4Fields`). -->
         <div class="mt-ctop">
           <span class="mt-fr">
-            <span class="f mt-a4" id="mt-a4-scrub-drone">
+            <span class="f mt-a4 mt-grp" id="mt-a4-scrub-drone">
+              <span class="mt-gl" aria-hidden="true">calibration</span>
               <label for="mt-a4-drone" class="mt-lb mt-hd" title="drag ↔ to change the calibration">a4</label>
               <input id="mt-a4-drone" data-testid="a4-drone" type="number" inputmode="decimal"
                      min="400" max="480" step="1" value="440" title="type a value"
@@ -447,7 +451,8 @@ import Layout from '../layouts/Layout.astro';
                  The words, not glyphs: `organ · cello · section` is what these differ by, and
                  no drawing distinguishes a sampled section from an additive cello. Lowercase,
                  the page's own register. -->
-            <span class="mt-voice" id="mt-voice" role="group" aria-label="Drone voice">
+            <span class="mt-voice mt-grp" id="mt-voice" role="group" aria-label="Drone voice">
+              <span class="mt-gl" aria-hidden="true">voice</span>
               <button type="button" class="vbtn" data-voice="organ" data-testid="voice-organ"
                 aria-pressed="false">organ</button>
               <button type="button" class="vbtn" data-voice="cello" data-testid="voice-cello"
@@ -457,6 +462,8 @@ import Layout from '../layouts/Layout.astro';
             </span>
           </span>
         </div>
+
+
 
         <!-- ── THE TUNING COMPARER, HIDDEN (2026-08-07: "make easy to switch and like a
              secret page to compare") ─────────────────────────────────────────────────────
@@ -469,7 +476,15 @@ import Layout from '../layouts/Layout.astro';
              Every button is a real switch, so this is the comparison instrument, not a
              legend: pick a system while the drone sounds and the pitches move under the
              note you are holding. The beat rate printed beside each is COMPUTED from the
-             sounding stack's coinciding partials, not looked up. -->
+             sounding stack's coinciding partials, not looked up.
+
+             IT IS ITS OWN ROW, not part of `.mt-ctop`, and that is a bug fix rather than a
+             preference. Inside the spec row its five buttons wrapped to 44px targets that ran
+             UNDERNEATH the calibration sub-case beside them — measured, the drone's a4 input
+             overlapped the first tuning button by 41px vertically and intercepted every click
+             on it. Playwright said so precisely ("...intercepts pointer events") where a
+             screenshot showed a row that looked fine. `.mt-ctop` is sized for one line; a
+             control group that wraps cannot live in it. -->
         <div class="mt-tune" id="mt-tune" hidden aria-label="Tuning system">
           <span class="mt-lb">tuning</span>
           <span class="mt-tune-btns" id="mt-tune-btns" role="group"
@@ -709,11 +724,89 @@ import Layout from '../layouts/Layout.astro';
      the toggle idiom.
      WORDS AND NOT GLYPHS: no drawing distinguishes a sampled section from an additive
      cello, and these differ by exactly the thing the words name. */
+  /* ── SUB-CASES: A BOX PER CONTROL GROUP, NAMED IN ITS OWN TOP EDGE ────────────────
+     Chooser practice-room-panels pick 03, held against a seven-option riff
+     (practice-room-subcases, pick 01 — "as picked"), so this survived being argued with.
+
+     THE PREMISE, and it is the owner's: "practice is diff tool than website so the rule
+     about no lines and stuff doesnt rly work". STYLE.md's "structure is rules, not boxes"
+     was written for a DOCUMENT you read. This is an INSTRUMENT you operate while holding a
+     violin, glanced at from a stand — and boxes that group controls are the native idiom of
+     hardware. The rule was borrowed from the wrong context.
+
+     WHY IT INVENTS NOTHING: the notch is the case's OWN engraved plate at a smaller scale —
+     same -14px offset, same --faint, same paper knock-out as `.mt-plate`. And it DELETES a
+     mark rather than adding one: `subdivide` stops being a loose word beside a row and
+     becomes the row's name, so the label moves instead of multiplying. The precedent for a
+     box at all is already here: each case is a 1px hairline box, justified in its own
+     comment as "inside is a machine".
+
+     THE COST, stated because the sheet measured it: a notched name means "this is an
+     instrument", once per case. Five more per screen and it means "this is a group", and the
+     case's own plate stops being special. The riff's seven alternatives each tried to fix
+     that and each cost more — the filled tab spends four filled forms where the site allows
+     one; naming the value makes the labels longer; halving the boxes made it HEAVIEST
+     (two full-width boxes beat four that stop at their own content).
+
+     20px of top padding, not 12: the notch sits at -14px and needs room to clear the box's
+     own top rule. 14px of side inset, not 12, because `.mt-hd`'s `margin:-8px -14px` puts
+     the a4 handles' padded targets OUTSIDE the group's content edge — at 12 the border ran
+     through a live control, invisibly (scrollWidth 140 against clientWidth 138). */
+  /* THE CONTROLS STAY ON THE 27px DATUM, and the box hangs outside it. The harness caught
+     the naive version at 32/32 red: case padding 27 + border 1 + box padding 14 puts every
+     control at 42px, against a page whose horizontal datum is one --mt-inset. Two insets on
+     one screen is the defect that harness exists to name.
+     The fix is this page's OWN idiom, the one `.mt-hd` and the meter digits already use: pad
+     out to the box, then pull the padding back with a matching negative margin. The ink then
+     sits where the datum wants it and the box overhangs into the case's air, which is
+     nothing. 15px = the 14px pad + the 1px border. */
+  /* THE BOX'S CHROME IS A WHOLE LEAD, and that is arithmetic rather than taste. The sheet
+     used 20px top and 10px bottom, which with two 1px borders is 32px — and 32 is not a
+     multiple of the 28px lead, so a boxed row could not land on the baseline grid. The
+     harness said so in the one place it shows: below 1240 the meters stack, and the second
+     row sat 88px below the first where a whole number of leads was required (88 = 28 content
+     + 32 chrome + 28 row).
+     18 + 8 + 2 = 28 does land. The notch still clears the top rule: it sits at -14px against
+     18px of padding, so there is 4px more room above the content than the notch needs. */
+  .mt-grp{position:relative;border:1px solid var(--line);padding:18px 14px 8px;
+    margin-left:-15px;margin-right:-15px}
+  /* The notch travels with the box, so it is 14px from the BOX's edge and therefore 29px
+     from the case's — which is where the case's own plate sits at --unit. The two plates
+     line up by construction rather than by a second number. */
+  .mt-gl{position:absolute;top:-14px;left:14px;background:var(--paper);padding:0 1ch;
+    color:var(--faint);line-height:var(--lead)}
+  /* The label the group already carried is redundant once the notch names it — this is the
+     deletion that makes the treatment cost nothing in reading. `aria-hidden` on the notch
+     and the real label merely hidden keeps the accessible name exactly as it was. */
+  .mt-grp>.mt-lb:not(.mt-hd){display:none}
+
+  /* THE DRONE'S CASE IS 210px WIDE ON PURPOSE, and the sheet never met it — every option
+     was mocked in the metronome. Measured on the real page: the three voice WORDS total
+     153px against 156px of inner case, so they fit with 3px to spare, but the box's own
+     14px of side padding cannot — the box came out 201px in a 156px case and hung 46px
+     past the frame.
+     So this one group wraps its words rather than shrinking the case or the type. The
+     alternative was widening the case, which would undo chooser metrotuner-drone-box Q2/05
+     ("the narrow third") — a decision with its own measured reason: an equal third of the
+     room made both worked instruments narrower to buy mostly empty case.
+     The padding is the same 14px; only the flow changes. */
+  .mt-drone .mt-voice.mt-grp{flex-wrap:wrap;gap:0 1ch}
+
   .mt-voice{display:inline-flex;align-items:baseline;gap:1ch}
   /* The comparer: the voice row's own vocabulary, one row down. `[hidden]` needs the
      explicit display:none — an authored `display` beats the attribute, a trap this page
      already recorded once for its swipe panes. */
-  .mt-tune{display:flex;align-items:baseline;gap:1ch;flex-wrap:wrap;margin-top:var(--tight)}
+  /* THE ROW IS NAMED, not `auto`. The case is a subgrid with a named row ladder, so a child
+     without a `grid-row` lands in the next available track — which put the comparer's five
+     wrapping 44px buttons on top of the spec row, UNDERNEATH the calibration sub-case beside
+     them. Measured: the drone's a4 input overlapped the first tuning button by 41px and
+     intercepted every click on it. Playwright named the culprit exactly ("...intercepts
+     pointer events") where the screenshot looked fine, and moving the element in the DOM
+     changed nothing — because the grid, not the source order, decides where a child sits.
+     `hint` is the tuner's error line, empty on this case, and the right home for a row that
+     is only sometimes there. */
+  .mt-tune{grid-row:hint;align-self:start;
+    display:flex;align-items:baseline;gap:1ch;flex-wrap:wrap;margin-top:var(--tight)}
   .mt-tune[hidden]{display:none}
   .mt-tune-btns{display:inline-flex;align-items:baseline;gap:1ch;flex-wrap:wrap}
   .mt-tune-beat{font-variant-numeric:tabular-nums}

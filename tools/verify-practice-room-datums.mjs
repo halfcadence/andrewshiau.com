@@ -299,13 +299,22 @@ for (const scheme of ['light', 'dark']) {
       const glyphFails = [];
       {
         const el = stacked
-          ? q('.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fr > .mt-lb')
+          // The notch, not the hidden label — same reason as the top datum above. The
+          // `.mt-lb` still carries the accessible name but has no box, so its glyph rect was
+          // the page origin and this read −662px off the datum.
+          ? q('.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fr > .mt-gl')
           : [...document.querySelectorAll('#mt-sub-seg .rbtn')].pop();
         if (el && M) {
           const rg = document.createRange();
           rg.selectNodeContents(el);
           const g = rg.getBoundingClientRect();
-          const d = stacked ? g.left - (M.L + INSET) : (M.R - INSET) - g.right;
+          // THE NOTCH CARRIES 1ch OF PAPER KNOCK-OUT, which is 9px at this type size, and the
+        // datum is about INK not boxes — the same lesson this file already records for the
+        // controls that pad out to a tap target. `.mt-plate` does exactly this too, so the
+        // case's own name has always been inset by its own knock-out. Measured, not assumed:
+        // the notch's glyph starts 9.00px inside its box's left edge at every width.
+        const KNOCKOUT = stacked ? 9 : 0;
+        const d = stacked ? g.left - (M.L + INSET + KNOCKOUT) : (M.R - INSET) - g.right;
           if (Math.abs(d) > TOL) {
             glyphFails.push(`subdivide's ${stacked ? 'label' : 'last digit'} ` +
               `${d.toFixed(2)}px off the ${stacked ? 'left' : 'right'} datum`);
@@ -353,12 +362,25 @@ for (const scheme of ['light', 'dark']) {
       const vertFails = [];
       {
         const uniq = (a) => [...new Set(a.filter((v) => v != null).map((v) => +v.toFixed(1)))];
-        // TOP — a4, beats and subdivide share one line. When the spec row STACKS (below 1240)
-        // subdivide is deliberately on the next line, which must still be a whole lead below.
+        // TOP — the spec row's CONTROLS share one line. This used to measure the a4 and
+        // subdivide LABELS against the beats digits, which worked while every label sat on
+        // its control's baseline. The sub-cases treatment (2026-08-07) moved the labels into
+        // notches, and a notch is 14px ABOVE its box's top edge by construction — outside it,
+        // knocked out of the rule. So a notch and a digit CANNOT share a baseline, and
+        // asserting they do asserted the treatment away.
+        // Measured before rewriting: notch 71px, digits 105px, a 34px gap that is the
+        // treatment working rather than failing. What still has to hold — and is the thing
+        // the row was always about — is that the CONTROLS line up: the a4 field, the beats
+        // digits and the subdivide digits. The notches' own alignment is covered by the
+        // inset check, since they are all 14px from their own box's left edge.
         const top = stacked
-          ? uniq([baseline('#mt-a4-scrub .mt-lb'), baseline('#mt-beats-seg .rbtn')])
-          : uniq([baseline('#mt-a4-scrub .mt-lb'), baseline('#mt-beats-seg .rbtn'),
-            baseline('.mt-half[aria-label="Metronome"] .mt-ctop > .mt-fr > .mt-lb')]);
+          // NOT `#mt-a4` itself: `baseline()` appends a probe span, and an <input> cannot
+          // hold a child, so it returned 0 — a silent zero that read as a second datum. The
+          // wrapper's own `hz` text sits on the field's baseline, which is what the label
+          // used to provide.
+          ? uniq([baseline('#mt-a4-scrub .mt-hd'), baseline('#mt-beats-seg .rbtn')])
+          : uniq([baseline('#mt-a4-scrub .mt-hd'), baseline('#mt-beats-seg .rbtn'),
+            baseline('#mt-sub-seg .rbtn')]);
         if (top.length !== 1) vertFails.push(`the top datum is ${top.length} lines: ${top.join(', ')}`);
         if (stacked) {
           const gap = baseline('#mt-sub-seg .rbtn') - baseline('#mt-beats-seg .rbtn');

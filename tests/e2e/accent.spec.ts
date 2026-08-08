@@ -128,12 +128,22 @@ test('below the stacking width the meters stack flush left, in order', async ({ 
 
   // Each group on the inset datum — the page's own horizontal rule (see
   // tools/verify-practice-room-datums.mjs, which checks this system at 14 widths).
+  // MEASURE THE INK, NOT THE BOX. The sub-cases treatment (2026-08-07) wraps each meter in
+  // a bordered box, and that box deliberately hangs 15px OUTSIDE the inset datum — pad out,
+  // pull the padding back with a negative margin, so the controls land on the datum and the
+  // box overhangs into the case's air. It is the same idiom `.mt-hd` and the meter digits
+  // already use, and the datums harness checks the result at 14 widths.
+  // So the group's own `x` is now 15px left of the datum BY DESIGN, and asserting otherwise
+  // asserts the treatment away. What must still hold is what this test was always about:
+  // the two meters read from ONE left edge, and that edge is the datum.
   const flush = await page.evaluate(() => {
     const half = document.querySelector('.mt-half[aria-label="Metronome"]')!;
     const cs = getComputedStyle(half);
     const contentLeft = half.getBoundingClientRect().x + parseFloat(cs.paddingLeft);
-    const fl = half.querySelector('.mt-fl')!.getBoundingClientRect().x;
-    const fr = half.querySelector('.mt-fr')!.getBoundingClientRect().x;
+    const digits = (sel: string) =>
+      half.querySelector(sel)!.getBoundingClientRect().x;
+    const fl = digits('#mt-beats-seg .rm-digits');
+    const fr = digits('#mt-sub-seg .rm-digits');
     return { groupDelta: Math.abs(fl - fr), insetDelta: Math.abs(fl - contentLeft) };
   });
   expect(flush.groupDelta, 'both meter groups read from one left edge').toBeLessThan(1.5);
