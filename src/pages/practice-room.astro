@@ -768,13 +768,29 @@ import Layout from '../layouts/Layout.astro';
      + 32 chrome + 28 row).
      18 + 8 + 2 = 28 does land. The notch still clears the top rule: it sits at -14px against
      18px of padding, so there is 4px more room above the content than the notch needs. */
-  .mt-grp{position:relative;border:1px solid var(--line);padding:18px 14px 8px;
-    margin-left:-15px;margin-right:-15px}
+  /* ── THE SIDE PADDING IS 17px, NOT 14, AND THE BORDER IS WHY (box-guide pass, pick 02).
+     The guide now draws a datum ON the box's side rule, so that rule has to land on the 9px
+     character cell — and the ink inside it has to STAY on 3ch, which is the datum the whole
+     inset was derived for. Both are possible, and the arithmetic is exact:
+         rule = case inset − pull        ink = rule + border + padding
+     For both to be whole cells, `border + padding` must be a multiple of 9. With the box's 1px
+     border that means padding 8, 17 or 26 — NOT 18. At 18 the rule lands on 1ch and the ink
+     drifts to 3.111ch, which is the finding half-applied. I reported 18 as the answer and it was
+     wrong by the border: measured, 17/18 gives rule 1ch AND ink 3ch, at every width.
+     `--mt-box-pull` is a token because the ⌥G overlay derives the datum's position from it — a
+     hand-typed 9px in the gradient would drift the moment this padding changed. */
+  .mt-grp{position:relative;border:1px solid var(--line);
+    --mt-box-pad:17px;
+    padding:18px var(--mt-box-pad) 8px;
+    margin-left:calc(var(--mt-box-pull) * -1);margin-right:calc(var(--mt-box-pull) * -1)}
   /* The notch travels with the box, so it is 14px from the BOX's edge and therefore 29px
      from the case's — which is where the case's own plate sits at --unit. The two plates
      line up by construction rather than by a second number. */
-  .mt-gl{position:absolute;top:-14px;left:14px;background:var(--paper);padding:0 1ch;
-    color:var(--faint);line-height:var(--lead)}
+  /* The notch travels with the box's padding, so its glyph stays on 4ch exactly as before:
+     9 (rule) + 1 (border) + 17 (pad) = 27, and its own 1ch of knock-out puts the glyph at 36px.
+     The old 12 + 1 + 14 came to the same 27 — the notch does not move in this pass. */
+  .mt-gl{position:absolute;top:-14px;left:var(--mt-box-pad);background:var(--paper);
+    padding:0 1ch;color:var(--faint);line-height:var(--lead)}
   /* The label the group already carried is redundant once the notch names it — this is the
      deletion that makes the treatment cost nothing in reading. `aria-hidden` on the notch
      and the real label merely hidden keeps the accessible name exactly as it was. */
@@ -820,11 +836,12 @@ import Layout from '../layouts/Layout.astro';
   .mt-drone[data-sounding="true"] .vbtn.on{color:var(--accent)}
 
 
-  /* ⌥G RAISES ONE OVERLAY NOW, not three. The two horizontal datums (`.mt-pages::before`)
-     and the centre line (`.mt-mid::after`) are deleted with the rule that drew them — see the
-     long note above `.mt-half::after`. A raise list naming a pseudo-element that no longer has
-     a `background` is not harmless: it reads as a third line the guide draws, so the next
-     person looks for it on the screen and doesn't find it. */
+  /* ⌥G RAISES ONE OVERLAY, which carries all three lines. The HORIZONTAL datums
+     (`.mt-pages::before`) and the centre line (`.mt-mid::after`) are deleted with the rules that
+     drew them — see the long note above `.mt-half::after` for why a line on the box's top rule
+     cannot be drawn at all. A raise list naming a pseudo-element with no `background` is not
+     harmless: it reads as a line the guide draws, so the next person looks for it and doesn't
+     find it. */
   :is(html,body).showgrid .mt-half::after{opacity:1}
 </style>
 
@@ -863,6 +880,11 @@ import Layout from '../layouts/Layout.astro';
        the line, which was a whole lead wrong at phone width. Every ladder that states this row
        restates the token beside it. */
     --mt-case-top:var(--lead);
+    /* HOW FAR THE GROUP BOX HANGS OUTSIDE THE INK IT CONTAINS. The box pads out and is pulled
+       back by this, so the ink lands on `--mt-inset` and the box's RULE lands one character
+       inside the frame — which is the datum ⌥G draws. Both the box and the overlay read it, so
+       they cannot disagree. See the note on `.mt-grp` for why 18 pairs with 17px of padding. */
+    --mt-box-pull:18px;
     /* the drone case's width — see the note on `.mt-pages`' columns for the derivation */
     --mt-drone-w:210px;
     height:100dvh;height:round(down, 100dvh, var(--lead));
@@ -1471,54 +1493,75 @@ import Layout from '../layouts/Layout.astro';
     .mt-gauge, .mt-read{width:100%}
   }
 
-  /* ══ THE GUIDE IS ONE LINE: THE AXIS ═══════════════════════════════════════════════
-     (chooser practice-room-box-guide, pick 05 — "the axis only — the boxes ARE the guide")
+  /* ══ THE GUIDE DRAWS THE BOX, NOT THE TYPE (chooser practice-room-box-guide, pick 02:
+     "the guide names the box — its top rule and its side rule") ══════════════════════════
 
-     THE HISTORY IS THE ARGUMENT, because this overlay has been cut down three times and each
-     cut removed marks describing a system the page had stopped using:
-       · round16 drew 12 columns + a 28px baseline row grid per case — up to 24 lines inside
-         every case plus 12 across the screen. The owner: "i thought we chose just a few
-         datums, i see like 25 cols." Those columns were the system three proof sheets had
-         already REJECTED as measurably worse than nothing.
-       · the datum pass (2026-08-05) cut it to three lines per case — the axis and one inset
-         inside each edge — plus two horizontal datums on the room and one on `.mt-mid`.
-       · this pass cuts it to ONE. The sub-cases treatment put a hairline BOX around every
-         control group, and a box draws its own top rule and its own side rules, in ink,
-         permanently, for every reader — not only while ⌥G is held. The inset lines were
-         drawing the box's side rules a third of a character from where the box already draws
-         them; the horizontal datums were naming the row the box's contents used to occupy.
+     THE OWNER'S CORRECTION IS THE WHOLE PASS: "i just mean the datums might have to drawn
+     against the boxes right? rather than text?" My first sheet had it backwards — it offered
+     five ways to move the BOX so its text would meet a line placed for text. Since the
+     sub-cases treatment shipped, the box IS the mark the eye reads, so the datum names the
+     box's own rules.
 
-     THE AXIS SURVIVES because it is the one datum on this screen that NO ink marks: the case's
-     centre line, which the dial, the pendulum, the 72px letter, the reading and all three
-     verbs are centred on. Drawing it adds information. The insets and the horizontals each had
-     a box edge or a baseline sitting on them already, so drawing them repeated ink.
+     THIS OVERLAY HAS BEEN CUT DOWN THREE TIMES and each cut removed marks describing a system
+     the page had stopped using:
+       · round16 drew 12 columns + a 28px row grid per case — up to 24 lines inside every case
+         plus 12 across the screen. The owner: "i thought we chose just a few datums, i see like
+         25 cols." Those columns were the system three proof sheets had already REJECTED.
+       · the datum pass (2026-08-05) cut it to the axis + one inset inside each edge, plus two
+         horizontal datums on the room and one on `.mt-mid`.
+       · this pass keeps the COUNT and moves the marks: axis, and one line on each of the box's
+         side rules. Three lines per case, as before — but every one now coincides with ink.
 
-     WHAT WAS MEASURED FIRST, so this is a decision and not a tidy-up:
-       · every box's top rule ALREADY lands on a whole lead (1, 2, 4, 26, 27 — exact, both
-         colourways, desktop and phone), so the boxes were never off the ladder; the old
-         horizontal drew one lead BELOW them, inside the box's own top padding;
-       · every box's side rule already agrees with every other (all five at 1.333ch);
-       · and a candidate line drawn ON the box's top rule runs THROUGH the notch's word — the
-         notch straddles that rule by construction, its glyph band spanning 9px above and 10px
-         below it. That is what killed the four options that drew one.
+     WHAT MOVED AND WHY, all measured on the live page before anything changed:
+       · THE VERTICAL PAIR was drawn at `--mt-inset` (3ch), where the CONTROLS' ink starts. That
+         is still true of the ink, but the box's rule sits a third of a character outside it —
+         so the guide drew a line 3px from a hairline the box already draws, which reads as one
+         blurred mark rather than two datums. It is drawn at the box's RULE now, one character
+         inside the frame, and the rule is what it coincides with.
+       · The box's side padding went 14 → 17px so that rule lands on a whole character cell
+         (1ch) while the ink stays on 3ch — see `.mt-grp`, where the border makes up the pixel.
+       · THE HORIZONTAL DATUMS ARE DELETED (`.mt-pages::before`, and the centre on
+         `.mt-mid::after`). Not because the horizontal axis stopped mattering, but because a
+         line on the box's TOP rule CANNOT be drawn: the notch straddles that rule by
+         construction (the case's engraved plate one scale down, knocked out of the rule), so
+         its glyph band spans it — 9px above and 10px below. Every candidate ran straight
+         through the middle of the word `calibration`. Rendered, looked at, measured. And the
+         old position was worse than useless: every box's top rule ALREADY lands on a whole lead
+         (1, 2, 4, 26, 27 — exact, both colourways, desktop and phone), and the line was drawn
+         one lead BELOW them, inside the box's own top padding, naming the box's air. That was
+         the "not aligned" report. The boxes were never off the ladder.
 
-     ONE STOP, NOT A REPEATING GRADIENT — the guard test in
-     `tests/unit/practice-room-css.test.ts` counts the marks this file draws and forbids
-     `repeating-linear-gradient` outright, because a repeat is what made this an accidental grid
-     in the first place. Still `--accent` at 55%: diagnostic chrome, session-only,
-     `pointer-events:none`.
+     SO THE VERTICAL QUESTION IS ON THE GLASS AND THE HORIZONTAL ONE IS IN THE HARNESS:
+     `tools/verify-practice-room-datums.mjs` (16 widths × 2 colourways) and
+     `tools/probe-box-as-datum.mjs` (every box's rules in leads and characters) assert the row
+     positions and fail by name, which is a better instrument for "is this on the lead" than a
+     line a human squints at — and they cover the unboxed half of the screen too.
 
-     WHERE THE ALIGNMENT QUESTION LIVES NOW: `tools/verify-practice-room-datums.mjs` (16 widths
-     × 2 colourways) and `tools/probe-box-as-datum.mjs` (every box's rules, in leads and in
-     characters). A harness that fails by name is a better instrument for "is this on the grid"
-     than a line a human squints at, and it covers the unboxed half of the screen — the foot
-     controls, the reading, the hint line — which this overlay no longer speaks about at all. */
+     ONE STOP PER LINE, NEVER `repeating-` — the guard test counts the marks this file draws and
+     forbids a repeat outright, because a repeat is what made this an accidental grid the first
+     time. The axis stays stronger than the pair (55% against 34%): it is the datum the eye
+     checks the figure against, while the pair only has to be findable beside the rule it names.
+     `--mt-case-top` STAYS and is not dead — it states the `case-top` row's height, which the
+     phone re-declares, and the unit test pairing every ladder with it stays too. */
   .mt-half::after{content:"";position:absolute;inset:0;
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
-    /* THE AXIS — one line on the case's centre, and the whole guide */
-    background:linear-gradient(to right, transparent calc(50% - 0.5px),
-      color-mix(in srgb, var(--accent) 55%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px))}
+    /* THE BOX'S SIDE RULE, as the overlay's own measure: the case's inset less the box's
+       pull-back. Derived from the same two tokens the box is built from, so the datum cannot
+       drift from the rule it names — that drift is exactly what this pass fixed. It resolves
+       to 1ch = 9px. */
+    --mt-datum:calc(var(--mt-inset) - var(--mt-box-pull));
+    background:
+      /* THE AXIS — one line on the case's centre */
+      linear-gradient(to right, transparent calc(50% - 0.5px),
+        color-mix(in srgb, var(--accent) 55%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+        transparent calc(50% + 0.5px)),
+      /* THE BOX RULE — one line on each of the group boxes' side rules */
+      linear-gradient(to right,
+        transparent calc(var(--mt-datum) - 1px),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(var(--mt-datum) - 1px) var(--mt-datum),
+        transparent var(--mt-datum) calc(100% - var(--mt-datum)),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(100% - var(--mt-datum)) calc(100% - var(--mt-datum) + 1px),
+        transparent calc(100% - var(--mt-datum) + 1px))}
 
 
   /* == THE FIGURE'S WIDTH IS SIX COLUMNS, NOT 320px ==========================

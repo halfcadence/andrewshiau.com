@@ -165,37 +165,54 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
       .toEqual([]);
   });
 
-  // ── THE GUIDE IS ONE LINE, AND THIS IS THE CHECK THAT SAYS SO (chooser
-  // practice-room-box-guide, pick 05 — "the axis only — the boxes ARE the guide").
+  // ── THE GUIDE DRAWS THE BOX, AND THIS COUNTS THE MARKS (chooser practice-room-box-guide,
+  // pick 02 — "the guide names the box — its top rule and its side rule").
   // It replaces four per-datum string sentinels that were deleted with the rules they named.
-  // Counting is the stronger form and this file already learned that once: a sentinel per
-  // datum was red-cased and FAILED to catch a re-added column grid, because the sentinels were
-  // all still present alongside it. So the property is the COUNT.
-  // WHY ONE: a hairline box now surrounds every control group, drawing its own top rule and
-  // its own side rules in permanent ink. The inset lines duplicated the box's side rules a
-  // third of a character away; the horizontals named the row the box's contents used to sit
-  // on. The axis is the only datum on the screen that no ink marks — the case's centre, which
-  // the dial, the letter, the reading and all three verbs are centred on.
-  // The overlay's gradient count is the number of LINES the reader sees at ⌥G, so this is the
-  // "25 cols" complaint expressed as an assertion.
-  it('the ⌥G overlay draws exactly one mark: the axis', () => {
-    // THE RULE THAT DRAWS, not every rule that names the pseudo-element: `:is(html,body)
-    // .showgrid .mt-half::after{opacity:1}` also matches `.mt-half…::after{…}`, so an
-    // unqualified match found two rules and failed on correct code. Select on the `background`,
-    // which only the drawing rule has.
+  // Counting is the stronger form and this file already learned that once: a sentinel per datum
+  // was red-cased and FAILED to catch a re-added column grid, because the sentinels were all
+  // still present alongside it. So the property is the COUNT.
+  // TWO GRADIENTS: the axis, and the pair on the group boxes' side rules. It is deliberately
+  // the same count the datum pass shipped — this pass MOVED the vertical pair from the text's
+  // 3ch inset onto the box's own rule (one character in), it did not add marks. The horizontal
+  // datums stay deleted because a line on the box's TOP rule runs through the notch's word.
+  it('the ⌥G overlay draws the axis and the box-rule pair, and nothing else', () => {
+    // THE RULE THAT DRAWS, not every rule naming the pseudo-element: `:is(html,body).showgrid
+    // .mt-half::after{opacity:1}` also matches, so an unqualified match found two rules and
+    // failed on correct code. Select on `background`, which only the drawing rule has.
     const overlay = (css.match(/\.mt-half[^{]*::?after\{[^}]*\}/g) || [])
       .filter((r) => /background/.test(r));
-    expect(overlay.length, 'exactly one rule draws the axis overlay').toBe(1);
+    expect(overlay.length, 'exactly one rule draws the overlay').toBe(1);
     const grads = overlay[0].match(/linear-gradient/g) || [];
     expect(grads.length,
-      `the guide must draw ONE line (the axis); found ${grads.length} gradients in ${overlay[0]}`)
-      .toBe(1);
-    // and the deleted overlays must stay deleted — a rule with no background is not enough,
-    // the rules themselves are gone
+      `the guide draws TWO gradients — the axis and the box-rule pair; found ${grads.length}`)
+      .toBe(2);
+    // THE PAIR IS DERIVED FROM THE BOX'S OWN TOKENS, never a hand-typed 9px. That is the fix
+    // this pass is: the datum and the rule it names are one number, so they cannot drift.
+    expect(overlay[0], 'the box-rule datum is derived from --mt-inset and --mt-box-pull')
+      .toMatch(/--mt-datum:\s*calc\(var\(--mt-inset\)\s*-\s*var\(--mt-box-pull\)\)/);
+    // and the deleted horizontal overlays must stay deleted
     expect(css, 'the horizontal datums (.mt-pages::before) are deleted')
       .not.toMatch(/\.mt-pages[^{]*::?before\s*\{[^}]*linear-gradient/);
     expect(css, 'the centre datum (.mt-mid::after) is deleted')
       .not.toMatch(/\.mt-mid[^{]*::?after\s*\{[^}]*linear-gradient/);
+  });
+
+  // ── THE BOX'S RULE AND ITS INK MUST BOTH LAND ON THE CHARACTER CELL, and the border is the
+  // pixel that decides it: ink = rule + border + padding, so `border + padding` has to be a
+  // multiple of 1ch (9px). With a 1px border that means padding 8, 17 or 26 — NOT 18. I shipped
+  // "18" as the answer in a proof sheet and it was wrong by exactly the border, which put the
+  // ink on 3.111ch. This asserts the pair stays consistent rather than the literal numbers, so
+  // a future 8/9 or 26/27 still passes and a 14/15 or 18/19 fails.
+  it('the group box pads and pulls back by a whole character plus its border', () => {
+    const pad = css.match(/--mt-box-pad:\s*(\d+)px/);
+    const pull = css.match(/--mt-box-pull:\s*(\d+)px/);
+    expect(pad, 'the box states its side padding as a token').toBeTruthy();
+    expect(pull, 'the box states its pull-back as a token').toBeTruthy();
+    const p = +pad![1], m = +pull![1];
+    // the pull-back is the padding plus the 1px border, so the ink lands back on the inset
+    expect(m, `the pull-back (${m}) must be the padding (${p}) plus the 1px border`).toBe(p + 1);
+    // and that sum must be a whole character, so the RULE lands on a cell too
+    expect((p + 1) % 9, `border + padding = ${p + 1}px is not a whole 9px character`).toBe(0);
   });
 
   // ── EVERY LADDER THAT STATES `case-top` MUST RESTATE `--mt-case-top` ─────────────
