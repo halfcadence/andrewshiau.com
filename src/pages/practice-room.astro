@@ -857,6 +857,12 @@ import Layout from '../layouts/Layout.astro';
      padding, the phone's, the plate's offset, and the overlay's inset) and they have to agree
      by construction — four hand-typed 3chs is four chances to drift. */
   #mt-app{--mt-inset:3ch;
+    /* THE `case-top` ROW'S HEIGHT, AS A TOKEN — because the ⌥G overlay derives its top datum
+       from it and the two must not drift. It is one lead on desktop and TWO on the phone (the
+       plate had to clear the accent mark there), and the overlay used to hardcode two leads for
+       the line, which was a whole lead wrong at phone width. Every ladder that states this row
+       restates the token beside it. */
+    --mt-case-top:var(--lead);
     /* the drone case's width — see the note on `.mt-pages`' columns for the derivation */
     --mt-drone-w:210px;
     height:100dvh;height:round(down, 100dvh, var(--lead));
@@ -973,13 +979,25 @@ import Layout from '../layouts/Layout.astro';
      ladder's origin, and two leads up from its end. The CENTRE pair cannot be — it floats with
      the slack — so it is drawn on `.mt-mid`, which is the box that holds it. Verified: all four
      drawn lines coincide with the baselines they claim, 0.0px each. */
+  /* ── THE TOP LINE IS DERIVED FROM `case-top`, NOT HARDCODED AT TWO LEADS ──────────
+     It read `--lead * 2` on every ladder, and that is only true where `case-top` is one lead.
+     THE PHONE'S `case-top` IS TWO LEADS (it was widened so the plate clears the accent mark),
+     so the spec baseline is THREE leads down there — and the guide drew it at two, one whole
+     lead above the digits it claimed. Measured with the box chrome neutralised, which is what
+     separates this from the box question: at 390 the digits sit +28.00px below the drawn line
+     with no box in the way at all. A guide that is wrong by a whole lead at phone width is the
+     "not aligned" report, and it is the instrument's fault, not the layout's.
+     `--mt-case-top` is declared beside each ladder that states the row, so the two cannot
+     drift: the row's height and the line derived from it are one number. */
   .mt-pages::before{content:"";position:absolute;inset:var(--group) var(--group) var(--lead);
     pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
     background:
-      /* TOP — the spec baseline, two leads down (case-top, then the spec row's own line) */
-      linear-gradient(to bottom, transparent calc(var(--lead) * 2 - 1px),
-        color-mix(in srgb, var(--accent) 45%, transparent) calc(var(--lead) * 2 - 1px) calc(var(--lead) * 2),
-        transparent calc(var(--lead) * 2)),
+      /* TOP — the spec baseline: the case's own top air, then the spec row's own line */
+      linear-gradient(to bottom,
+        transparent calc(var(--mt-case-top) + var(--lead) - 1px),
+        color-mix(in srgb, var(--accent) 45%, transparent)
+          calc(var(--mt-case-top) + var(--lead) - 1px) calc(var(--mt-case-top) + var(--lead)),
+        transparent calc(var(--mt-case-top) + var(--lead))),
       /* BOTTOM — the foot baseline, two leads up (hint, then case-bot) */
       linear-gradient(to bottom, transparent calc(100% - var(--lead) * 2 - 1px),
         color-mix(in srgb, var(--accent) 45%, transparent) calc(100% - var(--lead) * 2 - 1px) calc(100% - var(--lead) * 2),
@@ -1362,6 +1380,8 @@ import Layout from '../layouts/Layout.astro';
        phone there is no neighbour to be narrow beside. */
     .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
       grid-template-columns:repeat(3, 100%);column-gap:0;padding:0;
+      /* the overlay's top datum is derived from this row — restated with it, never apart */
+      --mt-case-top:calc(var(--lead) * 2);
       /* THE PHONE'S TOP AIR IS TWO LEADS (user, 2026-08-05: "the accent is too close to
          the text metronome on mobile, vertically"). Measured on the live page at 390,
          360 and 430: the plate's line box ran y 0→28 and the accent mark's ink y 20→28,
@@ -1431,10 +1451,16 @@ import Layout from '../layouts/Layout.astro';
        But the rule holds the two DATUMS now, and they are as true here as anywhere: the
        harness verifies axis 5/5 and inset 6/6 at 430, 390 and 360. A guide that goes blank
        exactly where the layout changes most is the wrong instrument.
-       The inset is measured from the CONTENT box on the phone (padding is `0 var(--gutter)`
-       and the drawn frame sits half a lead in), so the overlay insets to match rather than
-       drawing on the viewport edge. */
-    .mt-half::after{inset:0 var(--mt-inset)}
+       THE OVERRIDE THAT WAS HERE DOUBLE-COUNTED THE INSET, and it is deleted. It read
+       `inset:0 var(--mt-inset)`, justified by "the inset is measured from the content box on
+       the phone" — but an absolutely-positioned ::after already resolves `inset:0` against its
+       containing block's PADDING box, and the case's horizontal padding IS `--mt-inset`. So the
+       gradient's own `--mt-inset` stop was added to a box that had already been inset by it, and
+       the guide drew its line at 54px while every mark sat at 27px. Measured with the box chrome
+       neutralised, so this is not the box question: the plate and the first control both read
+       −27.00px against the drawn line at 390, 430 and 360.
+       The desktop rule needs no phone variant at all — `inset:0` is right on both, because the
+       padding the line is measured from is the same token on both. One rule, one datum. */
     /* AND SO THE FIGURE TAKES THE CONTENT WIDTH HERE. With no column grid on the phone,
        a 6-of-12 span is not a smaller version of the desktop rule — it is arithmetic on a
        grid that does not exist (at 360px the track computes NEGATIVE, since 11 gutters of

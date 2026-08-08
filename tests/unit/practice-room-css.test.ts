@@ -165,6 +165,38 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
       .toEqual([]);
   });
 
+  // ── EVERY LADDER THAT STATES `case-top` MUST RESTATE `--mt-case-top` ─────────────
+  // The ⌥G top datum is derived from the token, so a ladder that changes the row's height
+  // without restating it draws the line on a row that no longer exists — which is exactly
+  // the bug this replaced (the phone widened `case-top` to two leads in 2026-08-05 and the
+  // overlay went on drawing at two leads flat, a whole lead above the digits, for two days).
+  // Config that can drift from code will drift: assert it instead.
+  // Matched on the BUILT sheet, so it reads what ships. The `[case-top] <height>` in each
+  // `grid-template-rows` is paired with the `--mt-case-top` declared in the same rule.
+  it('every ladder that declares case-top also declares --mt-case-top with the same height', () => {
+    // one entry per `grid-template-rows` that names `case-top`
+    const ladders = css.match(/grid-template-rows:\[case-top\][^;}]*/g) || [];
+    expect(ladders.length, 'the page states three ladders (base, 1479, phone)').toBe(3);
+    // the height each ladder gives the row, normalised (lightningcss strips spaces variably)
+    const norm = (s: string) => s.replace(/\s+/g, '');
+    const heights = ladders.map((l) => {
+      const m = l.match(/\[case-top\]\s*([^[]+)\[spec\]/);
+      return m ? norm(m[1]) : null;
+    });
+    expect(heights.every(Boolean), `could not read a height from: ${ladders.join(' | ')}`).toBe(true);
+    // the token's value, per rule that declares it
+    const tokens = (css.match(/--mt-case-top:[^;}]*/g) || [])
+      .map((t) => norm(t.replace('--mt-case-top:', '')));
+    // Two DECLARATIONS cover the three ladders: the base value is inherited by the 1479
+    // ladder, which keeps `case-top` at one lead. So every distinct HEIGHT must appear as a
+    // declared token value — that is the property, not a count.
+    const distinct = [...new Set(heights)];
+    for (const h of distinct) {
+      expect(tokens, `a ladder sets case-top to ${h} but no --mt-case-top declares it`)
+        .toContain(h);
+    }
+  });
+
   // ── the sheet is whole ─────────────────────────────────────────────────────
   it('has balanced braces and no comment tokens left in the output', () => {
     const opens = (css.match(/\{/g) || []).length;
@@ -210,7 +242,15 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     // second line described the `transport` row a lead below; that row is gone, so the two
     // lines would name one baseline and the overlay would draw a datum with no ink on it —
     // the "25 cols" complaint in miniature. The sentinel below is the surviving line.
-    ['the top/bottom vertical datums', 'calc(var(--lead) * 2 - 1px)'],
+    // The TOP datum is derived from `--mt-case-top` now, not hardcoded at two leads: the
+    // phone's `case-top` is two leads (widened so the plate clears the accent mark), so the
+    // old `--lead * 2` drew the spec line a whole lead ABOVE the digits at phone width.
+    // Measured from the painted pixels, with the box chrome neutralised so it was not the
+    // box question: the digits sat +28.00px below the drawn line at 390. This sentinel names
+    // the declaration the fixed rule contains — and it is deliberately the TOP one, since
+    // that is the line that moved. The BOTTOM datum still reads from the ladder's end.
+    ['the top vertical datum', 'calc(var(--mt-case-top) + var(--lead) - 1px)'],
+    ['the bottom vertical datum', 'calc(100% - var(--lead) * 2 - 1px)'],
     ['the centre datum', 'calc(100% - 1px)'],
     // THE TWO DATUMS. The ⌥G overlay used to paint twelve tracks per case as a pair of
     // hairlines each — 24 lines inside every case plus 12 across the screen, which is what
