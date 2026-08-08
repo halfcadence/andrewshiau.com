@@ -126,3 +126,43 @@ describe('the sitemap agrees with the canonicals', () => {
     expect(xml).not.toMatch(/<loc>https:\/\/andrewshiau\.com\/practice-room\/<\/loc>/);
   });
 });
+
+// THE APP'S NAME LIVES IN THREE FILES, and iOS and Android read different ones. iOS takes
+// `apple-mobile-web-app-title` from the page; Android takes `name`/`short_name` from the
+// manifest — and there are TWO manifests, because the same link URL is served from a
+// host-specific file (the subdomain gets manifest-root.json so `start_url` can be `/`, the
+// apex gets the path-scoped one). So "rename the app" is three edits, and missing one ships
+// an icon captioned differently depending on the phone.
+//
+// This exists because the e2e install test could NOT catch it. Local preview serves only the
+// path-scoped manifest, so red-arming `manifest-root.json` there passed — the assertion was
+// reading a file the run never fetched. That is a test proving something about the wrong
+// artifact, and the fix is a check that reads BOTH files directly rather than through a
+// server that only serves one of them.
+describe('the home-screen app name is one name', () => {
+  const metaPath = join(DIST, 'practice-room', 'index.html');
+  const scoped = join(DIST, 'practice-room', 'manifest.json');
+  const rooted = join(DIST, 'practice-room', 'manifest-root.json');
+  const has = existsSync(metaPath) && existsSync(scoped) && existsSync(rooted);
+
+  // TITLE CASE, deliberately against the site's prevailing lowercase rule. That rule governs
+  // words ON the instrument (the plates say "tuner", "metronome") — an icon caption is not a
+  // control, it is the app's name, and it sits beside Mail and Notes. Argued at the meta in
+  // Layout.astro; asserted here so applying the lowercase rule consistently can't quietly
+  // undo a deliberate exception.
+  const NAME = 'Practice Room';
+
+  it.skipIf(!has)('is title case in the apple meta and in BOTH manifests', () => {
+    const html = readFileSync(metaPath, 'utf8');
+    const meta = /<meta name="apple-mobile-web-app-title" content="([^"]*)"/.exec(html)?.[1];
+    expect(meta, 'the installable page carries no apple-mobile-web-app-title').toBe(NAME);
+
+    for (const p of [scoped, rooted]) {
+      const m = JSON.parse(readFileSync(p, 'utf8'));
+      expect(m.name, `${p} name`).toBe(NAME);
+      expect(m.short_name, `${p} short_name`).toBe(NAME);
+      // The two manifests may differ in scope; they must NOT differ in identity.
+      expect(m.display, `${p} display`).toBe('standalone');
+    }
+  });
+});

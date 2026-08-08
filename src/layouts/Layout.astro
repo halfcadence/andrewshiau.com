@@ -184,10 +184,16 @@ const iconBase = installable ? '/practice-room' : '';
             black, so "no background" would ship a black tile. */}
         <link rel="manifest" href="/practice-room/manifest.json" />
         <link rel="apple-touch-icon" href="/practice-room/icon-180.png" />
-        {/* Lowercase like every word on the instrument itself (the round-13 rule: the
-            plates say "tuner", "metronome"; no control word is capitalised). "Practice
-            Room" title case is the one form the site never uses. */}
-        <meta name="apple-mobile-web-app-title" content="practice room" />
+        {/* TITLE CASE HERE, AND LOWERCASE EVERYWHERE ELSE — his call, 2026-08-08, and the
+            exception is principled rather than a lapse. The lowercase rule governs words ON
+            the instrument: the plates say "tuner", "metronome", "subdivide", because those
+            are controls and a control is not a proper noun. An icon caption is not a control.
+            It sits on the home screen beside Mail, Safari and Notes, which are all title
+            case, and it is the app's NAME rather than a label on its face — so lowercase
+            there reads as a typo in a row of correctly-capitalised neighbours instead of as
+            a house style nobody else can see the rest of.
+            The instrument's own plates and the visually-hidden <h1> are untouched. */}
+        <meta name="apple-mobile-web-app-title" content="Practice Room" />
       </>
     )}
 

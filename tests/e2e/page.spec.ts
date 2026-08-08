@@ -133,12 +133,23 @@ test('home-screen install: manifest + touch icon resolve and are real', async ({
   expect(png.readUInt32BE(16)).toBe(180);
   expect(png.readUInt32BE(20)).toBe(180);
 
+  // THE APP'S NAME IS TITLE CASE, in all three places that carry it — the two manifests and
+  // the apple meta. iOS reads the meta, Android reads the manifest, and they are separate
+  // files, so "renamed the app" is three edits and the failure mode of missing one is an icon
+  // captioned differently depending on the phone. Asserted, because the site's prevailing rule
+  // is LOWERCASE (the instrument's plates say "tuner") and the next person to apply that rule
+  // consistently would quietly undo this. The exception is argued at the meta in Layout.astro.
+  await expect(page.locator('meta[name="apple-mobile-web-app-title"]'))
+    .toHaveAttribute('content', 'Practice Room');
+
   const manifestLink = page.locator('link[rel="manifest"]');
   await expect(manifestLink).toHaveAttribute('href', '/practice-room/manifest.json');
   const mres = await request.get('/practice-room/manifest.json');
   expect(mres.status()).toBe(200);
   const manifest = await mres.json();
   expect(manifest.display).toBe('standalone');
+  expect(manifest.name).toBe('Practice Room');
+  expect(manifest.short_name).toBe('Practice Room');
   // Same link URL, host-specific file: the subdomain's vhost serves manifest-root.json
   // there (the app IS its root), the apex serves the path-scoped one.
   const appRoot = ON_SUBDOMAIN ? '/' : '/practice-room/';
