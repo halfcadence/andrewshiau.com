@@ -66,6 +66,66 @@ import Layout from '../layouts/Layout.astro';
 //
 // Engine reuse: the same MPM detector and note math the practice room runs, at the same
 // 33 ms cadence. Nothing is recorded and nothing leaves the page.
+//
+// ══════════════════════════════════════════════════════════════════════════════════════
+// THE PRACTICE ROOM'S IDIOM, ADOPTED WHOLE (2026-08-08, the owner: "align
+// practice.andrewshiau.com/pitchgraph/ ui with practice.andrewshiau? like put stuff in
+// boxes, use the new control for start/stop, etc.")
+//
+// This page copied the practice room's shape once, in early August, and then the room moved
+// on three times while this one did not — so the two tools on the same host had drifted into
+// two different design systems. What the room has that this page did not, measured on both
+// built pages with `tools/probe-room-vs-pitchgraph.mjs` before anything was changed:
+//
+//   1. IT IS A SCREEN, NOT A DOCUMENT. `#mt-app` is `round(down, 100dvh, --lead)` and
+//      escapes `.wrap`'s 1120px measure. This page sat inside the measure, so its case was
+//      1064px wide on a 1440px screen and the document scrolled 10px (docH 910 of 900) — an
+//      instrument whose transport can leave the viewport.
+//   2. A NAMED ROW LADDER, stated in leads, with the case a `subgrid` on it. This page laid
+//      out in flow with margins, so nothing here was on the 28px lead by construction.
+//   3. A BOX PER CONTROL GROUP, named in its own top edge — the sub-cases treatment
+//      (chooser practice-room-panels pick 03). Here `a4 440 hz` floated unnamed and, worse,
+//      flush RIGHT, while the room puts the identical control flush LEFT. Same control,
+//      opposite corners, on two pages of one instrument.
+//   4. THE RAMS SWITCH for the transport (transport chooser treatment 05, "the snow-white
+//      dot"), 1.45× larger since 2026-08-07: a hairline field and a dot that travels and
+//      takes the accent, with NO WORD. This page still had the two-pocket track plus the
+//      word `start`, which is the control the room deleted — and the elaborate fix this
+//      file used to carry (absolute-positioning the track outside the button so the WORD
+//      landed on the axis) existed only to rescue a word the newer control does not have.
+//   5. THE VERB IN THE READING'S ROW, centred by a real `1fr auto 1fr` middle column. Here
+//      it was its own row two rows down, under the panels.
+//   6. THE CALIBRATION SCRUBS. In the room `a4` and `hz` are drag handles (chooser
+//      metrotuner-scrub-target pick 03: the unit is the scrubber, the field only types).
+//      Here they were inert labels — the same control, looking identical, behaving
+//      differently, which is worse than either choice on its own.
+//
+// WHAT IS DELIBERATELY NOT COPIED, and why each is a simplification rather than an omission:
+//   · NO SNAP SCROLLER, NO PAGE WORDS, NO DRAWN PHONE FRAME. Those exist because the room
+//     holds THREE cases that become three swipe pages. This page has one case, so its
+//     border can simply stay at every width, and the two-leads-of-`case-top` the phone
+//     needed (to clear the metronome's accent mark) is not needed either.
+//   · NO EMPTY `foot` ROW. The room's cases declare rows they do not fill because three
+//     cases share one ladder and the empty modules are what hold them in phase. There is
+//     nothing here to be in phase with, and the room's own rule applies: a row of the
+//     ladder that nothing occupies is 28px of dead air pretending to be structure (that is
+//     why `[transport]` was deleted there). This page's ladder has a `panels` row the room
+//     does not have, and no `foot` row, because that is what its content is.
+//   · THE TOP DATUM IS FOLDED INTO THE CASE'S OWN OVERLAY. In the room it is drawn on
+//     `.mt-pages::before` because one line has to cross three cases, which forces the
+//     gradient's inset to restate the scroller's padding in a second place. One case needs
+//     no such line, so it becomes a third gradient on `.pg-case::after` and is measured
+//     from the case itself — one fewer number that can drift.
+//
+// THE COST, stated plainly because it is the real one: the box, the notch, the switch and
+// the scrub handle are DUPLICATED here rather than shared. They cannot be shared today —
+// the room's copies live in its own Astro-scoped `<style>`, so their selectors carry a
+// `data-astro-cid` this page's elements will never have, and lifting them into global.css
+// would mean renaming five families of class in a 4000-line file that eight harnesses
+// select on. So the duplication is paid for with a CHECK instead of a promise:
+// `tools/verify-pitchgraph-parity.mjs` measures both built pages and fails by name when a
+// token, a box measure or the switch's geometry stops agreeing. Config that can drift will
+// drift; assert it.
 ---
 
 <Layout
@@ -81,29 +141,37 @@ import Layout from '../layouts/Layout.astro';
        axis labels say which way is sharp, and the first note you play shows what the
        panel row is for. All the prose moved to /work/pitchgraph/.
        The h1 stays for screen readers and the document outline. -->
-  <h1 class="pg-sr-h1">pitchgraph</h1>
+  <div id="pg-app">
+    <h1 class="pg-sr-h1">pitchgraph</h1>
 
-  <!-- ── THE INSTRUMENT ─────────────────────────────────────────────────────
-       One hairline case, the site's own idiom (the embed-frame argument: inside is a
-       machine, so the border is sanctioned where the site otherwise draws rules not
-       boxes). The name interrupts the top frame like an engraved plate. -->
-  <div class="grid">
-    <div class="c1-12">
+    <!-- ── THE SCREEN ───────────────────────────────────────────────────────────
+         The room's `.mt-pages` with one column instead of three: the grid that owns the
+         row ladder. The case is a subgrid on it, so every row this page states is a row
+         of the screen rather than a margin between two blocks. -->
+    <div class="pg-screen" id="pg-screen">
+      <!-- ONE HAIRLINE CASE, the site's own idiom (the embed-frame argument: inside is a
+           machine, so the border is sanctioned where the site otherwise draws rules not
+           boxes). The name interrupts the top frame like an engraved plate. -->
       <div class="pg-case">
         <span class="pg-plate" aria-hidden="true">pitchgraph</span>
 
-        <!-- the spec line: the one set-once control, flush right on the inset -->
+        <!-- THE SPEC ROW: the one set-once control, in its own named box, flush LEFT —
+             where the room puts the identical control on both of its cases that carry it.
+             `.f` and the global `.f input` rule are what the room's own calibration field
+             uses, so the field itself is genuinely shared rather than copied: one
+             definition in global.css sets its 16px (iOS focus-zoom floor), its 44px
+             target and its underline. -->
         <div class="pg-ctop">
-          <span class="pg-fl"></span>
-          <span class="pg-fr">
-            <span class="pg-a4">
-              <label class="pg-lbl" for="pg-a4">a4</label>
-              <input
-                type="number" id="pg-a4" data-testid="a4"
-                value="440" min="400" max="480" step="1"
-                aria-label="A4 calibration in hertz"
-              /><span class="pg-lbl">hz</span>
-            </span>
+          <span class="f pg-a4 pg-grp" id="pg-a4-scrub">
+            <span class="pg-gl" aria-hidden="true">calibration</span>
+            <label for="pg-a4" class="pg-lbl pg-hd"
+              title="drag ↔ to change the calibration">a4</label>
+            <input
+              type="number" id="pg-a4" data-testid="a4" inputmode="decimal"
+              value="440" min="400" max="480" step="1" title="type a value"
+              aria-label="A4 calibration in hertz — type a value, or drag the a4 or hz label horizontally"
+            /><span class="pg-lbl pg-hd" data-testid="a4-handle"
+              title="drag ↔ to change the calibration">hz</span>
           </span>
         </div>
 
@@ -114,56 +182,92 @@ import Layout from '../layouts/Layout.astro';
           <svg id="pg-svg" preserveAspectRatio="none" aria-hidden="true"></svg>
         </div>
 
-        <!-- the reading, the instrument's own line -->
+        <!-- ── THE READING AND THE VERB ARE ONE ROW, THE VERB ON THE AXIS ──────────
+             The room's `.mt-read`, verbatim in structure: three explicit columns,
+             `1fr auto 1fr`, so the middle column IS the case's centre axis by
+             construction and whatever sits in it is centred however wide the note or the
+             cents get. The transport was its own row here, below the panels; a verb two
+             rows from the reading it belongs to is what the room's transport chooser
+             (Q1/02) fixed on that page a week ago.
+             The reading keeps its flush edges: the note reads from the left inset, the
+             cents/Hz group to the right one. -->
         <div class="pg-read">
           <span class="pg-note" id="pg-note" data-testid="note">—</span>
-          <span class="pg-ends"></span>
-          <span class="pg-cents" id="pg-cents" data-testid="cents">–</span>
-          <span class="pg-hz" id="pg-hz" data-testid="hz"></span>
+          <!-- THE RAMS SWITCH (transport chooser treatment 05, at the 1.45× size the
+               control-size chooser picked): a hairline field and one dot that travels to
+               the far side and takes the accent. NO WORD — the control is one mark, so
+               the mark is the only thing to centre and the grid column above does it.
+               State is form AND hue: the dot moves 16px and goes accent, because colour
+               alone measures 3.54:1 between --ink and --faint, which the accent-clarity
+               chooser already rejected at small sizes.
+               `aria-label` carries the whole verb now that there is no word to read. -->
+          <div class="pg-cap">
+            <button
+              type="button" class="pg-btn pg-latch"
+              id="pg-listen" data-testid="listen-toggle"
+              aria-pressed="false" aria-label="start listening"
+            >
+              <svg class="pg-rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                <rect class="pg-fld" x="0.75" y="0.75" width="30.5" height="14.5"></rect>
+                <circle class="pg-dt" cx="8" cy="8" r="3.2"></circle>
+              </svg>
+            </button>
+          </div>
+          <!-- The cents and the Hz stay ONE group on the right — one reading at two
+               precisions, so the Hz appearing must not move the cents. -->
+          <span class="pg-rr">
+            <span class="pg-cents" id="pg-cents" data-testid="cents">–</span>
+            <span class="pg-hz" id="pg-hz" data-testid="hz"></span>
+          </span>
         </div>
 
-        <!-- THE REVIEW ROW: one panel per finished note, filling in as you play. -->
+        <!-- THE REVIEW ROW: one panel per finished note, filling in as you play. Its own
+             row of the ladder, directly under the reading, so the three figures of this
+             instrument — trace, reading+verb, record — sit against each other and the
+             slack is placed above and below the group. That is the room's composition fix
+             (its first ladder gave the figure row all the leftover and the readout landed
+             215px under the dial it describes). -->
         <div class="pg-panels" id="pg-panels" data-testid="panels" aria-live="off"></div>
 
-        <!-- THE TRANSPORT, in the practice room's CURRENT form (2026-08-07). Two things
-             changed there since this page copied it, and both are the point of the newer
-             style: the track sits ABSOLUTELY OUTSIDE the button so the WORD lands on the
-             case's centre axis rather than the word-plus-track pair being centred (which
-             pushed the verb off the figure it captions), and the width reservation moved
-             onto the `.w` span. The word is "start"/"stop", the same verb the other three
-             instruments use — "listen" was this page inventing a fourth word for the
-             action all four of them share. -->
-        <div class="pg-cap">
-          <button
-            type="button" class="pg-btn pg-latch"
-            id="pg-listen" data-testid="listen-toggle"
-            aria-pressed="false" aria-label="start listening"
-          >
-            <svg class="pg-tk" width="26" height="12" viewBox="0 0 26 12" aria-hidden="true">
-              <line class="pg-run" x1="4" y1="6" x2="22" y2="6"></line>
-              <circle class="pg-pk" cx="4" cy="6" r="2.4"></circle>
-              <circle class="pg-pk" cx="22" cy="6" r="2.4"></circle>
-              <circle class="pg-disc" cy="6" r="3.2"></circle>
-            </svg><span class="pg-w pg-fixw" style="--w:5ch">start</span>
-          </button>
-        </div>
-
-        <!-- errors only. An idle hint here was deleted from the practice room as ugly;
-             this channel carries mic denials and nothing else. -->
-        <div class="pg-hint" id="pg-hint" data-testid="hint" role="status"></div>
+        <!-- errors only, on its own reserved row. An idle hint here was deleted from the
+             practice room as ugly; this channel carries mic denials and nothing else. The
+             row exists whether or not it has words, so starting and stopping cannot
+             reflow the case. -->
+        <div class="pg-hintline"><span class="pg-hint" id="pg-hint" data-testid="hint" role="status"></span></div>
       </div>
     </div>
-  </div>
 
-  <!-- ONE WORD OUT, at the foot, the way the practice room carries its mark. Not a
-       sentence about the microphone and not a description of the other tool — a way back to
-       the rest of the tools, and nothing else. -->
-  <div class="pg-foot">
-    <a href="https://practice.andrewshiau.com/">practice room</a>
+    <!-- ONE WORD OUT, at the foot, the way the practice room carries its page words: its
+         own band below the screen, `flex:none`, so it is outside the case rather than a row
+         of the instrument. Not a sentence about the microphone and not a description of the
+         other tool — a way back to the rest of the tools, and nothing else.
+         TWO LEADS EXACTLY (one of line, one of air beneath), which is what keeps the screen
+         a whole number of leads after the foot takes its share. -->
+    <div class="pg-foot">
+      <a href="https://practice.andrewshiau.com/">practice room</a>
+    </div>
   </div>
 </Layout>
 
-<!-- THE SVG STYLES CANNOT BE SCOPED, and this was a real bug, not a precaution.
+<style is:global>
+  /* THE ONE ESCAPE, the room's rule with this page's id. A screen cannot sit inside the
+     document's 1120px measure — and `.wrap`'s own `calc(var(--unit)*5)` bottom padding is
+     what made this page scroll 10px past a 900px viewport while claiming to be an
+     instrument. `:has(#pg-app)` scopes the override to exactly this page: the rule ships in
+     this page's CSS chunk and the selector matches nothing anywhere else. */
+  .wrap:has(#pg-app){max-width:none;padding:0}
+  main:has(#pg-app){display:block}
+
+  /* ⌥G ON THIS PAGE DRAWS THE INSTRUMENT'S DATUMS, not the document guide — and this is
+     REQUIRED rather than tidy, because the guide's twelve bands are the 1120px measure's
+     columns and the rule above deletes that measure. Left alone, the persisted grid
+     (⌥G survives across pages in localStorage) would draw a column system this page no
+     longer has. Global for the reason the room records: Astro would pin the html/body half
+     of the selector to a scope class those elements never carry. */
+  body:has(#pg-app) .guide{display:none !important}
+  :is(html,body).showgrid .pg-case::after{opacity:1}
+
+  /* THE SVG STYLES CANNOT BE SCOPED, and this was a real bug, not a precaution.
      Astro scopes a component's CSS by stamping a `data-astro-cid-*` attribute onto the
      elements it compiles, then compiling the selectors to match it. Every mark in both
      figures is built at RUNTIME with innerHTML, so those elements never carry the
@@ -172,8 +276,7 @@ import Layout from '../layouts/Layout.astro';
      rendered as a solid slab with the numbers correct underneath it. A screenshot found
      it in one look; no DOM assertion could, because the geometry was right.
      So the drawing's rules live in `is:global`, namespaced under `.pg-case` so they
-     cannot leak to another page's SVG. -->
-<style is:global>
+     cannot leak to another page's SVG. */
   .pg-case .pg-datum{stroke:var(--ink);stroke-width:1;fill:none}
   .pg-case .pg-edge{stroke:var(--faint);stroke-width:1;stroke-dasharray:2 3;fill:none}
   /* The two practice bands, after Singing Carrots: ±5¢ is "barely noticeable even by
@@ -208,6 +311,44 @@ import Layout from '../layouts/Layout.astro';
      row. Global, namespaced under .pg-panel. */
   .pg-panel .pg-sr{position:absolute;width:1px;height:1px;overflow:hidden;
     clip-path:inset(50%);white-space:nowrap}
+
+  /* ══ THE PANEL ITSELF, AND WHY ITS RULES ARE HERE ═══════════════════════════════════════
+     SAME SCOPING TRAP, THIRD VICTIM — and this one had SHIPPED, live, since the day the panel
+     row was built. The rules below sat in the scoped block, where Astro compiled them to
+     `.pg-panel[data-astro-cid-…]`; a panel is built with `createElement` in the script, so it
+     carries no such attribute and NOT ONE of them ever matched. Measured on the live page and
+     on the local build, both identical: `borderLeft: 0px, padding: 0px, minWidth: auto,
+     display: block`. The record row has been drawing its panels with no dividers, no gutters
+     and no minimum width the whole time.
+     WHY IT WAS INVISIBLE: none of those rules changes a number any test asserted, and the row
+     still LOOKS like a row of small figures — the panels are `flex:none` on a flex parent with
+     a `gap:1px`, which is enough to keep them apart and in order. The two things that were
+     actually missing are the hairline that separates one reading from the next, and the 14px
+     floor under a one-read note. So the failure mode was a quieter drawing, not a broken one,
+     which is exactly the kind that survives.
+     THE RULE THIS PAGE ALREADY STATES TWICE: markup this page creates in JS needs its CSS in
+     the `is:global` chunk. It was written for the SVG marks and for `.pg-sr`, and the panel's
+     own box was left behind both times.
+     ── AND THE DRAWINGS SIT AT THE ROW'S BOTTOM (found by shooting the page mid-phrase):
+     the switch's ink carries `translateY(9.5px)` to sit on the type's optical centre, so it
+     hangs 3.5px BELOW its own 28px row. On the practice room that overhang falls into
+     `slack-b`, which is air; here the record row is the reading's immediate neighbour, so the
+     overhang lands in the row that holds the panels. The row is 3 leads and its drawings are 2,
+     so a whole lead of it is already slack — putting the drawings at the END moves that slack
+     to the TOP, exactly where the overhang is. No new number, nothing a reader can see moves.
+     Rejected: shrinking the 9.5px nudge (derived from the cap height, and the parity harness
+     pairs it with the room's), and a gap between the rows (a number off the ladder for a
+     problem the ladder's own slack already covers). */
+  .pg-panel{flex:none;position:relative;border-left:1px solid var(--line);
+    padding:0 2px;min-width:14px;
+    display:flex;align-items:flex-end}
+  .pg-panel:first-child{border-left:0}
+  .pg-panel svg{display:block;height:calc(var(--lead) * 2);width:100%;overflow:visible}
+  /* The phone's shorter record row, restated here because the rule it overrides now lives in
+     this block — left in the scoped one it would have been inert for the same reason. */
+  @media (max-width: 1001px){
+    .pg-panel svg{height:calc(var(--lead) * 1.5)}
+  }
 </style>
 
 <style>
@@ -216,109 +357,433 @@ import Layout from '../layouts/Layout.astro';
      name. Same call the practice room makes. */
   .pg-sr-h1{position:absolute;width:1px;height:1px;overflow:hidden;
     clip-path:inset(50%);white-space:nowrap;margin:0}
-  .pg-foot{margin-top:var(--group);display:flex;justify-content:center}
-  .pg-foot a{color:var(--faint)}
-  .pg-foot a:hover{color:var(--accent)}
 
-  /* THE CASE. Same argument as the practice room's: a hairline box is sanctioned
-     because inside is a machine. --lead of padding, and the plate interrupts the top
-     frame. The inset is 3ch — a whole character, the practice room's own measure. */
-  .pg-case{position:relative;margin-top:var(--sect);
-    border:1px solid var(--line);padding:var(--lead) 3ch}
-  .pg-plate{position:absolute;top:calc(-1 * var(--tight));left:var(--unit);
+  /* ── THE SCREEN'S HEIGHT IS SNAPPED TO THE LEADING, the room's rule verbatim.
+     `100dvh` is whatever the window happens to be, and a screen whose height is not a
+     multiple of --lead cannot put its rows on a 28px ladder — the remainder has to go
+     somewhere, and wherever it goes is off-grid. The bare `100dvh` first is the fallback
+     for anything without `round()` (Chrome 125, Safari 15.4, Firefox 118): those get an
+     unsnapped screen rather than no height at all.
+     THE TOKENS ARE NAMED AFTER THE ROOM'S, one for one, because the parity harness pairs
+     them by name — `--pg-inset` against `--mt-inset`, and so on. A token renamed here
+     without being renamed there is a drift the harness reports rather than absorbs.
+     `--pg-inset` is 3ch and not `--gutter`: the clearance between a case's frame and the
+     ink inside it is a CHARACTER COUNT (MIL-STD-1472G §5.2.3.14.12 states legend clearance
+     in the width of the font's own capital), and in IBM Plex Mono at `--step` 1ch is
+     exactly 9.000px — so at 3ch the frame is a cell boundary and the frame and the type
+     are one ladder instead of two that never meet. 28px is 3.111 characters. */
+  #pg-app{--pg-inset:3ch;
+    /* the `case-top` row's height, read by the ⌥G top datum so the line and the row it
+       names are one number */
+    --pg-case-top:var(--lead);
+    /* how far the group box hangs outside the ink it contains: the box pads out and is
+       pulled back by this, so the ink lands on `--pg-inset` and the box's RULE lands one
+       character inside the frame, which is the datum ⌥G draws. See `.pg-grp`. */
+    --pg-box-pull:18px;
+    height:100dvh;height:round(down, 100dvh, var(--lead));
+    display:flex;flex-direction:column;overflow:hidden}
+
+  /* ── THE ROW LADDER ─────────────────────────────────────────────────────────
+     One grid, rows named and stated in leads, and the case is `subgrid` on it — so a row
+     is a row of the SCREEN and the content cannot disagree about where it is. This
+     replaces flow-plus-margins, where every interval was whatever the previous block's
+     height happened to leave.
+     THE HEIGHTS ARE DERIVED, not chosen:
+       · `spec` is 2 leads because the calibration box's chrome is 18 + 8 + 2 borders = 28
+         and its content is one 44px field — the same 2 leads the room's spec row takes,
+         with the box overhanging into the slack below exactly as it does there.
+       · `read` and `hint` are one lead each: 19px of ink apiece.
+       · `panels` is 3 leads, which is the row this page has and the room does not.
+       · `figure` is `auto` so the trace sets its own height (`.pg-fig`, 7 leads) — pinning
+         it to a row count would either crop the drawing or open a gap inside the group.
+     THE SLACK IS TWO ROWS, and that is the room's hard-won composition rule: giving the
+     figure row all the leftover centres the drawing in a tall row and leaves its own
+     readout stranded hundreds of pixels below it. Placed air above and below the group
+     instead, in equal `1fr` rows, so trace, reading and record sit against each other.
+     NO `foot` ROW. The room declares rows its cases do not fill because three cases share
+     one ladder and the empty modules hold them in phase; this page has one case, and its
+     own rule against dead rows applies (that is why `[transport]` was deleted there).
+     The vertical padding is 3 leads (2 above, 1 below), so the ladder still resolves to a
+     whole number of leads after the padding takes its share. */
+  .pg-screen{flex:1;min-height:0;position:relative;
+    display:grid;grid-template-columns:minmax(0, 1fr);
+    padding:var(--group) var(--group) var(--lead);
+    grid-template-rows:
+      [case-top]  var(--lead)            /* the case's own top air */
+      [spec]      calc(var(--lead) * 2)  /* the calibration box */
+      [slack-a]   minmax(0, 1fr)         /* placed air, above the instrument */
+      [figure]    auto                   /* the trace, at its own height */
+      [read]      var(--lead)            /* the reading AND the verb */
+      [panels]    calc(var(--lead) * 3)  /* the record */
+      [slack-b]   minmax(0, 1fr)         /* placed air, below it */
+      [hint]      var(--lead)            /* mic errors, and nothing else */
+      [case-bot]  var(--lead)            /* the case's own bottom air */
+      [case-end]}
+
+  /* THE CASE. The room's `.mt-half`: a 1px --line hairline (the weakest mark the system
+     has — the case is not interactive, so it must be the quietest line on the screen), the
+     plate interrupting the top frame, and the ladder inherited.
+     THE VERTICAL PADDING IS GONE, and that is the substantive part rather than a tidy-up:
+     padding on a subgrid item does not move the inherited row lines, so keeping the old
+     `var(--lead) 3ch` would have pushed every row off the ladder it inherits. The air is
+     the `case-top` and `case-bot` ROWS now — the same 28px, held where the composition can
+     see it. Horizontal padding stays: it insets content from the hairline on the axis the
+     ladder says nothing about.
+     ONE EXPLICIT COLUMN, which is a fix and not a formality: with rows named and columns
+     left to `auto`, grid auto-placement is free to invent an implicit second column and
+     place a row in it — measured on the room, where the metronome's foot line landed 414px
+     to the right of everything else. */
+  .pg-case{position:relative;
+    border:1px solid var(--line);
+    grid-row:case-top / case-end;
+    display:grid;grid-template-rows:subgrid;
+    grid-template-columns:minmax(0, 1fr);
+    padding:0 var(--pg-inset)}
+  .pg-plate{position:absolute;top:-14px;left:var(--unit);
     background:var(--paper);padding:0 1ch;color:var(--faint)}
 
-  .pg-ctop{display:flex;align-items:baseline;justify-content:space-between;
-    gap:2ch;flex-wrap:wrap;min-height:44px}
-  .pg-fl{display:inline-flex;align-items:baseline;gap:2ch}
-  .pg-fr{display:inline-flex;align-items:baseline;gap:2ch;margin-left:auto}
-  .pg-lbl{color:var(--faint)}
+  /* ── THE SPEC ROW ───────────────────────────────────────────────────────────
+     `align-self:start` and not `center`: the box is 73px of 44px targets inside a 56px
+     row, and centring a taller box in its row puts its TYPE half the difference away from
+     where the row line is — which is the residual misalignment the room measured between
+     its two cases' spec rows. Aligned to the row's start, the box keeps its full height
+     and overhangs downward into the figure's slack, so no tap target shrinks. */
+  .pg-ctop{grid-row:spec;align-self:start;
+    display:flex;align-items:baseline;justify-content:flex-start;
+    gap:var(--lead) 4ch;flex-wrap:wrap}
+
+  /* ── A BOX PER CONTROL GROUP, NAMED IN ITS OWN TOP EDGE ──────────────────────
+     The room's sub-cases treatment (chooser practice-room-panels pick 03, held against a
+     seven-option riff). Its premise is the owner's: "practice is diff tool than website so
+     the rule about no lines and stuff doesnt rly work" — STYLE.md's "structure is rules,
+     not boxes" was written for a DOCUMENT you read, and this is an INSTRUMENT you operate
+     while holding a violin, glanced at from a stand, where boxes that group controls are
+     the native idiom of hardware.
+     IT INVENTS NOTHING AND IT DELETES A MARK: the notch is the case's own engraved plate at
+     a smaller scale (same -14px offset, same --faint, same paper knock-out), and
+     `calibration` stops being a loose word beside a row to become the row's name.
+     ONE BOX ON THIS PAGE, and that is the stated bound rather than an oversight. The
+     room's own recorded cost is that a notched name means "this is an instrument" once per
+     case, and five more per screen means "this is a group" while the case's plate stops
+     being special. This page has exactly one control group — the calibration — so it gets
+     exactly one box. The trace, the reading and the panel row are FIGURES and a reading,
+     not control groups; a box round a figure would be the second frame the phone rule
+     exists to avoid.
+     THE ARITHMETIC IS THE ROOM'S, and both halves of it matter:
+       · 18 + 8 + 2 borders = 28 = one whole lead, so a boxed row lands on the baseline
+         grid. The sheet's own 20/10 came to 32, which is not a multiple of 28.
+       · rule = case inset − pull, ink = rule + border + padding. For BOTH to be whole 9px
+         cells, `border + padding` must be a multiple of 9 — so padding 17, not 18, with the
+         1px border making up the character. At 18 the rule lands on 1ch and the ink drifts
+         to 3.111ch, which is the finding half-applied.
+     The pull-back is this page's own idiom too (`.pg-hd` and the room's meter digits do the
+     same): pad out to the box, then pull the padding back with a matching negative margin,
+     so the ink sits where the datum wants it and the box overhangs into the case's air,
+     which is nothing. */
+  .pg-grp{position:relative;border:1px solid var(--line);
+    --pg-box-pad:17px;
+    padding:18px var(--pg-box-pad) 8px;
+    margin-left:calc(var(--pg-box-pull) * -1);margin-right:calc(var(--pg-box-pull) * -1)}
+  /* The notch travels with the box's padding, so its glyph lands on 4ch: 9 (rule) + 1
+     (border) + 17 (pad) = 27, plus its own 1ch of knock-out. */
+  .pg-gl{position:absolute;top:-14px;left:var(--pg-box-pad);background:var(--paper);
+    padding:0 1ch;color:var(--faint);line-height:var(--lead)}
+
+  /* ── THE CALIBRATION FIELD ──────────────────────────────────────────────────
+     BASELINE, NOT CENTRE: the group holds a 15px unit label beside a 16px input (`.f input`
+     is 16px, forced by iOS Safari's focus zoom), and `align-items:center` would make the
+     GROUP's first baseline the taller input's, so its type would sit below every other
+     baseline in the row. On `baseline` the label and the numeral share one, and the group
+     reports it as its own.
+     The input's own rules come from global.css's `.f input` — the same single definition
+     the room's calibration field uses, so the field is genuinely shared rather than copied.
+     What is stated here is only what the room states: the width and the centring. */
   .pg-a4{display:inline-flex;align-items:baseline;gap:1ch}
-  /* 16px so iOS does not zoom on focus; 44px min so the target clears WCAG 2.5.5 —
-     both learned on the practice room, where a bare 16px input computes to 37. */
-  .pg-a4 input{font:inherit;font-size:16px;color:var(--ink);background:transparent;
-    border:0;border-bottom:1px solid var(--ink);padding:4px 0;width:5ch;
-    text-align:center;min-height:44px;-moz-appearance:textfield;appearance:textfield;
-    border-radius:0}
+  .pg-a4 input{flex:0 0 auto;width:6ch;text-align:center;
+    -moz-appearance:textfield;appearance:textfield}
   .pg-a4 input::-webkit-outer-spin-button,
   .pg-a4 input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  /* The field types; the UNIT scrubs (chooser metrotuner-scrub-target pick 03 — Figma's
+     model, and the owner's words on that sheet: "not on the typing input bc its confusing
+     that u can type"). `cursor:text` is stated rather than left to the UA so the pixels
+     cannot inherit a lie about what they do. */
+  .pg-a4 input{cursor:text}
+  /* 44px BY PADDING, and the number is the room's measured one: `a4` and `hz` are 2ch =
+     18px bare, so 14px each side takes them to 46 × 44. The negative margins keep the
+     visual line identical — the target grows, the composition does not move. */
+  .pg-hd{cursor:ew-resize;touch-action:none;
+    display:inline-block;padding:8px 14px;margin:-8px -14px}
+  .pg-hd:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .pg-lbl{color:var(--faint)}
+  /* While a scrub is live the digits and the handle in hand read accent — that flash, the
+     resize cursor and the title are the whole affordance now that the value rails are gone. */
+  .pg-a4.scrubbing input{color:var(--accent)}
+  .pg-a4.scrubbing .pg-hd.hot{color:var(--accent)}
 
   /* THE FIGURE. Fixed height in leads so the trace has a stable scale and the panel
      row below it never shifts — a figure that resizes with its content makes every
-     finished panel move, which is the one thing a record must not do. */
-  .pg-fig{margin-top:var(--lead);height:calc(var(--lead) * 7)}
+     finished panel move, which is the one thing a record must not do.
+     `align-self:center` inside its own row, which is the one place centring is still
+     right: a drawing in a taller row is a figure in a module. */
+  .pg-fig{grid-row:figure;align-self:center;
+    width:100%;height:calc(var(--lead) * 7)}
   .pg-fig svg{display:block;width:100%;height:100%;overflow:visible}
 
-  .pg-read{display:flex;align-items:baseline;gap:2ch;margin-top:var(--tight);
-    min-height:var(--lead)}
-  .pg-ends{flex:1}
-  .pg-note{color:var(--ink);padding:0 .5ch;margin-left:-.5ch}
+  /* ── THREE COLUMNS, BECAUSE THE MIDDLE HAS TO BE THE AXIS ────────────────────
+     `1fr auto 1fr` makes the centre column the axis by construction: the two side columns
+     are equal because they are declared equal, so whatever sits in the middle is centred
+     no matter how wide the note or the cents get. The old flush spread — one `.pg-ends`
+     spacer with `flex:1` — had no middle at all, so a verb dropped into it would have got
+     a slot in the spread rather than the axis the figure above radiates from.
+     `align-self:start` pairs with `.pg-cap`'s: the room measured that changing only one of
+     the two puts the interval at 24.50 or 32.50 instead of one lead. */
+  .pg-read{grid-row:read;align-self:start;
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;column-gap:2ch}
+  .pg-read > .pg-note{justify-self:start}
+  .pg-read > .pg-cap{justify-self:center}
+  /* ── THE READING MUST NOT WRAP, AND THE ROOM CANNOT TELL US SO ───────────────
+     FOUND BY SHOOTING THE PAGE MID-PHRASE at 390 and 360, which is the only state that has a
+     Hz value in it: `−18.0¢  488.8 hz` broke across two lines, taking the 28px row to 56 and
+     shoving the switch down into the record row below.
+     THE MECHANISM IS THE EQUAL COLUMNS, not a shortage of space. The row has 316px and its ink
+     needs 246 — but `1fr auto 1fr` makes the two side columns equal BY DECLARATION, which is
+     precisely the property that puts the verb on the axis, so the cents+hz group is capped at
+     whatever half the leftover is: measured, 124px for 124px of content, wrapping with 0px of
+     slack. The note column gets the same 124px to hold a 36px `C♯5`.
+     WHY THE ROOM DOES NOT HAVE THIS: its tuner's reading prints the note and the cents but
+     never a frequency (`hzEl.textContent` is only ever set to `''` there), so its right-hand
+     group is 36px and the equal columns are never the binding constraint. Copying its rule was
+     right; assuming its rule had been TESTED with this page's content was not. That is the
+     drift-in-reverse worth recording: the shared idiom is safe, the shared *slack* is not.
+     WHAT I TRIED FIRST AND MEASURED WRONG, recorded because it is the more attractive fix and
+     it silently breaks the one datum this screen is built on. `white-space:nowrap` on the
+     right-hand group does stop the wrap — the row goes back to 28px at both widths — and it
+     pays for it with the AXIS: `1fr` is `minmax(auto,1fr)`, so a nowrapped 144px group raises
+     that column's floor above what the note column can match, and the tracks resolve 104/32/144
+     at 390 and 74/32/144 at 360. Measured with the probe: the verb sits 20.00px off the case
+     centre at 390 and 35.00px at 360, at every width below 430. A control 35px off the datum
+     the figure, the reading and the guide all share is a worse defect than a two-line reading,
+     and it is invisible in a screenshot because there is no second mark beside it to read it
+     against. The room's own transport chooser spent a whole pass on exactly this 17.50px class
+     of error.
+     SO THE SURPLUS COMES OUT OF THE CONTENT, WHERE IT ACTUALLY IS. Below 430 the Hz reading is
+     dropped and the row keeps the note and the cents — the two values the page is FOR. The
+     frequency is the third precision of a reading that already states the note and the offset,
+     and it is the one a player never acts on: you correct to a note by its cents, not by
+     585.3 Hz. This is the room's own hierarchy applied one step further, and its tuner goes
+     further still — that reading never prints a frequency at all, at any width.
+     `hidden`, not `display:none`, so the value is still in the accessibility tree for anyone
+     reading the instrument with a screen reader, and `:empty`'s gap rule still governs the
+     silent case. The columns stay `1fr auto 1fr` untouched, so the axis stays true by
+     construction — verified 0.00 at every width, playing, in the parity harness. */
+  .pg-rr{justify-self:end;display:inline-flex;align-items:baseline;gap:2ch;
+    white-space:nowrap}
+  .pg-note{color:var(--ink);padding:0 .5ch;margin-left:-.5ch;
+    transition:background var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
   .pg-note.pg-intune{background:var(--ink);color:var(--paper)}
   .pg-cents{color:var(--ink);font-variant-numeric:tabular-nums}
   .pg-hz{color:var(--faint);font-variant-numeric:tabular-nums}
+  /* AN EMPTY INLINE BOX STILL CONTRIBUTES ITS GAP. The Hz span is empty while the page is
+     silent, so the group's ink ended 2ch short of the right inset while its BOX sat on it —
+     the room's own `.mrh:empty` finding, which cost that page a 9px offset on its reading.
+     `:empty` and not a blanket hide: the moment a pitch is detected the span gets text,
+     this rule stops matching, and the Hz appears with its gap. */
+  .pg-hz:empty{display:none}
 
   /* THE REVIEW ROW. Small multiples: same scale in every panel, one row per note, so
      the only thing that differs between two panels is the playing. Set quiet and
      SMALL — this is the second figure on the screen and it must not compete with the
      live trace while you are playing. It scrolls horizontally rather than wrapping: a
      phrase is a sequence, and wrapping it to a second line breaks the reading order. */
-  .pg-panels{margin-top:var(--lead);height:calc(var(--lead) * 3);
-    display:flex;align-items:stretch;gap:1px;overflow-x:auto;overflow-y:hidden;
-    scrollbar-width:none}
-  .pg-panels::-webkit-scrollbar{display:none}
   /* NO EMPTY-STATE COPY. It read "each note you finish prints here", which is the page
      explaining itself — the same thing the dek was doing, in a smaller voice. The row
      holds its height when empty, so the space is placed rather than missing, and the
      first note you play explains it better than a sentence can. */
-  .pg-panel{flex:none;position:relative;border-left:1px solid var(--line);
-    padding:0 2px;min-width:14px}
-  .pg-panel:first-child{border-left:0}
-  .pg-panel svg{display:block;height:calc(var(--lead) * 2);width:100%;overflow:visible}
+  .pg-panels{grid-row:panels;align-self:start;
+    height:calc(var(--lead) * 3);
+    display:flex;align-items:stretch;gap:1px;overflow-x:auto;overflow-y:hidden;
+    scrollbar-width:none}
+  .pg-panels::-webkit-scrollbar{display:none}
+  /* THE PANEL'S OWN RULES ARE IN THE `is:global` BLOCK ABOVE, and they had to move there — see
+     the long note beside them. A panel is built with `createElement` at runtime, so it never
+     carries the `data-astro-cid` attribute Astro compiles these selectors against, and every
+     rule for it here was inert. This page's `.pg-sr` comment predicted exactly that trap; the
+     panel had it too, and it shipped. */
 
-  .pg-cap{display:flex;justify-content:center;margin-top:var(--lead)}
-  .pg-hint{min-height:var(--lead);margin-top:var(--tight);color:var(--faint);
-    max-width:62ch}
+  /* The reserved error line is a ROW now, so nothing has to declare a min-height and no
+     off-grid margin reserves it: the row exists in the ladder whether or not it has words. */
+  .pg-hintline{grid-row:hint;align-self:center}
+  .pg-hint{color:var(--faint);max-width:62ch}
 
-  /* Controls: the Track grammar, verbatim from the practice room. A toggle is a
-     two-pocket track — one moving disc, the track is the class. */
-  .pg-btn{font:inherit;color:var(--ink);background:transparent;border:0;padding:0;
-    border-radius:0;min-height:44px;cursor:pointer;
+  /* ── THE TRANSPORT ──────────────────────────────────────────────────────────
+     THE RAMS SWITCH (transport chooser treatment 05, "the snow-white dot"), at the size
+     chooser practice-room-control-size picked on 2026-08-07 ("the same drawing, 1.45×
+     larger"). Braun's switch reduced to what changes: a hairline field and a dot that
+     travels to the far side and takes the accent.
+     WHAT THIS DELETES from this page, and the deletion is the point: the word `start`/`stop`,
+     its `--w` width reservation, and the whole apparatus that absolutely-positioned the
+     track outside the button so the WORD would land on the axis. That fix was correct for a
+     control with two marks; the right repair was to stop having two marks, not to keep
+     re-positioning the second one. `aria-pressed` carries the state, `aria-label` the verb,
+     and the dot's position plus accent carry it for the eye.
+     THE COST, stated because the site's rule is "structure is rules and whitespace, not
+     boxes": the field IS a box. It earns the exception by being the one control that has to
+     read at a glance from across a room with no word to help — and it is a hairline box,
+     `--line`, the same stroke the case frame uses. */
+  .pg-cap{display:flex;justify-content:center;align-self:start;align-items:center;
+    min-height:var(--lead)}
+  .pg-btn{font:inherit;color:var(--ink);background:transparent;border:0;
+    border-radius:0;cursor:pointer;
     display:inline-flex;align-items:baseline;gap:1ch;
     transition:color var(--dur-fast) var(--ease)}
   .pg-btn:hover{color:var(--accent)}
   .pg-btn:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
-  /* THE TRACK SITS OUTSIDE THE BUTTON. Centring the button centres the word-plus-track
-     PAIR, which puts the verb off the axis of the figure it captions by half the track's
-     width. Absolute-positioning the track to the left of the word centres the WORD, and
-     `margin-right:1ch` reproduces the gap the flex version gave it. The track stays inside
-     the button's hit area, and the 44px height is untouched, so the tap target holds.
-     The `translateY(2px)` keeps the optical nudge the svg's baseline needed, on top of the
-     centring the absolute position needs. Copied from the practice room's .mt-cap rule. */
-  .pg-cap .pg-btn.pg-latch{position:relative}
-  .pg-cap .pg-btn.pg-latch .pg-tk{position:absolute;right:100%;margin-right:1ch;
-    top:50%;transform:translateY(-50%) translateY(2px);display:block;overflow:visible}
-  .pg-latch .pg-tk .pg-run{stroke:var(--line);stroke-width:1}
-  .pg-latch .pg-tk .pg-pk{fill:none;stroke:var(--faint);stroke-width:1.2}
-  .pg-latch .pg-tk .pg-disc{fill:var(--ink);cx:4px;
+  /* ── THE TARGET IS PADDING, THE INK IS 32×16 ─────────────────────────────────
+     Two defects the room's harness caught the first time this treatment shipped there, and
+     neither was visible in a screenshot: with the word deleted the button's box collapses
+     to the field's width (under WCAG 2.5.8's floor on the short axis), and a 44px
+     participant in a 28px row shoves the reading's baseline 21.50px off the mark.
+     ONE FIX FOR BOTH, and it is the page's own idiom: pad out to the target and pull the
+     padding back with a matching negative margin. 32 + 6 + 6 = 44 wide, 16 + 14 + 14 = 44
+     tall. The ink then sits where the row wants it and the target overhangs into the slack,
+     which is air. Nothing is shrunk to fit — both axes still clear 44. */
+  .pg-cap .pg-btn.pg-latch{min-height:0;padding:14px 6px;margin:-14px -6px}
+  /* THE TOGGLE SITS ON THE TEXT'S OPTICAL CENTRE. The row is a baseline-aligned flex, so
+     the svg's own box bottom lands on the text baseline — which puts a 16px mark 8.5px
+     ABOVE where the type reads as centred, because type's visual middle is half its cap
+     height above the baseline, not half its line box. 4.5 (half the 9px cap) + 5 (the
+     residue of half the svg's height) = 9.5, and it is measured rather than nudged: the
+     parity harness reads this transform off both pages and fails if they disagree. */
+  .pg-rd{flex:none;display:block;transform:translateY(9.5px)}
+  .pg-fld{fill:none;stroke:var(--line);stroke-width:1.5}
+  .pg-dt{fill:var(--ink);
     transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
-  .pg-latch[aria-pressed="true"] .pg-tk .pg-disc{fill:var(--accent);
-    transform:translateX(18px)}
-  .pg-latch[aria-pressed="true"] .pg-w{color:var(--ink)}
-  /* Reserve the longer label's width so start/stop does not reflow the row — the practice
-     room's round-9 fix, same reason. The selector matches the SPAN, because that is where
-     the class now lives: the practice room still carries `.tbtn.fixw .w`, which stopped
-     matching anything when `fixw` moved onto the span, so its width reservation is
-     currently inert. Not mine to fix in that file, but worth not reproducing here. */
-  .pg-w.pg-fixw{display:inline-block;min-width:var(--w);text-align:center}
+  .pg-latch[aria-pressed="true"] .pg-dt{fill:var(--accent);transform:translateX(16px)}
 
   @media (prefers-reduced-motion:reduce){
-    .pg-latch .pg-tk .pg-disc{transition:none}
+    .pg-dt{transition:none}
+    .pg-note{transition:none}
   }
 
-  @media (max-width:600px){
-    /* The figure keeps its height; the panels get one lead less so both fit a phone
-       screen without the transport falling below the fold. */
-    .pg-panels{height:calc(var(--lead) * 2.5)}
+  /* THE FOOT, outside the screen: the way back to the other tools. `flex:none` so the
+     screen above it takes the rest, and two leads exactly — one of line, one of air —
+     which is what keeps the screen a whole number of leads after the foot takes its share. */
+  .pg-foot{flex:none;display:flex;justify-content:center;
+    padding:0 var(--gutter) var(--lead)}
+  .pg-foot a{color:var(--faint);line-height:var(--lead)}
+  .pg-foot a:hover{color:var(--accent)}
+
+  /* ── ⌥G: THE AXIS, THE BOX'S SIDE RULES, AND THE TOP DATUM ───────────────────
+     The room's overlay, with its three marks folded onto ONE pseudo-element. There the top
+     datum lives on `.mt-pages::before` because a single line has to cross three cases,
+     which forces that gradient's inset to restate the scroller's padding in a second place;
+     one case needs no such line, so the datum is measured from the case itself and that
+     second number stops existing.
+     EVERY MARK COINCIDES WITH INK A READER CAN SEE, which is the property the room's
+     box-guide pass was about: the axis is the case's centre (the one datum no ink of its own
+     marks, and the one the figure, the reading and the verb are all centred on), and the
+     other two name the calibration box's own rules — permanently drawn, in ink, for every
+     reader, not just while ⌥G is held.
+     `--pg-datum` is DERIVED from the two tokens the box is built from, so the datum cannot
+     drift from the rule it names — a hand-typed 9px would go stale the moment the padding
+     changed. It resolves to 1ch = 9px.
+     NO `z-index`, and that is load-bearing rather than tidy: it is what lets the notch's
+     own paper knock the top line out where it crosses the word `calibration`, the same
+     figure/ground move the case's plate makes on the frame. */
+  .pg-case::after{content:"";position:absolute;inset:0;
+    pointer-events:none;opacity:0;transition:opacity var(--dur-fast) var(--ease);
+    --pg-datum:calc(var(--pg-inset) - var(--pg-box-pull));
+    background:
+      /* THE AXIS — one line on the case's centre */
+      linear-gradient(to right, transparent calc(50% - 0.5px),
+        color-mix(in srgb, var(--accent) 55%, transparent) calc(50% - 0.5px) calc(50% + 0.5px),
+        transparent calc(50% + 0.5px)),
+      /* THE BOX RULE — one line on each of the group box's side rules */
+      linear-gradient(to right,
+        transparent calc(var(--pg-datum) - 1px),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(var(--pg-datum) - 1px) var(--pg-datum),
+        transparent var(--pg-datum) calc(100% - var(--pg-datum)),
+        color-mix(in srgb, var(--accent) 34%, transparent) calc(100% - var(--pg-datum)) calc(100% - var(--pg-datum) + 1px),
+        transparent calc(100% - var(--pg-datum) + 1px)),
+      /* THE TOP DATUM — the box's own top rule, at `case-top` */
+      linear-gradient(to bottom,
+        transparent calc(var(--pg-case-top) - 1px),
+        color-mix(in srgb, var(--accent) 45%, transparent)
+          calc(var(--pg-case-top) - 1px) var(--pg-case-top),
+        transparent var(--pg-case-top))}
+
+  /* ── THE PHONE. What changes is LESS than in the room, and each difference is a
+     mechanism this page does not need rather than one it drops.
+     THE CASE KEEPS ITS BORDER at every width. The room deletes it below 1002px and draws an
+     inset frame with `::before` instead, because its three cases become full-width snap
+     pages and a bordered snap page shifts the scroller's geometry. There is one case here
+     and no scroller, so the border simply stays — and `case-top` stays at one lead too,
+     since the two leads the room's phone needs are there to clear the metronome's accent
+     mark, which this page has nothing like.
+     THE FRAME LANDS WHERE THE ROOM'S LANDS — 1ch from the viewport — and that is a
+     correction to what I first shipped, caught by the parity harness rather than by looking.
+     The first version kept `--group` (56px) of screen padding at every width, which put this
+     page's frame 56px from the edge while the room draws its own at 9px. Measured at 390: the
+     trace got 278px of ink against the room's 336. On the one viewport where the figure's
+     whole subject is time along x, spending 17% of it on air outside the frame is the wrong
+     trade — and it is exactly what a phone screenshot flatters, because the composition
+     looked calm while the instrument had quietly shrunk.
+     ONE NUMBER CHANGES, AND IT IS THE SCREEN'S PADDING. The room reaches that line with two
+     elements (a full-width snap page, plus a `::before` drawn 1ch inside it) because a
+     bordered snap page shifts its scroller's geometry. This page's frame IS the case's
+     border, so placing it is just the padding around the case — same line, same place, one
+     element instead of two.
+     WHAT STILL DIFFERS, MEASURED AND ACCEPTED: the clearance between that frame and the ink
+     inside it is 3ch here against the room's 2ch. Theirs is 3ch of case padding LESS the 1ch
+     their frame is drawn inside the case; this page has no such subtraction, because the
+     frame is the case's own edge. Holding `--pg-inset` at 3ch on every width is the simpler
+     statement — one horizontal datum, declared once, with the box arithmetic that hangs off
+     it (`rule = inset − pull`) untouched. The cost is 10px per side against the room's
+     figure: 316px of trace at 390, where the version this replaces had 278.
+     THE VERTICAL PADDING IS ONE LEAD EACH SIDE: 28 + 28 = 56, so the ladder still resolves to
+     a whole number of leads.
+     THE PANEL ROW GOES TO 2 LEADS so the group still clears the fold. It was 2.5 leads
+     before, which is 70px — a row height off the ladder every other row is on. */
+  @media (max-width: 1001px){
+    .pg-screen{padding:var(--lead) 1ch}
+    .pg-panels{height:calc(var(--lead) * 2)}
+    /* the panels' own svg height for this width is in the `is:global` block with the rest of
+       the panel's rules — scoped, it could not reach markup the script builds */
+  }
+
+  /* ── THE READING DROPS ITS FREQUENCY ON A NARROW SCREEN (see the long note on `.pg-rr`).
+     THE BOUNDARY IS BISECTED, with this rule suppressed so the wrap is the browser's own
+     decision rather than mine (`tools/_bisect-read.mjs`, the method the room's 1479 and 1002
+     thresholds were found by): playing the four-note fixture, the verb sits 0.00px off the case
+     axis down to 429px of viewport and goes off it at 428 — 1.00px there, degrading to 45px at
+     340 as the nowrapped Hz group holds a floor the note column cannot match.
+     WHY I DID NOT COMPUTE IT: I did, first, and got 410 — the arithmetic (2 × 144px of reading
+     + the 32px switch + 2 × 18px of gap = 356px of content, plus the case's 2 × 27px inset and
+     the screen's 2 × 9px padding) predicts a boundary 19px below where the browser actually
+     puts one. Same lesson this project has recorded twice on the room: compute to know WHY a
+     threshold exists, bisect to know WHERE it is.
+     430, NOT 429, and the extra pixel is bought deliberately: 430 is the width already in every
+     harness here (the largest phone in the datums sweep and the parity sweep), so the threshold
+     is sampled from both sides by checks that already exist. And the reading's width depends on
+     its VALUE — `+100.0¢` with a four-digit frequency is wider than this fixture's — so a rule
+     set at the exact boundary of one sample would break on another. */
+  @media (max-width: 430px){
+    .pg-hz{display:none}
+  }
+
+  /* ── A SHORT SCREEN, MEASURED. The fixed rows total 12 leads (case-top 1, spec 2,
+     figure 7, read 1, hint 1... plus panels 3 and case-bot 1 = 16) plus the foot's 2 and
+     the screen's 3 of padding, so the two slack rows only have room above ~600px of
+     viewport. Below that `1fr` resolves to 0 and the case's own contents would overflow a
+     screen that cannot scroll. The figure is what gives: it is the row with the most height
+     and the only one whose scale is a choice rather than a line of type. At 4 leads the
+     trace is 112px for a ±50¢ axis — coarser, and still a figure.
+     Stated as a height query rather than left to `min-height:0` because an overflowing
+     `overflow:hidden` screen does not degrade, it clips: the transport would simply not be
+     on the page. */
+  @media (max-height: 640px){
+    .pg-fig{height:calc(var(--lead) * 4)}
+    .pg-panels{height:calc(var(--lead) * 2)}
   }
 </style>
 
@@ -409,6 +874,10 @@ import Layout from '../layouts/Layout.astro';
     panels: [] as { note: string; mean: number; reads: number }[],
     reading: null as null | { name: string; cents: number; inTransition: boolean },
     series,
+    // The calibration binding, so a scrub can be checked as a VALUE and not only as the
+    // digits it paints — the room's suite learned that a paint which skips the setter
+    // satisfies every assertion about the field.
+    get a4() { return a4; },
   };
   if (E2E) (window as any).__pg = hook;
 
@@ -425,7 +894,12 @@ import Layout from '../layouts/Layout.astro';
   function measure() {
     const r = figEl.getBoundingClientRect();
     if (r.width > 200) W = Math.round(r.width);
-    if (r.height > 80) H = Math.round(r.height);
+    // 80 was the floor when the figure was always 7 leads. The short-screen rule takes it
+    // to 4 leads = 112px, and the phone at 640px tall gets that too — so the guard has to
+    // sit below the smallest height the CSS can produce, or a real 112px figure would be
+    // rejected and the drawing would keep a stale 196px viewBox on a 112px element,
+    // stretching every label vertically. 60 is under 112 and still above a collapsed 0.
+    if (r.height > 60) H = Math.round(r.height);
     svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   }
 
@@ -548,7 +1022,12 @@ import Layout from '../layouts/Layout.astro';
     // Width in proportion to how long you held it (the sheet's Q1/07): a short note is
     // honestly narrow. Capped so one very long note cannot own the row.
     const w = Math.max(14, Math.min(90, cents.length * 2));
-    const PH = 56;
+    // THE PANEL'S HEIGHT IS READ FROM THE ROW, not fixed at 56. The row gives 2 leads on a
+    // wide screen and 1.5 on a phone (the CSS above), and a hardcoded 56 would draw a
+    // 56-unit viewBox into a 42px box — `preserveAspectRatio="none"` would then squash every
+    // mark vertically by 25% while the numbers underneath stayed right. Measured off the
+    // element, with the wide-screen value as the fallback for the first panel of a run.
+    const PH = Math.round(panelsEl.getBoundingClientRect().height * 0.66) || 56;
     const pmid = PH / 2;
     const py = (c: number) =>
       pmid - Math.max(-AXIS_LIMIT_CENTS, Math.min(AXIS_LIMIT_CENTS, c))
@@ -686,9 +1165,11 @@ import Layout from '../layouts/Layout.astro';
       analyser.fftSize = 2048;
       ac.createMediaStreamSource(s).connect(analyser);
 
+      // THE VERB IS THE ACCESSIBLE NAME NOW. The switch has no word to swap (treatment
+      // 05), so `aria-label` is the only place the verb lives — and `aria-pressed` plus
+      // the dot's berth and colour carry the state for everyone else.
       listenBtn.setAttribute('aria-pressed', 'true');
       listenBtn.setAttribute('aria-label', 'stop listening');
-      listenBtn.querySelector('.pg-w')!.textContent = 'stop';
       hintEl.textContent = '';
 
       timer = window.setInterval(() => {
@@ -742,7 +1223,6 @@ import Layout from '../layouts/Layout.astro';
     quietFrames = 99;
     listenBtn.setAttribute('aria-pressed', 'false');
     listenBtn.setAttribute('aria-label', 'start listening');
-    listenBtn.querySelector('.pg-w')!.textContent = 'start';
     noteEl.textContent = '—';
     noteEl.classList.remove('pg-intune');
     centsEl.textContent = '–';
@@ -752,13 +1232,76 @@ import Layout from '../layouts/Layout.astro';
 
   listenBtn.addEventListener('click', () => { stream ? stop() : start(); });
 
-  // A4: commits on `change`, never on `input`, so nothing repaints mid-keystroke.
+  // ── CALIBRATION: TYPE IN THE FIELD, SCRUB ON THE UNIT ─────────────────────
+  // The room's control, and the point of copying its BEHAVIOUR as well as its box: two
+  // controls that look identical and operate differently is worse than either choice on
+  // its own. Chooser metrotuner-scrub-target pick 03 — Figma's model, where the label
+  // beside a field is the scrubber and the field only types.
+  // The handle is a LABEL, not the input, which is what makes `pointermove` ours and means
+  // there is no post-drag click to swallow and no field to blur: the handle cannot focus
+  // anything, so there is nothing to undo.
   const a4El = $('pg-a4') as unknown as HTMLInputElement;
-  a4El.addEventListener('change', () => {
-    const v = Number(a4El.value);
-    if (Number.isFinite(v) && v >= A4_MIN && v <= A4_MAX) a4 = v;
-    else a4El.value = String(a4);
-  });
+  const a4Host = $('pg-a4-scrub');
+  const handles = Array.from(a4Host.querySelectorAll<HTMLElement>('.pg-hd'));
+
+  const syncHandles = () => {
+    for (const h of handles) {
+      h.setAttribute('aria-valuenow', String(a4));
+      h.setAttribute('aria-valuetext', `A4 = ${a4} hertz`);
+    }
+  };
+  // ONE SETTER, so the field, the handles' announced value and the binding cannot
+  // disagree. It commits on `change` (blur or Enter), never on `input`, so nothing
+  // repaints mid-keystroke — and an out-of-range entry is corrected in place by the clamp
+  // rather than by a separate write-back.
+  const setA4 = (v: number) => {
+    if (!Number.isFinite(v)) return;
+    a4 = Math.min(A4_MAX, Math.max(A4_MIN, v));
+    a4El.value = String(a4);
+    syncHandles();
+  };
+  a4El.addEventListener('change', () => setA4(Number(a4El.value)));
+
+  for (const h of handles) {
+    let dragX: number | null = null;
+    let dragStart = 0;
+    h.addEventListener('pointerdown', (e) => {
+      dragX = e.clientX; dragStart = a4;
+      a4Host.classList.add('scrubbing');
+      h.classList.add('hot');
+      h.setPointerCapture(e.pointerId);
+      e.preventDefault();          // no text selection of the label while dragging
+    });
+    h.addEventListener('pointermove', (e) => {
+      if (dragX === null) return;
+      // 4px per unit, the room's rate on every value it scrubs.
+      const d = Math.round((e.clientX - dragX) / 4);
+      const v = Math.min(A4_MAX, Math.max(A4_MIN, dragStart + d));
+      if (v !== a4) setA4(v);
+    });
+    const end = () => {
+      dragX = null;
+      a4Host.classList.remove('scrubbing');
+      h.classList.remove('hot');
+    };
+    h.addEventListener('pointerup', end);
+    h.addEventListener('pointercancel', end);
+    // A handle is a control, so it answers the arrows and takes focus. `tabindex` is set
+    // here rather than in the markup so a handle is only focusable once its behaviour is
+    // wired — an unwired focusable label is a control that does nothing.
+    h.tabIndex = 0;
+    h.setAttribute('role', 'slider');
+    h.setAttribute('aria-valuemin', String(A4_MIN));
+    h.setAttribute('aria-valuemax', String(A4_MAX));
+    h.addEventListener('keydown', (e) => {
+      const step = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1
+        : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      setA4(a4 + step);
+    });
+  }
+  syncHandles();
 
   // The mic must stop on pagehide — a live track on a backgrounded page is a recording
   // light nobody asked for.
