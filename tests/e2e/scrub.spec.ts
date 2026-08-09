@@ -1,5 +1,16 @@
 import { test, expect } from '@playwright/test';
 
+// ── THESE TESTS NEED THE DESKTOP LAYOUT, SO THEY STATE ITS WIDTH ────────────────────────
+// Playwright's default is 1280, and with five cases (practice-room-apps Q1/02+03, Q2/01) the
+// room SWIPES below 1477 — the metronome's foot line needs a 190px case, and below that it
+// wrapped and pushed `tap` outside a case that clips its overflow. On the phone layout the
+// cases are five snap pages, so a control on page 3 sits at x 3157 in a 1280 viewport:
+// measured, and `elementFromPoint` at the drone note's centre returned null. A drag test
+// against an off-screen control fails for a reason that has nothing to do with dragging.
+// One number, one place — a per-test literal is how a suite ends up half-migrated.
+const DESKTOP = { width: 1512, height: 900 };
+test.use({ viewport: DESKTOP });
+
 // The scrub steppers (steppers chooser, both Q picks 02): the value IS the control.
 // Drag gestures asserted with real pointer sequences — the mobile caveat both picks
 // carried is answered by drag-as-primary + touch-action:none, and these tests drive

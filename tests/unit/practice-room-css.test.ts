@@ -83,17 +83,28 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     expect(css, 'three equal columns is a different pick').not.toMatch(/repeat\(3,\s*minmax/);
   });
 
-  it('gives the phone three snap pages', () => {
-    expect(css).toMatch(/repeat\(3,\s*100%\)/);
-    expect(css, 'the two-page scroller is gone').not.toMatch(/repeat\(2,\s*100%\)/);
+  it('gives the phone five snap pages', () => {
+    // FIVE now (practice-room-apps Q1/02+03, Q2/01: the chord dealer and the loop joined the
+    // room). The count is asserted rather than the mechanism, because a page count that drifts
+    // from the case count is how a case becomes unreachable on a phone: the scroller sizes its
+    // tracks by number, so a fourth case with a three-track scroller simply has no snap stop.
+    expect(css).toMatch(/repeat\(5,\s*100%\)/);
+    expect(css, 'the earlier scrollers are gone').not.toMatch(/repeat\([234],\s*100%\)/);
   });
 
-  // The one deliberate break of the site's single type size, and the only one on this
-  // screen: the drone's figure is a glyph doing a drawing's job. Pinned so it cannot drift
-  // into a second display size — and so deleting the figure's size is a visible change.
-  it("states the drone letter's size once, as the figure it is", () => {
-    const sizes = css.match(/font-size:\s*\d+px/g) || [];
-    expect(sizes, `only the drone letter may set a px size: ${sizes.join(' | ')}`)
+  // ── THE ONE ABOVE-RAMP SIZE, NOW USED BY TWO FIGURES ────────────────────────────────
+  // The drone's letter and the chord dealer's symbol both set 72px, and that is the whole
+  // reason adding a chord trainer did not cost the page a type size: the exception is REUSED,
+  // not extended. The assertion is therefore "every px size on this screen is 72" rather than
+  // "there is exactly one" — a second figure at 72 is the system holding, a figure at 44 is
+  // the system breaking.
+  // `16px` is excluded because `.f input` sets it globally to stop iOS Safari's focus zoom, and
+  // the loop's url field inherits that rule; it is a UA workaround, not a display size.
+  it('sets no display size but the 72px figure — and both figures share it', () => {
+    const sizes = (css.match(/font-size:\s*(\d+)px/g) || [])
+      .filter((d) => !/16px/.test(d));
+    expect(sizes.length, 'both figures state a size').toBeGreaterThanOrEqual(2);
+    expect([...new Set(sizes)], `only 72px may be set: ${sizes.join(' | ')}`)
       .toEqual(['font-size:72px']);
   });
 
@@ -160,7 +171,14 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
   // until the verb joined the reading's row and the second line stopped describing anything.)
   // So the rule is now absolute: NO repeating gradient anywhere in this sheet's overlay.
   it('the ⌥G overlay draws discrete datums, never a repeating grid', () => {
-    const repeats = css.match(/repeating-linear-gradient\([^)]*/g) || [];
+    // THE CLAIM IS ABOUT THE OVERLAY, so it is scoped to the overlay. An unscoped search for
+    // `repeating-linear-gradient` now also finds the loop's SIXTEENTH TICKS (`.mt-tl::before`),
+    // which are content — the ruler a caret nudge lands on — and not a guide. Matching them
+    // failed a correct page, which is the same over-reach this file records for the sentinel
+    // version of the box-guide test.
+    const overlayRules = css.match(/\.mt-(half|pages)\[[^\]]*\]:(?:after|before)\{[^}]*\}/g) || [];
+    expect(overlayRules.length, 'the two overlay rules are present').toBeGreaterThanOrEqual(2);
+    const repeats = overlayRules.join(' ').match(/repeating-linear-gradient\([^)]*/g) || [];
     expect(repeats, `the overlay must not repeat on either axis: ${repeats.join(' | ')}`)
       .toEqual([]);
   });

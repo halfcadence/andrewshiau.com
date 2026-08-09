@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  NOTE_NAMES, nameOf, pitchClassOf, nameInChord, chordNames, octaveOf,
+  NOTE_NAMES, nameOf, pitchClassOf, nameInChord, chordNames, octaveOf, spellVoicing,
 } from '../../src/lib/practice-room/naming';
 
 // ── THE MODULE THAT NAMES EVERY NOTE ON THE INSTRUMENT ────────────────────────────────
@@ -159,6 +159,92 @@ describe('a pitch as an interval above a root', () => {
         const acc = { '♯': 1, '♭': -1, '𝄪': 2, '𝄫': -2 }[m![2] ?? ''] ?? 0;
         const pc = (VAL[m![1]] + acc + 12) % 12;
         expect(pc, `${name} must sound pitch class ${(root + s) % 12}`).toBe((root + s) % 12);
+      }
+    }
+  });
+});
+
+// ── A DECLARED DEGREE BEATS THE CONVENTIONAL SIZE ──────────────────────────────────────
+// Found while building the chord-trainer proof sheet, by the sheet's own verify harness going
+// red: `nameInChord` reads a SEMITONE COUNT, but a chord symbol declares a DEGREE, and for an
+// altered degree the two disagree about the letter. Measured across an eleven-chord deck, three
+// chords printed a letter their own symbol rules out.
+//
+// Every expectation below is a fact a musician states without seeing the code: a ♭5 is a fifth,
+// so it is spelled on the fifth letter, however many semitones that turns out to be.
+describe('a chord tone whose degree the symbol has already declared', () => {
+  it('spells F♯m7♭5 with its fifth on C, not B♯', () => {
+    const fSharp3 = 54;
+    // WITHOUT the degree — the conventional reading of 6 semitones is an augmented 4th, so the
+    // letter comes out B. This is the behaviour every existing caller keeps.
+    expect(nameInChord(fSharp3, 6)).toBe('B♯3');
+    // WITH it — a ♭5 is a FIFTH: F♯ up five letters is C, and the accidental follows.
+    expect(nameInChord(fSharp3, 6, 5)).toBe('C4');
+    expect(spellVoicing(fSharp3, [
+      { semis: 0, degree: 1 }, { semis: 3, degree: 3 },
+      { semis: 6, degree: 5 }, { semis: 10, degree: 7 },
+    ])).toEqual(['F♯3', 'A3', 'C4', 'E4']);
+  });
+
+  it('spells a diminished triad B° as B D F', () => {
+    const b3 = 59;
+    expect(nameInChord(b3, 6)).toBe('E♯4');            // size-only: an augmented 4th
+    expect(spellVoicing(b3, [
+      { semis: 0, degree: 1 }, { semis: 3, degree: 3 }, { semis: 6, degree: 5 },
+    ])).toEqual(['B3', 'D4', 'F4']);
+  });
+
+  it('spells a ♯9 on the ninth letter — G7♯9 has A♯, not B♭', () => {
+    const g3 = 55;
+    // 15 semitones read conventionally is a minor 10th, so the letter is B.
+    expect(nameInChord(g3, 15)).toBe('B♭4');
+    // As the ♯9 it is a NINTH: G up nine letters (eight steps) is A, raised.
+    expect(nameInChord(g3, 15, 9)).toBe('A♯4');
+  });
+
+  it('spells a ♭13 on the thirteenth letter', () => {
+    const a3 = 57;                                     // A7♭13: A C♯ G F
+    expect(spellVoicing(a3, [
+      { semis: 0, degree: 1 }, { semis: 4, degree: 3 },
+      { semis: 10, degree: 7 }, { semis: 20, degree: 13 },
+    ])).toEqual(['A3', 'C♯4', 'G4', 'F5']);
+  });
+
+  it('changes nothing for a chord with no altered degree', () => {
+    // The regression guard that matters: passing the degree must AGREE with the size-only
+    // reading wherever the conventional size is already the declared one. If these ever differ,
+    // the new parameter has broken the old behaviour rather than extended it.
+    const cases: Array<[number, Array<[number, number]>]> = [
+      [50, [[0, 1], [3, 3], [7, 5], [10, 7]]],         // Dm7
+      [55, [[0, 1], [4, 3], [7, 5], [10, 7]]],         // G7
+      [61, [[0, 1], [4, 3], [7, 5], [11, 7]]],         // C♯maj7
+      [48, [[0, 1], [4, 3], [7, 5]]],                  // C
+      [57, [[0, 1], [3, 3], [7, 5]]],                  // Am
+    ];
+    for (const [root, tones] of cases) {
+      for (const [semis, degree] of tones) {
+        expect(nameInChord(root, semis, degree),
+          `${nameOf(root)} + ${semis} as degree ${degree}`)
+          .toBe(nameInChord(root, semis));
+      }
+    }
+  });
+
+  it('never names the wrong PITCH, whatever degree it is told', () => {
+    // Same rule as the size-only sweep above: the spelling is debatable, the pitch is not.
+    const VAL: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    for (let root = 48; root <= 72; root++) {
+      // every plausible (semitones, degree) pair a chord symbol can declare
+      for (const [semis, degree] of [
+        [6, 5], [8, 5], [15, 9], [13, 9], [20, 13], [21, 13], [9, 6], [16, 10],
+      ] as Array<[number, number]>) {
+        const name = nameInChord(root, semis, degree);
+        const m = name.match(/^([A-G])(♯|♭|𝄪|𝄫)?(-?\d+)$/u);
+        expect(m, `unparseable: ${name} (root ${root}, ${semis} as ${degree})`).not.toBeNull();
+        const acc = { '♯': 1, '♭': -1, '𝄪': 2, '𝄫': -2 }[m![2] ?? ''] ?? 0;
+        const pc = (VAL[m![1]] + acc + 12) % 12;
+        expect(pc, `${name} must sound pitch class ${(root + semis) % 12}`)
+          .toBe((root + semis) % 12);
       }
     }
   });

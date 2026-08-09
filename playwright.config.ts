@@ -75,6 +75,13 @@ export default defineConfig({
     // detector picking a different period each read while one note stays open. room-noise
     // was too smooth to do it (0 false panels from 247 reads), which the red arm proved.
     mkProject('pitchgraph-jumps', 'low-jumps.wav', /pitchgraph-jumps\.spec\.ts/),
-    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts/),
+    // THE ARPEGGIATED VOICING, its own project because the fake mic is a launch flag. This is
+    // the only fixture that can exercise the chord dealer's grading: four plucked notes of a
+    // Dm7 in the dealer's own register, held 700ms each with a rest between, so the 60ms read
+    // loop sees each one and no note's decay is charged to the next. Verified through the
+    // shipped detector before the test was written — D3 F3 A3 C4, 72 reads each, no spurious
+    // notes — because a fixture nobody checked makes a test that cannot fail.
+    mkProject('changes-arp', 'arp-dm7.wav', /changes-arp\.spec\.ts/),
+    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts|changes\.spec\.ts|loop\.spec\.ts/),
   ],
 });

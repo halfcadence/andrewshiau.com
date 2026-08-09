@@ -9,7 +9,7 @@ import Layout from '../layouts/Layout.astro';
 // THE SHAPE IS A SCREEN, NOT THE DOCUMENT. Q2/01 "equal halves": on a wide viewport
 // the tuner and the metronome each centre in half the screen, both running — two
 // instruments, one practice, the same argument .duo makes on /method/. Q3/02 "swipe":
-// under 1002px the cases become snap-scroll pages, and the indicator is the
+// under 1477px the cases become snap-scroll pages, and the indicator is the
 // site's own pair — ring and disc, the disc marking where you are. 900 because that
 // is the width where .duo stacks; this page's halves give at the same width the
 // site's one other side-by-side does.
@@ -516,6 +516,188 @@ import Layout from '../layouts/Layout.astro';
           <span class="mt-chord" id="mt-chord" data-testid="chord" aria-live="off"></span>
         </div>
       </section>
+
+      <!-- ── THE CHANGES, the fourth case ──────────────────────────────────────
+           Chooser practice-room-apps Q1/02: a chord dealer for the EAR. It sounds a
+           voicing; you name it; you press to reveal. The symbol is the figure, and it is
+           the ANSWER — so it reads `?` until you ask for it, which is the whole mechanic.
+           WHY THE SYMBOL AND NOT A STAFF: the room has no notation vocabulary and adding
+           one for a single case would be a second visual language. A chord symbol is what a
+           jazz player reads anyway, and it is type — which this page already sets at 72px
+           for the drone's letter. That exception is REUSED here, not extended: same size,
+           same optical nudge, same reason (a figure is a drawing, not a line of copy).
+           GRADING IS ARPEGGIATION (chooser Q3/02), and the reason is measured rather than
+           chosen: the shipped detector is the McLeod Pitch Method, which finds ONE period.
+           A strummed four-note voicing reads as NO PITCH and a bare fifth reads an octave
+           low — so a trainer that graded a strum would need a detector the room does not
+           have. Played one note at a time it is the detector's home ground (0.35 cents,
+           C2–C7, asserted). The foot line says so in one word: `arpeggiate`. -->
+      <section class="mt-half mt-changes" aria-label="Chord dealer">
+        <span class="mt-plate" aria-hidden="true">the changes</span>
+        <!-- THE DECK IS THE SPEC CONTROL, like calibration on the other cases: it says what
+             the instrument MEANS by a chord, and you set it per session rather than per rep.
+             A selector, not latches — the decks are mutually exclusive, and the Track
+             grammar's rule is that form announces operation. -->
+        <div class="mt-ctop">
+          <span class="mt-fr">
+            <span class="mt-deck mt-grp" id="mt-deck" role="group" aria-label="Chord deck">
+              <span class="mt-gl" aria-hidden="true">deck</span>
+              <button type="button" class="vbtn" data-deck="triads" data-testid="deck-triads"
+                aria-pressed="false">triads</button>
+              <button type="button" class="vbtn" data-deck="sevenths" data-testid="deck-sevenths"
+                aria-pressed="true">sevenths</button>
+              <button type="button" class="vbtn" data-deck="altered" data-testid="deck-altered"
+                aria-pressed="false">altered</button>
+            </span>
+          </span>
+        </div>
+        <div class="mt-mid">
+          <!-- THE SYMBOL IS THE FIGURE AND THE CONTROL, exactly as the drone's letter is:
+               press it to hear the chord, press again to reveal what it was. One surface,
+               and the gesture is the same one the drone taught. -->
+          <figure class="mt-gauge mt-symfig">
+            <button type="button" class="mt-sym" id="mt-sym" data-testid="chord-symbol"
+              aria-label="Chord — press to hear it, press again to reveal what it is"
+              title="press to hear · again to reveal">?</button>
+          </figure>
+          <!-- The read row holds the verb, on the same line as the other four cases. -->
+          <div class="mt-read mt-read-bare">
+            <div class="mt-cap">
+              <button type="button" class="tbtn latch" id="mt-chordrun" data-testid="chord-toggle"
+                aria-pressed="false" aria-label="sound the chord">
+                <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                  <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                  <circle class="dt" cx="8" cy="8" r="3.2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-cfoot">
+          <span class="mt-fl">
+            <!-- THE MOMENTARY: deal the next chord. A disc with no track can only be
+                 pressed, which is exactly what dealing is. -->
+            <button type="button" class="tbtn mom" id="mt-deal" data-testid="deal">
+              <svg class="tk" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                <circle cx="7" cy="7" r="4.6"/>
+              </svg><span class="w">deal</span>
+            </button>
+          </span>
+          <span class="mt-fr">
+            <!-- THE MIC LATCH. Arpeggiate the voicing and it checks the notes as they
+                 arrive. Off by default: this case is useful with no microphone at all
+                 (sound it, name it in your head, reveal), so the permission prompt is
+                 something you opt into rather than the price of opening the room. -->
+            <button type="button" class="tbtn latch" id="mt-arp" data-testid="arp-toggle"
+              aria-pressed="false" aria-label="listen — arpeggiate the chord one note at a time">
+              <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                <circle class="dt" cx="8" cy="8" r="3.2"/>
+              </svg><span class="w">arpeggiate</span>
+            </button>
+          </span>
+        </div>
+
+        <!-- THE ANSWER LINE, in the `hint` row — the row the tuner uses for its error line
+             and the metronome leaves empty. It prints the spelled notes once revealed, and
+             the notes you have actually landed while arpeggiating. It is RESERVED whether
+             or not there is anything to say, so nothing reflows when a verdict appears. -->
+        <div class="mt-answerline">
+          <span class="mt-answer" id="mt-answer" data-testid="chord-answer" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <!-- ── THE LOOP, the fifth case ──────────────────────────────────────────
+           Chooser practice-room-apps Q1/03: the transcriber's part selector. Two carets cut
+           the span you are fighting; four words set the speed; it loops that forever.
+           NO WAVEFORM, and that is a decision rather than an omission: the room has no
+           waveform vocabulary, and a hairline with two marks says everything a part selector
+           has to say. The ticks are sixteenths, so a nudge has something to land on.
+           THE SOURCE IS A YOUTUBE EMBED (chooser Q4/02) — where the material actually is.
+           TWO COSTS, both real and both stated on the sheet: it breaks the room's
+           no-network rule (this is the first case that talks to another origin), and the
+           speeds are the iframe API's fixed menu, so ¼ is the floor and there is no ⅓.
+           THE IFRAME IS NOT LOADED UNTIL YOU ASK. Nothing is requested, and no cookie is
+           set, until you paste a URL — so opening the practice room still talks to nobody.
+           That is the same promise the tuner makes about the microphone, kept the same way:
+           by not starting the thing until it is needed. -->
+      <section class="mt-half mt-loop" aria-label="Loop">
+        <span class="mt-plate" aria-hidden="true">the loop</span>
+        <div class="mt-ctop">
+          <span class="mt-fr">
+            <!-- THE SOURCE IS THE SPEC CONTROL: what the instrument is pointed at. -->
+            <!-- THE PLACEHOLDER IS SHORT BECAUSE THE FIELD IS 180px. Measured on the live
+                 page: `paste a youtube url` sets ~171px at the field's 16px and rendered
+                 clipped — "paste a youtube ur" — because the case is 236px and that width is
+                 its own measured minimum, so the field cannot grow. The notch above already
+                 says `source`, and the full sentence lives in the aria-label, so shortening
+                 the placeholder loses nothing a reader needed. -->
+            <span class="f mt-src mt-grp" id="mt-src-grp">
+              <span class="mt-gl" aria-hidden="true">source</span>
+              <label for="mt-src" class="mt-lb visually-hidden">youtube url</label>
+              <input id="mt-src" data-testid="loop-src" type="text" inputmode="url"
+                     placeholder="paste a url"
+                     aria-label="YouTube URL — paste a link to load it" />
+            </span>
+          </span>
+        </div>
+        <div class="mt-mid">
+          <!-- THE FIGURE IS THE TIMELINE, and it is the control: drag either caret, arrows
+               nudge by a sixteenth. `figure` semantically, a real focusable group for the
+               keyboard — the same promotion the drone's letter took. -->
+          <figure class="mt-gauge mt-tlfig">
+            <div class="mt-tl" id="mt-tl" data-testid="timeline" tabindex="0" role="group"
+              aria-label="Loop span — drag either caret, arrow keys nudge by a sixteenth">
+              <span class="mt-tl-axis" aria-hidden="true"></span>
+              <span class="mt-tl-span" id="mt-tl-span" aria-hidden="true"></span>
+              <span class="mt-tl-caret" id="mt-tl-a" data-caret="a" aria-hidden="true"></span>
+              <span class="mt-tl-caret" id="mt-tl-b" data-caret="b" aria-hidden="true"></span>
+              <span class="mt-tl-head" id="mt-tl-head" aria-hidden="true"></span>
+            </div>
+          </figure>
+          <div class="mt-read">
+            <span class="mrn mt-tl-read" id="mt-tl-read" data-testid="loop-span">—</span>
+            <div class="mt-cap">
+              <button type="button" class="tbtn latch" id="mt-loop-run" data-testid="loop-toggle"
+                aria-pressed="false" aria-label="loop the span">
+                <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                  <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                  <circle class="dt" cx="8" cy="8" r="3.2"/>
+                </svg>
+              </button>
+            </div>
+            <span class="mt-rr"><span class="mrh" id="mt-tl-len"></span></span>
+          </div>
+        </div>
+
+        <div class="mt-cfoot">
+          <span class="mt-fr">
+            <!-- SPEED AS WORDS, the drone's voice-row idiom: mutually exclusive, so a
+                 selector and not four latches. `1` is first because that is where a
+                 transcription starts — you listen at speed, then slow the part down. -->
+            <span class="mt-rate mt-grp" id="mt-rate" role="group" aria-label="Playback speed">
+              <span class="mt-gl" aria-hidden="true">speed</span>
+              <button type="button" class="vbtn" data-rate="1" data-testid="rate-1"
+                aria-pressed="true">1</button>
+              <button type="button" class="vbtn" data-rate="0.75" data-testid="rate-075"
+                aria-pressed="false">¾</button>
+              <button type="button" class="vbtn" data-rate="0.5" data-testid="rate-05"
+                aria-pressed="false">½</button>
+              <button type="button" class="vbtn" data-rate="0.25" data-testid="rate-025"
+                aria-pressed="false">¼</button>
+            </span>
+          </span>
+        </div>
+
+        <!-- The player itself, and the state line. The iframe is 1×1 and visually hidden
+             until a URL is pasted — the case's figure is the timeline, not a video. -->
+        <div class="mt-loopline">
+          <span class="mt-loopstate" id="mt-loopstate" data-testid="loop-state" aria-live="polite"
+            >paste a url to begin</span>
+        </div>
+        <div class="mt-yt" id="mt-yt" aria-hidden="true"></div>
+      </section>
     </div>
 
     <!-- The foot: the page indicator (phone only) and the one word out. The dots are
@@ -533,12 +715,24 @@ import Layout from '../layouts/Layout.astro';
            `tuner · metronome · drone` sets to 360px on ONE line, inside the viewport. The
            dots-instead fallback the sheet offered was not needed, and the words are worth
            keeping — they NAME the pages, which two discs cannot. -->
+      <!-- FIVE PAGES, FIVE WORDS — and this row is what the phone layout costs now.
+           MEASURED at 390px: `tuner · metronome · drone · the changes · the loop` sets to
+           568px, which does NOT fit one line inside the viewport. Three words fit at 360px;
+           five do not, so the row wraps to two lines and the foot takes a second lead. That
+           is the honest trade and it is taken deliberately: the words NAME the pages, which
+           five discs cannot, and a wrapped two-line index is still readable where five
+           unlabelled dots are a guessing game. The `.mt-dots` rule below reserves both
+           lines so the wrap costs no reflow when you swipe. -->
       <div class="mt-dots" id="mt-dots">
         <button type="button" data-goto="0" data-testid="dot-tuner" class="pgword">tuner</button>
         <span class="mt-lb" aria-hidden="true">·</span>
         <button type="button" data-goto="1" data-testid="dot-metro" class="pgword">metronome</button>
         <span class="mt-lb" aria-hidden="true">·</span>
         <button type="button" data-goto="2" data-testid="dot-drone" class="pgword">drone</button>
+        <span class="mt-lb" aria-hidden="true">·</span>
+        <button type="button" data-goto="3" data-testid="dot-changes" class="pgword">the changes</button>
+        <span class="mt-lb" aria-hidden="true">·</span>
+        <button type="button" data-goto="4" data-testid="dot-loop" class="pgword">the loop</button>
       </div>
       <!-- THE MARK IS GONE (user call, 2026-08-04: "just delete the mark, it's not
            really part of this tool"). The instrument carries no site chrome at all;
@@ -836,6 +1030,108 @@ import Layout from '../layouts/Layout.astro';
   .mt-drone[data-sounding="true"] .vbtn.on{color:var(--accent)}
 
 
+  /* ══ THE CHANGES — the chord dealer's own marks ═══════════════════════════════════
+     THE SYMBOL IS THE DRONE'S 72px EXCEPTION, REUSED. Not a new size: same declaration, same
+     optical nudge, same justification (a figure is a drawing, not a line of copy). Reusing it
+     is what keeps "one typeface, one size" true with a fourth case on the screen — the page
+     still has exactly one above-ramp size, now used by two figures.
+     THE NUDGE IS THE DRONE'S NUMBER because it is the same face at the same size: a cap-height
+     glyph's line box carries its descender space, so the ink centre sits 0.104em below the box
+     centre and would miss the axis every other mark on the screen sits on.
+     `white-space:nowrap` because a symbol is one token — `F♯m7♭5` breaking after the ♯ would
+     read as two chords. The case is sized so it never has to (see `--mt-changes-w`). */
+  .mt-sym{-webkit-appearance:none;appearance:none;background:transparent;border:0;
+    border-radius:0;padding:0;margin:0;font-family:inherit;
+    font-size:72px;line-height:1;font-weight:400;color:var(--ink);white-space:nowrap;
+    cursor:pointer;transform:translateY(-0.104em);
+    transition:color var(--dur-fast) var(--ease)}
+  /* SOUNDING is the accent, exactly as the drone's letter does it — the one state this case
+     has while it is making noise. */
+  .mt-changes[data-sounding="true"] .mt-sym{color:var(--accent)}
+  .mt-sym:hover{color:var(--accent)}
+  .mt-sym:focus-visible{outline:1px solid var(--accent);outline-offset:4px}
+  /* THE UNREVEALED STATE IS FAINT, and that is the mechanic drawn rather than explained: a
+     `?` in full ink would read as the answer. Faint says "not yet". */
+  .mt-sym[data-revealed="false"]{color:var(--faint)}
+  .mt-changes .mt-deck.mt-grp{flex-wrap:wrap;gap:0 1ch}
+  .mt-deck{display:inline-flex;align-items:baseline;gap:1ch}
+  /* THE ANSWER LINE lives in the `hint` row — the tuner's error-line row, empty on this case
+     until something is revealed. RESERVED by the row existing, so a verdict appearing cannot
+     reflow the case: the same fix the tuner's hint line already records. */
+  /* THE ANSWER LINE STAYS IN `hint`, and that is checked rather than assumed: this case's foot
+     holds `deal` and `arpeggiate`, which are bare words with no sub-case box, so nothing
+     overhangs into this row. (The loop's speed row IS boxed, which is why its state line had to
+     move to `slack-b` — see the note there.) Measured on the live page: no overlap. */
+  .mt-answerline{grid-row:hint;align-self:center;min-width:0}
+  .mt-answer{color:var(--faint);display:block;text-align:center;max-width:100%;
+    text-wrap:balance;overflow-wrap:break-word}
+  /* A note you have LANDED while arpeggiating reads ink — the detector agreeing with the
+     chord is the one thing in this case worth full weight. */
+  .mt-answer b{color:var(--ink);font-weight:400}
+  .mt-answer i{color:var(--accent);font-style:normal}
+
+  /* ══ THE LOOP — a hairline, two carets, and no waveform ════════════════════════════
+     THE TIMELINE IS THE FIGURE, so it sits in the `figure` row and takes the figure's own
+     width rule (`.mt-gauge`). It is 40px tall rather than the arc's 184: a part selector has
+     one axis, and reserving a square for it would be reserving air the drawing does not use.
+     THE CARETS ARE INK, THE SPAN IS ACCENT. That split is the page's colour rule doing its
+     job: the marks you move are ink like every other value on the screen, and the accent is
+     "this is happening" — here, the stretch that will actually play. */
+  .mt-tlfig{--mt-cols:6;height:40px;position:relative}
+  .mt-tl{position:relative;width:100%;height:40px;cursor:pointer;touch-action:none}
+  .mt-tl:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+  .mt-tl-axis{position:absolute;left:0;right:0;top:19px;height:1px;background:var(--line)}
+  .mt-tl-span{position:absolute;top:18px;height:3px;background:var(--accent)}
+  /* The sixteenth ticks, drawn as a repeating gradient rather than 17 elements: the marks are
+     furniture, and 17 spans would be 17 nodes to keep in sync with a count that never changes. */
+  .mt-tl::before{content:"";position:absolute;left:0;right:0;top:24px;height:5px;
+    background-image:repeating-linear-gradient(to right,
+      var(--faint) 0 1px, transparent 1px calc(100% / 16));
+    background-size:calc(100% - 1px) 100%;background-repeat:no-repeat}
+  /* THE CARET'S TARGET IS 19px OF PADDING EITHER SIDE, and the ink is 1px. Same idiom as
+     `.mt-hd` and the strip's cells: pad out to a real target, keep the mark hairline. A 1px
+     drag handle is unusable on a phone and a 40px visible bar would not be a caret. */
+  .mt-tl-caret{position:absolute;top:6px;width:1px;height:28px;background:var(--ink);z-index:2}
+  .mt-tl-caret::after{content:"";position:absolute;left:-19px;top:-6px;width:39px;height:40px}
+  .mt-tl-caret.hot{background:var(--accent)}
+  /* The playhead: accent, and only while the loop is running. */
+  .mt-tl-head{position:absolute;top:10px;width:1px;height:20px;background:var(--accent);
+    opacity:0;z-index:1}
+  .mt-loop[data-sounding="true"] .mt-tl-head{opacity:1}
+  /* The span readout takes the tuner's own reading marks, so a time reads like a value and
+     not like a caption. */
+  .mt-tl-read{font-variant-numeric:tabular-nums}
+  .mt-loop .mt-src.mt-grp{flex-wrap:wrap}
+  /* The url field: the room's field, narrowed to the case. `field-sizing` is deliberately NOT
+     used — a url is long and the box must not grow with it. */
+  .mt-src input{width:100%;min-width:0;flex:1 1 auto;font-size:16px}
+  .mt-rate{display:inline-flex;align-items:baseline;gap:1ch}
+  .mt-loop .mt-rate.mt-grp{flex-wrap:wrap;gap:0 1ch}
+  /* A ONE-GLYPH WORD CANNOT CARRY ITS OWN TARGET. The speed row is `1 ¾ ½ ¼` — measured, each
+     button is 9px wide, under WCAG 2.5.8's 24px floor on the horizontal axis while clearing 44
+     vertically. 8px each side takes it to 25px; the negative margin keeps the printed line
+     exactly where it was. Same fix the proof sheet's own rate row needed. */
+  .mt-rate .vbtn{padding-left:8px;padding-right:8px;margin-left:-8px;margin-right:-8px}
+  /* ── THE STATE LINE LIVES IN `slack-b`, NOT `hint` ────────────────────────────────
+     MEASURED ON THE LIVE PAGE, and it is the drone's own bug repeated: the speed sub-case sits
+     in `foot`, but a boxed control group is 56px tall in a 28px track, so it overhangs DOWN
+     into `hint` — the state line's row — and the two drew on top of each other (rate bottom
+     840, state top 812: 28px of collision, in both colourways, invisible to every assertion
+     I had). `.mt-stackline` hit exactly this and the fix is the same: `slack-b` is where this
+     screen puts placed air, so it has real height to give and the ladder absorbs it.
+     Two things had to move together, which is why this is one comment: the state line goes to
+     `slack-b`, and the loop's own `hint` row goes back to being empty like the metronome's. */
+  .mt-loopline{grid-row:slack-b;align-self:end;min-width:0;padding-bottom:var(--tight)}
+  .mt-loopstate{color:var(--faint);display:block;text-align:center;max-width:100%;
+    text-wrap:balance;overflow-wrap:break-word}
+  /* THE IFRAME IS 1×1 AND OFF THE COMPOSITION. The case's figure is the timeline; the video
+     is a sound source, so it gets no visual room at all. `position:absolute` keeps it out of
+     the ladder entirely — a 0×0 iframe is not reliably allowed to play, but a 1px one is.
+     NOT `display:none`: that suspends playback in some engines, which would break the one
+     thing the element is here to do. */
+  .mt-yt{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;
+    pointer-events:none;bottom:0;left:0}
+
   /* ⌥G RAISES TWO OVERLAYS: the per-case one (axis + the box-rule pair) and the room's own
      TOP datum on the box's top rule. The CENTRE line (`.mt-mid::after`) and the BOTTOM datum
      stay deleted — see the notes on each rule. A raise list naming a pseudo-element with no
@@ -887,6 +1183,17 @@ import Layout from '../layouts/Layout.astro';
     --mt-box-pull:18px;
     /* the drone case's width — see the note on `.mt-pages`' columns for the derivation */
     --mt-drone-w:210px;
+    /* THE CHORD DEALER'S WIDTH, MEASURED FROM ITS FIGURE. The symbol is the figure and it
+       takes the drone letter's own 72px (that exception is reused, not extended — see
+       `.mt-sym`). The widest symbol in the decks, `F♯m7♭5`, sets 259px of ink at 72px in this
+       face; plus the two 3ch insets and the hairlines that is 315px. Not rounded up: the case
+       is exactly what its figure needs, and every px here comes off the tuner's dial. */
+    --mt-changes-w:315px;
+    /* THE LOOP'S WIDTH, MEASURED FROM ITS RULER. Sixteen sixteenth ticks need one character
+       cell each to be countable — 16 × 9px = 144px — and the top line (`source take-five.mp3`)
+       is the widest ink at 180px. 180 + 54 + 2 = 236px. The timeline would happily take more;
+       236 is the floor, and at five cases the floor is what the room can pay. */
+    --mt-loop-w:236px;
     height:100dvh;height:round(down, 100dvh, var(--lead));
     display:flex;flex-direction:column;overflow:hidden}
 
@@ -934,9 +1241,31 @@ import Layout from '../layouts/Layout.astro';
      1240 the meters stack (see that block) and this stays: the drone's contents do not
      change with width. The token is declared with `--mt-inset` on `#mt-app`, with the
      screen's other measures, rather than typed into the template here. */
+  /* ── FIVE CASES NOW, AND THE COST IS STATED RATHER THAN DISCOVERED ────────────────
+     Chooser `practice-room-apps` (2026-08-09): Q1 picked TWO new instruments — the chord
+     dealer and the transcription loop — and Q2/01 put both IN THE ROOM.
+     THE SHEET COSTED ONE NEW CASE, not two. Measured by cloning real cases into the live
+     room rather than by arithmetic about it:
+         3 cases (before)  worked pair 539px · dial 240px
+         4 cases           worked pair 406px · dial 240px   ← what Q2/01 was costed at
+         5 cases (this)    worked pair 208px · dial 152px
+     So the two worked instruments end up NARROWER than either new case (the changes needs
+     315px for its 72px symbol, the loop 236px for sixteen readable ticks). Widths state
+     importance, and 208px says the tuner matters least, which is not what anyone believes.
+     The owner was shown those numbers and chose five anyway; this comment is the record, not
+     an argument to reopen.
+     WHAT SURVIVES, and it is the part I was wrong about first: the LADDER HOLDS. My initial
+     read was that the metronome's meters would break — they do not. Measured at 208px, the
+     two cases' verbs stay 0.00px apart, no group spills its case, and nothing overflows
+     horizontally. The meters stack (the spec row goes 84→183px) and the row above the figure
+     absorbs it, exactly as the 1479px block describes. The cost is the FIGURE: 240→152px.
+     THE TWO NEW CASES ARE FIXED-WIDTH for the same reason the drone is — their contents do
+     not change with width, and a `1fr` share would take the width out of the drawings that
+     do. Both numbers are measured minimums, not preferences; see each token. */
   .mt-pages{flex:1;min-height:0;position:relative;
     display:grid;
-    grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) var(--mt-drone-w);
+    grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) var(--mt-drone-w)
+                          var(--mt-changes-w) var(--mt-loop-w);
     column-gap:var(--group);
     padding:var(--group) var(--group) var(--lead);
     grid-template-rows:
@@ -1180,7 +1509,33 @@ import Layout from '../layouts/Layout.astro';
      THE LESSON, stated because the same mistake is easy to repeat here: a threshold is a
      boundary, so it has to be found by bisection, not by sampling a range and interpolating.
      If `--mt-drone-w` changes, re-bisect — do not re-derive. */
-  @media (max-width: 1479px) and (min-width: 1002px){
+  /* ── RE-BISECTED FOR FIVE CASES: 1479 → 1511 (2026-08-09) ────────────────────────
+     The block's own lesson, obeyed: a threshold is a boundary, so it is found by BISECTION
+     and never re-derived. Two new fixed columns (315 + 236 + two more 56px gaps = 663px) come
+     out of the worked pair, so the metronome's case is narrow enough to wrap at a much wider
+     screen than before. Bisected one pixel at a time against the built page: the spec row
+     holds both meters on one line at 1512 and stacks at 1511.
+     AND THE BAND THIS CLOSES IS THE DEFECT THE OLD NUMBER LEFT BEHIND. At 1479 the query no
+     longer matched where the wrap actually happened, so between 1480 and 1511 the meters
+     wrapped with no taller `spec` row to wrap INTO — the row's overflow pushed the foot line
+     past the case's bottom edge, where `overflow:hidden` on `#mt-app` CLIPPED IT. Measured at
+     1280×720: the tap button's box sat at y 710 in a 700px document, so `tap` was not merely
+     ugly, it was unclickable — `elementsFromPoint` at its centre returned only <html>. The
+     e2e suite found it as "the ring overshoots on press: expected > 1.5, received 1", which
+     is what a control outside the page looks like from a test. */
+  /* ── THE BAND HAS NO UPPER BOUND ANY MORE (re-measured, 2026-08-09) ────────────────
+     I re-bisected this to 1511 on the wrong signal — the meter groups' `top`, which reports a
+     difference whether the row STACKS (the rule below) or merely WRAPS (the flex default). At
+     1512 the band did not apply and the meters wrapped anyway: a 183px spec row against the
+     56px the ladder reserves, so the figure's slack absorbed 127px and the drawing shrank.
+     MEASURED on the built page, bisected on the meters' own y: the two meters need a viewport
+     of 1819px to sit on one line in the five-case room. No screen this instrument runs on is
+     that wide, so "both meters on one line" is not a layout that exists any more — the spec
+     row is TWO STACKED METERS at every desktop width, and the band that states it must run
+     from the swiper's edge all the way up rather than stopping at a number I guessed.
+     `min-width` only, therefore. If a future change takes cases back out of the room, re-bisect
+     this — do not reinstate a number from the three-case era. */
+  @media (min-width: 1477px){
     .mt-pages{grid-template-rows:
       [case-top]  var(--lead)
       [spec]      calc(var(--lead) * 4)  /* two stacked meters, two leads each */
@@ -1216,12 +1571,28 @@ import Layout from '../layouts/Layout.astro';
          reading "stacked subdivide sits 102.00px below beats, not a whole lead" at 901 and
          940 in both colourways (the pre-change page passed all 28 configurations, so the
          defect was mine and new).
-     1002 IS BISECTED, and it is the third number this one threshold went through — the
-     arithmetic above predicts 964 and the browser says 1002, a 38px miss, because a
-     label+scale group's wrap depends on the flex container's own rounding and not only on the
-     ink it holds. Bisected one pixel at a time: at 1002 `subdivide` still sits beside its
-     scale, at 1001 it wraps under it. Compute to know WHY a threshold exists; bisect to know
-     WHERE it is.
+     1002 WAS BISECTED for the THREE-case room, and it is superseded: with five cases the
+     threshold is 1477. The history is kept because the method is the point — the arithmetic
+     predicted 964 and the browser said 1002, a 38px miss, because a label+scale group's wrap
+     depends on the flex container's own rounding and not only on the ink it holds. Compute to
+     know WHY a threshold exists; bisect to know WHERE it is.
+     ── 1477, AND THIS TIME THE TWO AGREE (2026-08-09, five cases) ─────────────────────
+     What binds now is not the meters but the METRONOME'S FOOT, and it is a HARD floor because
+     its ink does not shrink with the case: `bpm` (66px) + one 2ch gap (18px) + `tap` (50px) =
+     134px, which needs a 190px case once the two 3ch insets and the hairlines are counted.
+     Two of those plus the three narrow cases (210 + 315 + 236), four 56px gaps and the page's
+     112px of padding comes to exactly 1477 — and the bisection landed on 1476/1477, so for
+     once the arithmetic and the browser name the same pixel. Below it the foot row wrapped to
+     two lines inside a one-lead track and pushed the tap button PAST the case's bottom edge,
+     where `overflow:hidden` on `#mt-app` clipped it: measured at 1280x720 the button's box sat
+     at y 710 in a 700px document, and `elementsFromPoint` at its centre returned only <html>.
+     A control nobody can press, on the two instruments that matter most.
+     THE COST, stated plainly because it is the largest thing this change spends: every
+     viewport between 1002 and 1476 that used to show the room side by side now SWIPES. That is
+     most laptops — a 1440x900 and a 1366x768 both swipe now, where before they showed three
+     cases at once. The five-case room simply does not fit a laptop; the owner chose five
+     knowing the worked pair drops to 208px, and this is the same trade one step further out.
+     The alternative was a clipped control, which is not a trade.
      WHAT I TRIED FIRST AND MEASURED WRONG: releasing the narrow third below 1001 so the
      drone shrank with the room. It made the case NARROWER, not wider — 183px of content
      against the 197px the fixed 210px column left it — because an equal third of 940 is
@@ -1378,12 +1749,12 @@ import Layout from '../layouts/Layout.astro';
      must be `:global()`. That covers `.rm-rule line` and `.rm-acc`'s children. */
   .rm-rulebtn:hover .rm-rule :global(line){stroke:var(--accent)}
 
-  /* THE SWIPE (metrotuner-two-pages Q3/02). Under 1002px the cases become three
+  /* THE SWIPE (metrotuner-two-pages Q3/02). Under 1477px the cases become five
      full-width snap pages — and the case VANISHES (metrotuner-pendulum Q2, the
      mobile rule): the viewport's own edges are the frame, so drawing one inside
      them would be a frame in a frame. The plate goes with it; the page dots name
      the pages. */
-  @media (max-width: 1001px){
+  @media (max-width: 1476px){
     /* THE SNAP SCROLLER, ON THE SAME LADDER. What changes from the desktop case is only
        the COLUMN axis — each page is a full viewport wide, so the two columns become two
        100%-wide ones and the gap goes. `grid-auto-flow:column` is NOT used: the rows are
@@ -1392,11 +1763,15 @@ import Layout from '../layouts/Layout.astro';
        two instruments hold identical row positions on the phone too, so swiping between
        them moves nothing vertically. Measured before: a swipe moved the transport 28px
        and the figure 84px, so the two pages read as two different layouts. */
-    /* THREE PAGES (Q3/01). The drone is a page like the others — full width, its own snap
-       stop — so the narrow-third width is a DESKTOP statement only, which is right: on a
-       phone there is no neighbour to be narrow beside. */
+    /* FIVE PAGES NOW (practice-room-apps Q1/02+03, Q2/01). The drone, the chord dealer and
+       the loop are all pages like the others — full width, their own snap stop — so every
+       fixed desktop width (`--mt-drone-w`, `--mt-changes-w`, `--mt-loop-w`) is a DESKTOP
+       statement only. That is right for the same reason it always was: on a phone there is no
+       neighbour to be narrow beside, and a case that shares the viewport with nothing should
+       take all of it. Both new cases therefore get MORE room on a phone than on the desktop
+       they were measured for. */
     .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-      grid-template-columns:repeat(3, 100%);column-gap:0;padding:0;
+      grid-template-columns:repeat(5, 100%);column-gap:0;padding:0;
       /* the overlay's top datum is derived from this row — restated with it, never apart */
       --mt-case-top:calc(var(--lead) * 2);
       /* THE PHONE'S TOP AIR IS TWO LEADS (user, 2026-08-05: "the accent is too close to
@@ -1536,7 +1911,7 @@ import Layout from '../layouts/Layout.astro';
      scroller's padding is 0 there, and an absolutely-positioned ::before inside a scroll
      container lays out against the scrollable padding box — so it travels with the pages instead
      of staying stuck over page 1. */
-  @media (max-width: 1001px){
+  @media (max-width: 1476px){
     .mt-pages::before{inset:0}
   }
 
@@ -1642,7 +2017,7 @@ import Layout from '../layouts/Layout.astro';
                       narrow enough that the columns are thinner than the gutters between
                       them, and a 12-column grid inside a 400px box is a fiction whether or
                       not something is aligned to it.
-       · ≤1001px    — the phone, which has no column grid at all (the per-case overlay is
+       · ≤1476px    — the phone, which has no column grid at all (the per-case overlay is
                       `display:none` there and the parent draws rows only), so the figure
                       takes the content width. See the mobile rule below.
      THE FLOOR IS THE DRAWING, not a round number: 320px is the width the pendulum was
@@ -2035,8 +2410,19 @@ import Layout from '../layouts/Layout.astro';
      the whole band collapses and the cases keep the height. */
   .mt-foot{display:none;flex:none;flex-direction:column;align-items:center;
     gap:4px;padding:0 var(--gutter) var(--lead)}
-  .mt-dots{display:flex;gap:1.5ch;align-items:baseline}
-  @media (max-width: 1001px){ .mt-foot{display:flex} }
+  /* ── FIVE WORDS DO NOT FIT ONE LINE ON A PHONE, so the row wraps and is centred.
+     MEASURED at 390px before this rule: the row is a `nowrap` flex, so five words plus their
+     separators set 414px in a 390px viewport and the row CENTRED ITSELF OUT OF THE SCREEN —
+     `tuner` began at x −12 and `the loop` ended at 402. Both end words were clipped by the
+     viewport, which is worse than wrapping: the row looked deliberate and two of the five
+     pages had no reachable label. (The document did not scroll, so nothing announced it.)
+     `wrap` + `justify-content:center` is the whole fix: two centred lines at 390px, one line
+     from ~430px up. The foot's reserved row grows with it rather than the words leaving the
+     screen — which is the trade named in the markup comment: naming five pages costs a second
+     line on a phone, and five unlabelled discs would cost the reader the names. */
+  .mt-dots{display:flex;gap:1.5ch;align-items:baseline;
+    flex-wrap:wrap;justify-content:center;max-width:100%}
+  @media (max-width: 1476px){ .mt-foot{display:flex} }
   /* The page words (user nit 2026-08-04, the dots were unclear): current = ink, no
      underline (a fact); the other = faint, underlined (an offer) — the segment
      idiom. 44px targets via padding. */
@@ -2071,7 +2457,8 @@ import Layout from '../layouts/Layout.astro';
   // THE ONE NAMING MODULE. `nameOf` for a pitch on its own (the root, the tuner's readout) and
   // `nameInChord` for a pitch heard AS AN INTERVAL above the root — which is a different
   // question with a different answer: a minor third above E♭ is G♭, not F♯.
-  import { nameOf, pitchClassOf, nameInChord } from '../lib/practice-room/naming';
+  import { nameOf, pitchClassOf, nameInChord, spellVoicing } from '../lib/practice-room/naming';
+  import type { ChordTone } from '../lib/practice-room/naming';
   import { Scheduler, clampBpm, type Tick } from '../lib/practice-room/metronome';
   import { createTapTempo } from '../lib/practice-room/tap';
 
@@ -2225,6 +2612,20 @@ import Layout from '../layouts/Layout.astro';
     // not there: `droneRanks` reports the pitch the code INTENDED per note, and for a sampled
     // voice the pitch is the buffer's content times a rate, which nothing else states.
     get droneSources() { return sampleDebug.slice(); },
+    // ── WHAT THE CHORD GRADER HAS ACTUALLY ACCEPTED ────────────────────────────────────
+    // The pitch classes `arpeggiate` has landed, and the ones the dealt chord contains. Both,
+    // because the DOM cannot tell them apart: `paintArp()` renders only the chord's own notes,
+    // so a non-member accepted into the landed set is INVISIBLE on the page. That double guard
+    // made a real sabotage (deleting the grader's membership test entirely) pass all three
+    // arpeggio tests — the assertion was measuring the painter, not the grader.
+    // Exposed rather than inferred, for the same reason `droneSources` exists: the state a
+    // check depends on has to be readable, or the check is about something else.
+    get arpLanded() { return arpHook.landed(); },
+    get arpWanted() { return arpHook.wanted(); },
+  };
+  // Filled in by the chord case below; null-safe so the hook works before that block runs.
+  const arpHook: { landed: () => number[]; wanted: () => number[] } = {
+    landed: () => [], wanted: () => [],
   };
   if (E2E) (window as any).__mt = hook;
 
@@ -3958,6 +4359,484 @@ import Layout from '../layouts/Layout.astro';
   const restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'dashext', (v) => { subdivision = v; applySpec(); });
   paintAccent(); // draws the beats rule too (restoreBeats inside), with the persisted accent state
   restoreSub(subdivision);
+
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // THE CHANGES — the chord dealer (chooser practice-room-apps Q1/02, grading Q3/02)
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // It sounds a voicing; you name it; you press the symbol to reveal what it was. The symbol
+  // IS the answer, so the case's whole mechanic is that it reads `?` until asked.
+  //
+  // THE DECK IS DATA, and each note carries BOTH the semitones it sounds and the DEGREE the
+  // symbol calls it. The pair travels together because either alone spells something wrong:
+  // semitones without the degree print B♯ for a ♭5 (the letter comes from the conventional
+  // size of six semitones, which is an augmented 4th), and a degree without the semitones
+  // cannot say whether a fifth is flat, natural or sharp. That is the finding this case
+  // forced into `naming.ts` — `nameInChord(root, semis, degree)`, measured against a deck
+  // where 3 of 11 chords disagreed with their own symbol.
+  interface Deal { sym: string; root: number; tones: ChordTone[] }
+  const DECKS: Record<string, Deal[]> = {
+    // Root pitch classes, not MIDI: the voicing is placed in a register at deal time.
+    triads: [
+      { sym: 'C',      root: 0,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 7, degree: 5 }] },
+      { sym: 'Am',     root: 9,  tones: [{ semis: 0, degree: 1 }, { semis: 3, degree: 3 }, { semis: 7, degree: 5 }] },
+      { sym: 'F',      root: 5,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 7, degree: 5 }] },
+      { sym: 'B°',     root: 11, tones: [{ semis: 0, degree: 1 }, { semis: 3, degree: 3 }, { semis: 6, degree: 5 }] },
+      { sym: 'E♭',     root: 3,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 7, degree: 5 }] },
+      { sym: 'F♯m',    root: 6,  tones: [{ semis: 0, degree: 1 }, { semis: 3, degree: 3 }, { semis: 7, degree: 5 }] },
+    ],
+    sevenths: [
+      { sym: 'Dm7',    root: 2,  tones: [{ semis: 0, degree: 1 }, { semis: 3, degree: 3 }, { semis: 7, degree: 5 }, { semis: 10, degree: 7 }] },
+      { sym: 'G7',     root: 7,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 7, degree: 5 }, { semis: 10, degree: 7 }] },
+      { sym: 'Cmaj7',  root: 0,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 7, degree: 5 }, { semis: 11, degree: 7 }] },
+      { sym: 'F♯m7♭5', root: 6,  tones: [{ semis: 0, degree: 1 }, { semis: 3, degree: 3 }, { semis: 6, degree: 5 }, { semis: 10, degree: 7 }] },
+      { sym: 'B♭maj7', root: 10, tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 7, degree: 5 }, { semis: 11, degree: 7 }] },
+      { sym: 'E7',     root: 4,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 7, degree: 5 }, { semis: 10, degree: 7 }] },
+      { sym: 'A°7',    root: 9,  tones: [{ semis: 0, degree: 1 }, { semis: 3, degree: 3 }, { semis: 6, degree: 5 }, { semis: 9, degree: 7 }] },
+    ],
+    altered: [
+      { sym: 'G7♯9',   root: 7,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 10, degree: 7 }, { semis: 15, degree: 9 }] },
+      { sym: 'A7♭13',  root: 9,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 10, degree: 7 }, { semis: 20, degree: 13 }] },
+      { sym: 'C7♭9',   root: 0,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 10, degree: 7 }, { semis: 13, degree: 9 }] },
+      { sym: 'B♭13',   root: 10, tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 10, degree: 7 }, { semis: 21, degree: 13 }] },
+      { sym: 'E7♯11',  root: 4,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 10, degree: 7 }, { semis: 18, degree: 11 }] },
+      { sym: 'Fmaj7♯5',root: 5,  tones: [{ semis: 0, degree: 1 }, { semis: 4, degree: 3 }, { semis: 8, degree: 5 }, { semis: 11, degree: 7 }] },
+    ],
+  };
+  type DeckName = keyof typeof DECKS;
+
+  const symEl = document.getElementById('mt-sym');
+  const answerEl = document.getElementById('mt-answer');
+  const changesCase = symEl?.closest('.mt-changes') as HTMLElement | null;
+  const chordBtn = document.getElementById('mt-chordrun');
+  const dealBtn = document.getElementById('mt-deal');
+  const arpBtn = document.getElementById('mt-arp');
+
+  if (symEl && answerEl && chordBtn && dealBtn && arpBtn && changesCase) {
+    let deck: DeckName = 'sevenths';
+    {
+      const saved = store.get('mt:deck');
+      if (saved && saved in DECKS) deck = saved as DeckName;
+    }
+    let deal: Deal = DECKS[deck][0];
+    let revealed = false;
+    // THE ROOT'S REGISTER. C3 upward: low enough that a drop-2 seventh does not scream and
+    // high enough that the fundamental is well above the room's own noise floor.
+    const ROOT_MIDI = 48;
+    const dealMidis = (d: Deal) => d.tones.map((t) => ROOT_MIDI + d.root + t.semis);
+    const dealNames = (d: Deal) => spellVoicing(ROOT_MIDI + d.root, d.tones);
+
+    // ── the chord's own voice ────────────────────────────────────────────────────────
+    // Three partials per note, like the drone's organ rank, so a four-note voicing has body
+    // without turning into mud. NOT the cello samples: a chord trainer must state its notes
+    // cleanly, and a 1.2s section swell would blur the attack you are trying to hear.
+    let chordGain: GainNode | null = null;
+    let chordNodes: OscillatorNode[] = [];
+    function chordSounding() { return !!chordGain; }
+    function stopChord() {
+      if (!chordGain) return;
+      const ac = audio();
+      chordGain.gain.cancelScheduledValues(ac.currentTime);
+      chordGain.gain.setTargetAtTime(0.0001, ac.currentTime, 0.04);
+      chordNodes.forEach((o) => { try { o.stop(ac.currentTime + 0.3); } catch {} });
+      const dead = chordGain;
+      setTimeout(() => { try { dead.disconnect(); } catch {} }, 600);
+      chordGain = null;
+      chordNodes = [];
+      chordBtn!.setAttribute('aria-pressed', 'false');
+      chordBtn!.setAttribute('aria-label', 'sound the chord');
+      delete changesCase!.dataset.sounding;
+    }
+    function startChord() {
+      // ONE SOUND SOURCE AT A TIME. The drone and this case would otherwise both hold the
+      // speaker, and two sustained stacks in different keys is not a practice tool. The
+      // metronome is left alone deliberately — a click over a chord is a legitimate thing
+      // to want, and it is percussive rather than sustained.
+      if (droning()) stopTone();
+      const ac = audio();
+      chordGain = ac.createGain();
+      chordGain.gain.setValueAtTime(0.0001, ac.currentTime);
+      chordGain.connect(ac.destination);
+      for (const m of dealMidis(deal)) {
+        const f = midiToFreq(m, a4);
+        [1, 2, 3].forEach((h, i) => {
+          const o = ac.createOscillator();
+          const g = ac.createGain();
+          o.type = 'sine';
+          o.frequency.value = f * h;
+          g.gain.value = [0.6, 0.2, 0.09][i] / deal.tones.length;
+          o.connect(g); g.connect(chordGain!); o.start();
+          chordNodes.push(o);
+        });
+      }
+      chordGain.gain.exponentialRampToValueAtTime(0.5, ac.currentTime + 0.05);
+      chordBtn!.setAttribute('aria-pressed', 'true');
+      chordBtn!.setAttribute('aria-label', 'stop the chord');
+      changesCase!.dataset.sounding = 'true';
+    }
+
+    // ── what the answer line says ────────────────────────────────────────────────────
+    // Three states, and they are genuinely different sentences: nothing yet, the spelled
+    // notes once revealed, and — while arpeggiating — which of them you have landed.
+    function paintAnswer() {
+      if (arpOn) { paintArp(); return; }
+      answerEl!.innerHTML = revealed
+        ? dealNames(deal).map((n) => `<b>${n}</b>`).join('  ')
+        : '';
+    }
+    function paintSymbol() {
+      symEl!.textContent = revealed ? deal.sym : '?';
+      symEl!.dataset.revealed = String(revealed);
+      symEl!.setAttribute('aria-label', revealed
+        ? `${deal.sym} — press to hear it again`
+        : 'Chord — press to hear it, press again to reveal what it is');
+    }
+    function nextDeal() {
+      // A NEW CHORD, NEVER THE SAME ONE TWICE RUNNING. A dealer that repeats reads as broken
+      // even when it is honest randomness, and with six or seven cards a repeat is common.
+      const cards = DECKS[deck];
+      let next = deal;
+      if (cards.length > 1) {
+        while (next === deal) next = cards[Math.floor(Math.random() * cards.length)];
+      } else next = cards[0];
+      deal = next;
+      revealed = false;
+      arpLanded.clear();
+      paintSymbol();
+      paintAnswer();
+    }
+
+    symEl.addEventListener('click', () => {
+      if (!revealed) { revealed = true; paintSymbol(); paintAnswer(); }
+      stopChord();
+      startChord();
+    });
+    chordBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      chordSounding() ? stopChord() : startChord();
+    });
+    dealBtn.addEventListener('click', () => {
+      const wasSounding = chordSounding();
+      stopChord();
+      nextDeal();
+      if (wasSounding) startChord();
+      // the momentary's snap — the same overshoot-and-settle the tap ring uses
+      dealBtn!.classList.add('hit');
+      setTimeout(() => dealBtn!.classList.remove('hit'), 90);
+    });
+
+    // ── the deck selector ───────────────────────────────────────────────────────────
+    changesCase.querySelectorAll<HTMLButtonElement>('[data-deck]').forEach((b) => {
+      b.addEventListener('click', () => {
+        deck = b.dataset.deck as DeckName;
+        store.set('mt:deck', deck);
+        changesCase!.querySelectorAll<HTMLButtonElement>('[data-deck]').forEach((o) => {
+          const on = o === b;
+          o.setAttribute('aria-pressed', String(on));
+          o.classList.toggle('on', on);
+        });
+        const wasSounding = chordSounding();
+        stopChord();
+        deal = DECKS[deck][0];
+        nextDeal();
+        if (wasSounding) startChord();
+      });
+    });
+    changesCase.querySelectorAll<HTMLButtonElement>('[data-deck]').forEach((o) => {
+      const on = o.dataset.deck === deck;
+      o.setAttribute('aria-pressed', String(on));
+      o.classList.toggle('on', on);
+    });
+
+    // ── ARPEGGIATED GRADING (chooser Q3/02) ─────────────────────────────────────────
+    // WHY ONE NOTE AT A TIME, stated here because it looks like a limitation and is in fact
+    // the only honest option the room has: `detectPitch` is the McLeod Pitch Method and finds
+    // ONE period. Measured against synthesized plucked voicings — a strummed Dm7 reads as NO
+    // PITCH (below the 0.6 clarity gate), and a bare fifth reads exactly an octave low
+    // (D3+A3 → D2, ÷2) because a fifth's two notes are periodic at half the lower pitch.
+    // Played one note at a time it is the detector's home ground: 0.35 cents, C2 to C7,
+    // asserted in pitch.test.ts.
+    //
+    // IT REUSES THE TUNER'S ANALYSER rather than opening a second stream. One mechanism, one
+    // permission prompt, one recording indicator — and `startTuner()` already owns the
+    // high-pass, the three capture flags and the permission race.
+    let arpOn = false;
+    const arpLanded = new Set<number>();   // pitch classes landed on this chord
+    let arpTimer: number | null = null;
+    // the e2e hook reads the grader's own state — see the note on `hook.arpLanded`
+    arpHook.landed = () => [...arpLanded].sort((x, y) => x - y);
+    arpHook.wanted = () => deal.tones
+      .map((t) => (ROOT_MIDI + deal.root + t.semis) % 12).sort((x, y) => x - y);
+
+    function paintArp() {
+      const want = deal.tones.map((t) => (ROOT_MIDI + deal.root + t.semis) % 12);
+      const names = dealNames(deal);
+      answerEl!.innerHTML = names.map((n, i) => {
+        const pc = want[i];
+        // landed reads ACCENT — "this is happening" — and the rest stay faint until then.
+        return arpLanded.has(pc) ? `<i>${n}</i>` : n;
+      }).join('  ');
+    }
+    function stopArp() {
+      arpOn = false;
+      if (arpTimer !== null) { clearInterval(arpTimer); arpTimer = null; }
+      arpBtn!.setAttribute('aria-pressed', 'false');
+      arpBtn!.setAttribute('aria-label', 'listen — arpeggiate the chord one note at a time');
+      paintAnswer();
+    }
+    async function startArp() {
+      // The tuner owns the stream. If it is not running, start it — and say so rather than
+      // silently borrowing it, because a mic turning on is not something to do quietly.
+      if (!micStream) await startTuner();
+      if (!micStream) { stopArp(); return; }     // denied or failed — startTuner reported why
+      arpOn = true;
+      arpLanded.clear();
+      // REVEAL WHEN LISTENING. Grading a chord you have not been told is a memory test, not a
+      // chord test — and the note names are what you are checking your fingers against.
+      revealed = true;
+      paintSymbol();
+      arpBtn!.setAttribute('aria-pressed', 'true');
+      arpBtn!.setAttribute('aria-label', 'stop listening');
+      paintArp();
+      arpTimer = window.setInterval(() => {
+        if (!analyser) return;
+        const buf = new Float32Array(analyser.fftSize);
+        analyser.getFloatTimeDomainData(buf);
+        const hz = detectPitch(buf, audio().sampleRate);
+        if (hz <= 0) return;
+        const r = freqToReading(hz, a4);
+        if (!r) return;
+        // WITHIN 35 CENTS COUNTS AS THE NOTE. Not the tuner's ±3: this case asks whether you
+        // played the right NOTE, not whether it was in tune, and a guitar fretted cleanly
+        // still lands tens of cents off. The tuner is one case away if intonation is the
+        // question.
+        if (Math.abs(r.cents) > 35) return;
+        const pc = ((r.midi % 12) + 12) % 12;
+        const want = deal.tones.map((t) => (ROOT_MIDI + deal.root + t.semis) % 12);
+        if (want.includes(pc) && !arpLanded.has(pc)) { arpLanded.add(pc); paintArp(); }
+      }, 60);
+    }
+    arpBtn.addEventListener('click', () => { arpOn ? stopArp() : startArp(); });
+
+    paintSymbol();
+    paintAnswer();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // THE LOOP — the transcriber's part selector (chooser Q1/03, source Q4/02)
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // Two carets cut a span; four words set the speed; it loops that span forever.
+  //
+  // THE IFRAME IS NOT CREATED UNTIL A URL IS PASTED. Nothing is requested and no cookie is
+  // set by opening the practice room — the same promise the tuner makes about the microphone,
+  // kept the same way: by not starting the thing until it is asked for. This is the first
+  // case in the room that talks to another origin at all, which is the stated cost of Q4/02.
+  const tlEl = document.getElementById('mt-tl');
+  const tlA = document.getElementById('mt-tl-a');
+  const tlB = document.getElementById('mt-tl-b');
+  const tlSpan = document.getElementById('mt-tl-span');
+  const tlHead = document.getElementById('mt-tl-head');
+  const tlRead = document.getElementById('mt-tl-read');
+  const tlLen = document.getElementById('mt-tl-len');
+  const srcEl = document.getElementById('mt-src') as HTMLInputElement | null;
+  const loopBtn = document.getElementById('mt-loop-run');
+  const loopState = document.getElementById('mt-loopstate');
+  const ytHost = document.getElementById('mt-yt');
+  const loopCase = tlEl?.closest('.mt-loop') as HTMLElement | null;
+
+  if (tlEl && tlA && tlB && tlSpan && tlRead && srcEl && loopBtn && loopState && ytHost && loopCase) {
+    // Fractions of the take, so the carets survive a duration that arrives late.
+    let a = 0.10, b = 0.22, rate = 1, duration = 0;
+    let player: any = null;                  // the YT.Player, once the API has loaded
+    let apiReady: Promise<void> | null = null;
+
+    const clock = (f: number) => {
+      if (!duration) return '—';
+      const s = Math.round(f * duration);
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    };
+    function paintTl() {
+      if (b < a) { const t = a; a = b; b = t; }
+      tlA!.style.left = `${a * 100}%`;
+      tlB!.style.left = `${b * 100}%`;
+      tlSpan!.style.left = `${a * 100}%`;
+      tlSpan!.style.width = `${(b - a) * 100}%`;
+      tlRead!.textContent = duration ? `${clock(a)} – ${clock(b)}` : '—';
+      // THE LENGTH IS MEASURED, not a bar count: this case does not know the tempo and never
+      // asks for one, so printing bars would be inventing a number. (The proof sheet shipped
+      // a derived bar count and it was the one number on it I could not defend.)
+      tlLen!.textContent = duration ? `${((b - a) * duration).toFixed(1)}s` : '';
+    }
+    const SIXTEENTH = 1 / 16;
+    function nudge(which: 'a' | 'b', dir: number) {
+      // The tick grid is sixteenths OF THE SPAN the ticks are drawn across — the whole take —
+      // so a nudge lands on a mark the reader can see.
+      if (which === 'a') a = Math.min(b, Math.max(0, a + dir * SIXTEENTH));
+      else b = Math.max(a, Math.min(1, b + dir * SIXTEENTH));
+      paintTl();
+      applyLoop();
+    }
+
+    // ── dragging ────────────────────────────────────────────────────────────────────
+    let dragging: 'a' | 'b' | null = null;
+    function fracFrom(clientX: number) {
+      const r = tlEl!.getBoundingClientRect();
+      return Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    }
+    tlEl.addEventListener('pointerdown', (e) => {
+      const f = fracFrom(e.clientX);
+      dragging = Math.abs(f - a) <= Math.abs(f - b) ? 'a' : 'b';
+      (dragging === 'a' ? tlA! : tlB!).classList.add('hot');
+      tlEl!.setPointerCapture(e.pointerId);
+      if (dragging === 'a') a = f; else b = f;
+      paintTl();
+    });
+    tlEl.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      if (dragging === 'a') a = fracFrom(e.clientX); else b = fracFrom(e.clientX);
+      paintTl();
+    });
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = null;
+      tlA!.classList.remove('hot');
+      tlB!.classList.remove('hot');
+      applyLoop();          // commit on release, so a drag does not seek on every frame
+    };
+    tlEl.addEventListener('pointerup', endDrag);
+    tlEl.addEventListener('pointercancel', endDrag);
+    tlEl.addEventListener('keydown', (e) => {
+      // shift picks the LEFT caret, matching the drone figure's shift-click-for-down idiom:
+      // unmodified is the common case, shift is the other one.
+      const which = e.shiftKey ? 'a' : 'b';
+      if (e.key === 'ArrowLeft') { e.preventDefault(); nudge(which, -1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); nudge(which, +1); }
+    });
+
+    // ── the speed row ───────────────────────────────────────────────────────────────
+    loopCase.querySelectorAll<HTMLButtonElement>('[data-rate]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        rate = Number(btn.dataset.rate);
+        loopCase!.querySelectorAll<HTMLButtonElement>('[data-rate]').forEach((o) => {
+          const on = o === btn;
+          o.setAttribute('aria-pressed', String(on));
+          o.classList.toggle('on', on);
+        });
+        // PITCH IS HELD BY THE PLAYER, not by us. The iframe API preserves pitch across
+        // playbackRate — which is the whole reason Q4/02's embed beats the buffer path the
+        // drone's samples use, where the same slowdown drops it an octave.
+        try { player?.setPlaybackRate?.(rate); } catch {}
+      });
+      btn.classList.toggle('on', Number(btn.dataset.rate) === rate);
+    });
+
+    // ── the source ──────────────────────────────────────────────────────────────────
+    // A URL, not an id: nobody has the id to hand. Both the watch and the short form.
+    function videoId(url: string): string | null {
+      const m = url.match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/)([\w-]{11})/);
+      return m ? m[1] : (/^[\w-]{11}$/.test(url.trim()) ? url.trim() : null);
+    }
+    function loadApi(): Promise<void> {
+      if (apiReady) return apiReady;
+      apiReady = new Promise<void>((resolve, reject) => {
+        if ((window as any).YT?.Player) { resolve(); return; }
+        (window as any).onYouTubeIframeAPIReady = () => resolve();
+        const sc = document.createElement('script');
+        sc.src = 'https://www.youtube.com/iframe_api';
+        // A network the room has never needed before can fail, and a case that just sits
+        // there is worse than one that says so.
+        sc.onerror = () => reject(new Error('the youtube api did not load'));
+        document.head.appendChild(sc);
+      });
+      return apiReady;
+    }
+    let pollTimer: number | null = null;
+    function applyLoop() {
+      if (!player || !duration) return;
+      try {
+        const from = a * duration;
+        const t = player.getCurrentTime?.() ?? 0;
+        if (t < from || t > b * duration) player.seekTo(from, true);
+      } catch {}
+    }
+    async function loadSource(url: string) {
+      const id = videoId(url);
+      if (!id) { loopState!.textContent = 'that is not a youtube url'; return; }
+      loopState!.textContent = 'loading…';
+      try { await loadApi(); } catch (err) {
+        loopState!.textContent = 'the youtube player did not load — check the network';
+        return;
+      }
+      // One player, re-pointed. Building a second iframe per paste would leak both the node
+      // and its audio.
+      if (player) { try { player.loadVideoById(id); } catch {} return; }
+      ytHost!.innerHTML = '<div id="mt-yt-player"></div>';
+      player = new (window as any).YT.Player('mt-yt-player', {
+        videoId: id,
+        width: 1, height: 1,
+        playerVars: { controls: 0, disablekb: 1, modestbranding: 1, playsinline: 1, rel: 0 },
+        events: {
+          onReady: () => {
+            duration = player.getDuration?.() || 0;
+            loopState!.textContent = duration
+              ? 'drag the carets — arrows nudge by a sixteenth'
+              : 'loaded, but this video reports no duration';
+            try { player.setPlaybackRate?.(rate); } catch {}
+            paintTl();
+          },
+          onError: () => { loopState!.textContent = 'that video cannot be embedded'; },
+          onStateChange: (ev: any) => {
+            // 0 = ENDED. A take that runs off the end of the span is the loop's whole job.
+            if (ev.data === 0) applyLoop();
+          },
+        },
+      });
+    }
+    srcEl.addEventListener('change', () => { if (srcEl!.value.trim()) loadSource(srcEl!.value); });
+
+    // ── the transport ───────────────────────────────────────────────────────────────
+    function stopLoop() {
+      if (pollTimer !== null) { clearInterval(pollTimer); pollTimer = null; }
+      try { player?.pauseVideo?.(); } catch {}
+      loopBtn!.setAttribute('aria-pressed', 'false');
+      loopBtn!.setAttribute('aria-label', 'loop the span');
+      delete loopCase!.dataset.sounding;
+      if (tlHead) tlHead.style.left = '0%';
+    }
+    function startLoop() {
+      if (!player || !duration) {
+        loopState!.textContent = srcEl!.value.trim() ? 'still loading…' : 'paste a url to begin';
+        return;
+      }
+      // ONE SOURCE AT A TIME, like the chord case: a drone under a transcription is not a
+      // thing anyone wants, and two sustained sources would make both unusable.
+      if (droning()) stopTone();
+      try {
+        player.seekTo(a * duration, true);
+        player.setPlaybackRate?.(rate);
+        player.playVideo();
+      } catch {}
+      loopBtn!.setAttribute('aria-pressed', 'true');
+      loopBtn!.setAttribute('aria-label', 'stop the loop');
+      loopCase!.dataset.sounding = 'true';
+      // THE LOOP IS A POLL, and it has to be: the iframe API has no "play this range" call
+      // and no time-update event, so the only way to know we have run past the caret is to
+      // ask. 100ms is the granularity of the wrap — audible as a tight loop, and cheap.
+      pollTimer = window.setInterval(() => {
+        if (!player || !duration) return;
+        let t = 0;
+        try { t = player.getCurrentTime?.() ?? 0; } catch { return; }
+        if (tlHead) tlHead.style.left = `${Math.min(100, (t / duration) * 100)}%`;
+        if (t >= b * duration || t < a * duration - 0.25) {
+          try { player.seekTo(a * duration, true); } catch {}
+        }
+      }, 100);
+    }
+    loopBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loopBtn!.getAttribute('aria-pressed') === 'true' ? stopLoop() : startLoop();
+    });
+    paintTl();
+  }
 
   // ── the swipe indicator (chooser Q3/02) ──────────────────────────────────
   // The pages are a CSS snap-scroller; JS only keeps the dots honest and gives the

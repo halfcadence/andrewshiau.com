@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test';
 
+// ── THE DRONE IS PAGE 3 OF 5 NOW, SO THESE TESTS STATE THE DESKTOP WIDTH ───────────────
+// With five cases the room swipes below 1477 (the metronome's foot needs a 190px case), and
+// Playwright's default 1280 is therefore a phone width. Every drone control then sits on an
+// off-screen snap page — measured, the note figure at x 3157 in a 1280 viewport — so a click
+// or a drag lands on nothing and the failure looks like a broken drone. The tests that
+// deliberately assert the PHONE layout set their own viewport and override this.
+const DESKTOP = { width: 1512, height: 900 };
+test.use({ viewport: DESKTOP });
+
 // THE DRONE (chooser metrotuner-drone-box, Q1/02 — it has its own case now; this file
 // tested the tuner's second job, the reference tone, before the split).
 //
@@ -454,15 +463,19 @@ test('the stack strip does not intercept the foot line', async ({ page }) => {
   expect(Math.min(...short), 'the cells are 40px tall targets').toBeGreaterThanOrEqual(40);
 });
 
-// THE THREE CASES STILL SHARE ONE ROW LADDER. The stack is new furniture inside one case, and
-// the whole point of the subgrid ladder is that a change to one case cannot move another's
-// verb. This is the assertion that would have caught the stack being put in a row it did not
-// fit — which is exactly what happened on the first build.
-test('the stack does not break the three cases\' shared ladder', async ({ page }) => {
+// ALL FIVE CASES SHARE ONE ROW LADDER. This is the assertion that matters most about adding
+// cases at all: the subgrid ladder is what keeps every instrument's verb on one line, and a
+// new case that lands in the wrong row moves everyone's. It caught the drone's stack on the
+// first build, and it is the reason the chord dealer's answer line and the loop's state line
+// were given the `hint` row explicitly rather than left to auto-placement.
+// THE WIDTH IS 1512 NOW, not 1440: with five cases the room swipes below 1477 (the metronome's
+// foot needs a 190px case), and on the phone layout the cases are five separate snap pages
+// that share no ladder by design. A ladder assertion has to be made where the ladder exists.
+test('the stack does not break the five cases\' shared ladder', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize({ width: 1512, height: 900 });
   const g = await page.evaluate(() => {
-    const verbs = ['mt-mic', 'mt-run', 'mt-drone']
+    const verbs = ['mt-mic', 'mt-run', 'mt-drone', 'mt-chordrun', 'mt-loop-run']
       .map((id) => document.getElementById(id)!.getBoundingClientRect().top);
     const cases = [...document.querySelectorAll('.mt-half')]
       .map((c) => c.getBoundingClientRect());
@@ -474,8 +487,8 @@ test('the stack does not break the three cases\' shared ladder', async ({ page }
       overflow: app.scrollHeight - app.clientHeight,
     };
   });
-  expect(g.verbSpread, 'the three verbs sit on ONE line').toBeLessThan(0.51);
-  expect(g.topSpread, 'the three cases share a top edge').toBeLessThan(0.51);
+  expect(g.verbSpread, 'all five verbs sit on ONE line').toBeLessThan(0.51);
+  expect(g.topSpread, 'the five cases share a top edge').toBeLessThan(0.51);
   expect(g.botSpread, 'and a bottom edge').toBeLessThan(0.51);
   expect(g.overflow, 'the screen does not scroll').toBe(0);
 });

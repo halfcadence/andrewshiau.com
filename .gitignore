@@ -7,3 +7,6 @@ npm-debug.log*
 Résumé — Andrew Shiau.pdf
 *.pdf
 tests/e2e/fixtures/
+# Playwright run output — a per-run artifact, committed once by accident.
+test-results/
+playwright-report/

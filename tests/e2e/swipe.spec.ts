@@ -46,12 +46,21 @@ test('phone: the metronome still runs while the tuner page is shown', async ({ p
   await page.getByTestId('metro-toggle').click();
 });
 
-test('desktop control: three cases on screen, the third narrow, no dots', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
+// FIVE CASES, AND THE DESKTOP WIDTH IS NOW 1512 (practice-room-apps Q1/02+03, Q2/01).
+// This test ran at 1440 for as long as the room held three cases. The chord dealer and the
+// loop take 315 + 236 + two more 56px gaps out of the row, so the metronome's foot line no
+// longer fits its case below 1477 — measured, and the failure was not cosmetic: the foot
+// wrapped to two lines inside a one-lead track and pushed `tap` past the case's bottom edge,
+// where `overflow:hidden` CLIPPED it. So the room swipes below 1477 and 1440 is now a phone
+// width. The desktop assertion has to be made at a width the desktop layout exists at.
+test('desktop control: five cases on screen, the last three narrow, no dots', async ({ page }) => {
+  await page.setViewportSize({ width: 1512, height: 900 });
   await page.goto('/practice-room/');
   const tuner = (await page.locator('.mt-half[aria-label="Tuner"]').boundingBox())!;
   const metro = (await page.locator('.mt-half[aria-label="Metronome"]').boundingBox())!;
   const drone = (await page.locator('.mt-half[aria-label="Drone"]').boundingBox())!;
+  const changes = (await page.locator('.mt-half[aria-label="Chord dealer"]').boundingBox())!;
+  const loop = (await page.locator('.mt-half[aria-label="Loop"]').boundingBox())!;
 
   // THE NARROW THIRD (chooser metrotuner-drone-box, Q2/05). The two worked instruments
   // keep equal width; the drone takes only what a letter and a verb need. Widths state
@@ -60,23 +69,63 @@ test('desktop control: three cases on screen, the third narrow, no dots', async 
   expect(tuner.x).toBeLessThan(100);
   expect(Math.abs(tuner.width - metro.width), 'the two worked cases stay equal').toBeLessThan(10);
   expect(drone.x).toBeGreaterThan(metro.x + metro.width - 1);
-  expect(drone.width, 'the drone case is the narrow third').toBeLessThan(metro.width * 0.7);
-  const token = await page.evaluate(() =>
-    getComputedStyle(document.querySelector('#mt-app')!).getPropertyValue('--mt-drone-w').trim());
-  expect(token).toBe('210px');
+  // THE "NARROW THIRD" RELATION IS GONE, and deleting the assertion is the honest move rather
+  // than loosening its ratio. It read `drone.width < metro.width * 0.7` — true when the worked
+  // pair was 539px, and meaningless now the pair is 208px and the drone is 210px. The drone is
+  // no longer narrow RELATIVE to anything; it is narrow ABSOLUTELY, at the 210px its own
+  // contents need, which is what the token assertion below actually checks.
+  // This is the inversion the owner accepted at Q2/01 — the two worked instruments are now the
+  // narrowest cases in the room — and it is asserted explicitly further down rather than left
+  // as a stale ratio that happens to be false.
+  expect(drone.width, 'the drone keeps the width its contents need').toBe(210);
+  const tokens = await page.evaluate(() => {
+    const cs = getComputedStyle(document.querySelector('#mt-app')!);
+    return {
+      drone: cs.getPropertyValue('--mt-drone-w').trim(),
+      changes: cs.getPropertyValue('--mt-changes-w').trim(),
+      loop: cs.getPropertyValue('--mt-loop-w').trim(),
+    };
+  });
+  // Each fixed width is a MEASURED minimum, not a preference — see the tokens' own comments:
+  // 315 is the widest chord symbol at the drone's 72px, 236 is sixteen countable ticks.
+  expect(tokens).toEqual({ drone: '210px', changes: '315px', loop: '236px' });
   expect(Math.round(drone.width)).toBe(210);
+  expect(Math.round(changes.width)).toBe(315);
+  expect(Math.round(loop.width)).toBe(236);
 
-  // all three inside the viewport
-  expect(drone.x + drone.width).toBeLessThanOrEqual(1441);
+  // the two new cases sit after the drone, in order, and all five are inside the viewport
+  expect(changes.x).toBeGreaterThan(drone.x + drone.width - 1);
+  expect(loop.x).toBeGreaterThan(changes.x + changes.width - 1);
+  expect(loop.x + loop.width).toBeLessThanOrEqual(1513);
+
+  // THE COST THE OWNER ACCEPTED, asserted so it cannot drift silently: the worked pair is
+  // 208px at 1512, narrower than either new case. That is the Q2/01 trade — five cases in one
+  // room — and if a future change makes it worse this is where it shows up.
+  expect(Math.round(tuner.width)).toBe(208);
+  expect(tuner.width, 'the worked pair is narrower than the chord dealer — the accepted cost')
+    .toBeLessThan(changes.width);
+
+  // AND THE FOOT LINE STAYS INSIDE ITS CASE. This is the assertion the clip bug needed and
+  // did not have: the metronome's foot holds `bpm` and `tap` on one line, and a wrap pushes a
+  // real control out of a case that clips its overflow.
+  const foot = (await page.locator('.mt-half[aria-label="Metronome"] .mt-cfoot').boundingBox())!;
+  expect(foot.y + foot.height, 'the foot line must not spill past the case')
+    .toBeLessThanOrEqual(metro.y + metro.height);
+  const tapBox = (await page.getByTestId('tap').boundingBox())!;
+  expect(tapBox.y + tapBox.height, 'tap must be inside the viewport').toBeLessThanOrEqual(900);
   await expect(page.getByTestId('dot-tuner')).toBeHidden();
   // The instrument carries no site chrome: the mark is deleted (2026-08-04).
   await expect(page.getByTestId('home-mark')).toHaveCount(0);
 });
 
-// THREE PAGES, THREE WORDS (Q3/01) — and the words row is what breaks first at 390px, so
-// it is measured rather than eyeballed: one line, inside the viewport, and the third word
-// navigates like the other two.
-test('phone: the drone is a third page and the words still fit one line', async ({ page }) => {
+// FIVE PAGES, FIVE WORDS — and the words row is what breaks first at 390px, so it is
+// measured rather than eyeballed. THE ANSWER CHANGED with two more cases: three words set on
+// one line at 390px, five do NOT (measured: 568px of words against a 390px viewport), so the
+// row wraps to two lines and the foot takes a second lead. That is the stated cost of naming
+// the pages instead of drawing five dots, and it is asserted here rather than left to be
+// discovered — what must still hold is that the row does not OVERFLOW its own box, and that
+// every word navigates.
+test('phone: five pages, five words, wrapped but not overflowing', async ({ page }) => {
   await page.goto('/practice-room/');
 
   const row = page.locator('#mt-dots');
@@ -97,20 +146,39 @@ test('phone: the drone is a third page and the words still fit one line', async 
              // "tuner · metronome · drone", got "tuner·metronome·drone".)
              words: words.map((k) => k.textContent?.trim()) };
   });
-  expect(fit.words).toEqual(['tuner', 'metronome', 'drone']);
-  expect(fit.lines, 'three words must set on ONE line at 390px').toBe(1);
+  expect(fit.words).toEqual(['tuner', 'metronome', 'drone', 'the changes', 'the loop']);
+  // TWO LINES AT 390px — measured, and it is the accepted cost of NAMING five pages.
+  expect(fit.lines, 'five words wrap to two lines at 390px').toBe(2);
   expect(fit.overflows, 'the words row must not overflow').toBe(false);
-  // AND the row is inside the viewport — one line that overflows its own box would pass the
-  // line count and still be broken.
   expect(fit.width).toBeLessThanOrEqual(390);
 
-  // and the third word navigates
-  await page.getByTestId('dot-drone').click();
-  await page.waitForTimeout(700);
-  const drone = (await page.locator('.mt-half[aria-label="Drone"]').boundingBox())!;
-  expect(Math.abs(drone.x), 'the drone page snapped into view').toBeLessThan(30);
-  await expect(page.getByTestId('dot-drone')).toHaveClass(/cur/);
-  await expect(page.getByTestId('dot-tuner')).not.toHaveClass(/cur/);
+  // ── AND EVERY WORD IS INSIDE THE VIEWPORT, which is the assertion that actually caught a
+  // bug. `lines` and `overflows` BOTH passed on a broken row: the row was `nowrap`, so five
+  // words set 414px, the flex centred them, and the row's own box hung from x −12 to 402 with
+  // `tuner` and `the loop` clipped by the SCREEN. Nothing scrolled, so no overflow check
+  // fired, and one line was exactly what the old assertion wanted. A row can satisfy every
+  // box-level check and still have two of its five labels off the glass.
+  const inside = await row.evaluate((el) =>
+    [...el.children].filter((k) => k.tagName === 'BUTTON').map((k) => {
+      const b = k.getBoundingClientRect();
+      return { t: k.textContent?.trim(), ok: b.left >= 0 && b.right <= window.innerWidth };
+    }));
+  expect(inside.filter((w) => !w.ok), 'every page word must be on the screen').toEqual([]);
+
+  // and EVERY word navigates to its own page — the two new ones included, because a page you
+  // cannot reach is a case that does not exist on a phone.
+  for (const [testid, label] of [
+    ['dot-drone', 'Drone'],
+    ['dot-changes', 'Chord dealer'],
+    ['dot-loop', 'Loop'],
+    ['dot-tuner', 'Tuner'],
+  ] as Array<[string, string]>) {
+    await page.getByTestId(testid).click();
+    await page.waitForTimeout(700);
+    const box = (await page.locator(`.mt-half[aria-label="${label}"]`).boundingBox())!;
+    expect(Math.abs(box.x), `${label} snapped into view`).toBeLessThan(30);
+    await expect(page.getByTestId(testid)).toHaveClass(/cur/);
+  }
 });
 
 test('phone: the accent mark clears the plate it sits under', async ({ page }) => {

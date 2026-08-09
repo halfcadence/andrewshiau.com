@@ -91,14 +91,38 @@ export function pitchClassOf(midi: number): string {
  */
 const DIATONIC_STEPS = [0, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7] as const;
 
+// ── WHEN A SEMITONE COUNT IS NOT ENOUGH ─────────────────────────────────────────────────
+// The table above reads a semitone count and picks the CONVENTIONAL size for it. That is the
+// right answer when all you have is a pitch and a root — which is the drone's case, and every
+// caller before the chord trainer.
+//
+// It is the wrong answer when something has already DECLARED the degree. A chord symbol does
+// exactly that: `F♯m7♭5`'s ♭5 is a fifth, lowered — so it must be spelled on the letter C. Six
+// semitones reads as an augmented 4th by the table, so the module printed B♯. Measured across
+// a deck of eleven chords, three disagreed with their own symbol:
+//     F♯m7♭5 → F♯ A B♯ E   (the ♭5 wants C)
+//     B°     → B D E♯      (the ♭5 wants F)
+//     G7♯9   → G B F B♭    (the ♯9 wants A♯)
+// Neither reading is "wrong about the pitch" — both sound the same note. The letter is what
+// differs, and the letter is the whole job of this module.
+//
+// So the degree is an OPTIONAL third argument. Omit it and nothing changes: every existing
+// caller keeps the conventional reading, which is why this is additive rather than a fix that
+// has to be audited across three surfaces. Pass it and the letter comes from the degree.
+// A degree of 5 counts 4 letters up; a 9th counts 8 — i.e. `degree - 1`, compounds included.
+
 /**
  * Name a pitch as an interval above a root: `nameInChord(51, 3)` → `G♭3`.
  *
  * `root` is a MIDI number, `semis` the interval above it in semitones (0–24 covered; larger
  * compound intervals fold by octaves). The root's own spelling comes from `NOTE_NAMES`, so a
  * root of E♭ is an E-flat and its third is spelled on G.
+ *
+ * `degree` is optional and only for a caller that already knows which degree this note IS —
+ * a chord symbol's ♭5, ♯9, ♭13. Without it the semitone count picks the conventional size,
+ * which is correct for a bare interval and wrong for a declared alteration. See the note above.
  */
-export function nameInChord(root: number, semis: number): string {
+export function nameInChord(root: number, semis: number, degree?: number): string {
   const rootName = NOTE_NAMES[mod(root, 12)];
   const rootLetter = rootName[0] as (typeof LETTERS)[number];
   const rootAcc = rootName.length > 1 ? (rootName[1] === '♯' ? 1 : -1) : 0;
@@ -108,7 +132,10 @@ export function nameInChord(root: number, semis: number): string {
   const octaves = Math.floor(semis / 12);
   const simple = semis - octaves * 12;
 
-  const steps = DIATONIC_STEPS[simple] + octaves * 7;
+  // The declared degree wins when there is one; otherwise the conventional size for the count.
+  // A degree already carries its own compounding (a 9th is 8 letters up), so it is NOT folded
+  // by octaves the way the table's simple-interval reading has to be.
+  const steps = degree === undefined ? DIATONIC_STEPS[simple] + octaves * 7 : degree - 1;
   const targetLetterIdx = li + steps;
   const letter = LETTERS[mod(targetLetterIdx, 7)];
 
@@ -144,4 +171,28 @@ export function nameInChord(root: number, semis: number): string {
 /** Every name in a chord, root first: `chordNames(51, [3, 7])` → `['E♭3','G♭3','B♭3']`. */
 export function chordNames(root: number, semis: number[]): string[] {
   return [nameOf(root), ...semis.map((s) => nameInChord(root, s))];
+}
+
+/**
+ * One note of a chord VOICING: the semitones above the root, and the degree the symbol calls it.
+ *
+ * The pair travels together because either one alone spells something wrong — the semitones
+ * without the degree give B♯ for a ♭5, and the degree without the semitones cannot say whether
+ * a 5th is flat, natural or sharp.
+ */
+export interface ChordTone {
+  /** semitones above the root — what sounds */
+  semis: number;
+  /** the degree the chord symbol declares: 5 for a ♭5, 9 for a ♯9, 13 for a ♭13 */
+  degree: number;
+}
+
+/**
+ * Spell a voicing whose degrees are known — the chord trainer's case.
+ *
+ * `spellVoicing(54, [{semis:0,degree:1},{semis:3,degree:3},{semis:6,degree:5},{semis:10,degree:7}])`
+ * → `['F♯3','A3','C4','E4']` — the ♭5 on C, where `chordNames` would print B♯.
+ */
+export function spellVoicing(root: number, tones: ChordTone[]): string[] {
+  return tones.map((t) => nameInChord(root, t.semis, t.degree));
 }

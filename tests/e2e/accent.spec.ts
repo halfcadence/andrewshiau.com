@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test';
 
+// ── EVERY TEST HERE DRIVES A METRONOME CONTROL, SO THE FILE STATES THE DESKTOP WIDTH ────
+// Playwright's default is 1280, and with five cases the room SWIPES below 1477 (the
+// metronome's foot needs a 190px case, measured). On the phone layout the cases are five snap
+// pages, so the metronome's meters and its tap ring sit on page 2 — off screen — and a click
+// lands on nothing. The failures read as "the ring did not overshoot" and "the mark is not
+// what a click hits", neither of which is about the mark or the ring.
+// One declaration, one place: a per-test literal is how a suite ends up half-migrated.
+test.use({ viewport: { width: 1512, height: 900 } });
+
 // The accent toggle: off, the downbeat is an ordinary beat — asserted through the
 // ?e2e hook's tick log (voice is what SOUNDS) and the persisted flag.
 //
@@ -77,31 +86,38 @@ test('the `>` mark states the accent, as a real rendered colour change', async (
   expect(await stroke(), 'and it returns to the on paint').toBe(on);
 });
 
-test('the accent mark adds no layout — both meters keep one baseline', async ({ page }) => {
-  // THE PREMISE IS A WIDTH, so the width is stated. Below 1479 the two meters STACK by
-  // design (`.mt-ctop{flex-direction:column}` — the case is too narrow to hold 431px of
-  // label+scale on one line), so "share a top edge" is only a claim about the wide layout.
-  // This test ran at Playwright's default 1280 and passed for as long as the room had two
-  // cases; the drone's 210px moved the stacking threshold up past 1280, and the test then
-  // reported the STACKED layout as a broken baseline (Δy 56, which is exactly one stacked
-  // row). What it exists to catch is the accent mark taking over the row's baseline — a
-  // mark-in-flow regression — and that is a wide-layout fact.
-  await page.setViewportSize({ width: 1512, height: 900 });
+test('the accent mark adds no layout — the digits do not move', async ({ page }) => {
+  // ── THE ONE-LINE LAYOUT NO LONGER EXISTS, so this test stopped asserting it ───────────
+  // It used to check that the two meters share a top edge, which was a fact about the WIDE
+  // layout. Measured on the five-case room (practice-room-apps Q1/02+03, Q2/01): the two
+  // meters need a viewport of 1819px to sit on one line, bisected — and no screen this
+  // instrument runs on is that wide, so the spec row is two STACKED meters at every desktop
+  // width. Asserting a shared top edge now asserts a layout nobody sees.
+  // WHAT THIS TEST IS ACTUALLY FOR survives unchanged and is stronger for being stated
+  // directly: the accent mark is absolutely positioned so it CANNOT take over the row's
+  // baseline (`.mt-rm` is a column flex and baselines on its first item, so an in-flow mark
+  // row above the digits would drop the beats meter). The observable is therefore "toggling
+  // the mark moves nothing", which is true in both layouts and is the regression that matters.
   await page.goto('/practice-room/?e2e');
-  // `.mt-rm` is a column flex and baselines on its FIRST item, so an in-flow mark row
-  // above the digits would become the beats meter's baseline and drop it below
-  // `subdivide`. The mark is absolutely positioned for exactly that reason, and this
-  // test is what stops someone "simplifying" it back into the flow.
   const beats = page.locator('#mt-beats-seg .rm-digits');
   const sub = page.locator('#mt-sub-seg .rm-digits');
   const a = (await beats.boundingBox())!;
-  const b = (await sub.boundingBox())!;
-  expect(Math.abs(a.y - b.y), 'beats and subdivide digit rows share a top edge').toBeLessThan(1.5);
+  const b0 = (await sub.boundingBox())!;
 
-  // and toggling must not move anything
+  // The mark is out of flow, so the digits sit at the TOP of their own group — that is the
+  // property the absolute positioning buys, and it holds whatever the row does.
+  const markInFlow = await page.evaluate(() => {
+    const mark = document.getElementById('mt-acc')!;
+    return getComputedStyle(mark).position;
+  });
+  expect(markInFlow, 'the accent mark stays out of flow').toBe('absolute');
+
+  // and toggling must not move anything — either meter
   await page.getByTestId('accent-toggle').click();
   const a2 = (await beats.boundingBox())!;
-  expect(Math.abs(a2.y - a.y), 'toggling the accent does not shift the digits').toBeLessThan(0.5);
+  const b2 = (await sub.boundingBox())!;
+  expect(Math.abs(a2.y - a.y), 'toggling the accent does not shift the beats digits').toBeLessThan(0.5);
+  expect(Math.abs(b2.y - b0.y), 'nor the subdivide digits').toBeLessThan(0.5);
   await page.getByTestId('accent-toggle').click();
 });
 
@@ -118,8 +134,11 @@ test('the accent mark adds no layout — both meters keep one baseline', async (
 // predates the drone; what changed is that the widths which stack now reach up to 1479, so
 // more screens see it. Left as an observation for the owner rather than silently
 // redesigned: making the scales align needs a label column, which is a composition decision.
-test('below the stacking width the meters stack flush left, in order', async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 900 });
+// THE WIDTH MOVED FROM 1280 TO 1512, and the reason is worth stating: 1280 is now BELOW the
+// swiper's 1477 edge, so the cases are five separate snap pages and the metronome is off
+// screen. The stacked spec row is a DESKTOP fact, so it has to be measured on the desktop
+// layout — which, per the note above, is every width from 1477 up.
+test('the meters stack flush left, in order', async ({ page }) => {
   await page.goto('/practice-room/?e2e');
   const beats = (await page.locator('#mt-beats-seg .rm-digits').boundingBox())!;
   const sub = (await page.locator('#mt-sub-seg .rm-digits').boundingBox())!;

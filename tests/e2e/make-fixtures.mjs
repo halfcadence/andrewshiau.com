@@ -227,6 +227,45 @@ function roomNoiseWav(name, seconds = 20) {
   console.log(`wrote ${name}: room noise (50 Hz hum + LF rumble + floor), ${seconds}s`);
 }
 
+
+// ── AN ARPEGGIATED VOICING, for the chord dealer's grading (Q3/02) ─────────────────────
+// THE ONE FIXTURE THAT CAN TELL THE GRADER FROM A STUB. The chord case checks the notes of a
+// voicing AS THEY ARRIVE, one at a time, because the shipped detector finds one period and
+// reads a strummed four-note chord as no pitch at all (measured: below the 0.6 clarity gate).
+// So the input has to be a real arpeggio — each note held long enough for the 60ms read loop
+// to see it, with a rest between so one note's decay is not charged to the next.
+//
+// A PLUCKED SPECTRUM, not a sine: the whole reason the room's detector is time-domain is that
+// a plucked string often has more energy in a harmonic than in its fundamental, and a fixture
+// of pure sines would let an FFT-peak stub pass a test the real detector exists to survive.
+function arpeggioWav(name, hz, { holdMs = 700, gapMs = 180, reps = 6 } = {}) {
+  const noteN = Math.round(SR * holdMs / 1000);
+  const gapN = Math.round(SR * gapMs / 1000);
+  const cycle = hz.length * (noteN + gapN);
+  const n = cycle * reps;
+  const data = Buffer.alloc(n * 2);
+  let seed = 913377;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x3fffffff - 1; };
+  const PARTIALS = [1, 0.52, 0.31, 0.18, 0.11, 0.06];
+  for (let i = 0; i < n; i++) {
+    const posInCycle = i % cycle;
+    const slot = Math.floor(posInCycle / (noteN + gapN));
+    const posInSlot = posInCycle - slot * (noteN + gapN);
+    if (posInSlot >= noteN) { data.writeInt16LE(0, i * 2); continue; }   // the rest
+    const f = hz[slot];
+    const t = posInSlot / SR;
+    // pluck envelope: fast attack, exponential decay — and it stays above the 0.008 RMS gate
+    // for the whole hold, or the reader would go silent mid-note.
+    const env = Math.min(1, posInSlot / (SR * 0.008)) * (0.45 + 0.55 * Math.exp(-t * 1.6));
+    let v = 0;
+    for (let h = 0; h < PARTIALS.length; h++) v += PARTIALS[h] * Math.sin(2 * Math.PI * f * (h + 1) * t);
+    const s = 0.34 * env * (v / 1.6) + rnd() * 0.004;
+    data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, s)) * 32767), i * 2);
+  }
+  writeFileSync(join(out, name), Buffer.concat([wavHeader(data.length), data]));
+  console.log(`wrote ${name}: ${hz.length} notes arpeggiated, ${holdMs}ms each, ${reps} reps`);
+}
+
 // The four offsets, computed rather than eyeballed: A4 +20¢, B4 −18¢, C#5 +12¢, D5 −6¢.
 const cents = (base, c) => base * 2 ** (c / 1200);
 
@@ -243,3 +282,9 @@ phraseWav('phrase-4.wav', [
   cents(554.37, 12),   // C♯5 +12¢ sharp
   cents(587.33, -6),   // D5  −6¢ flat
 ]);
+
+// Dm7 as the chord dealer voices it: root at MIDI 48 + 2 = D3, then the 3rd, 5th and 7th.
+// The frequencies are computed from A440 the same way the page does, so the fixture and the
+// instrument cannot disagree about what a D3 is.
+const midiHz = (m) => 440 * 2 ** ((m - 69) / 12);
+arpeggioWav('arp-dm7.wav', [50, 53, 57, 60].map(midiHz));
