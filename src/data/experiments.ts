@@ -216,8 +216,8 @@ export const experiments: Entry[] = [
     // tools. The URL is /practice-room/ now too (renamed with the title, 2026-08-05).
     title: 'Practice room',
     blurb:
-      'A chromatic tuner, a metronome and a drone on one page. Pitch detection runs ' +
-      'in the browser; the microphone signal never leaves it.',
+      'A chromatic tuner, a metronome, a drone, a chord dealer and a loop for taking ' +
+      'a recording apart. Pitch detection runs in the browser; the microphone signal never leaves it.',
     // 'Web instrument', not 'Web app' — every meta value names a kind of artifact
     // ("Agent skill", "Static site"), and "app" is the one noun that describes nothing.
     meta: 'Web instrument',
