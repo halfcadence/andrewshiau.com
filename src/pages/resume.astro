@@ -101,6 +101,18 @@ interface Role {
 //    The 100M it carried moved into the bullet above it.
 //  - "for Amazon OPS, at 99.88% probability of positive return" — a confidence interval nobody
 //    audits, and "OPS" is untranslated internal jargon. The $85.4MM stands alone.
+//    ── "STANDS ALONE" WAS TRUE OF THE JARGON AND FALSE OF THE SCOPE, corrected 2026-08-11.
+//    Cutting "OPS" was right; what went with it by accident was the fact that Fresh was ONE of
+//    several retail experiments. Confirmed by Andrew: $100MM+ annualised is the total across
+//    them, and Fresh's +$85.4MM is the largest single one. So the line understated the work by
+//    $15MM+ for as long as it has existed — the sheet named one test and implied it was all of
+//    them.
+//    The two figures now sit in ONE sentence, which is the same call this file already makes
+//    twice: a total and its largest component printed apart read as two claims that disagree
+//    (see the two-3,000s note in the Composer role below), and a reader who spots a discrepancy
+//    stops trusting the column. Together they explain each other.
+//    Found by reading the LinkedIn profile against this page — About said "+$100MM OPS" while
+//    the resume said $85.4MM, and the two documents get read side by side by the same person.
 //  - Big Huge Games, a 10-week 2016 internship, whole: 33 words and a third of a sheet, sitting
 //    below a master's degree and four jobs.
 //  - "Sketch, Framer" from the stack — both dead tools in 2026, and listing them dates the
@@ -250,8 +262,25 @@ const ROLES: Role[] = [
       // with the next line I write is the exact failure the rule is for.
       'Built Brand Builder: 100 templates per brand across 30+ brands, 3,000+ in all, against ' +
         '20 a year hand-coded.',
-      'Launched an A/B test increasing product image size on Amazon Fresh: +$85.4MM annualised, ' +
-        '+0.67%.',
+      // THE TOTAL AND ITS LARGEST COMPONENT, not one test standing for all of them — see the
+      // correction in the cut list above. Chooser: linkedin-ai-forward, item 8/01.
+      //
+      // ── 133 CHARACTERS, AND THE NUMBER WAS BISECTED AGAINST THE PDF, NOT COMPUTED.
+      // The first version of this line ran 140 characters and printed a SECOND SHEET CARRYING
+      // ZERO LINES — the worst length for something stapled, and the exact failure the "verify
+      // the artifact" rule at the top of CLAUDE.md exists for. My arithmetic had said it fit.
+      // What the measurement actually established, by printing the page with the line removed:
+      // this document's capacity is 51 LINES, not the 48.5 or 50.9 the comments below compute,
+      // and the pre-change page was carrying exactly 51. There was no slack at all. Every
+      // "~2.4 lines spare" figure in this file is derived from a page height and a leading, and
+      // it has now been wrong twice in the same direction.
+      // Bisected with `scripts/try-resume-line.sh` (one candidate → build → print → line count):
+      // 140 chars spilled, 133 fits, and the ONE word that had to go was `Amazon` before Fresh —
+      // the sentence already says "Amazon retail pages", so it was the second Amazon in 12 words.
+      // Nothing else was cut: `product` stays and `+0.67%` stays, both of which a shorter draft
+      // had dropped. A word count is not a line count; only the artifact knows.
+      'Launched A/B tests on Amazon retail pages worth $100MM+ annualised; the largest raised ' +
+        'product image size on Fresh: +$85.4MM, +0.67%.',
     ],
     more: [
       'The rate is the whole argument: a hand-coded template took weeks and only its author could ' +
