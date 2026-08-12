@@ -268,4 +268,29 @@ export const experiments: Entry[] = [
     href: '/work/photography/',
     side: 'design',
   },
+  {
+    // THE FIRST ENTRY THAT IS NOT A CASE STUDY, and the first whose href leaves /work/.
+    // Every other row here points at a page about a thing that was built; this one points at
+    // an argument. Writing had no shelf on the index — the three pieces in /writing/ are
+    // reachable only from inside prose — so an essay either got a fourth section of its own or
+    // it went here. It goes here because `experiments` is defined at the top of this file as
+    // "the AI-forward experiments", and an argument built out of measurements taken from the
+    // other rows is one: it is the only entry that could not exist without the others.
+    //
+    // `meta: 'Essay'` keeps the column a list of artifact kinds you could hold, next to
+    // 'Static site' and 'Photo set'. It also matches the page's own `.smark`, which reads
+    // Essay rather than the Explainer the three earlier /writing/ pages use — those explain a
+    // thing, this one argues for one.
+    n: '08',
+    title: 'Personal software',
+    blurb:
+      'Three tools for an audience of one, measured against the rate I built at before ' +
+      'agents. An argument that personal software is convivial in what it produces and ' +
+      'industrial in what it consumes.',
+    meta: 'Essay',
+    href: '/writing/personal-software/',
+    // `both`: the evidence is engineering — commit rates, checks that lied — and the argument
+    // is about craft and dependence. Neither half alone is what the piece is doing.
+    side: 'both',
+  },
 ];

@@ -1,0 +1,269 @@
+---
+// "The tools are personal. The kitchen is not." — an essay arguing from my own personal
+// software rather than from the genre's usual optimism.
+//
+// EVERY NUMBER HERE WAS MEASURED, and the measurements are the argument, so they are stated
+// with their denominators and their spans: a reader can re-derive each one from a repo or
+// discard the claim. The commit-rate multiplier deliberately uses the CONSERVATIVE reading of
+// grove's span (five calendar days rather than git's four-day date difference), because a
+// published multiplier should be the one that survives an argument about counting.
+//
+// Uses only the site's existing devices (.dek .idea .num .step .facts .block .shead .foot), so
+// it needs no page CSS. `.smark` reads "Essay" rather than "Explainer" — the three existing
+// pieces in /writing/ explain a thing; this one argues for one.
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="The tools are personal. The kitchen is not. — Andrew Shiau"
+  description="I built three pieces of software for an audience of one. What that measured, and why the most personal software ever written depends on the least personal infrastructure ever built."
+>
+  <div class="grid">
+    <div class="pin">
+      <p class="smark">Essay</p>
+      <h1>The tools are personal. The kitchen is not.</h1>
+      <div class="facts">
+        <div class="frow">
+          <div class="fm">What</div>
+          <div class="ftx">Three tools nobody else will use, measured: what got built, what got
+            hard, and what it cost. An argument about where personal software actually
+            depends.</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Read against</div>
+          <div class="ftx">Robin Sloan, “An app can be a home-cooked meal” · Geoffrey Litt,
+            “Malleable software in the age of LLMs” · Maggie Appleton, “Home-Cooked Software and
+            Barefoot Developers” · Ink &amp; Switch, “Potluck” · Ivan Illich, <i>Tools for
+            Conviviality</i> (1973)</div>
+        </div>
+        <div class="frow">
+          <div class="fm">Back to</div>
+          <div class="ftx"><a href="/">andrewshiau.com</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="splitrule" aria-hidden="true"></div>
+
+    <div class="feed">
+      <div class="grid">
+        <p class="dek c1-12">Robin Sloan once wrote that an app can be a home-cooked meal:
+          software made for a few people you know, with no ambition to scale. It was a lovely
+          idea and, for most people, an unaffordable one. That changed. I now run three pieces of
+          software written for exactly one person, and I can tell you what they cost — which
+          turns out to be the interesting part.</p>
+      </div>
+
+      <div class="grid sect">
+        <div class="idea c1-12">
+          <span class="k">The one idea</span>
+          <p>Personal software has become easy to make and impossible to make alone. It is
+            convivial in what it produces and industrial in what it consumes.</p>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">1</span>The measurement</h2>
+          <div class="sbody">
+            <p>Three tools. A terminal front end for watching the agents I run, a practice room
+              for cello, and a sprint space. 13,837 lines between them, and an audience of one.</p>
+            <p>I have a control for the rate, which is the only reason any of this is worth
+              writing down. I have kept a recipe archive since December 2020: 504 commits over
+              five and a half years, hand-written, no agents. It is the same category of thing —
+              software for an audience I could name — built the old way. Against it, the terminal
+              tool took 188 commits in five days.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="num c1-12">
+          <span class="big">≈150×</span>
+          <span class="lab">my own commit rate, before and after agents, on software for an
+            audience of one <span class="g">(recipes: 504 commits / 2,042 days · grove: 188
+            commits / 5 days)</span></span>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="block c1-12">
+          <p>That is not a claim about anyone else. It is one person, the same person, in the
+            same category, before and after — which is the one comparison the genre is usually
+            missing, and the only one I can actually make.</p>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">2</span>The first thing you build is a control room</h2>
+          <div class="sbody">
+            <p>Here is what I did not expect. Two of the three tools are not for the work. They
+              are for watching the work being done: one shows me the terminal sessions my agents
+              are running, the other records what they finished. The practice room is the only
+              one that would have existed anyway.</p>
+            <p>The literature imagines people building for their households and hobbies. The
+              observed behaviour, at least in my case, is that you first build the room you stand
+              in to supervise. Personal software arrived, and its first application was
+              management — which is the first hint that the industrial half of this is not a
+              detail. The tool I most wanted was a window onto the thing doing the work.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">3</span>An audience of one raises the ceiling</h2>
+          <div class="sbody">
+            <p>The assumption everywhere is that personal software is scrappy — good enough,
+              held together with tape, because nobody is watching. Mine went the other way, and
+              the reason is structural rather than admirable.</p>
+            <p>To decide how one small animation should behave in a sidebar only I will ever
+              see, I rendered nineteen options, then eleven more, and picked by looking. No
+              product organisation would fund that, because craft there competes with a roadmap.
+              Remove the roadmap and the thing that made personal software scrappy is gone. It
+              can be over-built in a way commercial software cannot afford to be. Whatever else
+              is true, the output side of this really is as convivial as software gets: shaped to
+              one person past the point any product could justify.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">4</span>What actually got hard</h2>
+          <div class="sbody">
+            <p>Not the code. Writing it stopped being the constraint some time ago. What got
+              hard was knowing whether it worked, and the failures were all of one kind: the
+              check said yes about something that was not happening.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="facts">
+          <div class="frow"><div class="fm">A still mark</div><div class="ftx">A spinning icon was verified by reading the animation's name off the element. Set its duration to zero and the name still reads correctly while nothing moves. The check passed a stationary mark.</div></div>
+          <div class="frow"><div class="fm">A hidden figure</div><div class="ftx">Text content resolves perfectly well on an element that is not displayed, so every assertion about the figures stayed green with the code that reveals them deleted.</div></div>
+          <div class="frow"><div class="fm">The wrong window</div><div class="ftx">An assertion that the animation slowed down at the end measured across the part where it was still speeding up. It passed a version with the slowdown removed.</div></div>
+          <div class="frow"><div class="fm">The instrument itself</div><div class="ftx">A script written to prove an edit had dropped no facts reported 166 losses. Its pattern was matching across line breaks and had captured whole paragraphs as single tokens. Fixed, it reported 7 — of which none was a loss.</div></div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="step c1-6"><span class="sl">What I thought the job was</span><span class="st">Describe the thing well enough that it gets built.</span><span class="sd">Generation is the scarce step, so the skill is specification.</span></div>
+        <div class="step c7-12"><span class="sl">What the job is</span><span class="st">Prove the check can fail before believing that it passed.</span><span class="sd">Generation is free. The scarce step is judgment: every one of the four above was caught by deliberately breaking the code to see whether the test noticed, and none by reading it.</span></div>
+      </div>
+      <div class="grid">
+        <div class="block c1-12">
+          <p>There is a version of this essay that treats that as a footnote about testing. It
+            is not. If software can be produced faster than it can be judged, then judgment is
+            the whole remaining job, and a personal tool has exactly one person available to do
+            it.</p>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">5</span>What it cost</h2>
+          <div class="sbody">
+            <p>Now the part the genre tends to leave out. The agent time behind all of this ran
+              at about $726 a day, sustained, over 54 days.</p>
+            <p>One caveat, and it matters: that covers all of my agent use, including my actual
+              job. It is an upper bound on the software described here, not its price tag. It is still the right order of magnitude for the
+              argument, because the tools it produced replace — generously — thirty dollars a
+              month of ordinary subscriptions. A tuner. A metronome. A sprint board.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="num c1-12">
+          <span class="big">$726</span>
+          <span class="lab">a day, sustained over 54 days, against software that replaces about
+            $30 a month <span class="g">(upper bound: covers all agent use, day job
+            included)</span></span>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="block c1-12">
+          <p>Software's defining economic trick was a marginal cost of zero: write it once, run
+            it a billion times. Software written for one person never had that trick available,
+            and now the writing has a running meter attached. The economics of a bespoke suit,
+            with the delivery time of a vending machine.</p>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">6</span>Convivial in output, industrial in input</h2>
+          <div class="sbody">
+            <p>In 1973 Ivan Illich drew a line between two kinds of tool. A convivial tool is
+              one a person can pick up and use on their own terms, without an institution
+              standing between them and the work: a bicycle, a library, a hand plane. An
+              industrial tool requires the institution — you can drive the car, but you cannot
+              have the road, the refinery, or the factory.</p>
+            <p>Personal software sits on both sides of that line at once, and I do not think
+              the genre has noticed. What comes out is as convivial as software gets: it fits one
+              person, it answers to nobody's roadmap, it can be changed on a whim by the person
+              it is for. What goes in is a data centre I will never see, a model I did not train
+              and cannot inspect, rented by the token, on terms set elsewhere and revocable
+              without me.</p>
+            <p>My recipe archive is convivial all the way down. I could still edit it on a
+              laptop in a cabin. The three new tools are mine in every respect except the one
+              that determines whether they can exist.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="step c1-6"><span class="sl">The home-cooked reading</span><span class="st">You cook for the people you love, at your own stove.</span><span class="sd">Sloan's version, and the one everyone quotes. It assumes the kitchen is yours.</span></div>
+        <div class="step c7-12"><span class="sl">What I actually have</span><span class="st">A home-cooked meal from an industrial kitchen.</span><span class="sd">The recipe is mine, the taste is mine, the diner is me. The stove is metered, rented, and somewhere else.</span></div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">7</span>So what</h2>
+          <div class="sbody">
+            <p>The question worth arguing about is no longer whether ordinary people can have
+              software shaped to their own working lives. That is settled; I have three of them
+              and they took a week. The question is what it means that the most personal software
+              ever written turned out to depend on the least personal infrastructure ever built —
+              and therefore who gets to have any.</p>
+            <p>If adapting your own tools becomes a normal way to work, then access to inference
+              is not a consumer preference, it is closer to literacy: the thing you need in order
+              to shape the environment you spend your life in. That is the argument for treating
+              it as public infrastructure, and the strongest precedent is the public library,
+              which existed to make a competence universal, not to be generous.</p>
+            <p>I can see three honest objections, and I hold all of them at once. Inference keeps getting
+              cheaper, and quickly enough that this may be a policy for a problem that expires. Subsidised compute bought from three vendors is a transfer
+              to those vendors, not a commons — libraries owned the books. And if the scarce input
+              is judgment rather than compute, as section four suggests, then making compute
+              free widens the gap instead of closing it, because it multiplies the output of
+              people who can already tell whether something works.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sect">
+        <div class="shead">
+          <h2><span class="sn">8</span>What I have not shown</h2>
+          <div class="sbody">
+            <p>All three of the new tools are less than a week old, which means I have measured
+              how fast personal software can be built and not at all how long it lasts.
+              The recipe archive is the only one with a track record and it is the hand-made one.
+              Nobody reviews software with one user: no second pair of eyes, no accessibility
+              pass, no threat model. I found one of my own tools reading a hidden number aloud to
+              screen readers, and only because I thought to ask the browser.</p>
+            <p>So I do not know yet whether this is the personal computer finally arriving, forty
+              years late and in the right shape, or a subscription to one. Both are consistent
+              with the evidence I have. What I am fairly sure of is that the sentence people keep
+              reaching for — <i>now anyone can build their own software</i> — is doing a lot of
+              work with the word <i>anyone</i>.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="foot c1-12">
+          <a href="/">andrewshiau.com</a>
+          <span class="kb"> · Press <code>⌥G</code> for the grid</span>
+          <span class="tou"> · Set on a 12-column grid</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
