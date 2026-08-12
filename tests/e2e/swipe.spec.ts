@@ -60,7 +60,7 @@ test('phone: the metronome still runs while the tuner page is shown', async ({ p
 //     the row is the only thing that says so. That inverts the old "no dots" control exactly.
 // 1512 is kept as the width because it is where all five fit (they need 1423), so this is
 // still the "whole room visible" case the control was written to cover.
-test('desktop: all five seated in queue order, each at least its own demand', async ({ page }) => {
+test('desktop: all five seated in the console\'s order, each at least its own demand', async ({ page }) => {
   await page.setViewportSize({ width: 1512, height: 900 });
   await page.goto('/practice-room/?e2e=1');
   await page.waitForTimeout(300);
@@ -88,7 +88,11 @@ test('desktop: all five seated in queue order, each at least its own demand', as
   }
 
   // IN THE QUEUE'S ORDER, left to right, each clear of the last.
-  const seq = ['tuner', 'metronome', 'drone', 'changes', 'loop'];
+  // THE ORDER IS THE CONSOLE'S OWN KEYS FIRST — tuner, drone, metronome — then the two
+  // standalones. It was tuner/metronome/drone when the room held five peers; the grouping
+  // (`practice-room-plan` Q1/02) put the drone beside the tuner because that is the pair you
+  // actually use together.
+  const seq = ['tuner', 'drone', 'metronome', 'changes', 'loop'];
   expect(boxes.tuner.x).toBeLessThan(100);
   for (let n = 1; n < seq.length; n += 1) {
     const prev = boxes[seq[n - 1]], cur = boxes[seq[n]];
@@ -152,7 +156,8 @@ test('phone: five pages, five glyphs, one line', async ({ page }) => {
   });
   expect(fit.n).toBe(5);
   expect(fit.drawings, 'five distinct drawings').toBe(5);
-  expect(fit.labels).toEqual(['tuner', 'metronome', 'drone', 'the changes', 'the loop']);
+  // the console's own key order — tuner, drone, metronome — then the standalones
+  expect(fit.labels).toEqual(['tuner', 'drone', 'metronome', 'the changes', 'the loop']);
   // ONE LINE AT 390px — the whole reason the words went. Measured: 148px of glyphs.
   expect(fit.lines, 'five glyphs set on one line at 390px').toBe(1);
   expect(fit.overflows, 'the row must not overflow').toBe(false);
@@ -193,9 +198,12 @@ test('phone: five pages, five glyphs, one line', async ({ page }) => {
   });
   await page.waitForTimeout(400);
   const orderBox = (await page.locator('.mt-order').boundingBox())!;
-  expect(Math.abs(orderBox.x), 'the order page snaps into view past the fifth instrument')
+  expect(Math.abs(orderBox.x), 'the plan snaps into view past the fifth instrument')
     .toBeLessThan(30);
-  await expect(page.locator('#mt-olist .mt-orow')).toHaveCount(5);
+  // THE PLAN IS A BOX WITH THREE THINGS IN IT NOW, not a five-row list: the console plus the two
+  // standalones (`practice-room-box`, 2026-08-12). On the phone this page is the only route to
+  // it, because the `plan` word is hidden at this width.
+  await expect(page.locator('#mt-planroom .mt-pbox')).toHaveCount(3);
 });
 
 test('phone: the accent mark clears the plate it sits under', async ({ page }) => {

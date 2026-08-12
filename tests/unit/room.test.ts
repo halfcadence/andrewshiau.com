@@ -14,6 +14,7 @@ import {
   INSTRUMENTS, BY_KEY, PAD, GAP,
   fitRoom, normalizeOrder, moveTo, nudge, settleTo, glyphSvg, GLYPHS,
   MARK, MARK_FACTS, markInner, markSignature,
+  THINGS, THING_BY_ID, thingDemand, fitThings, splitThing, normalizeThings,
 } from '../../src/lib/practice-room/room';
 
 const ORDER = ['tuner', 'metronome', 'drone', 'changes', 'loop'];
@@ -298,5 +299,85 @@ describe('the 16px glyphs', () => {
 
   it('returns an empty but valid svg for an unknown key', () => {
     expect(glyphSvg('nope')).toContain('<svg');
+  });
+});
+
+describe('THINGS — the console and the two standalones (box + plan choosers)', () => {
+  const D: Record<string, number> = { tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236 };
+  const ORDER3 = ['console', 'changes', 'loop'];
+
+  it('holds three things, not five instruments', () => {
+    expect(THINGS.length).toBe(3);
+    expect(THINGS.flatMap((t) => t.keys).sort())
+      .toEqual(['changes', 'drone', 'loop', 'metronome', 'tuner']);
+  });
+
+  it('the console seats exactly the three you play with', () => {
+    expect(THING_BY_ID.console.keys).toEqual(['tuner', 'drone', 'metronome']);
+  });
+
+  it("a thing's demand is its members plus the gaps between them", () => {
+    // computed here rather than imported, so a typo in the module cannot agree with itself
+    expect(thingDemand('console')).toBe(D.tuner + D.drone + D.metronome + GAP * 2);
+    expect(thingDemand('console')).toBe(648);
+    expect(thingDemand('changes')).toBe(D.changes);
+    expect(thingDemand('loop')).toBe(D.loop);
+    expect(thingDemand('nope')).toBe(0);
+  });
+
+  it('all three need the same 1423px the five instruments did', () => {
+    const need = ORDER3.reduce((a, id) => a + thingDemand(id), 0) + PAD * 2 + GAP * 2;
+    expect(need).toBe(1423);
+    expect(fitThings(ORDER3, need).shown.length).toBe(3);
+    expect(fitThings(ORDER3, need - 1).shown).toEqual(['console', 'changes']);
+  });
+
+  it('A CONSOLE THAT DOES NOT FIT WHOLE DOES NOT FIT AT ALL', () => {
+    // 647 is one px under the console's own demand plus the room's padding
+    const justUnder = thingDemand('console') + PAD * 2 - 1;
+    const f = fitThings(ORDER3, justUnder);
+    // it is forced (one thing always shows) but nothing is seated BESIDE a partial console
+    expect(f.shown).toEqual(['console']);
+    expect(f.queued).toEqual(['changes', 'loop']);
+  });
+
+  it('shares the leftover equally between the things that fit', () => {
+    const f = fitThings(ORDER3, 1600);
+    const overs = f.shown.map((id, i) => f.widths[i] - thingDemand(id));
+    for (const o of overs) expect(o).toBeCloseTo(f.share, 6);
+    const occupied = f.widths.reduce((a, b) => a + b, 0) + GAP * (f.shown.length - 1) + PAD * 2;
+    expect(occupied).toBeCloseTo(1600, 4);
+  });
+
+  it('never drops a thing — shown + queued is the whole order', () => {
+    for (const w of [300, 700, 900, 1423, 1920]) {
+      const f = fitThings(ORDER3, w);
+      expect([...f.shown, ...f.queued]).toEqual(ORDER3);
+    }
+  });
+
+  it("splits a thing's width among its members in proportion to their demands", () => {
+    const w = thingDemand('console');
+    const parts = splitThing('console', w);
+    expect(parts.map(Math.round)).toEqual([D.tuner, D.drone, D.metronome]);
+    // and extra room reaches every member rather than pooling in one
+    const wide = splitThing('console', w + 300);
+    expect(wide.every((p, i) => p > parts[i])).toBe(true);
+    expect(wide.reduce((a, b) => a + b, 0) + GAP * 2).toBeCloseTo(w + 300, 4);
+  });
+
+  it('a standalone splits to itself', () => {
+    expect(splitThing('loop', 400)).toEqual([400]);
+  });
+
+  it('validates a persisted thing-order rather than trusting it', () => {
+    expect(normalizeThings('loop,console,changes')).toEqual(['loop', 'console', 'changes']);
+    expect(normalizeThings('loop')).toEqual(['loop', 'console', 'changes']);
+    expect(normalizeThings('tuner,nope')).toEqual(['console', 'changes', 'loop']);
+    for (const raw of [null, '', ' , ']) expect(normalizeThings(raw as string | null)).toEqual(['console', 'changes', 'loop']);
+    // always a permutation of exactly what exists
+    for (const raw of ['loop', 'x', null]) {
+      expect([...normalizeThings(raw as string | null)].sort()).toEqual(['changes', 'console', 'loop']);
+    }
   });
 });

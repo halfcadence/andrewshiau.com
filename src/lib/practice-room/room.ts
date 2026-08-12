@@ -133,6 +133,115 @@ export function fitRoom(order: readonly string[], width: number): Fit {
   };
 }
 
+/* ══════════════════════════════════════════════════════════════════════════════════════
+   THINGS, NOT INSTRUMENTS (chooser `practice-room-plan` Q1/02, `practice-room-box` Q1/04,
+   Q2/04, Q3/02, Q4/04 — 2026-08-12)
+   ══════════════════════════════════════════════════════════════════════════════════════
+   The room held five peers and the owner's verdict was that it read as busy. His grouping,
+   taken as the premise: the tuner, the drone and the metronome are the things you use WHILE
+   PLAYING and often together — tuning against a drone, a drone against a click — so they are
+   ONE thing, a console. The changes and the loop are things you WORK AT, one at a time, and
+   each wants the screen. So the room holds THREE things, not five.
+
+   THE CONSOLE IS A FITTING UNIT, NOT A DOM WRAPPER. Its three cases stay siblings in
+   `#mt-pages`; what changes is that they are seated together or not at all. Wrapping them in
+   a container would have re-parented three live instruments — every listener, every
+   `data-testid`, and the row ladder they subgrid onto — to buy nothing the ordering already
+   gives. The console's demand is therefore the sum of its members plus the gaps between them.
+
+   THERE IS NO OUTSIDE (box Q4/04): every thing is always in the room. Nothing is put away, so
+   the plan has no shelf and the queue is a permutation rather than a subset. */
+
+/** One thing the room can hold: a single instrument, or the console's three. */
+export interface Thing {
+  id: string;
+  /** the instrument keys it seats, in the order they sit */
+  keys: readonly string[];
+  /** the word the plan and the phone's row print */
+  name: string;
+}
+
+export const THINGS: readonly Thing[] = [
+  { id: 'console', keys: ['tuner', 'drone', 'metronome'], name: 'console' },
+  { id: 'changes', keys: ['changes'], name: 'the changes' },
+  { id: 'loop',    keys: ['loop'],    name: 'the loop' },
+];
+export const THING_BY_ID: Readonly<Record<string, Thing>> =
+  Object.fromEntries(THINGS.map((t) => [t.id, t]));
+
+/**
+ * A thing's width demand: its members' measured demands plus one `GAP` between each.
+ * The console comes to 170 + 170 + 196 + 2×56 = 648, which is why three things need the same
+ * 1423px five instruments did — the grouping changes what you navigate, not what fits.
+ */
+export function thingDemand(id: string): number {
+  const t = THING_BY_ID[id];
+  if (!t) return 0;
+  return t.keys.reduce((a, k) => a + (BY_KEY[k]?.demand ?? 0), 0) + GAP * (t.keys.length - 1);
+}
+
+export interface ThingFit {
+  shown: string[];
+  queued: string[];
+  /** px per SHOWN thing, index-aligned with `shown` */
+  widths: number[];
+  share: number;
+}
+
+/**
+ * HOW MANY THINGS A WIDTH BUYS — the same fit-by-demand-then-share arithmetic the owner picked
+ * for the queue (Q1/04), applied to things rather than instruments. A console that does not fit
+ * whole does not fit at all: seating two of its three would put a tuner beside a drone with the
+ * metronome off-screen, which is the busy room the grouping exists to end.
+ */
+export function fitThings(order: readonly string[], width: number): ThingFit {
+  const ids = order.filter((id) => id in THING_BY_ID);
+  if (!ids.length) return { shown: [], queued: [], widths: [], share: 0 };
+
+  let used = PAD * 2;
+  let n = 0;
+  for (const id of ids) {
+    const add = thingDemand(id) + (n ? GAP : 0);
+    if (used + add > width) break;
+    used += add;
+    n += 1;
+  }
+  if (n === 0) n = 1; // one thing always shows, even if it must overflow
+
+  const shown = ids.slice(0, n);
+  const base = shown.map(thingDemand);
+  const occupied = base.reduce((a, b) => a + b, 0) + GAP * (n - 1) + PAD * 2;
+  const share = Math.max(0, (width - occupied) / n);
+  return { shown, queued: ids.slice(n), widths: base.map((b) => b + share), share };
+}
+
+/**
+ * WITHIN a shown thing, how wide each of its instruments gets. The thing's own width is split
+ * by its members' demands in proportion, so the console's extra room reaches the dial and the
+ * pendulum rather than pooling in one case.
+ */
+export function splitThing(id: string, width: number): number[] {
+  const t = THING_BY_ID[id];
+  if (!t) return [];
+  const demands = t.keys.map((k) => BY_KEY[k]?.demand ?? 0);
+  const gaps = GAP * (t.keys.length - 1);
+  const total = demands.reduce((a, b) => a + b, 0);
+  const spare = Math.max(0, width - gaps - total);
+  return demands.map((d) => d + (total ? (spare * d) / total : 0));
+}
+
+/** The persisted thing-order, validated the same way the instrument order is. */
+export function normalizeThings(raw: string | null | undefined): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const k of String(raw ?? '').split(',')) {
+    const id = k.trim();
+    if (id in THING_BY_ID && !seen.has(id)) { seen.add(id); out.push(id); }
+  }
+  for (const t of THINGS) if (!seen.has(t.id)) out.push(t.id);
+  return out;
+}
+
 /**
  * THE PERSISTED ORDER, validated rather than trusted — localStorage outlives the code that
  * wrote it, so a stale value from a five-instrument era must not break a six-instrument room.

@@ -33,6 +33,19 @@ import Layout from '../layouts/Layout.astro';
   <div id="mt-app">
     <h1 class="visually-hidden">Practice room</h1>
 
+    <!-- ══ THE ONE PIECE OF GLOBAL CHROME (box chooser `Where` Q2/02) ══════════════════════
+         "The instrument opens; the plan is behind one word." This reverses the decision that
+         kept this screen chrome-free, and the owner made it knowingly — the option's own cost
+         line says so: 28px of the screen's height, permanently, and the row ladder is made of
+         those leads. What it buys is that the app opens ON your instruments rather than on a
+         screen between you and an A.
+         IT COSTS EXACTLY ONE LEAD OR NOTHING. The screen is round(down,100dvh,28px), which is
+         what lets every case share one row ladder; a 30px bar puts all of them off it. -->
+    <div class="mt-chrome">
+      <button type="button" class="mt-planword" id="mt-planword" data-testid="plan-word"
+        aria-label="Open the plan — arrange the room">plan</button>
+    </div>
+
     <div class="mt-pages" id="mt-pages">
       <!-- ── TUNER, the left case / first page ─────────────────────────────── -->
       <!-- THE CASE (chooser: metrotuner-pendulum, Q2/01): a square hairline case per
@@ -725,15 +738,29 @@ import Layout from '../layouts/Layout.astro';
            labels therefore stacked at y −13 on top of the engraved plate and overflowed the
            226px case by 125px. They are ordinary rows in the ladder instead — `.mt-ol` — which
            is what the spec and foot rows hold on every other case. -->
-      <section class="mt-half mt-order" aria-label="Order">
-        <span class="mt-plate" aria-hidden="true">order</span>
+      <!-- ══ THE PLAN (choosers `practice-room-box` Q1/04 Q2/04 Q3/02 Q4/04, `practice-room-plan`
+           Q4/01 Q5/01 — 2026-08-12) ═══════════════════════════════════════════════════════
+           ONE BIG BOX with the things as little boxes inside it. The owner's correction, in his
+           words: "you should draw a big box for the outer homepage. and then all the instruments
+           are in little boxes inside?" — the previous attempt drew a grid of separate bays side
+           by side, which is five enclosures and no room.
+           THE BOX IS A ROOM WITH A DOORWAY (Q1/04): 2px walls, and a gap in the left wall drawn
+           as two wall segments with air between. The walls are heavier than the fittings inside
+           them, which is how a plan says containment — a hairline box would draw the room and the
+           instruments identically.
+           THE SLOTS ARE THE SCREEN'S THIRDS (Q2/04), so a box sits where its case will.
+           EACH LITTLE BOX IS A FIGURE AND A NAME UNDER IT (Q3/02).
+           THERE IS NO OUTSIDE (Q4/04): every thing is always in the room, so there is no shelf
+           and rearranging is a permutation rather than a removal.
+           DRAG, WITH A LIFT (Q5/01) — the one skeuomorphic device on the screen — plus a
+           press-then-press path, because a drag has no keyboard equivalent. -->
+      <section class="mt-half mt-order" aria-label="Plan">
+        <span class="mt-plate" aria-hidden="true">plan</span>
         <div class="mt-ctop">
-          <span class="mt-ol" id="mt-order-hint">drag a row</span>
+          <span class="mt-ol" id="mt-order-hint">drag a box</span>
         </div>
         <div class="mt-mid">
-          <!-- filled by the script from src/lib/practice-room/room.ts, so the list and the
-               room's columns cannot disagree about the order -->
-          <ol class="mt-olist" id="mt-olist" data-testid="order-list"></ol>
+          <div class="mt-planroom" id="mt-planroom" data-testid="plan-room"></div>
         </div>
         <div class="mt-cfoot mt-ofoot">
           <span class="mt-ol" id="mt-order-fit" data-testid="order-fit"></span>
@@ -1336,8 +1363,15 @@ import Layout from '../layouts/Layout.astro';
     column-gap:var(--group);
     padding:var(--group) var(--group) var(--lead);
     overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
-    /* the room's own scroll padding, so a settled case's edge lands on the inset datum
-       rather than against the viewport */
+    /* ── CSS SNAP, AND NO JS (plan chooser Q2/03). The JS settle that used to live here never
+       worked — it only knew the cases already on screen, so scrolling toward the queue threw
+       you back to one you had passed (measured: candidates 0/263/553/816/1516 against a max
+       scroll of 574). Rather than fix it, the owner picked the browser's own mechanism, which
+       deletes the whole class of bug: no listener, no target, no race, and the momentum and
+       the interruption are handled by the engine.
+       `scroll-padding-left` is what puts a snapped case's edge on the room's 3ch inset datum
+       instead of against the viewport — the page's one horizontal alignment rule. */
+    scroll-snap-type:x mandatory;
     scroll-padding-left:var(--group);
     grid-template-rows:
       [case-top]  var(--lead)           /* the case's own top air */
@@ -1362,6 +1396,11 @@ import Layout from '../layouts/Layout.astro';
   /* the desktop room hides its scrollbar too — that the queue continues is said by the
      cases themselves running past the edge, not by a grey bar */
   .mt-pages::-webkit-scrollbar{display:none}
+  /* EVERY CASE IS A SNAP POINT. `scroll-snap-align:start` on the case rather than on a wrapper,
+     because the cases are the grid's own items — and `scroll-snap-stop:normal` so a long fling
+     still crosses the room instead of stopping at every case, which is mandatory-snap's one
+     real cost and is named in the option's why-line. */
+  .mt-pages > .mt-half{scroll-snap-align:start}
   /* A QUEUED CASE keeps its own measured demand rather than a share of the room: it is not
      on screen, so it has no leftover to be given. `--mt-qw` is written per case by the
      script from the same module. */
@@ -1377,45 +1416,95 @@ import Layout from '../layouts/Layout.astro';
      A PICKED-UP ROW takes the accent, which is this site's one job for colour: you can act
      on it. `cursor:grab` says drag; `aria-pressed` says picked up. */
   /* ── EVERY SELECTOR BELOW IS `:global()`, AND THIS PAGE ALREADY KNEW WHY.
-     The rows are written by this file's SCRIPT at runtime, so Astro never stamps them with
-     the component's `data-astro-cid-*` — while it DOES add that attribute to every compiled
-     selector. `.mt-orow{…}` compiled to `.mt-orow[data-astro-cid-3jerlmmv]{…}`, which a
-     JS-created element can never satisfy, so the entire block was inert: the rows rendered at
-     their intrinsic 72px inside a 28px track and OVERLAPPED each other, which Playwright
-     reported as "the loop intercepts pointer events" on four unrelated tests. Not a click
-     bug — one dead stylesheet with four symptoms.
-     The rule of thumb the `.rm-rule line` note already states, applied: any CSS aimed at
-     markup this file's script generates must be `:global()`. Scoped tightly by `#mt-olist`
-     and `.mt-orow` so it leaks nowhere. */
-  /* THE LIST STARTS AT THE TOP OF ITS ROW. `.mt-mid` is a subgrid whose middle row is the
-     figure's slack, and a five-row list centred in ~400px of it read as floating in the
-     case. `grid-row:1/-1` + `align-self:start` puts the list where a figure's group would
-     start, so it sits against the case's own top air like every other case's content. */
-  #mt-olist{list-style:none;margin:0;padding:0;display:grid;align-content:start;
-    grid-row:1 / -1;align-self:start;grid-auto-rows:var(--lead)}
-  #mt-olist :global(.mt-orow){display:flex;align-items:center;gap:1ch;width:100%;
-    height:var(--lead);
-    background:transparent;border:0;border-bottom:1px solid var(--line);
-    color:var(--ink);font:inherit;font-size:var(--step);text-align:left;padding:0;cursor:grab}
-  #mt-olist :global(li:last-child .mt-orow){border-bottom:0}
-  #mt-olist :global(.mt-orow[aria-pressed=true]){color:var(--accent);cursor:grabbing}
-  #mt-olist :global(.mt-orow:focus-visible){outline:1px solid var(--accent);outline-offset:2px}
-  #mt-olist :global(.mt-orow.drop){border-top:2px solid var(--accent)}
-  #mt-olist :global(.mt-orow.lift){opacity:.35}
-  /* NO SIZE. This screen has one type size and says everything else with colour and
-     position — `.mt-gl`'s notch labels are 15px `--faint`, not small type. A 12px numeral
-     here would have been the proof sheet's idiom imported into a page that does not use it,
-     and `practice-room-css.test.ts` says so: only 72px may be set. */
-  #mt-olist :global(.mt-on){color:var(--faint);width:3ch;flex:none;
-    font-variant-numeric:tabular-nums}
-  /* the 16px glyph, the same drawing the phone's dot row uses — one set, two places */
-  #mt-olist :global(.mt-og){flex:none;display:grid;place-items:center;width:16px;height:16px}
-  #mt-olist :global(.mt-og svg){display:block}
-  #mt-olist :global(.mt-onm){flex:1 1 auto;min-width:0;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap}
-  #mt-olist :global(.mt-od){color:var(--faint);flex:none;
-    font-variant-numeric:tabular-nums}
-  .mt-ofoot{justify-content:flex-start}
+     The plan's boxes are written by this file's SCRIPT at runtime, so Astro never stamps them
+     with the component's `data-astro-cid-*` — while it DOES add that attribute to every compiled
+     selector. A scoped `.mt-pbox{…}` compiles to `.mt-pbox[data-astro-cid-*]{…}`, which a
+     JS-created element can never satisfy, and the whole block is inert. That cost a session
+     once already: the order rows rendered at their intrinsic height inside a 28px track and
+     OVERLAPPED, which Playwright reported as "the loop intercepts pointer events" on four
+     unrelated tests. One dead stylesheet, four symptoms. */
+
+  /* ── THE CHROME ROW: one lead, one word (Where Q2/02) ──────────────────────────────
+     Flush to the room's own 3ch inset — everything that does not radiate from an instrument
+     sits on that datum, which is the page's whole horizontal rule. The word is lowercase like
+     every other word on the instrument, and it is `--dim` at rest so it reads as chrome rather
+     than as an instrument's own label. */
+  .mt-chrome{flex:none;height:var(--lead);display:flex;align-items:center;
+    padding:0 calc(var(--group) + var(--inset))}
+  .mt-planword{font:inherit;background:none;border:0;color:var(--dim);cursor:pointer;
+    padding:6px 0;margin:-6px 0;line-height:16px;
+    transition:color var(--dur-fast) var(--ease)}
+  .mt-planword:hover,.mt-planword:focus-visible{color:var(--accent)}
+  .mt-planword[aria-pressed=true]{color:var(--ink)}
+  /* on the phone the room is a swiper and the plan is one of its pages, so the word would be a
+     second route to the same place — and 28px is a bigger fraction of a phone's height */
+  @media (max-width: 759px){ .mt-chrome{display:none} }
+
+  /* ── THE PLAN: ONE BIG BOX, A ROOM WITH A DOORWAY (box chooser Q1/04) ────────────────
+     The walls are 2px INK and everything inside them is a hairline, because a plan draws a wall
+     heavier than the thing standing against it — that weight difference IS the containment, and
+     it is the reason a plain hairline box was rejected: it draws the room and the instruments
+     identically, so nothing says which contains which.
+     THE DOORWAY is a gap in the left wall: the border-left is transparent and two background
+     gradients paint the wall segments above and below the opening. A drawn threshold rather
+     than a fourth wall. Its cost, stated on the sheet and accepted: nothing enters through it,
+     since a drag can cross any edge. */
+  /* THE PLAN SITS AT THE TOP OF ITS ROW. `.mt-mid` is a subgrid whose middle row is the
+     figure's slack, and an 87px box centred in 115px of it read as floating — the same defect
+     the order list had. `grid-row:1/-1` + `align-self:start` puts it where a figure's group
+     would start, against the case's own top air. */
+  #mt-planroom{position:relative;display:grid;align-content:start;gap:var(--lead);
+    grid-row:1 / -1;align-self:start;
+    border:2px solid var(--ink);border-left-color:transparent;
+    background-image:linear-gradient(var(--ink),var(--ink)),
+                     linear-gradient(var(--ink),var(--ink));
+    background-repeat:no-repeat;
+    background-size:2px 25%, 2px 45%;
+    background-position:left top, left bottom;
+    padding:var(--lead) var(--inset)}
+
+  /* THE FLOOR IS THE SCREEN'S THIRDS (Q2/04): a box sits where its case will, so the plan is a
+     map of the room rather than a shelf of options. Its cost, accepted: the real room shares
+     width by measured demand, so a box drawn at a third is a picture of something that renders
+     at 648px beside a 315px neighbour. */
+  #mt-planroom :global(.mt-pfloor){display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));gap:var(--tight)}
+
+  /* A SLOT, drawn as four corner ticks (plan chooser Q3/01) — the plan convention for a
+     fitting. An empty slot reads as available floor rather than as an empty card. */
+  #mt-planroom :global(.mt-pslot){position:relative;min-height:62px;display:grid;
+    place-items:center;padding:2px}
+  #mt-planroom :global(.mt-pslot::before),#mt-planroom :global(.mt-pslot::after){
+    content:"";position:absolute;width:9px;height:9px;border:1px solid var(--line);
+    pointer-events:none}
+  #mt-planroom :global(.mt-pslot::before){top:0;left:0;border-right:0;border-bottom:0}
+  #mt-planroom :global(.mt-pslot::after){bottom:0;right:0;border-left:0;border-top:0}
+  #mt-planroom :global(.mt-pslot[data-over]){outline:1px solid var(--accent);outline-offset:2px}
+
+  /* A LITTLE BOX: a figure and a name under it (Q3/02). The figure is the instrument's own
+     generated mark; the console shows all three of its members' marks in a row, which is how
+     "these three are one thing" is drawn rather than labelled. */
+  #mt-planroom :global(.mt-pbox){display:grid;gap:2px;justify-items:center;width:100%;
+    background:var(--paper);border:1px solid var(--line);color:var(--ink);
+    font:inherit;font-size:var(--step);padding:4px 2px;cursor:grab;
+    transition:box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease)}
+  #mt-planroom :global(.mt-pbox:focus-visible){outline:1px solid var(--accent);outline-offset:2px}
+  /* THE ONE SKEUOMORPHIC DEVICE (Q5/01): a lifted box casts a shadow, and nothing else on this
+     screen has one. `ration the delights` — a few deliberate ones read as care. */
+  #mt-planroom :global(.mt-pbox[aria-pressed=true]){
+    box-shadow:0 6px 14px rgba(0,0,0,.18);transform:translateY(-2px);
+    border-color:var(--accent);cursor:grabbing}
+  #mt-planroom :global(.mt-pbox.lift){opacity:.35}
+  #mt-planroom :global(.mt-pmarks){display:inline-flex;gap:4px;align-items:center;
+    justify-content:center;min-height:16px}
+  #mt-planroom :global(.mt-pmarks svg){display:block}
+  /* NO SIZE. This screen has ONE type size and says everything else with colour and position —
+     `.mt-gl`'s notch labels are 15px `--faint`, not small type. My first version set 12px here
+     and `practice-room-css.test.ts` caught it: "only 72px may be set". The names are `--dim`
+     against the box's ink, which is the distinction the site actually uses. */
+  #mt-planroom :global(.mt-pnm){line-height:var(--lead);color:var(--dim);
+    white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+
   /* the order page's two labels: ordinary rows on the ladder, `--faint` like every other
      supporting mark on this screen. NOT `.mt-gl` — see the markup note. */
   .mt-ol{color:var(--faint);line-height:var(--lead);display:block;
@@ -1667,7 +1756,7 @@ import Layout from '../layouts/Layout.astro';
      from the swiper's edge all the way up rather than stopping at a number I guessed.
      `min-width` only, therefore. If a future change takes cases back out of the room, re-bisect
      this — do not reinstate a number from the three-case era. */
-  @media (min-width: 534px){
+  @media (min-width: 760px){
     .mt-pages{grid-template-rows:
       [case-top]  var(--lead)
       [spec]      calc(var(--lead) * 4)  /* two stacked meters, two leads each */
@@ -1886,7 +1975,7 @@ import Layout from '../layouts/Layout.astro';
      mobile rule): the viewport's own edges are the frame, so drawing one inside
      them would be a frame in a frame. The plate goes with it; the page dots name
      the pages. */
-  @media (max-width: 533px){
+  @media (max-width: 759px){
     /* THE SNAP SCROLLER, ON THE SAME LADDER. What changes from the desktop case is only
        the COLUMN axis — each page is a full viewport wide, so the two columns become two
        100%-wide ones and the gap goes. `grid-auto-flow:column` is NOT used: the rows are
@@ -2052,7 +2141,7 @@ import Layout from '../layouts/Layout.astro';
      scroller's padding is 0 there, and an absolutely-positioned ::before inside a scroll
      container lays out against the scrollable padding box — so it travels with the pages instead
      of staying stuck over page 1. */
-  @media (max-width: 533px){
+  @media (max-width: 759px){
     .mt-pages::before{inset:0}
   }
 
@@ -2643,7 +2732,8 @@ import Layout from '../layouts/Layout.astro';
   // pile of media queries that can drift from what the cases actually need.
   import {
     INSTRUMENTS, BY_KEY, PAD, GAP,
-    fitRoom, normalizeOrder, moveTo, settleTo, glyphSvg,
+    normalizeOrder, moveTo, glyphSvg,
+    THINGS, THING_BY_ID, thingDemand, fitThings, splitThing, normalizeThings,
   } from '../lib/practice-room/room';
 
   // ONE AudioContext for tuner, tone and metronome, created on the first gesture —
@@ -2689,7 +2779,8 @@ import Layout from '../layouts/Layout.astro';
                 // reading them back is reading the mechanism rather than a symptom of it.
                 // `settled` is the settle's own target — the same reason the sheet's stamp is
                 // written from inside its handler and not beside it.
-                roomShown: string[]; roomWidths: number[]; order: string[]; settled: number | null;
+                roomShown: string[]; roomWidths: number[]; roomKeys: string[];
+                order: string[]; settled: number | null;
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
@@ -2702,7 +2793,7 @@ import Layout from '../layouts/Layout.astro';
     // frames the tuner disowned, so a green can be told from a gate that never fired.
     bleed: null, gated: 0, belowFloor: 0,
     // the queue's own state, written by layoutRoom()/setOrder()/settle()
-    roomShown: [], roomWidths: [], order: [], settled: null,
+    roomShown: [], roomWidths: [], roomKeys: [], order: [], settled: null,
     get a4() { return a4; },
     get bpm() { return bpm; },
     // ONE ENTRY PER SOUNDING NOTE, in pitch order: the root, then each switched interval.
@@ -5030,22 +5121,35 @@ import Layout from '../layouts/Layout.astro';
     paintTl();
   }
 
-  // ══ THE ROOM IS A QUEUE (chooser `practice-room-queue`, 2026-08-11) ═══════════════════
-  // Four mechanisms, all reading ONE state — the order — and all deriving their numbers from
-  // src/lib/practice-room/room.ts rather than from CSS or from each other:
-  //   the ROOM     writes `--mt-cols` from fitRoom(); the queue past the fit stays rendered
-  //   the SETTLE   locks a free scroll to the nearest case edge on `scrollend` (Q2/04)
-  //   the ORDER    the room's last page: drag a row, or press one then another (Q3/01+Q4/01)
-  //   the DOTS     one 16px glyph per instrument, the case's own drawing (Q5/02)
+  // ══ THE ROOM HOLDS THREE THINGS (choosers `practice-room-plan` + `practice-room-box`,
+  //    2026-08-12) ═══════════════════════════════════════════════════════════════════════
+  // The queue of five read as busy, which was the owner's verdict on it. His grouping is now
+  // the premise: the tuner, drone and metronome are ONE thing (a console — you use them while
+  // playing, often together); the changes and the loop are standalones you work at one at a
+  // time. So the room seats THREE things, and `THINGS` in room.ts is what it seats.
+  //   the ROOM    writes `--mt-cols` from fitThings(); a console seats whole or not at all
+  //   the SNAP    is CSS ONLY now (plan Q2/03) — the JS settle is DELETED, see below
+  //   the PLAN    one big box with a doorway, behind the word `plan` (box Q1/04, where Q2/02)
+  //   the DOTS    one 16px generated mark per instrument (icons Q1/04)
+  //
+  // WHY THE SETTLE IS GONE. It never worked: `caseOffsets()` filtered to cases that were not
+  // queued, so only what was already on screen had a resting place and a scroll toward the
+  // queue was thrown back to a case you had passed. Measured on the live page at 1280px, the
+  // candidates were 0/263/553/816/1516 against a maximum scroll of 574 — two past the end,
+  // and the queued case had none at all. The owner picked `scroll-snap-type:x mandatory` and
+  // "no JS", which deletes the mechanism rather than fixing it: the browser owns the momentum,
+  // the settle, and the interruption. `settleTo()` stays exported for its unit tests but the
+  // page no longer calls it.
   const pages = document.getElementById('mt-pages')!;
   const dots = document.getElementById('mt-dots')!;
-  const olist = document.getElementById('mt-olist')!;
   const orderFit = document.getElementById('mt-order-fit');
   const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  // THE PERSISTED ORDER IS VALIDATED, NOT TRUSTED — localStorage outlives the code that
-  // wrote it, so a stale five-key list must not break a six-instrument room.
-  let order = normalizeOrder(store.get('mt:order'));
+  // THE PERSISTED ORDER IS A THING-ORDER NOW, and it is validated rather than trusted: a
+  // stale five-INSTRUMENT list from yesterday's queue must not break a three-thing room.
+  // `normalizeThings` drops anything unknown and appends what is missing, so an old
+  // `tuner,metronome,drone,changes,loop` simply becomes the default three.
+  let order = normalizeThings(store.get('mt:things'));
 
   /** Every case section, by key. The order page is NOT one of these — it is the last page. */
   const caseEls = new Map<string, HTMLElement>();
@@ -5056,71 +5160,109 @@ import Layout from '../layouts/Layout.astro';
   const orderPage = pages.querySelector('.mt-order') as HTMLElement | null;
 
   /** Is the room the phone swiper? One case per page, so the queue arithmetic is moot. */
-  const isPhone = () => window.matchMedia('(max-width: 533px)').matches;
+  /**
+   * THE PHONE BAND MOVED 533 → 759, and it is derived rather than chosen. The old number was
+   * where the desktop room stopped seating TWO INSTRUMENTS. The room seats THINGS now, and the
+   * smallest thing worth seating is the console — three cases at 170 + 170 + 196 plus two 56px
+   * gaps = 648, which needs 760 once the room's own padding is counted. Bisected on the built
+   * page: whole at 760, partial at 759, and the arithmetic names the same pixel.
+   * Below it the desktop room could only show a console overflowing its own room, which is worse
+   * than the phone layout giving one instrument the whole viewport. The cost, stated: every
+   * viewport from 534 to 759 that showed two cases yesterday now swipes.
+   */
+  const isPhone = () => window.matchMedia('(max-width: 759px)').matches;
 
   /**
-   * THE ORDER PAGE'S WIDTH. It is a case like any other and needs a measured minimum for the
-   * same reason: its widest ink. The rows print `NN` + a 16px glyph + the longest name
-   * (`metronome`, 9ch) + a 3-digit demand, with 1ch gaps — 2ch + 16 + 9ch + 3ch + 3×9 = 169px,
-   * plus the two 3ch insets and the hairlines = 224. Rounded to 226 so `drag a row, or press
-   * one then another` in the top notch does not clip at 12px.
+   * THE PLAN'S WIDTH, measured on the built page rather than derived twice from arithmetic.
+   *
+   *   the longest name `the changes` at the screen's ONE type size (15px) = 99px
+   *   the console's three 16px marks + two 4px gaps = 56 — so the name is what binds
+   *   → a box needs 99 + 6 of padding and borders = 105
+   *   → each box sits in a slot with 2px either side = 109 per slot
+   *   → three slots + two 14px gaps + the case's two 3ch insets and 2px walls = 413
+   *
+   * IT WAS WRONG THREE TIMES, each for a different reason, and the third is the one worth
+   * keeping. 226 was the old row-list width and truncated every name. 348 came from measuring
+   * the names at 12px — a size I had put on `.mt-pnm` myself, which `practice-room-css.test.ts`
+   * failed for breaking the page's one-type-size rule; removing it made the names bigger and the
+   * width wrong again. 414 gave `the changes` a 98.67px box for 99px of ink and it STILL
+   * rendered `the chang…` — while `scrollWidth <= clientWidth` reported that it fitted, because
+   * those properties are integer-rounded and the overflow was 0.33px.
+   *
+   * SO THE SLACK IS DELIBERATE: +6px, and the check in room.spec.ts measures the PAINTED ink
+   * with a Range rather than asking `scrollWidth`. Same lesson as the demand bisection earlier
+   * in this room's history — measure ink, not boxes — and the same failure mode: an instrument
+   * that rounds cannot see a defect smaller than its own resolution.
    */
-  const ORDER_PAGE_W = 226;
+  const PLAN_PAGE_W = 420;
 
   // ── THE ROOM ────────────────────────────────────────────────────────────────────────
   // `--mt-cols` is the whole layout. The DOM order of the sections is fixed (they are the
   // page's markup); the QUEUE order is expressed with `order:` on each case, so re-ordering
   // never moves a node and therefore never restarts an instrument that is sounding.
   function layoutRoom() {
-    // THE PHONE'S TRACKS ARE ONE PER PAGE, and the count is the queue's length plus the order
-    // page — never the literal 5 the old CSS carried. Written on both layouts because a
-    // resize can cross the band without a reload.
-    pages.style.setProperty('--mt-pcols', `repeat(${order.length + 1}, 100%)`);
+    // THE PHONE'S TRACKS: one per instrument plus the plan. On a phone the grouping is moot —
+    // every case has the whole viewport, so a console is three ordinary pages.
+    const keys = order.flatMap((id) => THING_BY_ID[id].keys);
+    pages.style.setProperty('--mt-pcols', `repeat(${keys.length + 1}, 100%)`);
     if (isPhone()) {
-      // one case per snap page: the queue arithmetic does not apply, and every case is shown
-      order.forEach((k, i) => {
+      keys.forEach((k, i) => {
         const el = caseEls.get(k);
         if (!el) return;
         el.style.order = String(i);
         delete el.dataset.queued;
         el.style.removeProperty('--mt-qw');
       });
-      if (orderPage) orderPage.style.order = String(order.length);
+      if (orderPage) orderPage.style.order = String(keys.length);
       pages.style.removeProperty('--mt-cols');
       if (orderFit) orderFit.textContent = 'one per page · swipe';
-      if (E2E) { hook.roomShown = [...order]; hook.roomWidths = []; }
+      if (E2E) { hook.roomShown = [...order]; hook.roomWidths = []; hook.roomKeys = keys; }
       return;
     }
-    // The room's own content width: the element minus its two `--group` paddings is what
-    // fitRoom() is given, because that is the width cases actually get.
+
     const w = pages.clientWidth;
-    const fit = fitRoom(order, w);
-    // ONE COLUMN PER SHOWN CASE, plus a track each for the queued ones and for the order
-    // page. A grid item with no track gets an implicit one sized to its content, which is
-    // how the order page first rendered at 56px — its own padding and nothing else.
-    const queuedCols = order.slice(fit.shown.length).map((k) => `${BY_KEY[k].demand}px`);
-    pages.style.setProperty(
-      '--mt-cols',
-      [...fit.widths.map((x) => `${x.toFixed(2)}px`), ...queuedCols, `${ORDER_PAGE_W}px`].join(' '),
-    );
-    order.forEach((k, i) => {
+    const fit = fitThings(order, w);
+
+    // ONE COLUMN PER CASE, derived from the THING it belongs to: a shown thing's width is split
+    // among its members in proportion to their demands, so the console's extra room reaches the
+    // dial and the pendulum rather than pooling in one case. A queued thing's cases each take
+    // their own measured demand — off-screen, there is no leftover to share.
+    const cols: string[] = [];
+    order.forEach((id) => {
+      const shownAt = fit.shown.indexOf(id);
+      const t = THING_BY_ID[id];
+      if (shownAt >= 0) {
+        splitThing(id, fit.widths[shownAt]).forEach((px) => cols.push(`${px.toFixed(2)}px`));
+      } else {
+        t.keys.forEach((k) => cols.push(`${BY_KEY[k].demand}px`));
+      }
+    });
+    cols.push(`${PLAN_PAGE_W}px`);
+    pages.style.setProperty('--mt-cols', cols.join(' '));
+
+    // `order:` on each case — the DOM never moves, so re-ordering never restarts a sounding
+    // instrument. A case's order is its position in the flattened key list.
+    keys.forEach((k, i) => {
       const el = caseEls.get(k);
       if (!el) return;
       el.style.order = String(i);
-      const shownAt = fit.shown.indexOf(k);
-      if (shownAt >= 0) {
-        delete el.dataset.queued;
-        el.style.removeProperty('--mt-qw');
-      } else {
-        // a queued case gets its own measured demand — it has no leftover to share
-        el.dataset.queued = '';
-        el.style.setProperty('--mt-qw', `${BY_KEY[k].demand}px`);
-      }
     });
-    if (orderPage) orderPage.style.order = String(order.length); // always last
-    // THE FIT LINE MUST FIT ITS OWN CASE — 226px is ~25 characters at 15px in this face, and
-    // `${n} of ${m} fit — scroll for the rest` is 34. It rendered clipped. The short form says
-    // the same thing: the count, and that the rest are behind a scroll.
+    order.forEach((id) => {
+      const queued = fit.shown.indexOf(id) < 0;
+      THING_BY_ID[id].keys.forEach((k) => {
+        const el = caseEls.get(k);
+        if (!el) return;
+        if (queued) {
+          el.dataset.queued = '';
+          el.style.setProperty('--mt-qw', `${BY_KEY[k].demand}px`);
+        } else {
+          delete el.dataset.queued;
+          el.style.removeProperty('--mt-qw');
+        }
+      });
+    });
+    if (orderPage) orderPage.style.order = String(keys.length); // always last
+
     if (orderFit) {
       orderFit.textContent = fit.shown.length === order.length
         ? `all ${order.length} on screen`
@@ -5129,33 +5271,9 @@ import Layout from '../layouts/Layout.astro';
     if (E2E) {
       hook.roomShown = fit.shown;
       hook.roomWidths = fit.widths.map((x) => Math.round(x));
+      hook.roomKeys = keys;
+      hook.order = [...order];
     }
-  }
-
-  // ── THE SETTLE (Q2/04, free scroll then lock) ───────────────────────────────────────
-  // No CSS snap on the desktop room, so the momentum is the browser's own. `scrollend` is
-  // the mechanism; where it does not exist a debounced `scroll` stands in — that fallback is
-  // the reason this degrades to "no lock" rather than to "no scroll".
-  const caseOffsets = () =>
-    [...pages.children]
-      .filter((el) => !(el as HTMLElement).dataset.queued)
-      .map((el) => (el as HTMLElement).offsetLeft - PAD);
-
-  function settle() {
-    if (isPhone()) return;                       // the phone has real CSS snap; leave it alone
-    const to = settleTo(caseOffsets(), pages.scrollLeft);
-    if (to === null) return;                     // already there — no correcting animation
-    pages.scrollTo({ left: to, behavior: still.matches ? 'auto' : 'smooth' });
-    if (E2E) hook.settled = to;
-  }
-  if ('onscrollend' in window) {
-    pages.addEventListener('scrollend', settle);
-  } else {
-    let t = 0;
-    pages.addEventListener('scroll', () => {
-      window.clearTimeout(t);
-      t = window.setTimeout(settle, 140);
-    }, { passive: true });
   }
 
   // ── THE DOTS (Q5/02) ────────────────────────────────────────────────────────────────
@@ -5163,7 +5281,13 @@ import Layout from '../layouts/Layout.astro';
   // the same GLYPHS map the order page reads, so the two rows cannot disagree.
   function drawDots() {
     dots.replaceChildren();
-    order.forEach((k, i) => {
+    // THE DOTS ARE PER INSTRUMENT, NOT PER THING — five marks, because the phone's carousel has
+    // five instrument pages whatever the desktop grouping is. `order` holds THING ids now, so
+    // it has to be flattened first; iterating it directly asked `BY_KEY['console']` and threw
+    // `Cannot read properties of undefined (reading 'name')`, which killed drawPlan() on the
+    // same tick and left the plan empty at every width. One wrong loop, two dead features.
+    const keys = order.flatMap((id) => THING_BY_ID[id].keys);
+    keys.forEach((k, i) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'pgdot';
@@ -5201,68 +5325,87 @@ import Layout from '../layouts/Layout.astro';
     scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; paintDots(); });
   }, { passive: true });
 
-  // ── THE ORDER PAGE (Q4/01, drag — with the keyboard path drag cannot have) ───────────
+  // ── THE PLAN (box Q1/04 + Q2/04 + Q3/02 + Q4/04, plan Q5/01) ────────────────────────
+  // One big box, the things as little boxes inside it, at the screen's thirds. Drag with a lift,
+  // and press-then-press as the path a drag cannot give a keyboard.
+  const planroom = document.getElementById('mt-planroom')!;
   let lifted: string | null = null;
 
-  function drawOrder() {
-    olist.replaceChildren();
-    order.forEach((k, i) => {
-      const inst = BY_KEY[k];
-      const li = document.createElement('li');
-      const row = document.createElement('button');
-      row.type = 'button';
-      row.className = 'mt-orow';
-      row.draggable = true;
-      row.dataset.mtKey = k;
-      row.dataset.testid = `order-${k}`;
-      row.setAttribute('aria-pressed', String(lifted === k));
-      row.setAttribute('aria-label',
-        `${inst.name}, position ${i + 1} of ${order.length}. Press to pick up, then press another row to drop it there.`);
-      row.innerHTML =
-        `<span class="mt-on" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>` +
-        `<span class="mt-og">${glyphSvg(k)}</span>` +
-        `<span class="mt-onm">${inst.name}</span>` +
-        `<span class="mt-od" aria-hidden="true">${inst.demand}</span>`;
-      if (lifted === k) row.classList.add('lift');
+  function drawPlan() {
+    planroom.replaceChildren();
+    const floor = document.createElement('div');
+    floor.className = 'mt-pfloor';
+
+    order.forEach((id, idx) => {
+      const t = THING_BY_ID[id];
+      const slot = document.createElement('div');
+      slot.className = 'mt-pslot';
+      slot.dataset.pslot = String(idx);
+
+      const box = document.createElement('button');
+      box.type = 'button';
+      box.className = 'mt-pbox';
+      box.draggable = true;
+      box.dataset.pthing = id;
+      box.dataset.testid = `plan-${id}`;
+      box.setAttribute('aria-pressed', String(lifted === id));
+      box.setAttribute('aria-label',
+        `${t.name}, position ${idx + 1} of ${order.length}. Press to pick up, then press another to drop it there.`);
+      // THE CONSOLE SHOWS ALL THREE OF ITS MEMBERS' MARKS, which is the grouping drawn rather
+      // than labelled — one box containing three figures says "these are one thing" in a way the
+      // word `console` alone cannot.
+      box.innerHTML =
+        `<span class="mt-pmarks">${t.keys.map((k) => glyphSvg(k)).join('')}</span>` +
+        `<span class="mt-pnm">${t.name}</span>`;
+      if (lifted === id) box.classList.add('lift');
 
       // THE DRAG
-      row.addEventListener('dragstart', (e) => {
-        lifted = k;
-        row.classList.add('lift');
-        e.dataTransfer?.setData('text/plain', k);
+      box.addEventListener('dragstart', (e) => {
+        lifted = id;
+        box.classList.add('lift');
+        (e as DragEvent).dataTransfer?.setData('text/plain', id);
       });
-      row.addEventListener('dragend', () => { lifted = null; drawOrder(); });
-      row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drop'); });
-      row.addEventListener('dragleave', () => row.classList.remove('drop'));
-      row.addEventListener('drop', (e) => {
-        e.preventDefault();
-        row.classList.remove('drop');
-        const from = e.dataTransfer?.getData('text/plain') || lifted;
-        if (from && from !== k) setOrder(moveTo(order, from, order.indexOf(k)));
-        lifted = null;
-      });
-
-      // THE KEYBOARD / TOUCH PATH: press to pick up, press another to drop. Same mechanism,
-      // no drag — which is what makes the order reachable with a Tab and an Enter.
-      row.addEventListener('click', () => {
-        if (lifted === null) { lifted = k; drawOrder(); return; }
-        if (lifted === k) { lifted = null; drawOrder(); return; }
+      box.addEventListener('dragend', () => { lifted = null; drawPlan(); });
+      // THE KEYBOARD / TOUCH PATH: press to pick up, press another to drop it there.
+      box.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (lifted === null) { lifted = id; drawPlan(); return; }
+        if (lifted === id) { lifted = null; drawPlan(); return; }
         const from = lifted;
         lifted = null;
-        setOrder(moveTo(order, from, order.indexOf(k)));
+        setOrder(moveThing(order, from, idx));
       });
 
-      li.append(row);
-      olist.append(li);
+      slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.dataset.over = ''; });
+      slot.addEventListener('dragleave', () => { delete slot.dataset.over; });
+      slot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        delete slot.dataset.over;
+        const from = (e as DragEvent).dataTransfer?.getData('text/plain') || lifted;
+        lifted = null;
+        if (from && from !== id) setOrder(moveThing(order, from, idx));
+        else drawPlan();
+      });
+
+      slot.append(box);
+      floor.append(slot);
     });
+    planroom.append(floor);
+  }
+
+  /** Move a thing to sit at `to`. Same shape `moveTo` has for instruments. */
+  function moveThing(list: string[], id: string, to: number): string[] {
+    const out = list.filter((x) => x !== id);
+    out.splice(Math.max(0, Math.min(out.length, to)), 0, id);
+    return out;
   }
 
   function setOrder(next: string[]) {
-    order = normalizeOrder(next.join(','));
-    store.set('mt:order', order.join(','));
+    order = normalizeThings(next.join(','));
+    store.set('mt:things', order.join(','));
     layoutRoom();
     drawDots();
-    drawOrder();
+    drawPlan();
     if (E2E) hook.order = [...order];
   }
 
@@ -5272,7 +5415,42 @@ import Layout from '../layouts/Layout.astro';
   if (E2E) hook.order = [...order];
   layoutRoom();
   drawDots();
-  drawOrder();
+  drawPlan();
+  // ── THE WORD OPENS THE PLAN. The plan is the room's last page, so "opening" it is a scroll
+  // rather than a mode — nothing appears or disappears, which is why this needed no dialog and
+  // no state beyond the scroll position. Pressing it again returns to the front of the room.
+  {
+    const word = document.getElementById('mt-planword') as HTMLButtonElement | null;
+    if (word && orderPage) {
+      /**
+       * THE TARGET MUST BE CLAMPED TO THE SCROLLABLE RANGE — and this is the SAME BUG the old
+       * settle had, which is worth writing down because I reintroduced it in a new place within
+       * the hour. The plan is the room's last page, so its `offsetLeft` is far past the maximum
+       * scroll: at 1512px it sits at 1457 while the room can only scroll to 405. Comparing
+       * `scrollLeft` with the raw offset therefore never matched, so the word reported "not at
+       * the plan" while the plan was fully in view — and pressing it again did nothing.
+       * Clamping is the fix in both directions: where to go, and how to tell if you are there.
+       */
+      const planTarget = () => Math.min(
+        orderPage.offsetLeft - PAD,
+        Math.max(0, pages.scrollWidth - pages.clientWidth),
+      );
+      const atPlan = () => Math.abs(pages.scrollLeft - planTarget()) < 8;
+      word.addEventListener('click', () => {
+        const here = atPlan();
+        pages.scrollTo({
+          left: here ? 0 : planTarget(),
+          behavior: still.matches ? 'auto' : 'smooth',
+        });
+        word.setAttribute('aria-pressed', String(!here));
+      });
+      // keep the word honest when you scroll there yourself
+      pages.addEventListener('scroll', () => {
+        word.setAttribute('aria-pressed', String(atPlan()));
+      }, { passive: true });
+    }
+  }
+
   // The room's width changes with the window, and the count changes with it.
   new ResizeObserver(() => { layoutRoom(); paintDots(); }).observe(pages);
 
