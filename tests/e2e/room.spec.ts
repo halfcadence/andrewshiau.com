@@ -303,6 +303,54 @@ test.describe('the dots are the instruments\' own figures (Q5/02)', () => {
     expect(rowW).toBeLessThanOrEqual(390);
   });
 
+  // PIXELS, NOT SIGNATURES. `markSignature()` says 4@0 and 3@0 are different marks, and the
+  // unit tests are satisfied by that — but two stacks of level bars can be arithmetically
+  // distinct and visually the same at 16px. Looking at the rendered row I thought the metronome
+  // and the dealer were nearly identical; measured, the closest pair is metronome/drone at 48 of
+  // 256 pixels (19% of the box) and metronome/dealer is not even in the closest four. So the
+  // eyeball was wrong AND the weaker test was insufficient — this is the instrument that settles
+  // it, and it fails if any future fact change pushes two marks together.
+  test('every pair of marks differs by at least 32 of 256 pixels at 16px', async ({ page }) => {
+    await page.goto(URL);
+    await page.waitForTimeout(400);
+    const res = await page.evaluate(async () => {
+      const dots = [...document.querySelectorAll('#mt-dots .pgdot')];
+      const ras = (svgEl: Element) => new Promise<string | null>((resolve) => {
+        const src = new XMLSerializer().serializeToString(svgEl).replace(/currentColor/g, '#000');
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = 16; c.height = 16;
+          const x = c.getContext('2d')!;
+          x.drawImage(img, 0, 0);
+          const d = x.getImageData(0, 0, 16, 16).data;
+          let out = '';
+          for (let i = 3; i < d.length; i += 4) out += d[i] > 96 ? '1' : '0';
+          resolve(out);
+        };
+        img.onerror = () => resolve(null);
+        img.src = 'data:image/svg+xml;base64,' + btoa(src);
+      });
+      const names = dots.map((d) => d.getAttribute('aria-label'));
+      const bits: (string | null)[] = [];
+      for (const d of dots) bits.push(await ras(d.querySelector('svg')!));
+      let min = Infinity; let worst = '';
+      for (let i = 0; i < bits.length; i += 1) {
+        for (let j = i + 1; j < bits.length; j += 1) {
+          if (!bits[i] || !bits[j]) continue;
+          let diff = 0;
+          for (let k = 0; k < bits[i]!.length; k += 1) if (bits[i]![k] !== bits[j]![k]) diff += 1;
+          if (diff < min) { min = diff; worst = `${names[i]} vs ${names[j]}`; }
+        }
+      }
+      return { min, worst, n: bits.filter(Boolean).length,
+               ink: bits.map((b) => (b ? (b.match(/1/g) || []).length : 0)) };
+    });
+    expect(res.n).toBe(5);
+    expect(res.ink.every((v) => v > 8), `every mark must have ink: ${res.ink}`).toBe(true);
+    expect(res.min, `closest pair is ${res.worst}`).toBeGreaterThanOrEqual(32);
+  });
+
   test('five DISTINCT drawings — five identical marks is the failure mode', async ({ page }) => {
     await page.goto(URL);
     await page.waitForTimeout(300);

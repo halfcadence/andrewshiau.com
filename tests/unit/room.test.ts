@@ -13,6 +13,7 @@ import { describe, it, expect } from 'vitest';
 import {
   INSTRUMENTS, BY_KEY, PAD, GAP,
   fitRoom, normalizeOrder, moveTo, nudge, settleTo, glyphSvg, GLYPHS,
+  MARK, MARK_FACTS, markInner, markSignature,
 } from '../../src/lib/practice-room/room';
 
 const ORDER = ['tuner', 'metronome', 'drone', 'changes', 'loop'];
@@ -191,6 +192,82 @@ describe('settleTo — free scroll, lock on release', () => {
 
   it('handles the empty room', () => {
     expect(settleTo([], 100)).toBeNull();
+  });
+});
+
+describe('the GENERATED marks — the formula, its output, and its ceiling', () => {
+  // The rule, restated independently of the module: n bars at θ, n = counts (capped),
+  // θ = 0 if the pitches sound else 45. A test that imported the generator to check the
+  // generator would prove nothing.
+  const WANT: Record<string, { n: number; deg: number }> = {
+    tuner:     { n: 1, deg: 45 },
+    metronome: { n: 4, deg: 0  },
+    drone:     { n: 2, deg: 0  },
+    changes:   { n: 3, deg: 0  },
+    loop:      { n: 2, deg: 45 },
+  };
+
+  it('draws exactly n bars for each instrument', () => {
+    for (const [k, w] of Object.entries(WANT)) {
+      const paths = (GLYPHS[k].match(/<path /g) || []).length;
+      expect(paths, `${k} should draw ${w.n} bars`).toBe(w.n);
+    }
+  });
+
+  it('slants a measured instrument and levels a sounding one', () => {
+    // a level bar has equal y at both ends; a 45° bar does not
+    for (const [k, w] of Object.entries(WANT)) {
+      const m = GLYPHS[k].match(/d="M([\d.]+) ([\d.]+)L([\d.]+) ([\d.]+)"/);
+      expect(m, `${k} should draw a line`).toBeTruthy();
+      const level = Math.abs(Number(m![2]) - Number(m![4])) < 0.01;
+      expect(level, `${k} level=${level} but deg=${w.deg}`).toBe(w.deg === 0);
+    }
+  });
+
+  it('THE FIVE DO NOT COLLIDE — every signature is distinct', () => {
+    const sigs = INSTRUMENTS.map((i) => markSignature(i.key));
+    expect(sigs.every(Boolean)).toBe(true);
+    expect(new Set(sigs).size, `collision in ${sigs.join(' ')}`).toBe(INSTRUMENTS.length);
+  });
+
+  it('states its ceiling honestly: maxRows x 2 marks, and 5 fit inside it', () => {
+    const space = MARK.maxRows * 2;
+    expect(space).toBe(8);
+    expect(INSTRUMENTS.length).toBeLessThanOrEqual(space);
+    // AND THE THING IT CANNOT DO, asserted so a future suite cannot quietly overflow it:
+    // 15 apps into 8 marks collides by arithmetic, whatever the drawing.
+    expect(15).toBeGreaterThan(space);
+  });
+
+  it('caps the row count rather than drawing off the box', () => {
+    // an instrument counting 9 must not draw 9 bars in a 16px box
+    const inner = markInner(9, true);
+    expect((inner.match(/<path /g) || []).length).toBe(MARK.maxRows);
+    // every y stays inside the box
+    for (const m of inner.matchAll(/M([\d.]+) ([\d.]+)L([\d.]+) ([\d.]+)/g)) {
+      for (const y of [Number(m[2]), Number(m[4])]) {
+        expect(y).toBeGreaterThanOrEqual(0);
+        expect(y).toBeLessThanOrEqual(16);
+      }
+    }
+  });
+
+  it('never draws nothing', () => {
+    for (const c of [0, -3, 1, 4, 99]) expect(markInner(c, true)).toContain('<path');
+  });
+
+  it('every fact carries the reason it was chosen', () => {
+    for (const i of INSTRUMENTS) {
+      expect(MARK_FACTS[i.key], `${i.key} needs facts`).toBeTruthy();
+      expect(MARK_FACTS[i.key].why.length).toBeGreaterThan(12);
+    }
+  });
+
+  it('uses the site\'s own 1.8 stroke, round-capped', () => {
+    for (const i of INSTRUMENTS) {
+      expect(GLYPHS[i.key]).toContain('stroke-width="1.8"');
+      expect(GLYPHS[i.key]).toContain('stroke-linecap="round"');
+    }
   });
 });
 

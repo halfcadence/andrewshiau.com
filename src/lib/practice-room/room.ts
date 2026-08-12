@@ -191,34 +191,92 @@ export function settleTo(offsets: readonly number[], scrollLeft: number, tol = 1
 }
 
 /**
- * THE 16px GLYPHS (Q5/02): one per instrument, each a reduction of the drawing that case
- * already holds — the tuner's dial arc and needle, the metronome's pendulum, the drone's
- * stacked interval, the dealer's voicing, the loop's bracket.
+ * THE 16px MARKS ARE GENERATED, NOT DRAWN (chooser chain: `practice-room-icons` Q1/04 →
+ * `practice-room-systems` Q1/01 → `practice-room-encoding` Q1/01, Q2/01, Q3/03).
  *
- * WHY GLYPHS AND NOT THE WORDS THAT SHIP: measured at 390px, `tuner · metronome · drone ·
- * the changes · the loop` sets to 568px, so the row wraps to two lines and the foot takes a
- * second lead — and a sixth instrument makes it three. Five glyphs set on one line at any
- * width. The cost, stated: a glyph does not name its page, so the mapping is learned by
- * swiping once. That is why each one is the case's OWN drawing rather than an invented icon.
+ * THE RULE, in full, so anyone can reproduce it:
  *
- * `currentColor` throughout, so a glyph inherits ink or accent from the row it sits in and
+ *     box 16 · module 4 · stroke 1.8 round · a mark is `n` full-width bars at angle `θ`
+ *     n = how many things the instrument counts
+ *     θ = 0° if its pitches SOUND · 45° if they are MEASURED
+ *
+ * Nothing is hand-drawn and there is no override table — the owner picked "no exceptions, the
+ * formula's output ships, always". A sixth instrument needs no drawing, only its `counts` and
+ * its `sounds`.
+ *
+ * THE CEILING, stated because it is the one thing this rule cannot do. The space is
+ * `maxRows × 2` = 8 marks. That is enough to identify the five instruments uniquely (verified
+ * below and in the unit tests) and NOT enough for the 10–15 app suite the owner has in mind:
+ * 15 apps into 8 marks collides by arithmetic, whatever the drawing. When the suite grows past
+ * eight, the mark stops being an identifier and becomes a TYPE label — several apps share one,
+ * and the name distinguishes them. Two ways out, both already costed on the sheets: widen the
+ * alphabet (a bar may be a left half, a right half, a split, or absent — 5^rows × angles) or
+ * carry the domain on the angle. `work/understand/practice-room-alphabet/` measured the first
+ * at 0 collisions for 15 apps and 1 for 30.
+ *
+ * THE FACTS ARE SHARPENED RATHER THAN AVERAGED (encoding chooser Q3/03): each instrument's
+ * `counts` is what it actually counts, chosen so the five are distinct. The metronome counts
+ * its four beats; the dealer counts a chord's three-note core, not the seventh, because
+ * `counts: 4` would collide with the metronome at 4 bars. That is a data decision, recorded
+ * here, and the alternative — a hand-drawn exception — is what the owner's pick forbids.
+ *
+ * `currentColor` throughout, so a mark inherits ink or accent from the row it sits in and
  * carries no colour of its own — the site's one-hue rule.
  */
 const STROKE =
-  'fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"';
+  'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
 
-export const GLYPHS: Readonly<Record<string, string>> = {
-  /* the dial: the tuner's arc rail and its needle at rest */
-  tuner: `<path ${STROKE} d="M2.5 11a6 6 0 0 1 11 0"/><path ${STROKE} d="M8 11V5.4"/>`,
-  /* the pendulum: pivot at the top, arm parked off vertical, its base rule */
-  metronome: `<circle cx="8" cy="2.8" r="1" fill="currentColor"/><path ${STROKE} d="M8 3.8l3.2 8.4"/><path ${STROKE} d="M4 13.4h8"/>`,
-  /* the stacked interval: the drone's two sounding pitches */
-  drone: `<path ${STROKE} d="M2.5 5.5h11"/><path ${STROKE} d="M2.5 10.5h11"/>`,
-  /* the voicing: four notes of a chord, stacked and offset as they are dealt */
-  changes: `<path ${STROKE} d="M3 12.5h6"/><path ${STROKE} d="M4.5 9.5h7"/><path ${STROKE} d="M6 6.5h6"/><path ${STROKE} d="M7.5 3.5h5"/>`,
-  /* the loop: a bracket closing back on itself, the a–b of a transcription */
-  loop: `<path ${STROKE} d="M11 4.5H6.5A3.5 3.5 0 0 0 6.5 11.5H11"/><path ${STROKE} d="M9.2 2.7L11 4.5 9.2 6.3"/>`,
+/** The generator's own constants. `MAX_ROWS` is what bounds the space to 8 marks. */
+export const MARK = { box: 16, module: 4, halfSpan: 5.5, maxRows: 4 } as const;
+
+/**
+ * What each instrument counts, and whether its pitches sound. These two facts ARE the mark —
+ * see the note above on sharpening. Keyed to `INSTRUMENTS`.
+ */
+export const MARK_FACTS: Readonly<Record<string, { counts: number; sounds: boolean; why: string }>> = {
+  tuner:     { counts: 1, sounds: false, why: 'one pitch, measured against a reference' },
+  metronome: { counts: 4, sounds: true,  why: 'four beats, sounded as clicks' },
+  drone:     { counts: 2, sounds: true,  why: 'a root and one interval, sounding together' },
+  changes:   { counts: 3, sounds: true,  why: "a chord's three-note core, sounded" },
+  loop:      { counts: 2, sounds: false, why: 'two carets, a and b, measured on a track' },
 };
+
+/**
+ * THE GENERATOR. `n` bars stacked on the module, centred in the box, at `θ`.
+ * A slanted bar is drawn through the row's own centre so the stack shears as one object
+ * rather than each bar sliding independently.
+ */
+export function markInner(counts: number, sounds: boolean): string {
+  const n = Math.max(1, Math.min(MARK.maxRows, Math.round(counts)));
+  const deg = sounds ? 0 : 45;
+  const rad = (deg * Math.PI) / 180;
+  const dx = Math.cos(rad) * MARK.halfSpan;
+  const dy = Math.sin(rad) * MARK.halfSpan;
+  const span = (n - 1) * MARK.module;
+  const out: string[] = [];
+  for (let i = 0; i < n; i += 1) {
+    const cy = 8 - span / 2 + i * MARK.module;
+    const x0 = (8 - dx).toFixed(2), y0 = (cy - dy).toFixed(2);
+    const x1 = (8 + dx).toFixed(2), y1 = (cy + dy).toFixed(2);
+    out.push(`<path ${STROKE} d="M${x0} ${y0}L${x1} ${y1}"/>`);
+  }
+  return out.join('');
+}
+
+/** Every instrument's mark, generated from its facts. Same shape the hand-drawn map had. */
+export const GLYPHS: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(MARK_FACTS).map(([k, f]) => [k, markInner(f.counts, f.sounds)]),
+);
+
+/**
+ * The mark's own signature — `<n>@<deg>` — which is what a collision check compares. Exposed so
+ * a test can assert the five are distinct without rasterising anything.
+ */
+export function markSignature(key: string): string | null {
+  const f = MARK_FACTS[key];
+  if (!f) return null;
+  return `${Math.max(1, Math.min(MARK.maxRows, f.counts))}@${f.sounds ? 0 : 45}`;
+}
 
 /** One instrument's glyph as a complete 16px `<svg>`, ready to inject. */
 export function glyphSvg(key: string): string {
