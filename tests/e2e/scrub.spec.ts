@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
-// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
-// own hash. It is not a test affordance — `#metronome` is how anyone links to this app — but it is what
+// ── THIS SPEC'S APP HAS ITS OWN ROUTE (2026-08-12). The hash deep link this file used for an hour
+// is gone with the scroller: every thing in the room is a standalone page now. Every `page.goto`
+// here therefore names the route. It is not a test affordance — it is the app's address — but it is
+// what makes real-pointer assertions possible: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case on another page the press landed on nothing and the ring's overshoot read as 1.
+// (was: '#metronome` is how anyone links to this app — but it is what
 // makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
 // with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
 
@@ -33,7 +36,7 @@ test.use({ viewport: DESKTOP });
 // 8px the small foot handle used — a 72px target invites a bigger sweep, and at 8px a casual
 // drag across the letter crossed nine semitones. The `refnote` testid moved with the role.
 test('the reference note scrubs on horizontal drag', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   const note = page.getByTestId('refnote');
   await expect(note).toHaveText('A3');
 
@@ -62,7 +65,7 @@ const dragBy = async (page: any, locator: any, dx: number) => {
 };
 
 test('the bpm scrubs by dragging the UNIT, and still types', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   const handle = page.getByTestId('bpm-handle');
   const input = page.getByTestId('bpm');
   await expect(input).toHaveValue('96');
@@ -78,7 +81,7 @@ test('the bpm scrubs by dragging the UNIT, and still types', async ({ page }) =>
 });
 
 test('dragging the NUMERAL does nothing — the field only types', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   const input = page.getByTestId('bpm');
   await expect(input).toHaveValue('96');
 
@@ -89,7 +92,7 @@ test('dragging the NUMERAL does nothing — the field only types', async ({ page
 });
 
 test('the A4 label and the Hz label both scrub the calibration', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   const input = page.getByTestId('a4');
   const host = page.locator('#mt-a4-scrub');
   const labels = host.locator('.mt-hd');
@@ -116,7 +119,7 @@ test('the A4 label and the Hz label both scrub the calibration', async ({ page }
 // wrappers are wired now, so the regression this guards is wiring only the first — which
 // would leave the drone's labels looking like handles and doing nothing.
 test('the drone case scrubs the same calibration', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   const tunerField = page.getByTestId('a4');
   const droneField = page.getByTestId('a4-drone');
   const droneLabels = page.locator('#mt-a4-scrub-drone .mt-hd');
@@ -133,7 +136,7 @@ test('the drone case scrubs the same calibration', async ({ page }) => {
 });
 
 test('the handles are keyboard operable and clamp at their range', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   const handle = page.getByTestId('bpm-handle');
   const input = page.getByTestId('bpm');
 
@@ -152,7 +155,7 @@ test('the handles are keyboard operable and clamp at their range', async ({ page
 });
 
 test('every scrub handle clears the 44px tap target', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   // The measured cost of pick 03: the bare unit is 27x28px, over WCAG 2.5.8's 24px
   // floor but under the 44px this page holds everywhere else. The padding is the fix,
   // and an invisible target is exactly the kind that regresses silently — so it is

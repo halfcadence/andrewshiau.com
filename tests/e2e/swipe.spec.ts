@@ -6,17 +6,25 @@ import { test, expect } from '@playwright/test';
 
 test.use({ viewport: { width: 390, height: 720 } });
 
-test('phone: the page words navigate; the current page reads ink', async ({ page }) => {
-  await page.goto('/practice-room/');
+// ── EVERY TEST HERE IS THE CONSOLE'S (2026-08-12). The swipe was the room's navigation between five
+// instruments; it is now the console's own, between the three you use together, and it exists at no
+// other address. So the phone-mode switch this file was written for is a claim about one route.
+const CONSOLE = '/practice-room/console/';
+// The room is `/practice-room/` on the apex and `/` on the practice host — one file, two addresses.
+// A path glob passes locally and fails on the live pass; a predicate reads the same on both.
+// (Line comments deliberately: the block version of this note quoted a glob whose two stars and
+// slash closed the comment early — see the same note in room.spec.ts.)
+const atRoom = (u: URL) => /^\/(practice-room\/)?$/.test(u.pathname);
 
-  // PAGE 0 IS THE ROOM NOW (2026-08-12): the plan is the index and the app opens on it, so the
-  // dot in ink at load is the room's own box, not the tuner's mark. This test used to open on the
-  // tuner because the room had no index — the change is the whole point of the rewrite, and a
-  // test that still expected the tuner would be asserting the old front door.
-  await expect(page.getByTestId('dot-plan')).toBeVisible();
-  await expect(page.getByTestId('dot-plan')).toHaveClass(/cur/);
+test('phone: the page words navigate; the current page reads ink', async ({ page }) => {
+  await page.goto(CONSOLE);
+
+  // PAGE 0 IS THE TUNER AGAIN, and the route is why. For one hour the room's index was page 0 of
+  // this scroller and `dot-plan` was the mark in ink; the room is a URL now, so this scroller holds
+  // only the console's own three and opens on the first of them.
+  await expect(page.getByTestId('dot-plan')).toHaveCount(0);
   await expect(page.getByTestId('dot-tuner')).toBeVisible();
-  await expect(page.getByTestId('dot-tuner')).not.toHaveClass(/cur/);
+  await expect(page.getByTestId('dot-tuner')).toHaveClass(/cur/);
 
   // The metronome half exists but is off-screen to the right.
   const metroBefore = await page.locator('.mt-half[aria-label="Metronome"]').boundingBox();
@@ -30,16 +38,17 @@ test('phone: the page words navigate; the current page reads ink', async ({ page
   await expect(page.getByTestId('dot-metro')).toHaveClass(/cur/);
   await expect(page.getByTestId('dot-tuner')).not.toHaveClass(/cur/);
 
-  // A real swipe (drag the scroller) navigates back and the marks follow — to the ROOM, since
-  // scrollLeft 0 is the index.
+  // A real swipe (drag the scroller) navigates back and the marks follow.
   await page.locator('#mt-pages').evaluate((el) => el.scrollTo({ left: 0, behavior: 'auto' }));
   await page.waitForTimeout(300);
-  await expect(page.getByTestId('dot-plan')).toHaveClass(/cur/);
+  await expect(page.getByTestId('dot-tuner')).toHaveClass(/cur/);
   await expect(page.getByTestId('dot-metro')).not.toHaveClass(/cur/);
+  // AND THE WAY OUT OF THE CONSOLE IS THE LINK, not a dot: the room is not a page of this scroller.
+  await expect(page.locator('[data-testid="plan-word"]')).toHaveAttribute('href', '../');
 });
 
 test('phone: the metronome still runs while the tuner page is shown', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto(`${CONSOLE}?e2e`);
   await page.getByTestId('dot-metro').click();
   await page.waitForTimeout(700);
   await page.getByTestId('metro-toggle').click();
@@ -73,24 +82,24 @@ test('phone: the metronome still runs while the tuner page is shown', async ({ p
 // the owner rejected.
 test('desktop: the console page seats its three in order, each at least its own demand', async ({ page }) => {
   await page.setViewportSize({ width: 1512, height: 900 });
-  await page.goto('/practice-room/?e2e=1');
+  await page.goto(`${CONSOLE}?e2e=1`);
   await page.waitForTimeout(300);
-  // OPEN THE CONSOLE. Its cases are laid out either way — a bounding box exists off-screen too —
-  // but `boxes.tuner.x < 100` is a claim about what you are LOOKING at, and on the plan the tuner
-  // sits at +1456. Navigating first is what makes the assertion about the console page.
-  await page.locator('[data-testid="plan-console"]').click();
-  await page.waitForTimeout(900);
+  // NO NAVIGATION STEP ANY MORE: the URL opens the console. The version of this test that lived for
+  // an hour had to press a box on the index first, because the console was a page of one scroller
+  // and `boxes.tuner.x < 100` is a claim about what you are LOOKING at.
 
-  const DEMAND: Record<string, number> = {
-    tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236,
-  };
+  const DEMAND: Record<string, number> = { tuner: 170, metronome: 196, drone: 170 };
+  // THREE, because the changes and the loop are other ADDRESSES now. Reading all five in one
+  // document was possible while the room was one page; the ladder and the widths are claims about
+  // cases that share a screen, and these are the three that do.
   const boxes: Record<string, { x: number; width: number; y: number; height: number }> = {};
   for (const [key, label] of [
-    ['tuner', 'Tuner'], ['metronome', 'Metronome'], ['drone', 'Drone'],
-    ['changes', 'Chord dealer'], ['loop', 'Loop'],
+    ['tuner', 'Tuner'], ['drone', 'Drone'], ['metronome', 'Metronome'],
   ] as Array<[string, string]>) {
     boxes[key] = (await page.locator(`.mt-half[aria-label="${label}"]`).boundingBox())!;
   }
+  await expect(page.locator('.mt-half[aria-label="Chord dealer"]')).toHaveCount(0);
+  await expect(page.locator('.mt-half[aria-label="Loop"]')).toHaveCount(0);
 
   // nothing is ever queued now — the mechanism is deleted, not merely idle at this width
   await expect(page.locator('#mt-pages .mt-half[data-queued]')).toHaveCount(0);
@@ -108,12 +117,9 @@ test('desktop: the console page seats its three in order, each at least its own 
   // standalones. It was tuner/metronome/drone when the room held five peers; the grouping
   // (`practice-room-plan` Q1/02) put the drone beside the tuner because that is the pair you
   // actually use together.
-  const seq = ['tuner', 'drone', 'metronome', 'changes', 'loop'];
-  // the console's first case is on the room's own 3ch inset datum; the two standalones are the
-  // pages after it, off to the right — which the sequence check below states exactly
+  const seq = ['tuner', 'drone', 'metronome'];
+  // the console's first case is on the room's own 3ch inset datum
   expect(boxes.tuner.x).toBeLessThan(100);
-  expect(boxes.changes.x, 'the changes is the NEXT page, not a neighbour')
-    .toBeGreaterThan(1512 - 100);
   for (let n = 1; n < seq.length; n += 1) {
     const prev = boxes[seq[n - 1]], cur = boxes[seq[n]];
     expect(cur.x, `${seq[n]} sits after ${seq[n - 1]}`).toBeGreaterThan(prev.x + prev.width - 1);
@@ -121,7 +127,8 @@ test('desktop: the console page seats its three in order, each at least its own 
 
   // THE MEASURED TOKENS SURVIVE — they are what the phone's cases are drawn from, and what
   // room.ts's demands were derived from. 315 is the widest chord symbol at 72px; 236 is
-  // sixteen countable ticks.
+  // sixteen countable ticks. They are declared on `#mt-app`, which every route ships, so this
+  // still reads them here even though those two cases are elsewhere.
   const tokens = await page.evaluate(() => {
     const cs = getComputedStyle(document.querySelector('#mt-app')!);
     return {
@@ -141,11 +148,11 @@ test('desktop: the console page seats its three in order, each at least its own 
   const tapBox = (await page.getByTestId('tap').boundingBox())!;
   expect(tapBox.y + tapBox.height, 'tap must be inside the viewport').toBeLessThanOrEqual(900);
 
-  // THE DOTS SHOW ON THE DESKTOP NOW — the inversion of the old control. The room continues past
-  // this page in both directions, and the row is how you know and how you jump.
-  await expect(page.getByTestId('dot-tuner')).toBeVisible();
-  await expect(page.getByTestId('dot-plan')).toBeVisible();
-  // and the way back to the index is ONE lead of chrome, visible because we are in an app
+  // AND NO DOTS ON THE DESKTOP — back to the original control, and for its original reason: all
+  // three cases are on screen at once, so an indicator points at nothing. It went to every width
+  // when the room was a queue whose pages continued off-screen; his annotation put it back.
+  await expect(page.locator('.mt-foot')).toBeHidden();
+  // the way back to the room is ONE lead of chrome, and it is a link
   await expect(page.getByTestId('plan-word')).toHaveText('← the room');
   // The instrument still carries no SITE chrome: the mark is deleted (2026-08-04). The back mark
   // is the room's own navigation, not the site's.
@@ -160,8 +167,8 @@ test('desktop: the console page seats its three in order, each at least its own 
 // The queue can grow, so the words went and each page is marked by its own case's drawing at
 // 16px. The question is unchanged and still the sharpest one about this row: does it FIT, and
 // is every page reachable? A page you cannot reach is a case that does not exist on a phone.
-test('phone: six pages, six glyphs, one line', async ({ page }) => {
-  await page.goto('/practice-room/');
+test('phone: three pages, three glyphs, one line', async ({ page }) => {
+  await page.goto(CONSOLE);
 
   const row = page.locator('#mt-dots');
   const fit = await row.evaluate((el) => {
@@ -176,15 +183,14 @@ test('phone: six pages, six glyphs, one line', async ({ page }) => {
              // the NAME has to survive the words going, for anyone not looking at the screen
              labels: dots.map((k) => k.getAttribute('aria-label')) };
   });
-  // SIX, because the ROOM is a page too. Five marks over six pages is an indicator that lies:
-  // standing on the index lit the tuner's mark.
-  expect(fit.n).toBe(6);
-  expect(fit.drawings, 'six distinct drawings').toBe(6);
-  // the room first, then the console's own key order — tuner, drone, metronome — then the two
-  // standalones
-  expect(fit.labels).toEqual(['the room', 'tuner', 'drone', 'metronome', 'the changes', 'the loop']);
-  // ONE LINE AT 390px — the whole reason the words went. Measured: 148px for five, ~180 for six.
-  expect(fit.lines, 'six glyphs set on one line at 390px').toBe(1);
+  // THREE: this row indicates the pages of THIS scroller, and the console has three. It drew five
+  // (or six, with the room's own box) while the row was built from the model instead of from the
+  // DOM — four of them dead buttons that scrolled nowhere and never lit.
+  expect(fit.n).toBe(3);
+  expect(fit.drawings, 'three distinct drawings').toBe(3);
+  expect(fit.labels).toEqual(['tuner', 'drone', 'metronome']);
+  // ONE LINE AT 390px — the whole reason the words went. Measured: 148px for five glyphs.
+  expect(fit.lines, 'three glyphs set on one line at 390px').toBe(1);
   expect(fit.overflows, 'the row must not overflow').toBe(false);
   expect(fit.width).toBeLessThanOrEqual(390);
 
@@ -201,14 +207,11 @@ test('phone: six pages, six glyphs, one line', async ({ page }) => {
     }));
   expect(inside.filter((w) => !w.ok), 'every glyph must be on the screen').toEqual([]);
 
-  // and EVERY glyph navigates to its own page — the room's own included, since the chrome word is
-  // hidden at this width and the dot is therefore the only way back to the index.
+  // and EVERY glyph navigates to its own page
   for (const [testid, label] of [
     ['dot-drone', 'Drone'],
-    ['dot-changes', 'Chord dealer'],
-    ['dot-loop', 'Loop'],
+    ['dot-metro', 'Metronome'],
     ['dot-tuner', 'Tuner'],
-    ['dot-plan', 'The room'],
   ] as Array<[string, string]>) {
     await page.getByTestId(testid).click();
     await page.waitForTimeout(700);
@@ -217,20 +220,15 @@ test('phone: six pages, six glyphs, one line', async ({ page }) => {
     await expect(page.getByTestId(testid)).toHaveClass(/cur/);
   }
 
-  // AND THE INDEX IS PAGE 0, reached by swiping BACK rather than past the last instrument. It was
-  // the room's last page when the plan was a settings screen you visited; it is the front door
-  // now, which is what "positions are fixed and you press a box" made it.
-  await page.locator('#mt-pages').evaluate((el) => {
-    el.scrollTo({ left: el.clientWidth * 3, behavior: 'auto' });
-  });
-  await page.waitForTimeout(400);
-  await page.locator('#mt-pages').evaluate((el) => el.scrollTo({ left: 0, behavior: 'auto' }));
-  await page.waitForTimeout(400);
-  const orderBox = (await page.locator('.mt-order').boundingBox())!;
-  expect(Math.abs(orderBox.x), 'the plan is the first page').toBeLessThan(30);
-  // THE PLAN IS A BOX WITH THREE ROOMS IN IT: the console plus the two standalones
-  // (`practice-room-box`, 2026-08-12), each a button that opens its page.
-  await expect(page.locator('#mt-planroom .mt-pbox')).toHaveCount(3);
+  // AND THE ROOM IS NOT IN THIS SCROLLER AT ALL. It was the last page of it, then the first; it is
+  // an address now, and the only way there from a phone is the link in the top lead — which is why
+  // that link stopped being `display:none` under 760.
+  await expect(page.locator('.mt-order')).toHaveCount(0);
+  const back = page.locator('[data-testid="plan-word"]');
+  await expect(back).toBeVisible();
+  await back.click();
+  await page.waitForURL(atRoom);
+  await expect(page.locator('.mt-pbox'), 'the room is three rooms in a box').toHaveCount(3);
 });
 
 test('phone: the accent mark clears the plate it sits under', async ({ page }) => {
@@ -243,7 +241,7 @@ test('phone: the accent mark clears the plate it sits under', async ({ page }) =
   // Asserted as a positive clearance rather than a pixel count, so the composition can be
   // retuned without editing the test; the companion assertion is that the mark still TOUCHES
   // the digits, because it is the accent over the 1 and must not drift off the thing it marks.
-  await page.goto('/practice-room/');
+  await page.goto(CONSOLE);
   // THE METRONOME IS PAGE 3 NOW, not page 1: the phone's pages are the room, then the console's
   // three instruments, then the two standalones. `scrollLeft = clientWidth` used to land on it and
   // now lands on the tuner, so this asks for the page by NAME instead of by index — the dot is the

@@ -152,7 +152,12 @@ export default defineConfig({
         // `pitchgraph` was `pitchgraph` until 2026-08-07. Only the built page needs naming
         // here — /pitchgraph/ has no page any more, just a 301 on the apex vhost — so the
         // stale term is removed rather than kept as a dead alternative.
-        !/^https?:\/\/[^/]+\/(practice-room|pitchgraph)\/$/.test(page),
+        //
+        // THE ROOM'S THINGS EACH HAVE A PAGE NOW (2026-08-12) — /practice-room/console/, /changes/
+        // and /loop/ — and each declares `practice.andrewshiau.com/<thing>/`. The pattern grew one
+        // optional segment rather than three literals, so a fourth thing is excluded by existing.
+        // The anchor still ends at `/`, which is what keeps /work/practice-room/ in the sitemap.
+        !/^https?:\/\/[^/]+\/(practice-room(\/(console|changes|loop))?|pitchgraph)\/$/.test(page),
     }),
   ],
 });

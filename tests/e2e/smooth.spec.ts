@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
-// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
-// own hash. It is not a test affordance — `#metronome` is how anyone links to this app — but it is what
+// ── THIS SPEC'S APP HAS ITS OWN ROUTE (2026-08-12). The hash deep link this file used for an hour
+// is gone with the scroller: every thing in the room is a standalone page now. Every `page.goto`
+// here therefore names the route. It is not a test affordance — it is the app's address — but it is
+// what makes real-pointer assertions possible: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case on another page the press landed on nothing and the ring's overshoot read as 1.
+// (was: '#metronome` is how anyone links to this app — but it is what
 // makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
 // with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
 
@@ -81,7 +84,7 @@ async function readSampler(page: import('@playwright/test').Page) {
 }
 
 test('no double sounds: plain running, tap barrage, and the comeback', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();
@@ -102,7 +105,7 @@ test('no double sounds: plain running, tap barrage, and the comeback', async ({ 
 });
 
 test('rapid re-tapping never stacks sounds or timers', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('metro-toggle').click();
   await page.waitForTimeout(900);
   // hammer: 10 taps at 150ms (a nervous hand, faster than any real tempo set)
@@ -122,7 +125,7 @@ test('the arm alternates ends — never the same end twice', async ({ page }) =>
   // it now. The property under test is unchanged and is the one the sweep-parity bug broke:
   // a pendulum that hits the same end twice in a row is not swinging, and a mid-run tempo
   // change is exactly where the old clock-derived parity produced it.
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('bpm').fill('140');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();
@@ -144,7 +147,7 @@ test('the arm alternates ends — never the same end twice', async ({ page }) =>
 });
 
 test('the sweep is continuous — no between-frame tears', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#metronome');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('bpm').fill('120');
   await page.getByTestId('bpm').blur();
   await page.getByTestId('metro-toggle').click();

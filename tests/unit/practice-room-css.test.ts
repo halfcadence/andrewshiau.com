@@ -83,13 +83,34 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
   // CSS can no longer state it. So the assertion moves UP a level — the CSS must NOT hardcode
   // a count, and the counting must be reachable from the ONE module that is unit-tested
   // against the measured demands (tests/unit/room.test.ts).
-  it('takes its column count from the queue, not from a number in the CSS', () => {
-    expect(css, 'the columns come from the script').toMatch(/grid-template-columns:var\(--mt-cols/);
-    expect(css, 'the phone tracks come from the script').toMatch(/grid-template-columns:var\(--mt-pcols/);
-    // A HARDCODED COUNT IS THE DEFECT: five fixed columns is what gave a 1440px laptop the
-    // phone swiper, and `repeat(5, 100%)` is what left the order page with no snap stop.
+  // ── THIS CLAIM INVERTED WITH THE ROUTES (2026-08-12), and the inversion is the point.
+  // It used to say "the column count comes from the SCRIPT, never from a number in the CSS",
+  // because a hardcoded count was a real defect twice: five fixed columns gave a 1440px laptop the
+  // phone swiper, and `repeat(5, 100%)` left a sixth page with no snap stop. Both were symptoms of
+  // one thing — the CSS trying to describe a VARIABLE number of cases.
+  // A route holds a FIXED set, so the number is no longer a guess that can drift: the console is
+  // three, and `170fr 170fr 196fr` is its members' measured demands as ratios, which is what
+  // `splitThing()` used to compute at runtime. The count being in the CSS is now the correct
+  // answer, and `--mt-cols`/`--mt-pcols` must be GONE — a custom property nothing writes is a
+  // description of a mechanism that no longer exists.
+  it('takes its columns from the ROUTE, and the ratios are the measured demands', () => {
+    // THE DECLARATION, NOT THE NAME. `--mt-cols` is still live on `.mt-gauge` and `.mt-tlfig`,
+    // where it means "how many of the case's twelve columns this FIGURE spans" — a different
+    // quantity that happens to share a name. Asserting the bare token red-flagged that instead,
+    // which is the difference between "the mechanism is gone" and "the string is gone".
+    expect(css, 'no room columns from the script').not.toMatch(/grid-template-columns:\s*var\(--mt-cols/);
+    expect(css, 'no phone tracks from the script').not.toMatch(/var\(--mt-pcols/);
+    // the console's three, in proportion to 170 : 170 : 196 — restated here, so a typo in the
+    // stylesheet cannot agree with itself
+    expect(css, "the console's ratios").toMatch(/grid-template-columns:170fr 170fr 196fr/);
+    // and the phone console's three full-viewport pages: the ONE scroller left
+    expect(css, "the phone console's three pages").toMatch(/grid-template-columns:repeat\(3,\s*100%\)/);
+    // A LONE CASE IS CAPPED AND CENTRED rather than stretched to the viewport — the composition
+    // was measured as a column and 1400px pulled its foot row to opposite walls.
+    expect(css, 'the dealer is capped').toMatch(/grid-template-columns:minmax\(0,\s*560px\)/);
+    expect(css, 'the loop is capped').toMatch(/grid-template-columns:minmax\(0,\s*960px\)/);
+    // the five-fixed-column room stays gone
     expect(css, 'no fixed five-column room').not.toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)\s+var\(--mt-drone-w\)/);
-    expect(css, 'no hardcoded phone page count').not.toMatch(/grid-template-columns:repeat\(\d+,\s*100%\)/);
   });
 
   it('keeps the measured per-instrument widths — they are why the queue can fit anything', () => {
@@ -356,7 +377,7 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
   // is not there. The source is where the imbalance is visible.
   it('has balanced CSS comments in the source, per style block', async () => {
     const { readFileSync } = await import('node:fs');
-    const src = readFileSync(join(process.cwd(), 'src/pages/practice-room.astro'), 'utf8');
+    const src = readFileSync(join(process.cwd(), 'src/components/PracticeRoom.astro'), 'utf8');
     const blocks = [...src.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
     expect(blocks.length, 'expected at least one <style> block').toBeGreaterThan(0);
 

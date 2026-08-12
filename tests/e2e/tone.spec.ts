@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
-// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
-// own hash. It is not a test affordance — `#drone` is how anyone links to this app — but it is what
+// ── THIS SPEC'S APP HAS ITS OWN ROUTE (2026-08-12). The hash deep link this file used for an hour
+// is gone with the scroller: every thing in the room is a standalone page now. Every `page.goto`
+// here therefore names the route. It is not a test affordance — it is the app's address — but it is
+// what makes real-pointer assertions possible: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case on another page the press landed on nothing and the ring's overshoot read as 1.
+// (was: '#drone` is how anyone links to this app — but it is what
 // makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
 // with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
 
@@ -24,7 +27,7 @@ test.use({ viewport: DESKTOP });
 // fundamental's set frequency and every sounding rank's.
 
 test('the drone sounds its note at the set calibration', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('drone-toggle').click();
 
   // A3 = 220 Hz IS THE DEFAULT (user, 2026-08-07) — the register a cello drones in, and the
@@ -66,7 +69,7 @@ test('the drone sounds its note at the set calibration', async ({ page }) => {
 // pins the per-sample cent correction (the B3 loop is 27.5¢ flat and the page divides that out).
 for (const voice of ['organ', 'cello', 'section'] as const) {
   test(`the ${voice} voice sounds the pitch the figure names`, async ({ page }) => {
-    await page.goto('/practice-room/?e2e#drone');
+    await page.goto('/practice-room/console/?e2e');
     await page.getByTestId(`voice-${voice}`).click();
     // root alone, so there is one fundamental to find
     await page.evaluate(() => {
@@ -107,7 +110,7 @@ for (const voice of ['organ', 'cello', 'section'] as const) {
 // bias, and I read it as the organ being fine. A known-value check on the measuring tool is
 // worth more than any number of readings taken with it.
 test('the organ voice is exactly 220 Hz — the detector\'s own calibration', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('voice-organ').click();
   await page.evaluate(() => {
     document.querySelectorAll('[data-semi]').forEach((c) => {
@@ -132,7 +135,7 @@ test('the organ voice is exactly 220 Hz — the detector\'s own calibration', as
 // exhaustively): the question here is whether the PAGE asks the right question — the strip and
 // readout using the chord-aware call, the figure deliberately not.
 test('the stack spells its intervals from the root, and the root keeps its own name', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   const figure = page.locator('#mt-dnote');
   for (let i = 0; i < 6; i++) await page.getByTestId('refnote').click();   // A3 → E♭4
   await expect(figure, 'the ROOT keeps the context-free spelling').toHaveText('E♭4');
@@ -165,7 +168,7 @@ test('the stack spells its intervals from the root, and the root keeps its own n
 // and their enharmonics need six flats. Asserted note by note because a single wrong entry in
 // the table is invisible until a player reads it and translates.
 test('the five black keys use their commonest spelling', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   const figure = page.locator('#mt-dnote');
   const step = () => page.getByTestId('refnote').click();
 
@@ -207,7 +210,7 @@ test('the five black keys use their commonest spelling', async ({ page }) => {
 // They now sit under the 4th, the 5th and the octave, and this test pins the POSITIONS because
 // the whole failure was a plausible-looking row of ticks in musically meaningless places.
 test('the strip marks the fourth, the fifth and the octave', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   const marks = await page.evaluate(() =>
     [...document.querySelectorAll('.mt-scale i')].map((n, i) => ({
       i,
@@ -251,7 +254,7 @@ test('the strip marks the fourth, the fifth and the octave', async ({ page }) =>
 // there is nothing left to drift, and what has to be proven now is that the duplicates are
 // GONE and the survivor carries the whole value.
 test('the note is stated once, with its octave, on the figure', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   // ONE element states the note, and it is the figure — 72px, and also the control
   const figure = page.locator('#mt-dnote');
   await expect(figure).toHaveText('A3');
@@ -280,7 +283,7 @@ test('the note is stated once, with its octave, on the figure', async ({ page })
 // gesture, and `setPointerCapture` + the click-suppression only behave correctly under real
 // pointer sequences.
 test('dragging the figure scrubs the pitch, and does not start the drone', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   const figure = page.locator('#mt-dnote');
   await expect(figure).toHaveText('A3');
   const box = (await figure.boundingBox())!;
@@ -335,7 +338,7 @@ test('dragging the figure scrubs the pitch, and does not start the drone', async
 // and the tempered one is 2^(4/12), 14 cents apart, and hearing that lock is the exercise
 // the whole stack exists for.
 test('the stack is just, and it re-voices while sounding', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   // the strip ships with the fifth on — what the single latch used to mean
   await expect(page.getByTestId('semi-7')).toHaveAttribute('aria-pressed', 'true');
 
@@ -380,7 +383,7 @@ test('the stack is just, and it re-voices while sounding', async ({ page }) => {
 // ROOT, or the strip announces intervals above a note that is no longer the root: that is
 // the failure this test exists for.
 test('the strip names its intervals, and the names follow the root', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await expect(page.getByTestId('semi-7')).toHaveAttribute('aria-label', '5 — E4');
   await expect(page.getByTestId('semi-4')).toHaveAttribute('aria-label', '3 — C♯4');
   await expect(page.getByTestId('semi-16')).toHaveAttribute('aria-label', '10 — C♯5');
@@ -399,7 +402,7 @@ test('the strip names its intervals, and the names follow the root', async ({ pa
 // organ until its samples land, and a test that read the selection would pass on a page that
 // silently never got them.
 test('the voice is a setting, and it changes a sounding drone', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await expect(page.getByTestId('voice-section')).toHaveAttribute('aria-pressed', 'true');
 
   await page.getByTestId('voice-organ').click();
@@ -444,7 +447,7 @@ test('the voice is a setting, and it changes a sounding drone', async ({ page })
 // receives a pointer at the control's centre, and elementFromPoint is the only thing that
 // answers that. A rectangle check would pass on a transparent element still taking the click.
 test('the stack strip does not intercept the foot line', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   // WHAT IS ON THE FOOT LINE CHANGED (the note control moved onto the figure and the foot's
   // copy was deleted), so what the strip must not cover is the VOICE selector. The claim is
   // unchanged: a 40px cell in a row above must not steal clicks from the row below.
@@ -477,11 +480,16 @@ test('the stack strip does not intercept the foot line', async ({ page }) => {
 // THE WIDTH IS 1512 NOW, not 1440: with five cases the room swipes below 1477 (the metronome's
 // foot needs a 190px case), and on the phone layout the cases are five separate snap pages
 // that share no ladder by design. A ladder assertion has to be made where the ladder exists.
-test('the stack does not break the five cases\' shared ladder', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+// AND THE LADDER IS NOW THE CONSOLE'S THREE (2026-08-12). It read all five verbs in one document,
+// which the routes make impossible: the dealer and the loop are separate pages. The claim is not
+// weaker — the ladder exists to keep cases that SHARE A SCREEN on one line, and the console is the
+// only page where three do. The other two cases have nothing to align with, which is why their
+// route needs no ladder assertion at all.
+test('the stack does not break the console\'s shared ladder', async ({ page }) => {
+  await page.goto('/practice-room/console/?e2e');
   await page.setViewportSize({ width: 1512, height: 900 });
   const g = await page.evaluate(() => {
-    const verbs = ['mt-mic', 'mt-run', 'mt-drone', 'mt-chordrun', 'mt-loop-run']
+    const verbs = ['mt-mic', 'mt-drone', 'mt-run']
       .map((id) => document.getElementById(id)!.getBoundingClientRect().top);
     const cases = [...document.querySelectorAll('.mt-half')]
       .map((c) => c.getBoundingClientRect());
@@ -493,8 +501,8 @@ test('the stack does not break the five cases\' shared ladder', async ({ page })
       overflow: app.scrollHeight - app.clientHeight,
     };
   });
-  expect(g.verbSpread, 'all five verbs sit on ONE line').toBeLessThan(0.51);
-  expect(g.topSpread, 'the five cases share a top edge').toBeLessThan(0.51);
+  expect(g.verbSpread, 'all three verbs sit on ONE line').toBeLessThan(0.51);
+  expect(g.topSpread, 'the three cases share a top edge').toBeLessThan(0.51);
   expect(g.botSpread, 'and a bottom edge').toBeLessThan(0.51);
   expect(g.overflow, 'the screen does not scroll').toBe(0);
 });
@@ -503,7 +511,7 @@ test('the stack does not break the five cases\' shared ladder', async ({ page })
 // --line to --ink; the drone's letter is always ink (it names the note whether or not it
 // sounds), so the state is carried by the accent instead.
 test('the letter carries the sounding state', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   const letter = page.locator('#mt-dnote');
   const colour = () => letter.evaluate((el) => getComputedStyle(el).color);
   // THE COLOUR IS TRANSITIONED (--dur-fast), so reading it on the frame after the click
@@ -532,7 +540,7 @@ test('the letter carries the sounding state', async ({ page }) => {
 // The shortcut itself survives on the air AROUND the letter, which is what the dial and the
 // pendulum offer on their own cases.
 test('the middle toggles it; the figure sets the pitch instead', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   const toggle = page.getByTestId('drone-toggle');
   const figure = page.locator('#mt-dnote');
 
@@ -568,7 +576,7 @@ test('the middle toggles it; the figure sets the pitch instead', async ({ page }
 // label. The second is the one that would rot quietly — a comparer whose buttons only
 // highlight looks identical in a screenshot to one that works.
 test('⌥T reveals the tuning comparer, and it is hidden by default', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await expect(page.locator('#mt-tune')).toBeHidden();
   await page.keyboard.press('Alt+t');
   await expect(page.locator('#mt-tune')).toBeVisible();
@@ -580,14 +588,14 @@ test('⌥T reveals the tuning comparer, and it is hidden by default', async ({ p
 
 test('typing in the calibration field does not toggle the comparer', async ({ page }) => {
   // The hotkey skips inputs; without that, entering an a4 value with alt held would open it.
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('a4-drone').click();
   await page.keyboard.press('Alt+t');
   await expect(page.locator('#mt-tune')).toBeHidden();
 });
 
 test('switching the system RETUNES the sounding drone', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await page.keyboard.press('Alt+t');
   await page.getByTestId('semi-4').click();          // stack a major third
   await page.getByTestId('drone-toggle').click();    // and sound it
@@ -619,7 +627,7 @@ test('switching the system RETUNES the sounding drone', async ({ page }) => {
 test('the picked default is just, stack-relative', async ({ page }) => {
   // The pick off the practice-room-thirds sheet, option 07. Asserted so a future edit to the
   // registry's DEFAULT_TUNING_ID has to meet this test rather than slide past it.
-  await page.goto('/practice-room/?e2e#drone');
+  await page.goto('/practice-room/console/?e2e');
   await page.keyboard.press('Alt+t');
   await expect(page.getByTestId('tuning-just-chain')).toHaveAttribute('aria-pressed', 'true');
 });

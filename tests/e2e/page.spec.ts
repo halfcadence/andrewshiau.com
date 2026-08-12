@@ -3,25 +3,43 @@ import { test, expect } from '@playwright/test';
 // Page-level checks that don't need audio: the document loads, the controls are
 // reachable, nothing threw on boot, and the A4 field clamps its range.
 
-test('page boots clean: no console errors, controls present', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', (e) => errors.push(String(e)));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+// ── EVERY ROUTE BOOTS CLEAN (2026-08-12). This was one page with all five cases; it is four now,
+// and the sharpest thing this file can assert is that each of them evaluates the WHOLE shared
+// script without throwing. That is not hypothetical: the four routes run one `<script>`, and while
+// the split was in progress `/changes/` threw on the tuner's first `addEventListener` and lost the
+// dealer's own block — a dead page with nothing visible to a reader. A trimmed import did the same
+// on every route with a green `npm run build`, because Astro does not typecheck an inline script.
+const ROUTES = {
+  room: { path: '/practice-room/', present: ['plan-console', 'plan-changes', 'plan-loop'],
+          absent: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'chord-toggle', 'loop-toggle', 'plan-word'] },
+  console: { path: '/practice-room/console/',
+             present: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'semi-7', 'voice-section', 'a4', 'a4-drone', 'plan-word'],
+             absent: ['tone-toggle', 'chord-toggle', 'loop-toggle', 'plan-console'] },
+  changes: { path: '/practice-room/changes/', present: ['chord-toggle', 'deal', 'arp-toggle', 'plan-word'],
+             absent: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'loop-toggle'] },
+  loop: { path: '/practice-room/loop/', present: ['loop-toggle', 'loop-src', 'rate-05', 'plan-word'],
+          absent: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'chord-toggle'] },
+} as const;
 
-  await page.goto('/practice-room/');
-  await expect(page.getByTestId('mic-toggle')).toBeVisible();
-  await expect(page.getByTestId('metro-toggle')).toBeVisible();
-  // THREE cases now (chooser metrotuner-drone-box, Q1/02): the drone has its own square
-  // and `tone-toggle` is gone with the tuner's second job. Its transport is the caption
-  // under its own figure, like the other two.
-  await expect(page.getByTestId('drone-toggle')).toBeVisible();
-  await expect(page.getByTestId('semi-7'), 'the stack strip replaced the fifth latch').toBeVisible();
-  await expect(page.getByTestId('voice-section'), 'and the voice is a setting').toBeVisible();
-  await expect(page.getByTestId('tone-toggle')).toHaveCount(0);
-  // BOTH calibration fields, ONE value (the user's refinement on Q4).
+for (const [name, r] of Object.entries(ROUTES)) {
+  test(`/${name}/ boots clean: no console errors, its own controls and no others`, async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+
+    await page.goto(r.path);
+    for (const id of r.present) await expect(page.getByTestId(id), `${id} on /${name}/`).toBeVisible();
+    // AND THE OTHERS ARE ABSENT, not merely hidden: a case rendered on the wrong route would keep
+    // its markup on the row ladder and its script wired to a control nobody can see.
+    for (const id of r.absent) await expect(page.getByTestId(id), `${id} must not be on /${name}/`).toHaveCount(0);
+    expect(errors, `console on /${name}/`).toEqual([]);
+  });
+}
+
+test('the console keeps ONE calibration behind two fields', async ({ page }) => {
+  await page.goto('/practice-room/console/');
   await expect(page.getByTestId('a4')).toHaveValue('440');
   await expect(page.getByTestId('a4-drone')).toHaveValue('440');
-  expect(errors).toEqual([]);
 });
 
 // ONE CALIBRATION BEHIND TWO FIELDS. The refinement the chooser's Q4 landed on was "both
@@ -30,7 +48,7 @@ test('page boots clean: no console errors, controls present', async ({ page }) =
 // what A is. Asserted in BOTH directions, because wiring one field's listener and not the
 // other's passes a one-way test.
 test('the two a4 fields are one value', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/console/?e2e');
   const tuner = page.getByTestId('a4');
   const drone = page.getByTestId('a4-drone');
 
@@ -48,7 +66,7 @@ test('the two a4 fields are one value', async ({ page }) => {
 });
 
 test('A4 calibration clamps to 400–480', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/console/?e2e');
   const a4 = page.getByTestId('a4');
   await a4.fill('999');
   await a4.blur();
@@ -59,7 +77,7 @@ test('A4 calibration clamps to 400–480', async ({ page }) => {
 });
 
 test('bpm clamps to 20–320', async ({ page }) => {
-  await page.goto('/practice-room/');
+  await page.goto('/practice-room/console/');
   const bpm = page.getByTestId('bpm');
   await bpm.fill('999');
   await bpm.blur();
@@ -70,7 +88,7 @@ test('bpm clamps to 20–320', async ({ page }) => {
 });
 
 test('the controls are keyboard-reachable in order', async ({ page }) => {
-  await page.goto('/practice-room/');
+  await page.goto('/practice-room/console/');
   // The tuner's foot is EMPTY now — `play tone` and the reference note left with the
   // sustained tone (Q4/01 "nothing sounds"). So the tab after the tuner's transport lands
   // on the METRONOME's first control rather than on a tone button in the same case.
@@ -85,13 +103,17 @@ test('the controls are keyboard-reachable in order', async ({ page }) => {
     return { case: el?.closest('.mt-half')?.getAttribute('aria-label') ?? null,
              testid: el?.getAttribute('data-testid') ?? null };
   });
-  expect(next.case, 'focus left the tuner (its foot line is empty now)').toBe('Metronome');
+  // THE DRONE, NOT THE METRONOME. The console's source order IS its layout order now — the `order:`
+  // property that let the queue re-sequence cases without moving nodes is deleted, so the DOM reads
+  // tuner, drone, metronome exactly as the screen does. Tab order following the screen is the point;
+  // it used to disagree with it, which is the accessibility bug that arrangement risked.
+  expect(next.case, 'focus left the tuner (its foot line is empty now)').toBe('Drone');
 });
 
 // EVERY CASE'S TRANSPORT IS KEYBOARD-REACHABLE, and the drone's is new. A control added to
 // the DOM but placed out of the tab order is the regression this catches.
 test('all three transports take focus', async ({ page }) => {
-  await page.goto('/practice-room/');
+  await page.goto('/practice-room/console/');
   for (const id of ['mic-toggle', 'metro-toggle', 'drone-toggle']) {
     const btn = page.getByTestId(id);
     await btn.focus();
@@ -224,10 +246,26 @@ test('the apex sends the instrument to its own host, query intact', async ({ req
 // This exists because the practice-room version of this claim sat in a comment for two
 // days while being false — the apex served the page at 200 the whole time. A routing
 // claim that nothing checks is a routing claim that drifts.
+//
+// THE ROOM'S THREE THINGS JOINED THE TABLE (2026-08-12). Each is its own page at its own address,
+// and each needs the same three facts: served on the practice host, canonical naming that address,
+// disowned by the apex. `apexTo` is where they differ — the apex collapses every unknown
+// /practice-room/… path to the room rather than mapping each one, which is the right fallback (you
+// land on the index that links them) and is stated rather than left as a surprising 301.
+//
+// THESE THREE FAIL UNTIL THE PRACTICE VHOST HAS THEIR `location` BLOCKS, and that is the test doing
+// its job: the host's catch-all 301s anything it does not know to the apex, so a missing block
+// shows up here as a redirect where a 200 belongs.
 const PRACTICE_TOOLS = [
   { path: '/practice-room/', canonical: 'https://practice.andrewshiau.com/' },
+  { path: '/practice-room/console/', canonical: 'https://practice.andrewshiau.com/console/',
+    apexTo: 'https://practice.andrewshiau.com/' },
+  { path: '/practice-room/changes/', canonical: 'https://practice.andrewshiau.com/changes/',
+    apexTo: 'https://practice.andrewshiau.com/' },
+  { path: '/practice-room/loop/', canonical: 'https://practice.andrewshiau.com/loop/',
+    apexTo: 'https://practice.andrewshiau.com/' },
   { path: '/pitchgraph/', canonical: 'https://practice.andrewshiau.com/pitchgraph/' },
-];
+] as Array<{ path: string; canonical: string; apexTo?: string }>;
 
 // THE OLD ADDRESS KEEPS WORKING. /pitchgraph/ was published before the 2026-08-07 rename,
 // so retiring the name does not retire the URL: the apex 301s it to the tool's new address
@@ -266,7 +304,7 @@ test('every practice tool is served on the practice host and disowned by the ape
       // And the apex path hands it over rather than serving a second copy.
       const apex = await request.get(`https://andrewshiau.com${tool.path}`, { maxRedirects: 0 });
       expect(apex.status(), `apex ${tool.path} must redirect`).toBe(301);
-      expect(apex.headers().location).toBe(tool.canonical);
+      expect(apex.headers().location).toBe(tool.apexTo ?? tool.canonical);
     }
   });
 

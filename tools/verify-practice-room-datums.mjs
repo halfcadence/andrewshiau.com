@@ -8,7 +8,7 @@
 //
 // Run against a loopback `astro preview` (never 0.0.0.0 — see CLAUDE.md rule 1):
 //   npm run build && npx astro preview --host 127.0.0.1 --port 4321
-//   VERIFY_URL=http://127.0.0.1:4321/practice-room/ node tools/verify-practice-room-datums.mjs
+//   VERIFY_URL=http://127.0.0.1:4321/practice-room/console/ node tools/verify-practice-room-datums.mjs
 //
 // MEASURE INK, NOT BOXES. Every control here pads out to a tap target with matching negative
 // margins, so its box edge is nowhere near its visible edge — and an <input>'s value is not a
@@ -17,7 +17,10 @@
 // harness was fixed (a phantom "97px inset" that was really 48, and a phantom off-grid bpm).
 import { chromium } from '@playwright/test';
 
-const URL = process.env.VERIFY_URL || 'http://127.0.0.1:4321/practice-room/';
+// THE CONSOLE, because that is where three cases share a screen and the datums are about the
+// relationship between them (2026-08-12: each thing in the room is its own route now). The room's
+// own page has no instrument to measure.
+const URL = process.env.VERIFY_URL || 'http://127.0.0.1:4321/practice-room/console/';
 // THE INSET IS READ FROM THE PAGE, not hardcoded. It was `28` here, and when the datum moved
 // to 3ch (27px) the harness failed 28 configurations while reporting the CORRECT new number in
 // its own message — a check that has to be hand-edited to follow the thing it checks is a check

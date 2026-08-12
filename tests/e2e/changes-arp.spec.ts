@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
-// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
-// own hash. It is not a test affordance — `#changes` is how anyone links to this app — but it is what
+// ── THIS SPEC'S APP HAS ITS OWN ROUTE (2026-08-12). The hash deep link this file used for an hour
+// is gone with the scroller: every thing in the room is a standalone page now. Every `page.goto`
+// here therefore names the route. It is not a test affordance — it is the app's address — but it is
+// what makes real-pointer assertions possible: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case on another page the press landed on nothing and the ring's overshoot read as 1.
+// (was: '#changes` is how anyone links to this app — but it is what
 // makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
 // with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
 
@@ -24,7 +27,7 @@ import { test, expect } from '@playwright/test';
 test.use({ viewport: { width: 1512, height: 900 } });
 
 test('arpeggiating the voicing lands its notes, one at a time', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#changes');
+  await page.goto('/practice-room/changes/?e2e');
 
   // Sevenths, and deal until Dm7 — the chord the fixture actually plays.
   await page.getByTestId('deck-sevenths').click();
@@ -77,7 +80,7 @@ test('the grader lands ONLY the notes the chord contains', async ({ page }) => {
   // E7 (E G♯ B D) is the sharpest case available: it shares exactly ONE pitch class with the
   // fixture — D — so a working grader lands precisely one of its four notes and a grader that
   // merely reacts to sound lands more.
-  await page.goto('/practice-room/?e2e#changes');
+  await page.goto('/practice-room/changes/?e2e');
   await page.getByTestId('deck-sevenths').click();
   let found = false;
   for (let i = 0; i < 40; i++) {
@@ -120,11 +123,17 @@ test('the grader lands ONLY the notes the chord contains', async ({ page }) => {
   expect(grader.landed, 'the shared D was accepted').toEqual([2]);
 });
 
-test('the mic is the TUNER\'s stream — one permission, one indicator', async ({ page }) => {
+test('the mic is the TUNER\'s mechanism — one permission, one stream', async ({ page }) => {
   // ONE MECHANISM, not two. `startTuner()` already owns the high-pass, the three capture flags
-  // and the permission race, so the grader borrows the tuner's analyser rather than opening a
-  // second stream. Two streams would mean two prompts and two recording indicators for one
-  // instrument.
+  // and the permission race, so the grader borrows it rather than opening a second stream. Two
+  // streams would mean two prompts and two recording indicators for one instrument.
+  //
+  // WHAT THIS CAN NO LONGER SEE (2026-08-12): it also asserted that the TUNER'S OWN BUTTON went
+  // pressed, because the tuner's case was in the same document. The tuner is on /console/ now, so
+  // the observable half is the count — one `getUserMedia` for the first press and none for the
+  // rest. The rest of the claim moved into the source, where `startTuner()` writes to `micBtn?.`:
+  // the audit for the route split found the sharper version of it, that without the `?.` the
+  // function threw AFTER the stream resolved, leaving a live mic and no wired stop button.
   await page.addInitScript(() => {
     (window as any).__gum = 0;
     const md = navigator.mediaDevices;
@@ -132,17 +141,20 @@ test('the mic is the TUNER\'s stream — one permission, one indicator', async (
     const real = md.getUserMedia.bind(md);
     md.getUserMedia = (c?: MediaStreamConstraints) => { (window as any).__gum++; return real(c!); };
   });
-  await page.goto('/practice-room/?e2e#changes');
+  await page.goto('/practice-room/changes/?e2e');
   await page.getByTestId('arp-toggle').click();
   await expect
     .poll(() => page.evaluate(() => (window as any).__gum), { timeout: 5000 })
     .toBe(1);
 
-  // and the TUNER is now running — it is the thing that owns the stream, so it says so
-  await expect(page.getByTestId('mic-toggle')).toHaveAttribute('aria-pressed', 'true');
+  // the dealer's own latch is what says it is listening on this page — there is no tuner button
+  // here to carry it
+  await expect(page.getByTestId('arp-toggle')).toHaveAttribute('aria-pressed', 'true');
+  // AND NO TUNER MARKUP AT ALL, which is the thing that made the guard necessary: the grader runs
+  // the tuner's start path on a page with none of its controls.
+  await expect(page.locator('[data-testid="mic-toggle"]')).toHaveCount(0);
 
-  // turning the grader off does NOT take the tuner's stream away: the tuner is a separate
-  // instrument the reader may have wanted on. One more press, still one getUserMedia call.
+  // turning the grader off opens no second stream. One more press, still one getUserMedia call.
   await page.getByTestId('arp-toggle').click();
   await expect(page.getByTestId('arp-toggle')).toHaveAttribute('aria-pressed', 'false');
   expect(await page.evaluate(() => (window as any).__gum),

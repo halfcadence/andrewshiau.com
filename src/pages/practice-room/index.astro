@@ -1,0 +1,14 @@
+---
+// THE ROOM — the index of the practice tools, at practice.andrewshiau.com/.
+//
+// Four routes render one component; this one holds no instrument at all. See the header of
+// PracticeRoom.astro for why the split happened and what it deleted.
+//
+// THE FILES LIVE UNDER /practice-room/ and the addresses do not. That is the site's existing
+// arrangement, not a new one: `location = /` on the practice vhost does a filesystem
+// `try_files /practice-room/index.html`, so the directory is where nginx looks and the URL is a
+// routing choice. Redirecting a URL is not deleting a file.
+import PracticeRoom from '../../components/PracticeRoom.astro';
+---
+
+<PracticeRoom page="room" />

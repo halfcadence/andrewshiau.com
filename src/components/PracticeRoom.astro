@@ -1,5 +1,91 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { THINGS, THING_BY_ID, glyphSvg } from '../lib/practice-room/room';
+
+// ══ ONE COMPONENT, FOUR ROUTES (2026-08-12, the owner's second correction) ══════════════════
+// "i want to remove the scroll concept entirely (except on mobile console), each thing in the
+// room is a standalone page with its own routing like practice.andrewshiau/console and you need
+// to go back to room to get the other things."
+//
+// So the scroller is gone as a NAVIGATION device. Each route renders only its own cases:
+//   /            the room — three boxes, each a link. Static: no script does anything here.
+//   /console/    tuner + drone + metronome. The one place a scroll survives, and only on a phone.
+//   /changes/    the chord dealer alone.
+//   /loop/       the loop alone.
+//
+// WHY ONE COMPONENT AND NOT FOUR PAGES. The markup, the 2,700-line stylesheet and the script are
+// one interdependent unit: the cases subgrid onto a row ladder declared once, the styles are
+// scoped to THIS file's `data-astro-cid`, and splitting the style from the markup would silently
+// unscope every selector. Four routes that each import this pay for the whole stylesheet and the
+// whole script — the honest cost, and the reason the room page runs a script that does nothing.
+// Per-route bundles need the script broken into modules first; that is a separate change.
+//
+// WHAT THE ROUTES DELETED, which is the point: `order:` juggling on the cases (the queue's way of
+// re-sequencing without moving nodes), `data-snap`, the plan's `goTo`/`drawPlan`/`layoutRoom`, the
+// `#console` hash deep links, the hash-follows-scroll sync, the room's own dot, and the explicit
+// `scrollLeft = 0` that existed because a snap container follows the element it snapped to. A
+// route IS the navigation, so none of that has anything left to do.
+export interface Props {
+  page: 'room' | 'console' | 'changes' | 'loop';
+}
+const { page } = Astro.props;
+
+// WHICH CASES THIS ROUTE HOLDS, in the order they sit. Source order IS the layout order now —
+// the `order:` property was the queue's device for re-sequencing cases without re-parenting live
+// instruments, and with one thing per page there is nothing to re-sequence.
+const ROUTE_CASES: Record<Props['page'], readonly string[]> = {
+  room: [],
+  console: THING_BY_ID.console.keys,
+  changes: THING_BY_ID.changes.keys,
+  loop: THING_BY_ID.loop.keys,
+};
+const cases = ROUTE_CASES[page];
+const has = (k: string) => cases.includes(k);
+
+// THE ROOM'S BOXES ARE BUILT AT BUILD TIME. `drawPlan()` used to write them from `THINGS` on
+// every layout because the plan was a page of a scroller whose widths changed; a static index of
+// three fixed things needs no script at all, and the marks are the same generated SVG the module
+// exports. One fewer runtime path, and the room renders with JS off.
+// ONE HEAD PER ROUTE. Four addresses that all said "Practice room — Andrew Shiau" would be four
+// identical tabs and four identical shares; the description is what the page actually holds.
+// `installable` stays on the ROOM alone: that is the app you pin, and its manifest's start_url is
+// `/`. A thing's page is inside the same scope, so opening one from the installed app stays in it.
+const META: Record<Props['page'], { title: string; description: string; h1: string }> = {
+  room: {
+    title: 'Practice room — Andrew Shiau',
+    description:
+      'A chromatic tuner, a metronome, a drone, a chord dealer and a transcription loop in the browser. Pitch detection runs on-device; the microphone signal never leaves the page.',
+    h1: 'Practice room',
+  },
+  console: {
+    title: 'Console — practice room',
+    description:
+      'A chromatic tuner, a drone and a metronome side by side: the three you use while playing. Pitch detection runs on-device; the microphone signal never leaves the page.',
+    h1: 'Console — tuner, drone, metronome',
+  },
+  changes: {
+    title: 'The changes — practice room',
+    description:
+      'A chord dealer: it deals a symbol, you name it or play it, and it sounds the answer. Triads, sevenths and altered chords.',
+    h1: 'The changes — a chord dealer',
+  },
+  loop: {
+    title: 'The loop — practice room',
+    description:
+      'Loop a span of any YouTube video at a quarter, a half or three-quarter speed, for transcribing by ear.',
+    h1: 'The loop — a transcription looper',
+  },
+};
+
+// THE HREFS ARE RELATIVE, and this is not a style preference — it is the only form that works on
+// both hosts. The room is `/` on practice.andrewshiau.com and `/practice-room/` on the apex (and on
+// `astro preview`), because the files live in that directory and nginx maps the pretty URL to them.
+// So `/console/` is correct on one host and a 404 on the other, while `console/` resolves against
+// whichever directory the room is being served from and is right on both. The way back is `../` for
+// the same reason: `/` would leave the app for the site homepage on the apex.
+const rooms = THINGS.map((t) => ({
+  id: t.id, name: t.name, marks: t.keys.map((k) => glyphSvg(k)).join(''), href: `${t.id}/`,
+}));
 
 // THE INSTRUMENT SCREEN. This URL is the thing itself now, and the writeup lives at
 // /work/practice-room/ (chooser: metrotuner-two-pages, Q1/02 "instrument first" — the
@@ -26,25 +112,27 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-  title="Practice room — Andrew Shiau"
-  description="A chromatic tuner, a metronome, a drone, a chord dealer and a transcription loop in the browser. Pitch detection runs on-device; the microphone signal never leaves the page."
-  installable
+  title={META[page].title}
+  description={META[page].description}
+  installable={page === 'room'}
+  practicePath={page === 'room' ? undefined : `/${page}/`}
 >
-  <div id="mt-app">
-    <h1 class="visually-hidden">Practice room</h1>
+  <div id="mt-app" data-page={page}>
+    <h1 class="visually-hidden">{META[page].h1}</h1>
 
-    <!-- ══ THE ONE PIECE OF GLOBAL CHROME (box chooser `Where` Q2/02) ══════════════════════
-         "The instrument opens; the plan is behind one word." This reverses the decision that
-         kept this screen chrome-free, and the owner made it knowingly — the option's own cost
-         line says so: 28px of the screen's height, permanently, and the row ladder is made of
-         those leads. What it buys is that the app opens ON your instruments rather than on a
-         screen between you and an A.
+    <!-- ══ THE WAY BACK IS A LINK (2026-08-12) ══════════════════════════════════════════════
+         It was a button that scrolled: the plan was a page of this screen's own scroller, so
+         "going back" was a scroll position and the mark had to hide itself when the plan was
+         already up. The room is a URL now, so this is an anchor — it works with JS off, it
+         middle-clicks into a new tab, and there is no state to keep in sync with a scroll.
          IT COSTS EXACTLY ONE LEAD OR NOTHING. The screen is round(down,100dvh,28px), which is
-         what lets every case share one row ladder; a 30px bar puts all of them off it. -->
-    <div class="mt-chrome">
-      <button type="button" class="mt-planword" id="mt-planword" data-testid="plan-word"
-        aria-label="Open the plan — arrange the room">plan</button>
-    </div>
+         what lets every case share one row ladder; a 30px bar puts all of them off it.
+         AND IT IS ABSENT ON THE ROOM, where it would point at the page you are on. -->
+    {page !== 'room' && (
+      <div class="mt-chrome">
+        <a class="mt-planword" href="../" data-testid="plan-word">← the room</a>
+      </div>
+    )}
 
     <div class="mt-pages" id="mt-pages">
       <!-- ── TUNER, the left case / first page ─────────────────────────────── -->
@@ -54,7 +142,8 @@ import Layout from '../layouts/Layout.astro';
            says where it starts. On the phone NO case is drawn: the viewport's own
            edges are the frame. THE FOOT LINE (Q3/01): every control in one line
            along the case's bottom edge; the hero owns the middle. -->
-      <section class="mt-half" aria-label="Tuner">
+    {has('tuner') && (
+      <section class="mt-half" aria-label="Tuner" data-mt-key="tuner">
         <span class="mt-plate" aria-hidden="true">tuner</span>
         <!-- CALIBRATION IS A TOP CONTROL now (user nit 6, 2026-08-04): it sets what
              the whole instrument means by "in tune", so it reads like a spec plate —
@@ -183,6 +272,176 @@ import Layout from '../layouts/Layout.astro';
              still lands here because it must appear where the tap happened. -->
         <div class="mt-hintline"><span class="mt-hint" id="mt-hint"></span></div>
       </section>
+    )}
+
+
+      <!-- ── DRONE, the third case / third page ────────────────────────────── -->
+      <!-- ITS OWN CASE (chooser metrotuner-drone-box, Q1/02). The sustained tone was the
+           tuner's second job — one case that both listened and sounded — and a drone is
+           not a reference pip you check against: it is a note you play against for
+           minutes, the daily string and wind intonation ritual. So it gets a square, and
+           the tuner goes back to one verb.
+           THE FIGURE IS THE NOTE LETTER, not a third copy of the arc-and-bob. The tuner
+           and metronome share that drawing on purpose (still vs moving is their whole
+           distinction) and a drone is neither — nothing deflects and nothing sweeps. What
+           it has to say is WHICH NOTE, from across the room, so the letter at 72px IS the
+           figure: the largest type on the screen, and the only place this page breaks its
+           one-size rule, because a figure is a drawing and not a line of copy.
+           NARROW (Q2/05, "the narrow third"): the case takes 210px rather than an equal
+           third, because a note and a verb do not fill a third of a screen — and the two
+           worked instruments keep the width they had. Widths state importance. -->
+    {has('drone') && (
+      <section class="mt-half mt-drone" aria-label="Drone" data-mt-key="drone">
+        <span class="mt-plate" aria-hidden="true">drone</span>
+        <!-- A4 IS ON BOTH CASES, ONE VALUE (the user's refinement on Q4: "it makes sense
+             for both to have a pitch calibration but they're synced?"). The alternative on
+             the sheet was one owner — either the tuner keeps it or it follows the sound —
+             and both are wrong for the same reason: calibration is what the whole ROOM
+             means by a note, so a case that reads pitch and a case that sounds pitch each
+             need it in reach, and there must be exactly one number. Two fields, one
+             binding: `setA4()` writes every field on the screen (see `a4Fields`). -->
+        <div class="mt-ctop">
+          <span class="mt-fr">
+            <span class="f mt-a4 mt-grp" id="mt-a4-scrub-drone">
+              <span class="mt-gl" aria-hidden="true">calibration</span>
+              <label for="mt-a4-drone" class="mt-lb mt-hd" title="drag ↔ to change the calibration">a4</label>
+              <input id="mt-a4-drone" data-testid="a4-drone" type="number" inputmode="decimal"
+                     min="400" max="480" step="1" value="440" title="type a value"
+                     aria-label="A4 calibration in hertz — type a value, or drag the a4 or hz label horizontally" />
+              <span class="mt-lb mt-hd" title="drag ↔ to change the calibration">hz</span>
+            </span>
+          </span>
+        </div>
+        <div class="mt-mid">
+          <!-- ── THE FIGURE IS THE PITCH CONTROL (user, 2026-08-07: "use the big one in center
+               to change pitch too like left to right sliding") ──────────────────────────
+               It was a `<figure aria-hidden>` — a drawing, inert, with the note set from a
+               small control on the foot line. Now the drawing IS the control: drag it left or
+               right to scrub the pitch, click to step up, shift-click down, arrows when
+               focused. Same gesture as every other value on this screen (round16: one drag
+               axis for all values, right = higher), on the largest target the page has.
+               AND IT NAMES THE OCTAVE NOW — `A3`, not `A`. Three copies of one note is what
+               the earlier build was criticised for and the answer then was to delete the
+               reading between them; the user's call here goes further and better: the FIGURE
+               carries the full value and the two small copies go. One statement of the note,
+               at the size you can read from a stand, and it is the thing you operate.
+               STILL A `<figure>` semantically — it is the case's drawing — but a real
+               `<button>` so it is focusable, announced, and keyboard-operable. The
+               `aria-hidden` had to go with the promotion: a control cannot be hidden from the
+               accessibility tree. -->
+          <figure class="mt-gauge mt-dfig">
+            <button type="button" class="mt-dnote" id="mt-dnote" data-testid="refnote"
+              aria-label="Drone pitch — drag horizontally to scrub, click to raise, shift-click to lower"
+              title="drag ↔ · click +1 · shift-click −1">A3</button>
+          </figure>
+          <!-- THE READ ROW HOLDS THE VERB, like the other two. It briefly held `A4` — the
+               sounding pitch with its octave, under the letter that names it without one —
+               and looking at the render killed it: the case then stated its note THREE
+               times (the 72px letter, that reading, and the foot's scrub control) inside
+               210px. The letter is the figure and the foot control is the value; a third
+               copy between them is the same fact drawn again. That reading is still gone.
+               What the row carries NOW is the transport, one row up from where it was, so
+               this case's verb stays on the same line as the tuner's and the metronome's.
+               The row was always the thing holding the three in phase; it does it by
+               holding the verb rather than by being empty. -->
+          <div class="mt-read mt-read-bare">
+            <div class="mt-cap">
+            <button type="button" class="tbtn latch" id="mt-drone" data-testid="drone-toggle"
+              aria-pressed="false" aria-label="start the drone">
+              <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                <circle class="dt" cx="8" cy="8" r="3.2"/>
+              </svg>
+            </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-cfoot">
+          <!-- THE FOOT'S NOTE CONTROL IS GONE (user, 2026-08-07: "can you not repeat a3 3
+               times, maybe the big one in center can say a3 and delete the other two").
+               It was `#mt-refnote`, the tuner's old reference-note scrub, moved here when the
+               drone got its own case. With the figure carrying the value AND the gesture,
+               this was the same fact drawn a second time with a smaller target — so it goes,
+               and the foot line holds only the voice.
+               The `refnote` TESTID moves to the figure rather than being retired, because the
+               contract "the thing that names and sets the drone's note" is unchanged; only
+               which element carries it moved. Three e2e specs drive it by that id. -->
+          <span class="mt-fr">
+            <!-- THE VOICE IS A SETTING (user, 2026-08-07: "i like 05 the section. but also the
+                 organ pair maybe it can be a setting?"). Three voices, one selector, and it is
+                 a SELECTOR rather than three latches because they are mutually exclusive — the
+                 Track grammar's rule is that form announces operation, and a row of latches
+                 would promise you could hold two at once.
+                 The words, not glyphs: `organ · cello · section` is what these differ by, and
+                 no drawing distinguishes a sampled section from an additive cello. Lowercase,
+                 the page's own register. -->
+            <span class="mt-voice mt-grp" id="mt-voice" role="group" aria-label="Drone voice">
+              <span class="mt-gl" aria-hidden="true">voice</span>
+              <button type="button" class="vbtn" data-voice="organ" data-testid="voice-organ"
+                aria-pressed="false">organ</button>
+              <button type="button" class="vbtn" data-voice="cello" data-testid="voice-cello"
+                aria-pressed="false">cello</button>
+              <button type="button" class="vbtn" data-voice="section" data-testid="voice-section"
+                aria-pressed="true">section</button>
+            </span>
+          </span>
+        </div>
+
+
+
+        <!-- ── THE TUNING COMPARER, HIDDEN (2026-08-07: "make easy to switch and like a
+             secret page to compare") ─────────────────────────────────────────────────────
+             Not a page but a row, revealed on ⌥T, and it is hidden for a stated reason
+             rather than to be clever: a drone has ONE right tuning for the practice it
+             serves, and putting five in the visible controls invites a player to fiddle
+             with temperament instead of playing. The comparer exists to SETTLE the choice,
+             which is a thing you do once, so it lives where the ⌥G grid overlay lives —
+             off, until someone who knows it is there asks.
+             Every button is a real switch, so this is the comparison instrument, not a
+             legend: pick a system while the drone sounds and the pitches move under the
+             note you are holding. The beat rate printed beside each is COMPUTED from the
+             sounding stack's coinciding partials, not looked up.
+
+             IT IS ITS OWN ROW, not part of `.mt-ctop`, and that is a bug fix rather than a
+             preference. Inside the spec row its five buttons wrapped to 44px targets that ran
+             UNDERNEATH the calibration sub-case beside them — measured, the drone's a4 input
+             overlapped the first tuning button by 41px vertically and intercepted every click
+             on it. Playwright said so precisely ("...intercepts pointer events") where a
+             screenshot showed a row that looked fine. `.mt-ctop` is sized for one line; a
+             control group that wraps cannot live in it. -->
+        <div class="mt-tune" id="mt-tune" hidden aria-label="Tuning system">
+          <span class="mt-lb">tuning</span>
+          <span class="mt-tune-btns" id="mt-tune-btns" role="group"
+                aria-label="Tuning system"></span>
+          <span class="mt-lb mt-tune-beat" id="mt-tune-beat" data-testid="tuning-beat"></span>
+        </div>
+
+        <!-- ── THE STACK — the chromatic strip (chooser practice-room-drone-stack Q1/06) ──
+             The `fifth` latch is GONE, and the strip is what replaces it: sixteen semitone
+             cells, the root at the left, each cell a toggle. Its claim is that DISTANCE IS
+             THE INTERVAL, so "major or minor" stops being a mode you set and becomes a
+             position you point at — and a 5th is where a 5th is, seven cells along.
+             SIXTEEN CELLS, NOT THE NINE NAMED DEGREES (the user picked Q2/02, fifteen with
+             both qualities, and the strip is how fifteen fit). A strip with holes where the
+             unnamed intervals go would be a degree set wearing a strip's clothes. The NAMES
+             the user asked for live in each cell's `aria-label` and in the readout below, so
+             nothing has to be counted: the label says `5 — E3`, not "seven cells".
+             IT SITS IN THE `hint` ROW, WHICH THIS CASE ALREADY HAD AND LEFT EMPTY — so the
+             stack costs the ladder NO new row, which is better than the chooser's own stated
+             cost for this option. That row exists on all three cases to hold the tuner's
+             error line; the drone's copy was reserved air, and this is what it was reserving.
+             The readout is the strip's own caption: which intervals are on, by NAME, as a
+             chord — `A2 · C♯3 · E3`. It replaces the exact reading that was deleted from the
+             read row for stating the note a third time; this states something the letter
+             cannot, which is the rest of the chord. -->
+        <div class="mt-stackline">
+          <span class="mt-strip" id="mt-strip" role="group"
+            aria-label="Intervals above the root, in semitones"></span>
+          <span class="mt-chord" id="mt-chord" data-testid="chord" aria-live="off"></span>
+        </div>
+      </section>
+    )}
 
       <!-- ── METRONOME, the right case / second page ───────────────────────── -->
       <!-- THE PENDULUM (chooser: metrotuner-pendulum, Q1/02 "arm and bob"): the
@@ -191,7 +450,8 @@ import Layout from '../layouts/Layout.astro';
            the strike. Still vs moving is the whole distinction between the two
            instruments. The beat-ring row this replaces carried bar position; the
            strike now carries it — the downbeat's tick strikes heavier. -->
-      <section class="mt-half" aria-label="Metronome">
+    {has('metronome') && (
+      <section class="mt-half" aria-label="Metronome" data-mt-key="metronome">
         <span class="mt-plate" aria-hidden="true">metronome</span>
         <!-- METER ON TOP, TRANSPORT ON THE BOTTOM (user nit 2, 2026-08-04): the
              set-per-piece controls (beats, subdivision) read as spec lines at the
@@ -363,172 +623,7 @@ import Layout from '../layouts/Layout.astro';
           </span>
         </div>
       </section>
-
-      <!-- ── DRONE, the third case / third page ────────────────────────────── -->
-      <!-- ITS OWN CASE (chooser metrotuner-drone-box, Q1/02). The sustained tone was the
-           tuner's second job — one case that both listened and sounded — and a drone is
-           not a reference pip you check against: it is a note you play against for
-           minutes, the daily string and wind intonation ritual. So it gets a square, and
-           the tuner goes back to one verb.
-           THE FIGURE IS THE NOTE LETTER, not a third copy of the arc-and-bob. The tuner
-           and metronome share that drawing on purpose (still vs moving is their whole
-           distinction) and a drone is neither — nothing deflects and nothing sweeps. What
-           it has to say is WHICH NOTE, from across the room, so the letter at 72px IS the
-           figure: the largest type on the screen, and the only place this page breaks its
-           one-size rule, because a figure is a drawing and not a line of copy.
-           NARROW (Q2/05, "the narrow third"): the case takes 210px rather than an equal
-           third, because a note and a verb do not fill a third of a screen — and the two
-           worked instruments keep the width they had. Widths state importance. -->
-      <section class="mt-half mt-drone" aria-label="Drone">
-        <span class="mt-plate" aria-hidden="true">drone</span>
-        <!-- A4 IS ON BOTH CASES, ONE VALUE (the user's refinement on Q4: "it makes sense
-             for both to have a pitch calibration but they're synced?"). The alternative on
-             the sheet was one owner — either the tuner keeps it or it follows the sound —
-             and both are wrong for the same reason: calibration is what the whole ROOM
-             means by a note, so a case that reads pitch and a case that sounds pitch each
-             need it in reach, and there must be exactly one number. Two fields, one
-             binding: `setA4()` writes every field on the screen (see `a4Fields`). -->
-        <div class="mt-ctop">
-          <span class="mt-fr">
-            <span class="f mt-a4 mt-grp" id="mt-a4-scrub-drone">
-              <span class="mt-gl" aria-hidden="true">calibration</span>
-              <label for="mt-a4-drone" class="mt-lb mt-hd" title="drag ↔ to change the calibration">a4</label>
-              <input id="mt-a4-drone" data-testid="a4-drone" type="number" inputmode="decimal"
-                     min="400" max="480" step="1" value="440" title="type a value"
-                     aria-label="A4 calibration in hertz — type a value, or drag the a4 or hz label horizontally" />
-              <span class="mt-lb mt-hd" title="drag ↔ to change the calibration">hz</span>
-            </span>
-          </span>
-        </div>
-        <div class="mt-mid">
-          <!-- ── THE FIGURE IS THE PITCH CONTROL (user, 2026-08-07: "use the big one in center
-               to change pitch too like left to right sliding") ──────────────────────────
-               It was a `<figure aria-hidden>` — a drawing, inert, with the note set from a
-               small control on the foot line. Now the drawing IS the control: drag it left or
-               right to scrub the pitch, click to step up, shift-click down, arrows when
-               focused. Same gesture as every other value on this screen (round16: one drag
-               axis for all values, right = higher), on the largest target the page has.
-               AND IT NAMES THE OCTAVE NOW — `A3`, not `A`. Three copies of one note is what
-               the earlier build was criticised for and the answer then was to delete the
-               reading between them; the user's call here goes further and better: the FIGURE
-               carries the full value and the two small copies go. One statement of the note,
-               at the size you can read from a stand, and it is the thing you operate.
-               STILL A `<figure>` semantically — it is the case's drawing — but a real
-               `<button>` so it is focusable, announced, and keyboard-operable. The
-               `aria-hidden` had to go with the promotion: a control cannot be hidden from the
-               accessibility tree. -->
-          <figure class="mt-gauge mt-dfig">
-            <button type="button" class="mt-dnote" id="mt-dnote" data-testid="refnote"
-              aria-label="Drone pitch — drag horizontally to scrub, click to raise, shift-click to lower"
-              title="drag ↔ · click +1 · shift-click −1">A3</button>
-          </figure>
-          <!-- THE READ ROW HOLDS THE VERB, like the other two. It briefly held `A4` — the
-               sounding pitch with its octave, under the letter that names it without one —
-               and looking at the render killed it: the case then stated its note THREE
-               times (the 72px letter, that reading, and the foot's scrub control) inside
-               210px. The letter is the figure and the foot control is the value; a third
-               copy between them is the same fact drawn again. That reading is still gone.
-               What the row carries NOW is the transport, one row up from where it was, so
-               this case's verb stays on the same line as the tuner's and the metronome's.
-               The row was always the thing holding the three in phase; it does it by
-               holding the verb rather than by being empty. -->
-          <div class="mt-read mt-read-bare">
-            <div class="mt-cap">
-            <button type="button" class="tbtn latch" id="mt-drone" data-testid="drone-toggle"
-              aria-pressed="false" aria-label="start the drone">
-              <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
-                <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
-                <circle class="dt" cx="8" cy="8" r="3.2"/>
-              </svg>
-            </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-cfoot">
-          <!-- THE FOOT'S NOTE CONTROL IS GONE (user, 2026-08-07: "can you not repeat a3 3
-               times, maybe the big one in center can say a3 and delete the other two").
-               It was `#mt-refnote`, the tuner's old reference-note scrub, moved here when the
-               drone got its own case. With the figure carrying the value AND the gesture,
-               this was the same fact drawn a second time with a smaller target — so it goes,
-               and the foot line holds only the voice.
-               The `refnote` TESTID moves to the figure rather than being retired, because the
-               contract "the thing that names and sets the drone's note" is unchanged; only
-               which element carries it moved. Three e2e specs drive it by that id. -->
-          <span class="mt-fr">
-            <!-- THE VOICE IS A SETTING (user, 2026-08-07: "i like 05 the section. but also the
-                 organ pair maybe it can be a setting?"). Three voices, one selector, and it is
-                 a SELECTOR rather than three latches because they are mutually exclusive — the
-                 Track grammar's rule is that form announces operation, and a row of latches
-                 would promise you could hold two at once.
-                 The words, not glyphs: `organ · cello · section` is what these differ by, and
-                 no drawing distinguishes a sampled section from an additive cello. Lowercase,
-                 the page's own register. -->
-            <span class="mt-voice mt-grp" id="mt-voice" role="group" aria-label="Drone voice">
-              <span class="mt-gl" aria-hidden="true">voice</span>
-              <button type="button" class="vbtn" data-voice="organ" data-testid="voice-organ"
-                aria-pressed="false">organ</button>
-              <button type="button" class="vbtn" data-voice="cello" data-testid="voice-cello"
-                aria-pressed="false">cello</button>
-              <button type="button" class="vbtn" data-voice="section" data-testid="voice-section"
-                aria-pressed="true">section</button>
-            </span>
-          </span>
-        </div>
-
-
-
-        <!-- ── THE TUNING COMPARER, HIDDEN (2026-08-07: "make easy to switch and like a
-             secret page to compare") ─────────────────────────────────────────────────────
-             Not a page but a row, revealed on ⌥T, and it is hidden for a stated reason
-             rather than to be clever: a drone has ONE right tuning for the practice it
-             serves, and putting five in the visible controls invites a player to fiddle
-             with temperament instead of playing. The comparer exists to SETTLE the choice,
-             which is a thing you do once, so it lives where the ⌥G grid overlay lives —
-             off, until someone who knows it is there asks.
-             Every button is a real switch, so this is the comparison instrument, not a
-             legend: pick a system while the drone sounds and the pitches move under the
-             note you are holding. The beat rate printed beside each is COMPUTED from the
-             sounding stack's coinciding partials, not looked up.
-
-             IT IS ITS OWN ROW, not part of `.mt-ctop`, and that is a bug fix rather than a
-             preference. Inside the spec row its five buttons wrapped to 44px targets that ran
-             UNDERNEATH the calibration sub-case beside them — measured, the drone's a4 input
-             overlapped the first tuning button by 41px vertically and intercepted every click
-             on it. Playwright said so precisely ("...intercepts pointer events") where a
-             screenshot showed a row that looked fine. `.mt-ctop` is sized for one line; a
-             control group that wraps cannot live in it. -->
-        <div class="mt-tune" id="mt-tune" hidden aria-label="Tuning system">
-          <span class="mt-lb">tuning</span>
-          <span class="mt-tune-btns" id="mt-tune-btns" role="group"
-                aria-label="Tuning system"></span>
-          <span class="mt-lb mt-tune-beat" id="mt-tune-beat" data-testid="tuning-beat"></span>
-        </div>
-
-        <!-- ── THE STACK — the chromatic strip (chooser practice-room-drone-stack Q1/06) ──
-             The `fifth` latch is GONE, and the strip is what replaces it: sixteen semitone
-             cells, the root at the left, each cell a toggle. Its claim is that DISTANCE IS
-             THE INTERVAL, so "major or minor" stops being a mode you set and becomes a
-             position you point at — and a 5th is where a 5th is, seven cells along.
-             SIXTEEN CELLS, NOT THE NINE NAMED DEGREES (the user picked Q2/02, fifteen with
-             both qualities, and the strip is how fifteen fit). A strip with holes where the
-             unnamed intervals go would be a degree set wearing a strip's clothes. The NAMES
-             the user asked for live in each cell's `aria-label` and in the readout below, so
-             nothing has to be counted: the label says `5 — E3`, not "seven cells".
-             IT SITS IN THE `hint` ROW, WHICH THIS CASE ALREADY HAD AND LEFT EMPTY — so the
-             stack costs the ladder NO new row, which is better than the chooser's own stated
-             cost for this option. That row exists on all three cases to hold the tuner's
-             error line; the drone's copy was reserved air, and this is what it was reserving.
-             The readout is the strip's own caption: which intervals are on, by NAME, as a
-             chord — `A2 · C♯3 · E3`. It replaces the exact reading that was deleted from the
-             read row for stating the note a third time; this states something the letter
-             cannot, which is the rest of the chord. -->
-        <div class="mt-stackline">
-          <span class="mt-strip" id="mt-strip" role="group"
-            aria-label="Intervals above the root, in semitones"></span>
-          <span class="mt-chord" id="mt-chord" data-testid="chord" aria-live="off"></span>
-        </div>
-      </section>
+    )}
 
       <!-- ── THE CHANGES, the fourth case ──────────────────────────────────────
            Chooser practice-room-apps Q1/02: a chord dealer for the EAR. It sounds a
@@ -545,7 +640,8 @@ import Layout from '../layouts/Layout.astro';
            low — so a trainer that graded a strum would need a detector the room does not
            have. Played one note at a time it is the detector's home ground (0.35 cents,
            C2–C7, asserted). The foot line says so in one word: `arpeggiate`. -->
-      <section class="mt-half mt-changes" aria-label="Chord dealer">
+    {has('changes') && (
+      <section class="mt-half mt-changes" aria-label="Chord dealer" data-mt-key="changes">
         <span class="mt-plate" aria-hidden="true">the changes</span>
         <!-- THE DECK IS THE SPEC CONTROL, like calibration on the other cases: it says what
              the instrument MEANS by a chord, and you set it per session rather than per rep.
@@ -620,6 +716,7 @@ import Layout from '../layouts/Layout.astro';
           <span class="mt-answer" id="mt-answer" data-testid="chord-answer" aria-live="polite"></span>
         </div>
       </section>
+    )}
 
       <!-- ── THE LOOP, the fifth case ──────────────────────────────────────────
            Chooser practice-room-apps Q1/03: the transcriber's part selector. Two carets cut
@@ -635,7 +732,8 @@ import Layout from '../layouts/Layout.astro';
            set, until you paste a URL — so opening the practice room still talks to nobody.
            That is the same promise the tuner makes about the microphone, kept the same way:
            by not starting the thing until it is needed. -->
-      <section class="mt-half mt-loop" aria-label="Loop">
+    {has('loop') && (
+      <section class="mt-half mt-loop" aria-label="Loop" data-mt-key="loop">
         <span class="mt-plate" aria-hidden="true">the loop</span>
         <div class="mt-ctop">
           <span class="mt-fr">
@@ -711,110 +809,82 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <div class="mt-yt" id="mt-yt" aria-hidden="true"></div>
       </section>
+    )}
 
-      <!-- ══ THE ROOM: THE INDEX PAGE (choosers `practice-room-box` Q1/04 Q2/04 Q3/02 Q4/04,
+      <!-- ══ THE ROOM: THE INDEX (choosers `practice-room-box` Q1/04 Q2/04 Q3/02 Q4/04,
            `practice-room-plan` Q5/01 — 2026-08-12) ══════════════════════════════════════════
-           THIS IS PAGE 0 AND THE APP OPENS ON IT. The owner's correction, in his words: "i
-           thought what i wanted was for the plan to be like the app homepage / the practice room.
-           positions are fixed. and its just like the index page and you press it and go to one of
-           the aps. and theres like a buton to go back to the full room."
-           WHAT IT WAS FOR ONE DAY: the room's LAST page, a settings screen holding the queue's
-           order, reached by scrolling past the final instrument so the screen could stay free of
-           chrome. That was true to Q3/01 and it cost four gestures to reach on a five-instrument
-           queue. As the front door it costs none, and the one lead of chrome it now spends buys
-           the way BACK rather than the way in — which is the trade the old comment could not make
-           because there was nothing to come back from.
-           ONE BIG BOX with the things as rooms inside it, per his earlier correction: "you should
+           ONE BOX WITH THE THINGS AS ROOMS INSIDE IT, per the owner's correction: "you should
            draw a big box for the outer homepage. and then all the instruments are in little boxes
-           inside?" — the attempt before that drew a grid of separate bays side by side, which is
-           five enclosures and no room.
-           THE BOX IS A ROOM WITH A DOORWAY (Q1/04): 2px walls, and a gap in the left wall drawn
-           as two wall segments with air between. The walls are heavier than the fittings inside
-           them, which is how a plan says containment — a hairline box would draw the room and the
-           instruments identically.
-           THE ROOMS ARE THE SCREEN'S THIRDS (Q2/04), so a box sits where its page will, and they
-           FILL the floor: a plan's rooms are the extent of the plan, and 62px chips floating in a
-           742px box read as a shelf. On a phone they stack, because a plan of a narrow room draws
-           its rooms down the floor.
-           EACH ROOM IS A FIGURE AND A NAME UNDER IT (Q3/02), the figure at 32px — the same
-           generated mark the dot row draws at 16, at the same 1.8 stroke.
-           THERE IS NO OUTSIDE (Q4/04): every thing is always in the room. Positions are FIXED, so
-           there is nothing to arrange — pressing a room opens it, and that is the only gesture.
-           THE LIFT (Q5/01) IS ON HOVER NOW, not on a drag: the pick was "drag it, and it casts a
+           inside?" — the attempt before that drew a grid of separate bays, which is five
+           enclosures and no room.
+           AND THE CASE'S OWN FRAME IS THE BOX (his annotation, 2026-08-12: "dont need this
+           container if the room has one"). There WAS a second bordered div inside the case — two
+           nested boxes drawing one room. The case frame carries it instead, at 2px on this route
+           only, which keeps the one thing the doubled box was buying: walls heavier than the
+           fittings standing against them, which is how a plan says containment.
+           THE ROOMS ARE THE SCREEN'S THIRDS (Q2/04) and they FILL the floor — a plan's rooms are
+           the extent of the plan. On a phone they stack, because a plan of a narrow room draws its
+           rooms down the floor.
+           EACH ROOM IS A FIGURE AND A NAME UNDER IT (Q3/02), the figure at 32px: the same
+           generated mark the console's dot row draws at 16, at the same 1.8 stroke.
+           THEY ARE ANCHORS, not buttons. Each thing is its own URL now, so a link is the honest
+           element: it works with JS off, it middle-clicks into a new tab, and the browser's own
+           Back comes here. NOTHING ON THIS PAGE NEEDS SCRIPT — the marks are generated at build
+           time from the same module the dots read.
+           NO HINT LINE. `press a box` (and the `3 things` counter under it) told you what three
+           labelled boxes already say — his annotation: "dont need this hint". The rows they sat on
+           stay empty, because the ladder is what every other case aligns to.
+           THE LIFT (Q5/01) IS ON HOVER, not on a drag: the pick was "drag it, and it casts a
            shadow while lifted", and with nothing to rearrange what is left of that delight is a
            box that rises as you reach for it. It is the only shadow on the screen. -->
-      <!-- `.mt-gl` IS NOT AVAILABLE HERE, and reusing it was a real defect: it is
-           `position:absolute; top:-14px` because its job is to NOTCH A BOX's top rule. Both
-           labels therefore stacked at y −13 on top of the engraved plate and overflowed the
-           226px case by 125px. They are ordinary rows in the ladder instead — `.mt-ol` — which
-           is what the spec and foot rows hold on every other case. -->
-      <!-- THE ACCESSIBLE NAME IS THE PLATE'S WORDS. It said "Plan" while the plate said "the
-           room" and the back mark said "← the room" — three names for one page, of which only the
-           one a screen reader announces was different. -->
-      <section class="mt-half mt-order" aria-label="The room">
-        <!-- THE PLATE SAYS WHAT THE PAGE IS, and the back mark uses the SAME WORDS. The owner
-             called it "the full room", so the index is `the room`, the mark out of an app is
-             `← the room`, and nothing has to be translated between the two. -->
-        <span class="mt-plate" aria-hidden="true">the room</span>
-        <div class="mt-ctop">
-          <!-- `drag a box` was the queue's instruction and it survived the rewrite by two hours.
-               Positions are fixed; the only gesture left is a press. -->
-          <span class="mt-ol" id="mt-order-hint">press a box</span>
-        </div>
-        <div class="mt-mid">
-          <div class="mt-planroom" id="mt-planroom" data-testid="plan-room"></div>
-        </div>
-        <div class="mt-cfoot mt-ofoot">
-          <span class="mt-ol" id="mt-order-fit" data-testid="order-fit"></span>
-        </div>
-      </section>
+      {page === 'room' && (
+        <section class="mt-half mt-order" aria-label="The room" data-testid="plan-room">
+          <span class="mt-plate" aria-hidden="true">the room</span>
+          <div class="mt-ctop"></div>
+          <div class="mt-mid">
+            <div class="mt-pfloor">
+              {rooms.map((r) => (
+                <div class="mt-pslot">
+                  <a class="mt-pbox" href={r.href} data-pthing={r.id} data-testid={`plan-${r.id}`}>
+                    <span class="mt-pmarks" set:html={r.marks} />
+                    <span class="mt-pnm">{r.name}</span>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div class="mt-cfoot mt-ofoot"></div>
+        </section>
+      )}
+
+
     </div>
 
     <!-- The foot: the page indicator (phone only) and the one word out. The dots are
          the mark's vocabulary — disc = the page on screen, ring = the other — and
          they are buttons: a swipe needs a click-shaped fallback for keyboards and
          for anyone who doesn't guess the gesture. -->
-    <div class="mt-foot">
-      <!-- WORDS, NOT DOTS (user nit, 2026-08-04: "the two dots are not clear").
-           The pages are NAMED now — tuner · metronome — current page ink, the other
-           faint+underlined (the segment idiom). The swipe still works; these are its
-           click-shaped fallback, and with the pages named at the foot the engraved
-           plate labels became redundant on the phone (they were already hidden). -->
-      <!-- THREE PAGES, THREE WORDS (chooser metrotuner-drone-box, Q3/01). Measured before
-           committing to it, because the words row is what breaks first: at 390px
-           `tuner · metronome · drone` sets to 360px on ONE line, inside the viewport. The
-           dots-instead fallback the sheet offered was not needed, and the words are worth
-           keeping — they NAME the pages, which two discs cannot. -->
-      <!-- FIVE PAGES, FIVE WORDS — and this row is what the phone layout costs now.
-           MEASURED at 390px: `tuner · metronome · drone · the changes · the loop` sets to
-           568px, which does NOT fit one line inside the viewport. Three words fit at 360px;
-           five do not, so the row wraps to two lines and the foot takes a second lead. That
-           is the honest trade and it is taken deliberately: the words NAME the pages, which
-           five discs cannot, and a wrapped two-line index is still readable where five
-           unlabelled dots are a guessing game. The `.mt-dots` rule below reserves both
-           lines so the wrap costs no reflow when you swipe. -->
-      <!-- ══ THE DOTS ARE THE PAGES' OWN FIGURES (queue chooser Q5/02, icons Q1/04) ═══════
-           THE FIVE WORDS ARE GONE, and the reason is measured: at 390px
-           `tuner · metronome · drone · the changes · the loop` sets to 568px, so the row
-           wrapped to two lines and the foot took a second lead — and a sixth instrument
-           would make it three. Six 16px glyphs set on one line at any width.
-           EACH GLYPH IS GENERATED FROM WHAT ITS APP COUNTS — n bars at 0° if the pitches sound,
-           45° if they are measured (the `practice-room-encoding` chain). Not invented icons and
-           not hand-drawn, which is what lets a fifteen-app suite have marks at all.
-           SIX, BECAUSE THE ROOM IS A PAGE TOO, and its mark is a plain box — the plan's own outer
-           box reduced. Five marks over six pages is an indicator that lies: it rounded the scroll
-           to a page index, so standing on the index lit the tuner's mark.
-           THE COST, stated: a glyph does not NAME its page, where a word did. Two things carry
-           that instead — `aria-label` for assistive tech, and the engraved plate on each case.
-           IT IS FILLED BY JS from the same GLYPHS map the plan reads, so the two rows cannot
-           disagree about what an instrument's mark is. -->
-      <div class="mt-dots" id="mt-dots"></div>
-      <!-- THE MARK IS GONE (user call, 2026-08-04: "just delete the mark, it's not
-           really part of this tool"). The instrument carries no site chrome at all;
-           the way home is the browser and the index that linked here. The foot now
-           exists ONLY on the phone, for the page dots — on desktop there is nothing
-           left to hold and it collapses. -->
-    </div>
+    <!-- ══ THE DOT ROW IS THE CONSOLE'S, ON A PHONE, AND NOWHERE ELSE (2026-08-12) ═════════
+         His annotation on the desktop room: "this bar is no longer needd dleete form desktop,
+         maybe leave for cnosle mobile where we need app switching". It was a page indicator for a
+         scroller, and the scroller is gone everywhere except one place: the console's three
+         instruments on a phone, where they cannot fit side by side. So the row exists on exactly
+         that page at exactly that width, indicating exactly the three pages that are really there.
+         WHAT WENT WITH IT: the room's own mark (the room is a URL, reached by the link in the top
+         lead), and the row on /changes and /loop, where it pointed at one page — an indicator with
+         nothing to indicate.
+         EACH GLYPH IS GENERATED FROM WHAT ITS APP COUNTS — n bars at 0° if the pitches sound, 45°
+         if they are measured (the `practice-room-encoding` chain). Not invented icons and not
+         hand-drawn, which is what lets a fifteen-app suite have marks at all.
+         THE COST, stated: a glyph does not NAME its page, where a word did. Two things carry that
+         instead — `aria-label` for assistive tech, and the engraved plate on each case.
+         IT IS FILLED BY JS from the same GLYPHS map the room's boxes read, so the two cannot
+         disagree about what an instrument's mark is. -->
+    {page === 'console' && (
+      <div class="mt-foot">
+        <div class="mt-dots" id="mt-dots"></div>
+      </div>
+    )}
   </div>
 </Layout>
 
@@ -1337,49 +1407,29 @@ import Layout from '../layouts/Layout.astro';
      THE TWO NEW CASES ARE FIXED-WIDTH for the same reason the drone is — their contents do
      not change with width, and a `1fr` share would take the width out of the drawings that
      do. Both numbers are measured minimums, not preferences; see each token. */
-  /* ── THE ROOM IS AN INDEX AND ITS PAGES (2026-08-12) ───────────────────────────────────
+  /* ── ONE ROUTE, ONE THING, NO SCROLLER (2026-08-12) ─────────────────────────────────────
      THE FIVE FIXED COLUMNS ABOVE ARE HISTORY. Everything in the comments above this rule is
      kept because the measurements are still the reason each instrument needs the width it
-     needs — but the LAYOUT they describe is gone. It had two faults:
-       · the count was five, written into the grid, so a sixth instrument meant editing CSS;
-       · five fixed columns do not fit a laptop, so every viewport under 1477px got the PHONE
-         swiper — a 1440×900 and a 1366×768 both showed one case at a time on a desktop.
-     IT WAS A QUEUE FOR ONE DAY IN BETWEEN — an order you set once, a width that decided how many
-     of it were on screen — and the owner rejected that on sight of the built page: "the snapping
-     and settling don't work quite right, i also think its a bit concerningly busy on desktop."
-     NOW: ONE PAGE PER THING, and the plan is page 0. `--mt-cols` is one column per page, written
-     by the script; the only arithmetic left is how a console's three cases split THEIR page,
-     which `splitThing()` does by their measured demands (not equal thirds — at 760 a third is 178
-     and the metronome needs 196). Nothing shares a screen, so there is no fit to compute and no
-     case whose width depends on which others are visible — which was the cost the queue carried.
-     Q2/03, CSS SNAP AND NO JS: the momentum, the settle and the interruption are the browser's.
-     `scroll-behavior:smooth` is deliberately NOT set here — `goTo()` passes `behavior` per call so
-     reduced-motion gets an instant jump. */
+     needs — but the LAYOUT they describe is gone. Two designs died between them and this one:
+     five hardcoded columns (a sixth instrument meant editing CSS, and every viewport under
+     1477px got the phone swiper), then a QUEUE that fitted what a width bought — rejected on
+     sight of the built page: "the snapping and settling don't work quite right, i also think its
+     a bit concerningly busy on desktop."
+     NOW EACH THING IS A URL, so a route holds one thing and there is nothing to scroll between.
+     THE COLUMNS ARE CSS AGAIN, and this is the whole win: `170fr 170fr 196fr` on the console is
+     the members' measured demands as ratios, which is exactly what `splitThing()` computed at
+     runtime — `fr` distributes what is left after the gaps, in proportion. So `layoutRoom()`,
+     `--mt-cols`, the page log and the snap-point pass all delete. NOT `repeat(3, 1fr)`: equal
+     thirds give 178px each at 760 and the metronome needs 196, so it would break the case at the
+     exact width the band is bisected for.
+     THE ONE SCROLLER LEFT is the console on a phone — three instruments that cannot sit side by
+     side — and it is declared in the phone block, not here. */
   .mt-pages{flex:1;min-height:0;position:relative;
     display:grid;
-    grid-template-columns:var(--mt-cols, minmax(0, 1fr));
+    grid-template-columns:minmax(0, 1fr);
     column-gap:var(--group);
     padding:var(--group) var(--group) var(--lead);
-    overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
-    /* ── CSS SNAP, AND NO JS (plan chooser Q2/03). The JS settle that used to live here never
-       worked — it only knew the cases already on screen, so scrolling toward the queue threw
-       you back to one you had passed (measured: candidates 0/263/553/816/1516 against a max
-       scroll of 574). Rather than fix it, the owner picked the browser's own mechanism, which
-       deletes the whole class of bug: no listener, no target, no race, and the momentum and
-       the interruption are handled by the engine.
-       `scroll-padding-left` is what puts a snapped case's edge on the room's 3ch inset datum
-       instead of against the viewport — the page's one horizontal alignment rule. */
-    scroll-snap-type:x mandatory;
-    scroll-padding-left:var(--group);
-    /* NO `overflow-anchor:none` HERE, THOUGH I SHIPPED IT FOR AN HOUR. Every phone load rested
-       at scrollLeft 390 — page 1, the tuner — with the index behind it, and scroll anchoring was
-       my diagnosis: the script writes `order`, so the plan moves from column 6 to column 1 after
-       the first paint and the tuner moves right by a page, which is exactly the reflow anchoring
-       exists to compensate for. The declaration changed nothing — measured, not assumed — so the
-       diagnosis was wrong and the line went back out. The cause is the snap container following
-       the ELEMENT it had snapped to, and the fix is in the script: layoutRoom() puts the room on
-       page 0 explicitly. A declaration kept for a story that turned out to be false is worse than
-       no declaration; it tells the next reader the bug is handled here. */
+    overflow:hidden;
     grid-template-rows:
       [case-top]  var(--lead)           /* the case's own top air */
       [spec]      calc(var(--lead) * 2) /* a4 | beats + subdivide */
@@ -1400,18 +1450,34 @@ import Layout from '../layouts/Layout.astro';
       [hint]      var(--lead)           /* errors; empty on the metronome */
       [case-bot]  var(--lead)           /* the case's own bottom air */
       [case-end]}
-  /* the desktop room hides its scrollbar too — that the room continues is said by the dot row and
-     by the pages running past the edge, not by a grey bar */
-  .mt-pages::-webkit-scrollbar{display:none}
-  /* ── ONLY A PAGE'S FIRST CASE IS A SNAP POINT (`data-snap`, written by layoutRoom).
-     With every case a snap point, a scroll across the console page would stop at the drone —
-     but its three cases are ONE page, so the snap has to skip them. The attribute is set from
-     the same pass that writes the columns, so the two cannot disagree about where a page starts. */
-  .mt-pages > .mt-half[data-snap]{scroll-snap-align:start}
-  /* `[data-queued]` AND `--mt-qw` ARE GONE with the queue that wrote them: every page is whole,
-     so there is no such thing as a case off the fit holding its bare demand. The rule is deleted
-     rather than left inert — CSS for a state nothing sets is a description of a design that is
-     not there, and `room.spec.ts` asserts the attribute appears at no width. */
+  /* THE CONSOLE'S THREE, IN PROPORTION TO THEIR MEASURED DEMANDS — see the note above. This is
+     the only route with more than one case, and the ratios are the reason it needs no script. */
+  #mt-app[data-page="console"] .mt-pages{grid-template-columns:170fr 170fr 196fr}
+
+  /* ── A CASE ALONE ON A SCREEN GETS A MEASURE (2026-08-12) ───────────────────────────────────
+     Every case was composed as a COLUMN: one of five at 1512, or the whole of a 390px phone. Give
+     one of them 1400px and the composition comes apart — rendered and looked at, which is the only
+     way this shows up. On /changes/ the deck row sat top-left, `deal` bottom-left and `arpeggiate`
+     bottom-RIGHT, 1,100px apart, with the 72px symbol adrift between them; on /loop/ the source
+     field and the speed row were pinned to the far left of a centred track.
+     THE CASE IS CAPPED AND CENTRED — and the first attempt capped the ROWS instead, which was
+     worse and only visible in a render: a 560px column of controls floating inside a 1400px frame,
+     the empty box louder than the app. A case is a case. On the console three of them tile the
+     screen at 409px each; alone, one takes the width it needs and the page holds it, which is the
+     same object at the same scale rather than a new full-bleed idiom.
+     THE TWO NUMBERS ARE THE CONTENT'S, not preferences. The dealer's widest symbol is 259px of ink
+     at 72px (`F♯m7♭5`) and its deck row sets 225 — 560 gives both air without stranding them. The
+     loop is WIDER on purpose — 960 — and the reason is measured: every figure on this screen is six
+     of its case's twelve columns, so the timeline is half the case. At 960 the track is 440px where
+     the five-case room gave it about 110, and a transcription loop is the one instrument whose job
+     is reading a span along a line. Width goes into the drawing, exactly as the queue's share did.
+     Below these widths the column is the viewport and the phone rules take over, so nothing is
+     ever narrower than its measured demand. */
+  #mt-app[data-page="changes"] .mt-pages{grid-template-columns:minmax(0, 560px);justify-content:center}
+  #mt-app[data-page="loop"] .mt-pages{grid-template-columns:minmax(0, 960px);justify-content:center}
+  /* `data-snap`, `[data-queued]`, `--mt-qw`, `--mt-cols` and `--mt-pcols` are all GONE with the
+     mechanisms that wrote them. CSS for a state nothing sets describes a design that is not
+     there; `room.spec.ts` asserts none of them appears at any width. */
 
   /* ── THE ORDER PAGE'S LIST ──────────────────────────────────────────────────────────
      Rules, not boxes: each row is separated by a hairline and the last one draws none, so
@@ -1443,30 +1509,41 @@ import Layout from '../layouts/Layout.astro';
        `padding:0px` where 83px was intended. Measured on the built page rather than read from
        source — `getComputedStyle` returned `0px` while the source plainly said otherwise. */
     padding:0 calc(var(--group) + var(--mt-inset))}
-  .mt-planword{font:inherit;background:none;border:0;color:var(--dim);cursor:pointer;
-    padding:6px 0;margin:-6px 0;line-height:16px;
+  /* AN ANCHOR, NOT A BUTTON — and with none of the site's link decoration, because this is
+     chrome rather than prose: the arrow says where it goes and `--dim` says it is not the
+     instrument. `text-decoration:none` is stated because global.css underlines every `a`. */
+  .mt-planword{font:inherit;color:var(--dim);text-decoration:none;
+    padding:6px 0;margin:-6px 0;line-height:16px;display:inline-block;
     transition:color var(--dur-fast) var(--ease)}
   .mt-planword:hover,.mt-planword:focus-visible{color:var(--accent)}
-  .mt-planword[aria-pressed=true]{color:var(--ink)}
-  /* on the phone the room is a swiper and the plan is one of its pages, so the word would be a
-     second route to the same place — and 28px is a bigger fraction of a phone's height */
-  @media (max-width: 759px){ .mt-chrome{display:none} }
+  /* AND IT STAYS ON THE PHONE NOW. It used to be `display:none` under 760 because the plan was a
+     page of this screen's own scroller — the word would have been a second route to a place the
+     swipe already reached. The room is a URL now and the swipe cannot reach it, so hiding the link
+     would leave a phone with no way back at all. 28px of a phone's height is what that costs. */
+  @media (max-width: 759px){
+    .mt-chrome{padding:0 var(--mt-inset)}
+  }
 
-  /* ── THE PLAN: ONE BIG BOX, A ROOM WITH A DOORWAY (box chooser Q1/04) ────────────────
-     The walls are 2px INK and everything inside them is a hairline, because a plan draws a wall
-     heavier than the thing standing against it — that weight difference IS the containment, and
-     it is the reason a plain hairline box was rejected: it draws the room and the instruments
-     identically, so nothing says which contains which.
+  /* ── THE ROOM'S WALLS ARE THE CASE'S OWN FRAME (his annotation, 2026-08-12) ──────────────
+     "dont need this container if the room has one". There WAS a second bordered div inside the
+     case — `#mt-planroom` — so two nested boxes drew one room, and on a route where the room is
+     the only thing on screen the outer one was already doing the job.
+     WHAT THE DOUBLED BOX WAS BUYING, kept: the walls are 2px INK and everything inside them is a
+     hairline, because a plan draws a wall heavier than the thing standing against it. That weight
+     difference IS the containment, and it is why a plain hairline box was rejected — it draws the
+     room and the rooms identically, so nothing says which contains which. The case frame carries
+     the 2px on this route only.
      THE DOORWAY is a gap in the left wall: the border-left is transparent and two background
      gradients paint the wall segments above and below the opening. A drawn threshold rather
      than a fourth wall. Its cost, stated on the sheet and accepted: nothing goes in or out
      through it — it is a drawing of a way in, on a plan where every room is already inside. */
-  /* THE ROOM FILLS ITS BAND. `grid-row:1/-1` + `align-self:stretch` over `.mt-order .mt-mid`'s
-     `slack-a / foot` span, so the walls enclose the whole body of the page rather than a strip in
-     the middle of it — see the note on `.mt-order .mt-mid` for what that measured before. */
-  #mt-planroom{position:relative;display:grid;grid-template-rows:minmax(0, 1fr);gap:var(--lead);
-    grid-row:1 / -1;align-self:stretch;
-    border:2px solid var(--ink);border-left-color:transparent;
+  /* `#mt-app[data-page="room"]` AND NOT `.mt-order` ALONE: `.mt-half` declares `border:1px solid
+     var(--line)` 200 lines further down, and two single-class selectors are decided by source
+     order — so a bare `.mt-order{border-width:2px}` computed to 1px and the walls were a hairline.
+     The route attribute also says what is true: these are the walls of the ROOM PAGE, not of any
+     case that happens to carry this class. */
+  #mt-app[data-page="room"] .mt-order{
+    border-width:2px;border-color:var(--ink);border-left-color:transparent;
     background-image:linear-gradient(var(--ink),var(--ink)),
                      linear-gradient(var(--ink),var(--ink));
     background-repeat:no-repeat;
@@ -1494,36 +1571,46 @@ import Layout from '../layouts/Layout.astro';
      declaration left every assertion green, which is the definition of a line that is not load-
      bearing. What actually fills the floor is the ROOM's single 1fr row (below), the slot's
      `place-items:stretch`, and the box's own `height:100%`. */
-  #mt-planroom :global(.mt-pfloor){display:grid;
+  /* THE FLOOR FILLS THE ROOM. `#mt-planroom` used to be a one-row `minmax(0,1fr)` grid and the
+     floor stretched inside it; with that container gone the floor became an ordinary item in
+     `.mt-mid`'s subgrid and landed in the `figure` row — 280px of rooms in an 812px case, the
+     strip-of-chips defect again, from the other direction. `grid-row:1/-1` spans the whole band
+     `.mt-order .mt-mid` claims (slack-a → foot), which is the air an instrument's figure centres
+     in. */
+  .mt-order .mt-pfloor{display:grid;grid-row:1 / -1;
     grid-template-columns:repeat(3, minmax(0, 1fr));gap:var(--group)}
 
   /* A SLOT, drawn as four corner ticks (plan chooser Q3/01) — the plan convention for a
      fitting. An empty slot reads as available floor rather than as an empty card. */
-  #mt-planroom :global(.mt-pslot){position:relative;display:grid;
+  .mt-order .mt-pslot{position:relative;display:grid;
     place-items:stretch;padding:2px}
-  #mt-planroom :global(.mt-pslot::before),#mt-planroom :global(.mt-pslot::after){
+  .mt-order .mt-pslot::before,.mt-order .mt-pslot::after{
     content:"";position:absolute;width:9px;height:9px;border:1px solid var(--line);
     pointer-events:none}
-  #mt-planroom :global(.mt-pslot::before){top:0;left:0;border-right:0;border-bottom:0}
-  #mt-planroom :global(.mt-pslot::after){bottom:0;right:0;border-left:0;border-top:0}
+  .mt-order .mt-pslot::before{top:0;left:0;border-right:0;border-bottom:0}
+  .mt-order .mt-pslot::after{bottom:0;right:0;border-left:0;border-top:0}
 
   /* A LITTLE BOX: a figure and a name under it (Q3/02). The figure is the instrument's own
      generated mark; the console shows all three of its members' marks in a row, which is how
      "these three are one thing" is drawn rather than labelled. */
-  #mt-planroom :global(.mt-pbox){display:grid;gap:2px;justify-items:center;align-content:center;
-    width:100%;height:100%;
+  /* AND IT IS A LINK, so the site's link idiom has to be turned off HERE: global.css gives every
+     `a` the accent colour and an underline, which is correct for a word in a sentence and wrong for
+     a room on a plan — the box IS the affordance. `color:var(--ink)` also matters because the marks
+     are drawn in `currentColor`: as a link they came out accent-blue. */
+  .mt-order .mt-pbox{display:grid;gap:2px;justify-items:center;align-content:center;
+    width:100%;height:100%;text-decoration:none;
     background:var(--paper);border:1px solid var(--line);color:var(--ink);
     font:inherit;font-size:var(--step);padding:var(--lead) var(--tight);cursor:pointer;
     transition:box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease)}
-  #mt-planroom :global(.mt-pbox:focus-visible){outline:1px solid var(--accent);outline-offset:2px}
+  .mt-order .mt-pbox:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
   /* THE ONE SKEUOMORPHIC DEVICE (Q5/01), NOW ON HOVER RATHER THAN ON A DRAG. The pick was "drag
      it, and it casts a shadow while lifted"; positions are fixed, so there is no drag left to
      lift — but the delight it bought is the box behaving like an object, and a box that rises
      as you reach for it says "pick me up" in the same vocabulary. Nothing else on this screen
      has a shadow. `:active` presses it back down, so the gesture completes. */
-  #mt-planroom :global(.mt-pbox:hover),#mt-planroom :global(.mt-pbox:focus-visible){
+  .mt-order .mt-pbox:hover,.mt-order .mt-pbox:focus-visible{
     box-shadow:0 6px 14px rgba(0,0,0,.18);transform:translateY(-2px);border-color:var(--accent)}
-  #mt-planroom :global(.mt-pbox:active){box-shadow:none;transform:translateY(0)}
+  .mt-order .mt-pbox:active{box-shadow:none;transform:translateY(0)}
   /* THE MARKS ARE DRAWN AT 32px HERE, AND THE STROKE STAYS 1.8 (2026-08-12). A 16px figure
      centred in a 512px room is a speck — the pick was "a figure and a name under it", and at
      that ratio the figure reads as dust on the paper. Scaling the same generated output is not a
@@ -1531,10 +1618,10 @@ import Layout from '../layouts/Layout.astro';
      at 2×. `vector-effect:non-scaling-stroke` is what keeps it honest — without it the 1.8 weight
      doubles to 3.6 and the mark becomes a different, fatter object than the one in the dot row.
      One weight on the whole site, at every size. */
-  #mt-planroom :global(.mt-pmarks){display:inline-flex;gap:var(--tight);align-items:center;
+  .mt-order .mt-pmarks{display:inline-flex;gap:var(--tight);align-items:center;
     justify-content:center;min-height:32px}
-  #mt-planroom :global(.mt-pmarks svg){display:block;width:32px;height:32px}
-  #mt-planroom :global(.mt-pmarks svg path){vector-effect:non-scaling-stroke}
+  .mt-order .mt-pmarks :global(svg){display:block;width:32px;height:32px}
+  .mt-order .mt-pmarks :global(path){vector-effect:non-scaling-stroke}
   /* NO SIZE. This screen has ONE type size and says everything else with colour and position —
      `.mt-gl`'s notch labels are 15px `--faint`, not small type. My first version set 12px here
      and `practice-room-css.test.ts` caught it: "only 72px may be set". The names are `--dim`
@@ -1542,14 +1629,14 @@ import Layout from '../layouts/Layout.astro';
   /* AND THE NAME WRAPS RATHER THAN TRUNCATES. `white-space:nowrap` + ellipsis rendered
      `the chang…` in the middle box at 390px — a name clipped on the one screen whose whole job
      is naming the things. A room is tall enough to give a word a second line. */
-  #mt-planroom :global(.mt-pnm){line-height:var(--lead);color:var(--dim);
+  .mt-order .mt-pnm{line-height:var(--lead);color:var(--dim);
     max-width:100%;text-align:center}
 
   /* ── THE PHONE STACKS THE ROOMS (2026-08-12). Three across 390px truncated the middle name to
      `the chang…`, and a plan of a narrow room draws its rooms down the floor rather than across
      it. It also matches what the phone then does: one app per page, top to bottom. */
   @media (max-width: 759px){
-    #mt-planroom :global(.mt-pfloor){grid-template-columns:minmax(0, 1fr);
+    .mt-order .mt-pfloor{grid-template-columns:minmax(0, 1fr);
       grid-auto-rows:minmax(0, 1fr);gap:var(--lead)}
   }
 
@@ -2041,30 +2128,16 @@ import Layout from '../layouts/Layout.astro';
        two instruments hold identical row positions on the phone too, so swiping between
        them moves nothing vertically. Measured before: a swipe moved the transport 28px
        and the figure 84px, so the two pages read as two different layouts. */
-    /* FIVE PAGES NOW (practice-room-apps Q1/02+03, Q2/01). The drone, the chord dealer and
-       the loop are all pages like the others — full width, their own snap stop — so every
-       fixed desktop width (`--mt-drone-w`, `--mt-changes-w`, `--mt-loop-w`) is a DESKTOP
-       statement only. That is right for the same reason it always was: on a phone there is no
-       neighbour to be narrow beside, and a case that shares the viewport with nothing should
-       take all of it. Both new cases therefore get MORE room on a phone than on the desktop
-       they were measured for. */
-    .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-      /* ── THE PHONE'S COLUMN COUNT IS WRITTEN BY THE SCRIPT, not by the number 5.
-         `repeat(5, 100%)` was written when five was the whole room; with the index as a sixth
-         page a hardcoded 5 leaves the last page out of the scroller's geometry — it rendered at
-         56px because it had no track. `--mt-pcols` is `repeat(<n>, 100%)`, n = the index plus one
-         page per instrument. The fallback here is today's six, which is right until it is not,
-         which is why the script writes it.
-         AND THE BAND MOVED: this used to start at 1476px, the width five FIXED columns needed.
-         The narrowest desktop page only has to hold the CONSOLE now — 648 plus the room's two
-         56px paddings — so the band is 760, derived in room.ts and asserted in the unit tests. */
-      grid-template-columns:var(--mt-pcols, repeat(6, 100%));column-gap:0;padding:0;
-      /* AND NO SCROLL PADDING HERE. The desktop rule sets `scroll-padding-left:var(--group)`
-         because a case's edge belongs on the room's 3ch inset datum; a phone page IS the
-         viewport, so the same 56px made every page rest with a 56px slice of the previous one
-         showing — measured: the room opened at scrollLeft 334 on a 390px page, which is not a
-         page boundary at all. The datum only exists where there is a room to be inset from. */
-      scroll-padding-left:0;
+    /* ── THE ONE SCROLLER LEFT (2026-08-12). Every case is a full-viewport page on a phone —
+       there is no neighbour to be narrow beside, so the desktop width tokens (`--mt-drone-w`,
+       `--mt-changes-w`, `--mt-loop-w`) are DESKTOP statements only and a phone case gets more
+       room than the width it was measured for.
+       WHAT CHANGED: a route holds ONE thing, so on /changes and /loop there is a single page and
+       nothing to swipe. Only the CONSOLE has three, and only here can they not sit side by side —
+       his words, "remove the scroll concept entirely (except on mobile console)". So the snap and
+       the dot row are scoped to that page, and the column count is a literal 3 rather than a
+       custom property written by a script: three is what the console IS. */
+    .mt-pages{padding:0;
       /* the overlay's top datum is derived from this row — restated with it, never apart */
       --mt-case-top:calc(var(--lead) * 2);
       /* THE PHONE'S TOP AIR IS TWO LEADS (user, 2026-08-05: "the accent is too close to
@@ -2094,7 +2167,18 @@ import Layout from '../layouts/Layout.astro';
         [hint]      var(--lead)
         [case-bot]  var(--lead)
         [case-end]}
-    .mt-pages::-webkit-scrollbar{display:none}
+    /* THE CONSOLE SWIPES; the other routes hold one page and must not pretend otherwise. A
+       scroller with one child still eats a horizontal flick and reports overflow, which is how a
+       page that cannot move ends up feeling stuck. `scroll-padding-left:0` because a phone page IS
+       the viewport: the desktop's 56px datum made every page rest with a slice of the previous one
+       showing (measured, the room opened at scrollLeft 334 on a 390px page). */
+    #mt-app[data-page="console"] .mt-pages{
+      grid-template-columns:repeat(3, 100%);column-gap:0;
+      overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+      scroll-snap-type:x mandatory;scroll-padding-left:0}
+    #mt-app[data-page="console"] .mt-pages::-webkit-scrollbar{display:none}
+    #mt-app[data-page="console"] .mt-pages > .mt-half{
+      scroll-snap-align:start;scroll-snap-stop:always}
     /* THE CASE STAYS ON THE PHONE (round16, reversing the round-7 mobile rule):
        the hairline box reads as the instrument's identity, so each page draws
        its frame INSET via ::before (the snap pages themselves must stay
@@ -2115,8 +2199,11 @@ import Layout from '../layouts/Layout.astro';
        relationship `--tight` has to `--lead` in the site's space scale. Content then clears
        the frame by 14px on all four sides (measured T/L/R 14, B 26), and the frame is the
        one mark on this screen that sits between the viewport edge and the grid. */
-    .mt-half{scroll-snap-align:start;scroll-snap-stop:always;
-      border:0;padding:0 var(--mt-inset)}
+    /* NO SNAP DECLARATION HERE ANY MORE — it moved into the console-only block above, because a
+       snap alignment on a case whose route has no scroller is a property with no scroller to
+       align in. `scroll-snap-stop:always` went with it: it stopped a fling at every page, which is
+       what you want across three instruments and meaningless across one. */
+    .mt-half{border:0;padding:0 var(--mt-inset)}
     /* THE FRAME'S OWN INSET IS 1ch NOW, not half a lead (14px). On the phone the frame is
        DRAWN rather than being the case's border, so the clearance a reader sees is the
        content padding MINUS this inset. With the padding at 3ch and this at 14px that
@@ -2743,16 +2830,18 @@ import Layout from '../layouts/Layout.astro';
   #mt-dots :global(.pgdot.cur){color:var(--ink);cursor:default}
   #mt-dots :global(.pgdot:not(.cur):hover){color:var(--accent)}
   #mt-dots :global(.pgdot:focus-visible){outline:1px solid var(--accent);outline-offset:2px}
-  /* ── THE FOOT IS NOT PHONE-ONLY ANY MORE. It used to be: on the desktop every case was on
-     screen, so an indicator would have pointed at nothing. The room is an index of pages now and
-     only one page is on screen at any width — so the glyph row is what says the room continues,
-     and the only way to jump to a page without scrolling through the ones between. Every width.
-     `.cur` IS MEASURED, NOT COUNTED. It read `scrollLeft / clientWidth` as a page index, which is
-     only true where a page IS the viewport: on the desktop a page is `clientWidth − 112`, so the
-     index drifted one page every three and the chord dealer lit the DRONE's mark. `onScreen()`
-     asks whether the dot's own page is inside the scrollport, which also answers correctly for
-     the console — three cases, one page, all three genuinely on screen and all three in ink. */
-  .mt-foot{display:flex}
+  /* ── THE FOOT IS PHONE-ONLY AGAIN, and on one route (his annotation, 2026-08-12: "this bar is no
+     longer needd dleete form desktop, maybe leave for cnosle mobile where we need app switching").
+     It went to every width when the room was a queue and the pages continued off-screen. They do
+     not any more: on the desktop console all three instruments are on screen at once, so a page
+     indicator points at nothing — which is exactly the argument that made it phone-only the first
+     time. `display:none` is the base rule 50 lines up; this is the one place it comes back.
+     `.cur` IS MEASURED, NOT COUNTED. `scrollLeft / clientWidth` as a page index is true here (a
+     phone page IS the viewport) and was wrong everywhere else it was used — the chord dealer lit
+     the DRONE's mark on the desktop — so the geometric test stayed. */
+  @media (max-width: 759px){
+    #mt-app[data-page="console"] .mt-foot{display:flex}
+  }
   /* The page words (user nit 2026-08-04, the dots were unclear): current = ink, no
      underline (a fact); the other = faint, underlined (an offer) — the segment
      idiom. 44px targets via padding. */
@@ -3133,6 +3222,27 @@ import Layout from '../layouts/Layout.astro';
     syncA4Handles();
   }
 
+  // ── WHICH CASES THIS ROUTE RENDERS ───────────────────────────────────────────────────────
+  // Four routes share this script (see the component header), so every subsystem's WIRING has to
+  // be gated: without this, `/changes/` threw on `micBtn.addEventListener` at the first tuner
+  // statement and lost the entire rest of the file — the dealer's own block included. A dead page
+  // with no error visible to a user.
+  //
+  // WHY A GATE AND NOT A NULL-OBJECT `$`. Returning a detached element for a missing id would make
+  // the whole script route-safe in one line, and it would also make a MISTYPED id silently do
+  // nothing forever. The `!` at least crashed loudly. So the lookups stay honest and the wiring
+  // asks first.
+  //
+  // WHAT IS NOT GATED, deliberately: every `let`/`function` declaration. They are read across
+  // cases — the metronome's `ping()` writes the bleed log the tuner reads, `setA4()` calls the
+  // drone's `droning()`, the dealer's arp borrows the tuner's `analyser` — and a `let` inside a
+  // block would leave those reads in TDZ. Declarations always evaluate; only the wiring is
+  // conditional.
+  const HAS = (k: string) => !!document.querySelector(`[data-mt-key="${k}"]`);
+  const HAS_TUNER = HAS('tuner');
+  const HAS_DRONE = HAS('drone');
+  const HAS_METRO = HAS('metronome');
+
   // ── tuner ─────────────────────────────────────────────────────────────────
   const noteEl = $('mt-note');
   const centsEl = $('mt-cents');
@@ -3246,6 +3356,9 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function renderReading(freq: number) {
+    // the readout belongs to the tuner's case; the dealer's arp grader reads the same analyser
+    // without it, so this is reachable on a page that has nothing to print to
+    if (!HAS_TUNER) return;
     const r = freqToReading(freq, a4);
     if (!r) return renderSilence();
     quietFrames = 0;
@@ -3278,6 +3391,9 @@ import Layout from '../layouts/Layout.astro';
   function renderSilence() {
     // A couple of empty windows is a breath between notes; hold briefly.
     if (++quietFrames < SILENCE_FRAMES) return;
+    // NOTHING TO RENDER WITHOUT THE TUNER, and `pagehide` reaches here through stopTuner() on
+    // every route — the readout, the needle and the screen-reader line are all this case's.
+    if (!HAS_TUNER) { if (E2E) hook.reading = null; return; }
     noteEl.textContent = '—';
     noteEl.classList.remove('intune');
     centsEl.textContent = '–';
@@ -3288,8 +3404,10 @@ import Layout from '../layouts/Layout.astro';
     if (E2E) hook.reading = null;
   }
 
-  // The spoken copy of the reading, at most once a second.
-  setInterval(() => {
+  // The spoken copy of the reading, at most once a second. NOT REGISTERED WITHOUT THE TUNER: it
+  // wrote to `#mt-note`/`#mt-sr` unconditionally, so on a route without them it threw once a
+  // second, forever, in a page that otherwise looked fine.
+  if (HAS_TUNER) setInterval(() => {
     const t = noteEl.textContent;
     srEl.textContent = t === '—' ? '' : `${t}, ${centsEl.textContent} cents`;
   }, 1000);
@@ -3325,7 +3443,7 @@ import Layout from '../layouts/Layout.astro';
       if (req === micRequest) {
         const touch = matchMedia('(hover: none)').matches;
         const name = (err as DOMException)?.name ?? '';
-        hintEl.textContent =
+        if (hintEl) hintEl.textContent =
           name === 'NotFoundError' ? 'no microphone found on this device'
           : name === 'NotReadableError' ? 'the microphone is busy in another app — close it and try again'
           : touch ? 'microphone blocked — open the aA (or ⋯) menu → website settings → allow microphone, then reload'
@@ -3386,9 +3504,12 @@ import Layout from '../layouts/Layout.astro';
     src.connect(hp1);
     hp1.connect(hp2);
     hp2.connect(analyser);
-    micBtn.setAttribute('aria-label', 'stop the tuner');
-    micBtn.setAttribute('aria-pressed', 'true');
-    hintEl.textContent = '';
+    // `?.` for the same reason stopTuner's are: the dealer's arpeggiator starts this mic on a page
+    // with no tuner markup, and it must not die between `getUserMedia` resolving and the stream
+    // being wired to something that can stop it.
+    micBtn?.setAttribute('aria-label', 'stop the tuner');
+    micBtn?.setAttribute('aria-pressed', 'true');
+    if (hintEl) hintEl.textContent = '';
     tunerTimer = window.setInterval(() => {
       analyser!.getFloatTimeDomainData(buf);
       const f = detectPitch(buf, ac.sampleRate);
@@ -3450,12 +3571,17 @@ import Layout from '../layouts/Layout.astro';
     recent.length = 0;
     quietFrames = 99;
     renderSilence();
-    micBtn.setAttribute('aria-label', 'start the tuner');
-    micBtn.setAttribute('aria-pressed', 'false');
-    hintEl.textContent = ''; // errors only — a stop clears any denial guidance
+    // `?.` AND NOT A GATE: stopTuner runs from `pagehide` on every route, and startTuner runs
+    // from the DEALER's arpeggiator, which borrows this mic — so both reach here on a page with no
+    // tuner markup. The audit found the sharper version of this: without the guard, startTuner
+    // threw AFTER `getUserMedia` resolved and after `micStream` was assigned, leaving a live mic
+    // with no wired stop button and a recording indicator for a control that does not exist.
+    micBtn?.setAttribute('aria-label', 'start the tuner');
+    micBtn?.setAttribute('aria-pressed', 'false');
+    if (hintEl) hintEl.textContent = ''; // errors only — a stop clears any denial guidance
   }
 
-  micBtn.addEventListener('click', (e) => {
+  if (HAS_TUNER) micBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
     micStream ? stopTuner() : startTuner();
   });
@@ -3594,7 +3720,8 @@ import Layout from '../layouts/Layout.astro';
   // needs to know which A — and now that the figure is also the control, the thing you drag
   // has to state the value you are setting.
   function refLabel() {
-    refNoteEl.textContent = nameOf(refMidi);
+    // the 72px letter IS the drone's figure, so there is nothing to label without that case
+    if (refNoteEl) refNoteEl.textContent = nameOf(refMidi);
   }
   refLabel();
 
@@ -3689,7 +3816,9 @@ import Layout from '../layouts/Layout.astro';
   const tuneBtns = $('mt-tune-btns');
   const tuneBeat = $('mt-tune-beat');
 
-  TUNINGS.forEach((t) => {
+  // THE COMPARER'S BUTTONS ARE THE DRONE'S. Building them on a route without it appended into
+  // nothing and threw on the first `appendChild`, which cost the whole rest of the script.
+  if (HAS_DRONE) TUNINGS.forEach((t) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'vbtn';                      // the voice row's own control vocabulary
@@ -3707,6 +3836,7 @@ import Layout from '../layouts/Layout.astro';
   // comparer is that the number moves when the choice does. Worst pair in the stack, because
   // one bad interval is what you hear.
   function paintTuning() {
+    if (!HAS_DRONE) return;
     tuneBtns.querySelectorAll<HTMLButtonElement>('[data-tuning]').forEach((b) => {
       const on = b.dataset.tuning === tuningId;
       b.setAttribute('aria-pressed', String(on));
@@ -3726,7 +3856,7 @@ import Layout from '../layouts/Layout.astro';
       : `worst beat ${worst.toFixed(2)} hz`;
   }
 
-  tuneBtns.addEventListener('click', (e) => {
+  if (HAS_DRONE) tuneBtns.addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-tuning]');
     if (!b) return;
     tuningId = b.dataset.tuning!;
@@ -3745,6 +3875,7 @@ import Layout from '../layouts/Layout.astro';
     if ((e.key || '').toLowerCase() !== 't') return;
     const el = document.activeElement as HTMLElement | null;
     if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+    if (!tuneWrap) return;   // the comparer is the drone's; ⌥T is a window listener on every route
     e.preventDefault();
     tuneWrap.hidden = !tuneWrap.hidden;
     if (!tuneWrap.hidden) paintTuning();
@@ -3770,7 +3901,7 @@ import Layout from '../layouts/Layout.astro';
   // stopPropagation every pitch step would also toggle the sound — the exact double-fire the
   // caption latch already guards against. `pointerdown` is stopped too, or a drag on the letter
   // would start the drone before the drag was even recognised as a drag.
-  {
+  if (HAS_DRONE) {
     let dragX: number | null = null;
     let dragStart = 0;
     let dragged = false;
@@ -4133,7 +4264,7 @@ import Layout from '../layouts/Layout.astro';
   // list of spans the speaker was busy in (round 21) — and the build caught the collision.
   function droning() { return !!toneGain; }
 
-  toneBtn.addEventListener('click', (e) => {
+  if (HAS_DRONE) toneBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
     droning() ? stopTone() : startTone();
   });
@@ -4218,7 +4349,7 @@ import Layout from '../layouts/Layout.astro';
   // tickAt never had a ceiling; only the old four-glyph selector did).
   let subdivision = Number(store.get('mt:sub'));
   if (!Number.isInteger(subdivision) || subdivision < 1 || subdivision > 7) subdivision = 1;
-  bpmInput.value = String(bpm);
+  if (HAS_METRO) bpmInput.value = String(bpm);   // the field is this case's
 
   // THE VOICES. Three sine pings — G6 opens the bar, C6 marks the beat, G5 sits
   // under the subdivisions at half the level.
@@ -4247,11 +4378,15 @@ import Layout from '../layouts/Layout.astro';
   // is how the two targets would drift out of agreement — one of them getting a
   // fix the other doesn't is the shape of that bug.
   const accBtns = [$('mt-acc'), $('mt-accent')] as unknown as HTMLButtonElement[];
+  /** The two ruled segments' repaint handles, assigned by the metronome's wiring block below. */
+  let restoreBeats: (v: number) => void = () => {};
+  let restoreSub: (v: number) => void = () => {};
   function paintAccent() {
+    if (!HAS_METRO) return;
     for (const b of accBtns) b.setAttribute('aria-pressed', accentOn ? 'true' : 'false');
     restoreBeats(beatsPerBar);
   }
-  for (const b of accBtns) {
+  if (HAS_METRO) for (const b of accBtns) {
     b.addEventListener('click', (e) => {
       // The mark button sits INSIDE `#mt-beats-seg`, whose delegated click handler
       // reads `data-beats` off the closest button to set the bar length. This button
@@ -4433,6 +4568,9 @@ import Layout from '../layouts/Layout.astro';
   function restPendulum(deg: number) {
     cancelAnimationFrame(raf);
     lastDeg = deg;
+    // the pendulum IS the metronome's figure — and `pagehide` parks it through stopMetro() on
+    // every route, which is how a page with no metronome ended up throwing on its way out
+    if (!pend) return;
     pend.style.transform = `rotate(${deg}deg)`;
     pend.classList.add('rest');
     pend.classList.remove('live');
@@ -4448,10 +4586,10 @@ import Layout from '../layouts/Layout.astro';
     pending.length = 0;
     lastBeat = null;
     scheduler.start();
-    runBtn.setAttribute('aria-label', 'stop the metronome');
-    runBtn.setAttribute('aria-pressed', 'true');
-    pend.classList.remove('rest');
-    pend.classList.add('live');
+    runBtn?.setAttribute('aria-label', 'stop the metronome');
+    runBtn?.setAttribute('aria-pressed', 'true');
+    pend?.classList.remove('rest');
+    pend?.classList.add('live');
     if (stillPend.matches) {
       // REDUCED MOTION STEPS THE BOB, it doesn't flash a tick. The arm jumps end to end
       // once per beat and holds there — no sweep, no tween (the CSS kills the transition
@@ -4495,11 +4633,12 @@ import Layout from '../layouts/Layout.astro';
       // here — finishSweep's frames read it after this returns; startMetro resets it.
       finishSweep();
     }
-    runBtn.setAttribute('aria-label', 'start the metronome');
-    runBtn.setAttribute('aria-pressed', 'false');
+    // reached from `pagehide` on every route — see restPendulum
+    runBtn?.setAttribute('aria-label', 'start the metronome');
+    runBtn?.setAttribute('aria-pressed', 'false');
   }
 
-  runBtn.addEventListener('click', (e) => {
+  if (HAS_METRO) runBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // inside .mt-mid, which is itself a start/stop target
     (scheduler.running || conducting) ? stopMetro() : startMetro();
   });
@@ -4519,12 +4658,12 @@ import Layout from '../layouts/Layout.astro';
     bpmInput.value = String(bpm);
     applySpec();
   };
-  bpmInput.addEventListener('change', () => setBpm(Number(bpmInput.value)));
+  if (HAS_METRO) bpmInput.addEventListener('change', () => setBpm(Number(bpmInput.value)));
 
   // THE SCRUB VALUE (Q2/02), on the UNIT (metrotuner-scrub-target pick 03): "bpm" is
   // the handle at 1 bpm per 4px, the numeral is a field that types. Same wireScrub()
   // the A4 control uses — one definition, so the two gestures cannot drift.
-  {
+  if (HAS_METRO) {
     const host = document.getElementById('mt-bpm-scrub')!;
     const syncBpmHandles = () => {
       for (const h of host.querySelectorAll('.mt-hd')) {
@@ -4632,7 +4771,7 @@ import Layout from '../layouts/Layout.astro';
     tapBtn.classList.add('hit');
     setTimeout(() => tapBtn.classList.remove('hit'), held);
   };
-  tapBtn.addEventListener('pointerdown', () => {
+  if (HAS_METRO) tapBtn.addEventListener('pointerdown', () => {
     strike();
     const t = tap.tap(performance.now());
     if (t !== null) applyTap(t);
@@ -4640,7 +4779,7 @@ import Layout from '../layouts/Layout.astro';
   // Keyboard taps arrive as click with detail 0 (no pointer); they are the one
   // path that must still count — a pointer's own click has detail ≥ 1 and already
   // counted on the press.
-  tapBtn.addEventListener('click', (e) => {
+  if (HAS_METRO) tapBtn.addEventListener('click', (e) => {
     if (e.detail !== 0) return;
     strike();                            // a keyboard tap gets the snap too
     const t = tap.tap(performance.now());
@@ -4703,10 +4842,21 @@ import Layout from '../layouts/Layout.astro';
     });
     return paint;
   };
-  const restoreBeats = wireRuled('mt-beats-seg', 'data-beats', 'grow', (v) => { beatsPerBar = v; applySpec(); });
-  const restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'dashext', (v) => { subdivision = v; applySpec(); });
-  paintAccent(); // draws the beats rule too (restoreBeats inside), with the persisted accent state
-  restoreSub(subdivision);
+  // THE TWO RULED SEGMENTS ARE THE METRONOME'S SPEC ROW. `wireRuled` asserts its host exists
+  // (`getElementById(segId)!` then `.querySelector('.rm-rule')!`), so this is the block that took
+  // the whole script down on /changes and /loop — four statements, one gate.
+  //
+  // AND THE HANDLES ARE ASSIGNED, NOT DECLARED, HERE. `paintAccent()` calls `restoreBeats` from
+  // above (the forward reference the comment up there explains), so a `const` inside this block
+  // would put it out of scope and turn one guarded throw into a ReferenceError from a click. The
+  // bindings live outside; only the wiring is conditional — the same rule as everywhere else in
+  // this pass.
+  if (HAS_METRO) {
+    restoreBeats = wireRuled('mt-beats-seg', 'data-beats', 'grow', (v) => { beatsPerBar = v; applySpec(); });
+    restoreSub = wireRuled('mt-sub-seg', 'data-sub', 'dashext', (v) => { subdivision = v; applySpec(); });
+    paintAccent(); // draws the beats rule too (restoreBeats inside), with the persisted accent state
+    restoreSub(subdivision);
+  }
 
   // ══════════════════════════════════════════════════════════════════════════════════════
   // THE CHANGES — the chord dealer (chooser practice-room-apps Q1/02, grading Q3/02)
@@ -5186,394 +5336,96 @@ import Layout from '../layouts/Layout.astro';
     paintTl();
   }
 
-  // ══ THE ROOM HOLDS THREE THINGS (choosers `practice-room-plan` + `practice-room-box`,
-  //    2026-08-12) ═══════════════════════════════════════════════════════════════════════
-  // The queue of five read as busy, which was the owner's verdict on it. His grouping is now
-  // the premise: the tuner, drone and metronome are ONE thing (a console — you use them while
-  // playing, often together); the changes and the loop are standalones you work at one at a
-  // time. So the room seats THREE things, and `THINGS` in room.ts is what it seats.
-  // AND THE ROOM IS AN INDEX (the owner's correction, later the same day): the plan is page 0 and
-  // each thing is ONE whole page. Nothing shares a screen, so there is no fit to compute.
-  //   the ROOM    writes one column per page; a console's three cases split their page by demand
-  //   the SNAP    is CSS ONLY (plan Q2/03) — the JS settle is DELETED, see below
-  //   the PLAN    one big box with a doorway; press a room to open it (box Q1/04)
-  //   the WAY BACK  `← the room`, one lead of chrome, hidden while you are in the room
-  //   the DOTS    one 16px generated mark per page, the room's own box first (icons Q1/04)
-  //
-  // WHY THE SETTLE IS GONE. It never worked: `caseOffsets()` filtered to cases that were not
-  // queued, so only what was already on screen had a resting place and a scroll toward the
-  // queue was thrown back to a case you had passed. Measured on the live page at 1280px, the
-  // candidates were 0/263/553/816/1516 against a maximum scroll of 574 — two past the end,
-  // and the queued case had none at all. The owner picked `scroll-snap-type:x mandatory` and
-  // "no JS", which deletes the mechanism rather than fixing it: the browser owns the momentum,
-  // the settle, and the interruption. `settleTo()` is gone from room.ts too — it survived one
-  // round as "exported for its unit tests", which is a mechanism kept alive by its own test.
-  const pages = document.getElementById('mt-pages')!;
-  const dots = document.getElementById('mt-dots')!;
-  const orderFit = document.getElementById('mt-order-fit');
-  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // ══ WHAT THE ROUTES DELETED (2026-08-12) ════════════════════════════════════════════════
+  // Everything the room used to need at runtime is gone, because a URL does it instead:
+  //   layoutRoom()   wrote `--mt-cols` per width. The columns are CSS again — `170fr 170fr 196fr`
+  //                  is the console's measured demands as ratios, which is what splitThing()
+  //                  computed. One route, one thing, no arithmetic.
+  //   drawPlan()     built the room's boxes from THINGS on every layout. They are built at BUILD
+  //                  time now, so the index renders with JS off.
+  //   goTo/deepLinked/syncHash  scrolled to a page, read `#console` from the hash and wrote it
+  //                  back on scroll. All three were a URL bar made of JavaScript; the address bar
+  //                  is better at it, and `← the room` is an ordinary link.
+  //   opened, snapPad, onScreen, data-snap, the ResizeObserver, the room's own dot — each existed
+  //                  to keep a scroller honest, and only the console on a phone still scrolls.
+  // The one thing kept is the DOT ROW, which is that scroller's page indicator.
+  const pages = document.getElementById('mt-pages');
+  const dots = document.getElementById('mt-dots');
 
-  // POSITIONS ARE FIXED (2026-08-12): there is no order to persist. `THINGS` is the source of
-  // truth, the plan draws it in that order, and the old `mt:order` / `mt:things` keys are simply
-  // never read again — a stale value cannot break what nothing consults.
-  /** Every case section, by key. The index page is NOT one of these — it is page 0. */
+  /**
+   * Every case on THIS page, by key, in the order it sits.
+   *
+   * KEYED OFF THE MARKUP, NOT OFF POSITION. It used to walk `INSTRUMENTS` and take
+   * `pages.children[idx]` — which agreed with the DOM only while one page held all five cases in
+   * that exact order. On any route it is silently wrong rather than broken: `/changes/` keyed the
+   * dealer as `tuner`, and the console keyed its drone as `metronome` (THINGS lists the console
+   * tuner-drone-metronome, INSTRUMENTS lists tuner-metronome-drone). Every consumer then read the
+   * wrong element and reported success. `data-mt-key` is written in the markup beside the case it
+   * names, so there is nothing to agree with.
+   */
   const caseEls = new Map<string, HTMLElement>();
-  INSTRUMENTS.forEach((i, idx) => {
-    const el = pages.children[idx] as HTMLElement | undefined;
-    if (el) { el.dataset.mtKey = i.key; caseEls.set(i.key, el); }
+  pages?.querySelectorAll<HTMLElement>('[data-mt-key]').forEach((el) => {
+    caseEls.set(el.dataset.mtKey!, el);
   });
-  const orderPage = pages.querySelector('.mt-order') as HTMLElement | null;
 
-  /** Is the room the phone swiper? One case per page, so the queue arithmetic is moot. */
-  /**
-   * THE PHONE BAND MOVED 533 → 759, and it is derived rather than chosen. The old number was
-   * where the desktop room stopped seating TWO INSTRUMENTS. The room seats THINGS now, and the
-   * smallest thing worth seating is the console — three cases at 170 + 170 + 196 plus two 56px
-   * gaps = 648, which needs 760 once the room's own padding is counted. Bisected on the built
-   * page: whole at 760, partial at 759, and the arithmetic names the same pixel.
-   * Below it the desktop room could only show a console overflowing its own room, which is worse
-   * than the phone layout giving one instrument the whole viewport. The cost, stated: every
-   * viewport from 534 to 759 that showed two cases yesterday now swipes.
-   */
-  const isPhone = () => window.matchMedia('(max-width: 759px)').matches;
-
-  /* THE PLAN IS A FULL PAGE NOW, so it has no width of its own to measure — it fills the screen
-     like every other page. The three little boxes inside it still sit at the screen's thirds, and
-     the name that binds is `the changes`: 99px of painted ink at 15px, which needed real slack
-     because `scrollWidth <= clientWidth` reported a 0.33px overflow as fitting. That check lives
-     in room.spec.ts and measures the ink with a Range instead. */
-
-
-  // ── THE ROOM ────────────────────────────────────────────────────────────────────────
-  // `--mt-cols` is the whole layout. The DOM order of the sections is fixed (they are the
-  // page's markup); the QUEUE order is expressed with `order:` on each case, so re-ordering
-  // never moves a node and therefore never restarts an instrument that is sounding.
-  /** Set once the room has been placed at its entry page — see the note inside layoutRoom(). */
-  let opened = false;
-
-  function layoutRoom() {
-    // ── THE ROOM IS AN INDEX AND ITS PAGES (2026-08-12, the owner's correction) ──────────
-    // "i thought what i wanted was for the plan to be like the app homepage / the practice
-    // room. positions are fixed. and its just like the index page and you press it and go to
-    // one of the apps. and theres like a buton to go back to the full room."
-    //
-    // So the fit-by-demand queue is GONE. There is no width at which two things share the
-    // screen: the plan is page 0 and every thing after it is one full page. Pressing a box on
-    // the plan goes to that page; a back mark returns. That is the whole navigation model, and
-    // it is what "maybe we dont rly need so many things on one screen" asked for two rounds ago.
-    //
-    // POSITIONS ARE FIXED, so there is no order to persist, no drag, and no `mt:things` key —
-    // `THINGS` is the source of truth and the plan draws it in that order.
-    //
-    // THE CONSOLE IS STILL THREE CASES ON ONE PAGE, and they split that page by their measured
-    // demands rather than into equal thirds: at 760px equal thirds gives each 178 and the
-    // metronome needs 196, so it would break at the very width the band was bisected for.
-    const phone = isPhone();
-    const pageW = Math.max(0, pages.clientWidth - PAD * 2);
-
-    const cols: string[] = [];
-    const snapAt: HTMLElement[] = [];
-    /** One entry per page, for the harness — the layout's own output, not a DOM symptom of it. */
-    const pageLog: Array<{ id: string; keys: string[]; w: number }> = [];
-
-    // page 0 — the plan
-    if (orderPage) {
-      orderPage.style.order = '0';
-      cols.push(phone ? '100%' : `${pageW}px`);
-      snapAt.push(orderPage);
-      pageLog.push({ id: 'plan', keys: [], w: phone ? pages.clientWidth : pageW });
-    }
-
-    // then one page per thing, in THINGS order
-    let n = 1;
-    THINGS.forEach((t) => {
-      if (phone) {
-        // one INSTRUMENT per page on a phone: a console is three ordinary pages there, because
-        // a phone case already has the whole viewport and has no neighbour to be narrow beside
-        t.keys.forEach((k) => {
-          const el = caseEls.get(k);
-          if (!el) return;
-          el.style.order = String(n); n += 1;
-          cols.push('100%');
-          snapAt.push(el);
-          pageLog.push({ id: k, keys: [k], w: pages.clientWidth });
-        });
-        return;
-      }
-      const parts = splitThing(t.id, pageW);
-      t.keys.forEach((k, i) => {
-        const el = caseEls.get(k);
-        if (!el) return;
-        el.style.order = String(n); n += 1;
-        cols.push(`${parts[i].toFixed(2)}px`);
-        if (i === 0) snapAt.push(el);          // the page snaps at its FIRST case
-      });
-      pageLog.push({ id: t.id, keys: [...t.keys], w: pageW });
-    });
-
-    // THE PHONE READS `--mt-pcols`, THE DESKTOP `--mt-cols` — two properties because the two
-    // media queries each declare their own `grid-template-columns`. Writing only `--mt-cols`
-    // left the phone on its CSS fallback `repeat(6, 100%)`, which is right for exactly today's
-    // six pages and silently wrong for a seventh.
-    if (phone) {
-      pages.style.setProperty('--mt-pcols', `repeat(${cols.length}, 100%)`);
-      pages.style.removeProperty('--mt-cols');
-    } else {
-      pages.style.setProperty('--mt-cols', cols.join(' '));
-      pages.style.removeProperty('--mt-pcols');
-    }
-    // ONLY A PAGE'S FIRST CASE IS A SNAP POINT. With every case a snap point, a scroll inside
-    // the console page would stop at the drone — the three of them are ONE page.
-    [...pages.children].forEach((el) => { delete (el as HTMLElement).dataset.snap; });
-    snapAt.forEach((el) => { el.dataset.snap = ''; });
-
-    if (orderFit) orderFit.textContent = `${THINGS.length} things`;
-
-    // ── THE PAGES HAVE URLS (2026-08-12). An index whose entries cannot be linked to is a room
-    // you can only enter through the front door: `#console`, `#changes`, `#loop` open straight
-    // into a thing, and a bare instrument key (`#metronome`) opens the page that holds it — which
-    // is the console on a desktop and the metronome's own page on a phone.
-    //
-    // THE HASH FOLLOWS THE SCROLL, not just the presses. Writing it only in goTo() would leave it
-    // lying after a swipe, so it is written by the same sync the dots use — whatever page is on
-    // screen is what the URL says. `replaceState` rather than `pushState`: the browser's Back
-    // button belongs to the site's history, and turning it into the room's own back mark would
-    // trap anyone who arrived here from another page.
-    //
-    // ── THE ROOM OPENS ON THE PLAN, SAID OUT LOUD. Every phone load rested at scrollLeft 390 —
-    // page 1, the tuner — with the index behind it. It is not our JS (patching scrollTo,
-    // scrollLeft, scrollIntoView and focus caught zero calls) and not scroll anchoring
-    // (`overflow-anchor:none` changed nothing): it is the snap container remembering a snapped
-    // ELEMENT. On the first paint the cases still sit in DOM order, so the tuner is the page at
-    // offset 0; when the script writes `order` the plan takes that column and the tuner moves to
-    // 390, and the browser follows the element it had snapped to rather than the offset.
-    //
-    // Relying on the browser's initial snap choice to express "this page is the home" was the
-    // real mistake. An index has an entry point, so the entry point is written down. First
-    // layout only — a relayout on resize must not throw you out of the app you are using.
-    if (!opened) {
-      opened = true;
-      const want = deepLinked();
-      if (want) goTo(want, true); else pages.scrollLeft = 0;
-    }
-    if (E2E) hook.roomPages = pageLog;
-  }
-
-  /** The scroller's own snap datum, in px — `scroll-padding-left`, whatever the media query says. */
-  const snapPad = () => parseFloat(getComputedStyle(pages).scrollPaddingLeft) || 0;
-
-  /**
-   * IS THIS PAGE ON SCREEN — the room's one question, asked geometrically.
-   *
-   * Both the dot row and the back mark used to answer it by arithmetic on the scroll offset:
-   * `round(scrollLeft / clientWidth)` as a page index. That is only true when a page IS the
-   * viewport, which is the phone; on the desktop a page is `clientWidth − 112`, so the index
-   * drifted by one page every three — standing on the chord dealer lit the DRONE's dot, and on
-   * the loop the metronome's. Measuring the rectangles cannot drift, and it answers correctly
-   * for the console, where three cases share one page and all three are genuinely on screen.
-   *
-   * More than half the case must be inside the scrollport, so a sliver of the next page showing
-   * past a snap does not light two dots at once.
-   */
-  function onScreen(el: HTMLElement | null): boolean {
-    if (!el) return false;
-    const p = pages.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    const overlap = Math.min(p.right, r.right) - Math.max(p.left, r.left);
-    return r.width > 0 && overlap > r.width / 2;
-  }
-
-  /**
-   * The page a `#hash` asks for, or null. Accepts a THING id or an INSTRUMENT key, because the two
-   * name the same thing at different widths and a link should not have to know which.
-   */
-  function deepLinked(): HTMLElement | null {
-    const id = decodeURIComponent(location.hash.replace(/^#/, '')).trim();
-    if (!id) return null;
-    // ALWAYS THE PAGE'S FIRST CASE, never the instrument's own. `#metronome` on a desktop asked
-    // for the third case of the console page, so goTo landed on ITS offset (2385 at 1512) — which
-    // is not a snap point, so mandatory snap pulled the room forward to the nearest one, 2912,
-    // and opened the CHORD DEALER instead. A page is what you can navigate to; naming one of its
-    // members has to resolve to the page, or the link lands somewhere else entirely.
-    const thing = THINGS.find((t) => t.id === id || t.keys.includes(id));
-    if (!thing) return null;
-    // on a phone every instrument is its own page, so the key IS the snap point
-    return caseEls.get(isPhone() ? (thing.keys.includes(id) ? id : thing.keys[0]) : thing.keys[0]) ?? null;
-  }
-
-  /** Scroll to a page — the plan, or a thing's first case. `instant` skips the animation. */
-  function goTo(el: HTMLElement | null, instant = false) {
-    if (!el) return;
-    const max = Math.max(0, pages.scrollWidth - pages.clientWidth);
-    // THE DATUM IS THE CSS `scroll-padding-left`, READ, NOT ASSUMED. Hardcoding PAD sent the
-    // phone to 390−56 on a scroller whose padding is 0 there, so every page rested 56px off its
-    // own edge with a slice of the previous one showing. Reading the property means the snap
-    // position JS scrolls to and the one the browser snaps to are the same number by
-    // construction rather than by coincidence.
-    // CLAMPED. The last page's offsetLeft is past the maximum scroll, and comparing or scrolling
-    // to the raw offset is the bug the old settle had and that I reintroduced once already.
-    pages.scrollTo({
-      left: Math.min(Math.max(0, el.offsetLeft - snapPad()), max),
-      behavior: instant || still.matches ? 'auto' : 'smooth',
-    });
-  }
-
-  // ── THE DOTS (Q5/02) ────────────────────────────────────────────────────────────────
-  // One 16px glyph per page. Built from the same GLYPHS map the plan reads, so the two rows
-  // cannot disagree about what an instrument's mark is.
+  // ── THE DOTS: THE CONSOLE'S PAGES, ON A PHONE ────────────────────────────────────────
+  // One 16px generated mark per case ON THIS PAGE — so three on the console and none anywhere
+  // else, because the row only exists there (his annotation: "delete from desktop, maybe leave
+  // for console mobile where we need app switching"). Built from the same GLYPHS map the room's
+  // boxes read, so the two cannot disagree about what an instrument's mark is.
   //
-  // THE FIRST DOT IS THE ROOM, not an instrument. The phone has SIX pages now — the plan and
-  // five instruments — and five dots over six pages is an indicator that lies: `paintDots`
-  // rounds the scroll to a page index, so standing on the plan lit the tuner's dot. The room's
-  // mark is a plain 16px box, which is the plan's own outer box reduced; it is NOT an exception
-  // to "the formula's output ships, always", because the room is not an app — it is the box the
-  // apps' marks sit in, and it counts nothing.
-  //
-  // ON THE PHONE THE DOTS ARE THE ONLY CHROME (`.mt-chrome` is display:none under 760), so this
-  // row carries the way back to the plan as well as the way between instruments.
-  const ROOM_DOT =
-    '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">' +
-    '<rect x="2.9" y="2.9" width="10.2" height="10.2" fill="none" stroke="currentColor" ' +
-    'stroke-width="1.8" stroke-linejoin="round"/></svg>';
-
+  // IT IS BUILT FROM THE DOM, not from THINGS. Iterating the model drew five dead buttons on a
+  // three-case page: `caseEls.get()` returned null for the absent ones, `goTo(null)` early-returned
+  // and nothing threw, so the row rendered four marks that did nothing and none of them lit.
   function drawDots() {
+    if (!dots || !pages) return;
     dots.replaceChildren();
-
-    dotTargets = [];
-    const mk = (testid: string, label: string, svg: string, target: () => HTMLElement | null) => {
-      dotTargets.push(target);
+    for (const [key, el] of caseEls) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'pgdot';
-      b.dataset.testid = testid;
-      b.setAttribute('aria-label', label);
-      b.innerHTML = svg;
-      b.addEventListener('click', () => goTo(target()));
+      // THE SHIPPED TESTIDS ARE KEPT VERBATIM, including the metronome's abbreviation: deriving
+      // them from the key would quietly rename `dot-metro` and break tests that ask nothing about
+      // the dots' drawing. A test id is a contract with the suite.
+      b.dataset.testid = `dot-${key === 'metronome' ? 'metro' : key}`;
+      b.setAttribute('aria-label', BY_KEY[key].name);
+      b.innerHTML = glyphSvg(key);
+      b.addEventListener('click', () => {
+        // the page IS the viewport here, so its offset is its index times the width — and this is
+        // the only place in the file that arithmetic is true
+        pages.scrollTo({ left: el.offsetLeft, behavior: still.matches ? 'auto' : 'smooth' });
+      });
       dots.append(b);
-      return b;
-    };
-
-    mk('dot-plan', 'the room', ROOM_DOT, () => orderPage);
-
-    // PER INSTRUMENT, NOT PER THING — five marks, because the phone's carousel has five
-    // instrument pages whatever the desktop grouping is. THINGS is the source of truth for the
-    // order now that nothing is persisted; the old code read a `order` variable of thing ids and
-    // asked `BY_KEY['console']`, which threw and killed drawPlan() on the same tick.
-    THINGS.flatMap((t) => t.keys).forEach((k) => {
-      // THE SHIPPED TESTIDS ARE KEPT VERBATIM, including the metronome's abbreviation. They were
-      // `dot-tuner / dot-metro / dot-drone / dot-changes / dot-loop`; deriving them from the key
-      // would have quietly renamed `dot-metro` and broken three tests that ask nothing about the
-      // dots' drawing. A test id is a contract with the suite.
-      mk(`dot-${k === 'metronome' ? 'metro' : k}`, BY_KEY[k].name, glyphSvg(k), () => caseEls.get(k) ?? null);
-    });
-
+    }
     paintDots();
   }
 
-  /** One resolver per dot, index-aligned with the row — see `onScreen`. */
-  let dotTargets: Array<() => HTMLElement | null> = [];
-
-  function paintDots() {
-    Array.from(dots.children).forEach((b, i) =>
-      b.classList.toggle('cur', onScreen(dotTargets[i]?.() ?? null)));
-    syncHash();
-  }
-
   /**
-   * WHATEVER PAGE IS ON SCREEN IS WHAT THE URL SAYS. Off `onScreen`, so the hash cannot disagree
-   * with the mark in ink. Only on change, and only `replaceState` — one history entry per page
-   * visited would make the browser's Back button walk the room, which is the back mark's job.
+   * WHICH DOT IS IN INK — measured, not counted. `round(scrollLeft / clientWidth)` is correct on
+   * this one remaining scroller (a phone page is the viewport) and it was wrong everywhere else it
+   * was used, so the geometric test stays: more than half the case inside the scrollport.
    */
-  function syncHash() {
-    if (!caseEls.size) return;
-    let id = '';
-    for (const t of THINGS) {
-      // the THING's name when its page is up; the console reports `console`, not `tuner`
-      if (t.keys.some((k) => onScreen(caseEls.get(k) ?? null))) { id = t.id; break; }
-    }
-    const want = id ? `#${id}` : '';
-    if ((location.hash || '') === want) return;
-    // and never while the plan is up AND nothing else is: an empty hash is the index
-    history.replaceState(null, '', `${location.pathname}${location.search}${want}`);
-  }
-
-  let scrollRaf = 0;
-  pages.addEventListener('scroll', () => {
-    if (scrollRaf) return;
-    scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; paintDots(); });
-  }, { passive: true });
-
-  // ── THE PLAN IS THE HOMEPAGE (2026-08-12) ───────────────────────────────────────────
-  // One big box, the three things as little boxes inside it at the screen's thirds, each a
-  // figure and a name. Pressing one GOES TO IT — the plan is an index, not a settings screen.
-  //
-  // WHAT WENT: the drag, the lift shadow, and the whole reorder mechanism. Positions are fixed,
-  // so there is nothing to arrange and a drag would be a gesture with no effect. That deleted a
-  // dragstart/dragover/drop trio, a keyboard pick-up path, a `moveThing` helper and a persisted
-  // key — the win is the code that is gone, not code that got better.
-  const planroom = document.getElementById('mt-planroom')!;
-
-  function drawPlan() {
-    planroom.replaceChildren();
-    const floor = document.createElement('div');
-    floor.className = 'mt-pfloor';
-
-    THINGS.forEach((t, idx) => {
-      const slot = document.createElement('div');
-      slot.className = 'mt-pslot';
-      slot.dataset.pslot = String(idx);
-
-      const box = document.createElement('button');
-      box.type = 'button';
-      box.className = 'mt-pbox';
-      box.dataset.pthing = t.id;
-      box.dataset.testid = `plan-${t.id}`;
-      box.setAttribute('aria-label', `Open ${t.name}`);
-      // THE CONSOLE SHOWS ALL THREE OF ITS MEMBERS' MARKS — the grouping drawn rather than
-      // labelled. One box containing three figures says "these are one thing" in a way the word
-      // `console` cannot.
-      box.innerHTML =
-        `<span class="mt-pmarks">${t.keys.map((k) => glyphSvg(k)).join('')}</span>` +
-        `<span class="mt-pnm">${t.name}</span>`;
-      box.addEventListener('click', () => goTo(caseEls.get(t.keys[0]) ?? null));
-
-      slot.append(box);
-      floor.append(slot);
+  function paintDots() {
+    if (!dots || !pages) return;
+    const p = pages.getBoundingClientRect();
+    Array.from(dots.children).forEach((b, i) => {
+      const el = [...caseEls.values()][i];
+      const r = el?.getBoundingClientRect();
+      const on = !!r && Math.min(p.right, r.right) - Math.max(p.left, r.left) > r.width / 2;
+      b.classList.toggle('cur', on);
     });
-    planroom.append(floor);
   }
 
-  layoutRoom();
-  drawDots();
-  drawPlan();
-  // ── THE BACK MARK (2026-08-12) ──────────────────────────────────────────────────────
-  // The plan is the HOME page now, so the word is not a way IN — it is the way back. "theres
-  // like a buton to go back to the full room", and the full room is the plan, because the plan
-  // is the only screen that shows everything.
-  //
-  // IT HIDES ON THE PLAN ITSELF, which is the whole reason it can afford to be one lead: a
-  // control that points at the page you are on is chrome doing nothing. The row keeps its
-  // height either way so nothing on the ladder moves when the word appears — a 28px bar that
-  // came and went would shift every case by a lead mid-scroll.
-  {
-    const word = document.getElementById('mt-planword') as HTMLButtonElement | null;
-    if (word && orderPage) {
-      word.textContent = '← the room';
-      word.setAttribute('aria-label', 'Back to the room');
-      word.addEventListener('click', () => goTo(orderPage));
-
-      // THE SAME PREDICATE THE DOTS USE. An earlier version compared `scrollLeft` against half a
-      // page width, which is the offset arithmetic that put the wrong dot in ink.
-      const sync = () => { word.style.visibility = onScreen(orderPage) ? 'hidden' : 'visible'; };
-      pages.addEventListener('scroll', sync, { passive: true });
-      sync();
-      // and after a relayout, since the step depends on the width
-      new ResizeObserver(sync).observe(pages);
-    }
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (dots && pages) {
+    let scrollRaf = 0;
+    pages.addEventListener('scroll', () => {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; paintDots(); });
+    }, { passive: true });
+    drawDots();
+    new ResizeObserver(paintDots).observe(pages);
   }
-
-  // The room's width changes with the window, and the count changes with it.
-  new ResizeObserver(() => { layoutRoom(); paintDots(); }).observe(pages);
 
   // Leaving the page: stop everything. A tab that keeps a mic open after
   // navigation shows a recording indicator for a page that no longer exists.

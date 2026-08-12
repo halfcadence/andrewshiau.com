@@ -21,7 +21,7 @@ const probe = async (path, fn) => {
   return page.evaluate(fn);
 };
 
-const room = await probe('/practice-room/', () => {
+const room = await probe('/practice-room/console/', () => {
   const cs = getComputedStyle(document.getElementById('mt-app'));
   const pages = document.getElementById('mt-pages');
   const tuner = document.querySelector('.mt-half[aria-label="Tuner"]');

@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
 
-// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
-// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
-// own hash. It is not a test affordance — `#tuner` is how anyone links to this app — but it is what
+// ── THIS SPEC'S APP HAS ITS OWN ROUTE (2026-08-12). The hash deep link this file used for an hour
+// is gone with the scroller: every thing in the room is a standalone page now. Every `page.goto`
+// here therefore names the route. It is not a test affordance — it is the app's address — but it is
+// what makes real-pointer assertions possible: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case on another page the press landed on nothing and the ring's overshoot read as 1.
+// (was: '#tuner` is how anyone links to this app — but it is what
 // makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
 // with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
 
@@ -18,7 +21,7 @@ test.use({ permissions: ['microphone'] });
 // calibration is wired into the reading, not just stored.
 
 test('440 Hz mic reads A4 at 0 cents; recalibrating to 446 moves it flat', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#tuner');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('mic-toggle').click();
 
   // Wait for a stable reading.
@@ -50,7 +53,7 @@ test('440 Hz mic reads A4 at 0 cents; recalibrating to 446 moves it flat', async
 });
 
 test('open started: a tuner left running resumes on reload; one stopped stays stopped', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#tuner');
+  await page.goto('/practice-room/console/?e2e');
   await page.getByTestId('mic-toggle').click();
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });
 
@@ -69,7 +72,7 @@ test('open started: a tuner left running resumes on reload; one stopped stays st
 });
 
 test('stopping the tuner releases the microphone and clears the reading', async ({ page }) => {
-  await page.goto('/practice-room/?e2e#tuner');
+  await page.goto('/practice-room/console/?e2e');
   const mic = page.getByTestId('mic-toggle');
   await mic.click();
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });
