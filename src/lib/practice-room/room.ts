@@ -1,16 +1,23 @@
-// THE ROOM'S ARITHMETIC: which instruments a width buys, in the order you chose.
+// THE ROOM'S MEASUREMENTS, AND THE MARKS: what a case needs, what a page holds, what an app's
+// figure is.
 //
 // WHY THIS FILE EXISTS. The room used to be five columns written into the page —
 // `1fr 1fr 210px 315px 236px` — with the count fixed at five and the order fixed by source
 // position. A sixth instrument meant editing a grid, and every viewport under 1477px got the
 // phone swiper because five fixed columns do not fit a laptop.
 //
-// The room is a QUEUE now (chooser `practice-room-queue`, 2026-08-11, five questions):
-// you set an ORDER once and nothing else; the width decides how many of that order are on
-// screen; the rest stay in the queue and are reached by scrolling. Picked: Q1/04 "fit by
-// demand, then share what's left", Q2/04 "free scroll, lock on release", Q3/01 "the room's
-// last page" (so there is still NO global chrome — the order page is simply the next thing
-// along), Q4/01 "drag the row", Q5/02 "each instrument's own figure at 16px".
+// IT WAS A QUEUE FOR ONE DAY (chooser `practice-room-queue`, 2026-08-11): an order you set once,
+// a width that decided how many of it were on screen, the rest reached by scrolling. The owner
+// rejected it on sight of the built page — "the snapping and settling don't work quite right, i
+// also think its a bit concerningly busy on desktop" — and the room is an INDEX now: the plan is
+// page 0, every thing is one whole page, you press a box to open it and a mark to come back.
+//
+// SO THE QUEUE'S ARITHMETIC IS DELETED, not kept for a rainy day: `fitRoom`, `fitThings`,
+// `normalizeOrder`, `normalizeThings`, `moveTo`, `nudge`, `settleTo` and their two interfaces,
+// with the ~40 unit tests that covered them. A pure function nothing calls still describes the
+// design to whoever reads it next, and `settleTo` had already survived one round on the excuse
+// that its tests needed it — which is a deleted mechanism kept alive by its own harness. What is
+// left is what the page calls: the demands, PAD/GAP, THINGS, splitThing, and the mark generator.
 //
 // EVERY NUMBER BELOW IS MEASURED, NOT PREFERRED. `demand` is the width at which an
 // instrument's own ink breaks, bisected on the built page one case at a time by
@@ -20,14 +27,14 @@
 // margins, so a box edge is nowhere near its visible edge (the trap
 // `practice-room-two-datums` records). Measuring INK instead gave these five.
 //
-// Pure functions on numbers. No DOM, no CSS, so the fit arithmetic is asserted in
+// Pure functions on numbers. No DOM, no CSS, so the arithmetic is asserted in
 // tests/unit/room.test.ts rather than eyeballed in a browser.
 
 /** One instrument in the room. `demand` is measured; see the file header. */
 export interface Instrument {
-  /** stable id — the persisted order is a list of these */
+  /** stable id — what a case, a dot and a mark are all keyed by */
   key: string;
-  /** the word the phone's dot row and the order page print */
+  /** the word the phone's dot row and the plan print */
   name: string;
   /**
    * The width in px below which this instrument's own ink breaks. Bisected on the built
@@ -68,71 +75,6 @@ export const BY_KEY: Readonly<Record<string, Instrument>> =
 export const PAD = 56;
 export const GAP = 56;
 
-export interface Fit {
-  /** the keys on screen, in order */
-  shown: string[];
-  /** the keys still in the queue, in order — rendered, reachable by scrolling, never dropped */
-  queued: string[];
-  /** px width per shown instrument, index-aligned with `shown` */
-  widths: number[];
-  /** px given back to each shown instrument beyond its demand (Q1/04's whole point) */
-  share: number;
-}
-
-/**
- * HOW MANY FIT, and how wide each one gets.
- *
- * Q1/04, "fit by demand, then share what's left": walk the queue from the front taking
- * instruments while the next still fits at its own measured demand, then divide the leftover
- * width equally among the ones that made it. So the room is always full and the drawings get
- * the change back.
- *
- * WHY NOT Q1/02 (fit by demand, leave the air): at 1044px three instruments sit in 868px and
- * 176px of the room is empty — width paid for and given to air rather than to the dials.
- * WHY NOT Q1/03 (one column width, counted off the widest): a queue containing the chord
- * dealer makes every other instrument buy its 282px, which is one slot fewer at 840px.
- * WHY NOT Q1/05 (fixed bands): the thresholds are computed from today's five, so a sixth
- * instrument — or reordering so the dealer comes first — makes them silently wrong. Config
- * that can drift from code will drift.
- *
- * THE COST Q1/04 CARRIES, stated because it is real: an instrument's width now depends on
- * which OTHERS are on screen, so the tuner is 170px wide in one room and wider in the next,
- * and the dial it holds is drawn from that width. Same instrument, two sizes, no reason
- * visible on the page. The owner was shown that in the sheet and chose it anyway.
- *
- * ONE CASE ALWAYS SHOWS. Below the narrowest demand the room would otherwise be empty; a
- * single case that must overflow is better than a blank screen, and the phone layout takes
- * over long before that in practice.
- */
-export function fitRoom(order: readonly string[], width: number): Fit {
-  const keys = order.filter((k) => k in BY_KEY);
-  if (!keys.length) return { shown: [], queued: [], widths: [], share: 0 };
-
-  let used = PAD * 2;
-  let n = 0;
-  for (const k of keys) {
-    const add = BY_KEY[k].demand + (n ? GAP : 0);
-    if (used + add > width) break;
-    used += add;
-    n += 1;
-  }
-  if (n === 0) n = 1; // one case always shows — see the note above
-
-  const shown = keys.slice(0, n);
-  const base = shown.map((k) => BY_KEY[k].demand);
-  const occupied = base.reduce((a, b) => a + b, 0) + GAP * (n - 1) + PAD * 2;
-  // `Math.max(0, …)`: with one forced case the room can be narrower than its demand, and a
-  // negative share would shrink the case below the width its ink needs.
-  const share = Math.max(0, (width - occupied) / n);
-
-  return {
-    shown,
-    queued: keys.slice(n),
-    widths: base.map((b) => b + share),
-    share,
-  };
-}
-
 /* ══════════════════════════════════════════════════════════════════════════════════════
    THINGS, NOT INSTRUMENTS (chooser `practice-room-plan` Q1/02, `practice-room-box` Q1/04,
    Q2/04, Q3/02, Q4/04 — 2026-08-12)
@@ -143,14 +85,14 @@ export function fitRoom(order: readonly string[], width: number): Fit {
    ONE thing, a console. The changes and the loop are things you WORK AT, one at a time, and
    each wants the screen. So the room holds THREE things, not five.
 
-   THE CONSOLE IS A FITTING UNIT, NOT A DOM WRAPPER. Its three cases stay siblings in
-   `#mt-pages`; what changes is that they are seated together or not at all. Wrapping them in
-   a container would have re-parented three live instruments — every listener, every
-   `data-testid`, and the row ladder they subgrid onto — to buy nothing the ordering already
-   gives. The console's demand is therefore the sum of its members plus the gaps between them.
+   THE CONSOLE IS A PAGE, NOT A DOM WRAPPER. Its three cases stay siblings in `#mt-pages`; what
+   makes them one thing is that they share a page and only the first of them is a snap point.
+   Wrapping them in a container would have re-parented three live instruments — every listener,
+   every `data-testid`, and the row ladder they subgrid onto — to buy nothing the column
+   arithmetic already gives. Its demand is the sum of its members plus the gaps between them.
 
-   THERE IS NO OUTSIDE (box Q4/04): every thing is always in the room. Nothing is put away, so
-   the plan has no shelf and the queue is a permutation rather than a subset. */
+   THERE IS NO OUTSIDE (box Q4/04): every thing is always in the room, and positions are FIXED —
+   the plan has no shelf and no ordering, so THINGS is the whole model of what the room holds. */
 
 /** One thing the room can hold: a single instrument, or the console's three. */
 export interface Thing {
@@ -171,8 +113,13 @@ export const THING_BY_ID: Readonly<Record<string, Thing>> =
 
 /**
  * A thing's width demand: its members' measured demands plus one `GAP` between each.
- * The console comes to 170 + 170 + 196 + 2×56 = 648, which is why three things need the same
- * 1423px five instruments did — the grouping changes what you navigate, not what fits.
+ *
+ * The console comes to 170 + 170 + 196 + 2×56 = 648, and that number is WHY THE PHONE BAND IS AT
+ * 760: 648 plus the room's two 56px paddings is the narrowest desktop page that can hold the
+ * console's three cases at their measured minimums. Nothing calls this at runtime — the band is a
+ * media query, and a media query cannot ask a function — so it exists to derive that constant and
+ * is asserted in the unit tests. If a member's demand changes, the failing test is the notice
+ * that the 760 in the stylesheet is now wrong.
  */
 export function thingDemand(id: string): number {
   const t = THING_BY_ID[id];
@@ -180,45 +127,11 @@ export function thingDemand(id: string): number {
   return t.keys.reduce((a, k) => a + (BY_KEY[k]?.demand ?? 0), 0) + GAP * (t.keys.length - 1);
 }
 
-export interface ThingFit {
-  shown: string[];
-  queued: string[];
-  /** px per SHOWN thing, index-aligned with `shown` */
-  widths: number[];
-  share: number;
-}
-
 /**
- * HOW MANY THINGS A WIDTH BUYS — the same fit-by-demand-then-share arithmetic the owner picked
- * for the queue (Q1/04), applied to things rather than instruments. A console that does not fit
- * whole does not fit at all: seating two of its three would put a tuner beside a drone with the
- * metronome off-screen, which is the busy room the grouping exists to end.
- */
-export function fitThings(order: readonly string[], width: number): ThingFit {
-  const ids = order.filter((id) => id in THING_BY_ID);
-  if (!ids.length) return { shown: [], queued: [], widths: [], share: 0 };
-
-  let used = PAD * 2;
-  let n = 0;
-  for (const id of ids) {
-    const add = thingDemand(id) + (n ? GAP : 0);
-    if (used + add > width) break;
-    used += add;
-    n += 1;
-  }
-  if (n === 0) n = 1; // one thing always shows, even if it must overflow
-
-  const shown = ids.slice(0, n);
-  const base = shown.map(thingDemand);
-  const occupied = base.reduce((a, b) => a + b, 0) + GAP * (n - 1) + PAD * 2;
-  const share = Math.max(0, (width - occupied) / n);
-  return { shown, queued: ids.slice(n), widths: base.map((b) => b + share), share };
-}
-
-/**
- * WITHIN a shown thing, how wide each of its instruments gets. The thing's own width is split
- * by its members' demands in proportion, so the console's extra room reaches the dial and the
- * pendulum rather than pooling in one case.
+ * HOW A THING'S PAGE IS SPLIT between its instruments — by their measured demands in proportion,
+ * so a console's extra room reaches the dial and the pendulum rather than pooling in one case.
+ * NOT equal thirds: at 760 a third is 178 and the metronome needs 196, so equal thirds would
+ * break the case at the exact width the phone band was bisected for.
  */
 export function splitThing(id: string, width: number): number[] {
   const t = THING_BY_ID[id];
@@ -228,75 +141,6 @@ export function splitThing(id: string, width: number): number[] {
   const total = demands.reduce((a, b) => a + b, 0);
   const spare = Math.max(0, width - gaps - total);
   return demands.map((d) => d + (total ? (spare * d) / total : 0));
-}
-
-/** The persisted thing-order, validated the same way the instrument order is. */
-export function normalizeThings(raw: string | null | undefined): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const k of String(raw ?? '').split(',')) {
-    const id = k.trim();
-    if (id in THING_BY_ID && !seen.has(id)) { seen.add(id); out.push(id); }
-  }
-  for (const t of THINGS) if (!seen.has(t.id)) out.push(t.id);
-  return out;
-}
-
-/**
- * THE PERSISTED ORDER, validated rather than trusted — localStorage outlives the code that
- * wrote it, so a stale value from a five-instrument era must not break a six-instrument room.
- * Unknown keys are dropped, missing ones are appended in default order, duplicates collapse.
- * The result is always a permutation of exactly the instruments that exist now.
- */
-export function normalizeOrder(raw: string | null | undefined): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const k of String(raw ?? '').split(',')) {
-    const key = k.trim();
-    if (key in BY_KEY && !seen.has(key)) { seen.add(key); out.push(key); }
-  }
-  for (const i of INSTRUMENTS) if (!seen.has(i.key)) out.push(i.key);
-  return out;
-}
-
-/** Move `key` to sit at index `to` in `order`. Returns a new array; out-of-range clamps. */
-export function moveTo(order: readonly string[], key: string, to: number): string[] {
-  const out = order.filter((k) => k !== key);
-  const at = Math.max(0, Math.min(out.length, to));
-  out.splice(at, 0, key);
-  return out;
-}
-
-/** Move `key` by `delta` places (−1 up, +1 down). A move past either end is a no-op. */
-export function nudge(order: readonly string[], key: string, delta: number): string[] {
-  const at = order.indexOf(key);
-  if (at < 0) return [...order];
-  const to = at + delta;
-  if (to < 0 || to >= order.length) return [...order];
-  return moveTo(order, key, to);
-}
-
-/**
- * THE SETTLE (Q2/04, "free scroll, lock on release"): given each shown case's left offset
- * and where the scroller came to rest, which offset should it lock to?
- *
- * The momentum is the browser's — no CSS snap while a finger is moving — and the lock is
- * ours, fired on `scrollend`. This returns the nearest case's offset so the room always
- * rests with a case's left edge on the room's 3ch inset datum, which is the page's whole
- * horizontal alignment argument.
- *
- * `null` means "already there" (within `tol`), so a caller can skip a pointless animation —
- * a settle that re-animates to where you already are reads as the page correcting you.
- */
-export function settleTo(offsets: readonly number[], scrollLeft: number, tol = 1): number | null {
-  if (!offsets.length) return null;
-  let best = offsets[0];
-  let bestD = Math.abs(offsets[0] - scrollLeft);
-  for (const o of offsets) {
-    const d = Math.abs(o - scrollLeft);
-    if (d < bestD) { bestD = d; best = o; }
-  }
-  return bestD <= tol ? null : best;
 }
 
 /**

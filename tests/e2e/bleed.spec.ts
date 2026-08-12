@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
+// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
+// own hash. It is not a test affordance — `#metronome` is how anyone links to this app — but it is what
+// makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
+
 // THE METRONOME MUST NOT MOVE THE TUNER (user report 2026-08-05: "when metronome is
 // playing it triggers tuner").
 //
@@ -37,7 +43,7 @@ const CLICK_NOTES = ['G5', 'C6', 'G6'];
 const PLAYED = 'A4';
 
 async function startTuner(page: import('@playwright/test').Page) {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   await page.getByTestId('mic-toggle').click();
   // wait for a lock on the fixture's first phrase before opening the room
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });

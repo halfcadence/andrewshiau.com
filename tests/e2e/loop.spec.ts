@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
+// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
+// own hash. It is not a test affordance — `#loop` is how anyone links to this app — but it is what
+// makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
+
 // ── THE LOOP (chooser practice-room-apps Q1/03, source Q4/02) ───────────────────────────
 // Two carets cut a span; four words set the speed; it loops that span forever.
 //
@@ -33,7 +39,7 @@ test('opening the room requests nothing from youtube', async ({ page, baseURL })
   page.on('request', (r) => {
     if (offOrigin(r.url(), origin)) external.push(r.url());
   });
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   await page.waitForTimeout(600);
   expect(external, 'the room loads with no third-party request').toEqual([]);
   // and the iframe host is empty — no player, no 1x1, nothing
@@ -42,7 +48,7 @@ test('opening the room requests nothing from youtube', async ({ page, baseURL })
 });
 
 test('the state line says what to do, and the readout waits for a duration', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   await expect(page.getByTestId('loop-state')).toHaveText('paste a url to begin');
   // NO INVENTED CLOCK. Until a video reports a duration the case does not know how long the
   // span is, so it prints an em dash rather than a number derived from nothing. (The proof
@@ -57,7 +63,7 @@ test('a bad url is rejected without loading anything', async ({ page, baseURL })
   page.on('request', (r) => {
     if (offOrigin(r.url(), origin)) external.push(r.url());
   });
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   await page.getByTestId('loop-src').fill('not a url at all');
   await page.getByTestId('loop-src').press('Enter');
   await expect(page.getByTestId('loop-state')).toHaveText('that is not a youtube url');
@@ -65,7 +71,7 @@ test('a bad url is rejected without loading anything', async ({ page, baseURL })
 });
 
 test('both carets drag, and the span follows the one you moved', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   const box = (await tl(page).boundingBox())!;
   const y = box.y + box.height / 2;
   const at = (f: number) => box.x + box.width * f;
@@ -99,7 +105,7 @@ test('both carets drag, and the span follows the one you moved', async ({ page }
 });
 
 test('the carets never cross — the span cannot be negative', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   const box = (await tl(page).boundingBox())!;
   const y = box.y + box.height / 2;
   // drag the LEFT caret far past the right one
@@ -118,7 +124,7 @@ test('the carets never cross — the span cannot be negative', async ({ page }) 
 });
 
 test('the arrows nudge by a sixteenth, and shift picks the other caret', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   await tl(page).focus();
   const pos = () => page.evaluate(() => ({
     a: parseFloat(document.getElementById('mt-tl-a')!.style.left),
@@ -138,7 +144,7 @@ test('the arrows nudge by a sixteenth, and shift picks the other caret', async (
 });
 
 test('the speed row is a selector, and one glyph still clears the tap floor', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   // `1` first, because that is where a transcription starts: you listen at speed, then slow
   // the part down.
   await expect(page.getByTestId('rate-1')).toHaveAttribute('aria-pressed', 'true');
@@ -164,7 +170,7 @@ test('the speed row is a selector, and one glyph still clears the tap floor', as
 });
 
 test('the transport refuses to start with no source, and says why', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   await page.getByTestId('loop-toggle').click();
   // A latch that silently does nothing reads as broken. It stays off AND the state line says
   // what is missing.
@@ -174,7 +180,7 @@ test('the transport refuses to start with no source, and says why', async ({ pag
 });
 
 test('the timeline is the figure, and it is keyboard reachable', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   // The drone's letter took the same promotion: a figure that is also the control has to be
   // focusable and announced, or the gesture is pointer-only.
   await expect(tl(page)).toHaveAttribute('role', 'group');
@@ -201,7 +207,7 @@ test('nothing in the case draws on top of anything else', async ({ page }) => {
   // placed air that has height to give.
   // Asserted as a GEOMETRIC property of the whole case, not as one pair, so a future row that
   // lands on another is caught wherever it happens.
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   const collisions = await page.evaluate(() => {
     const loop = document.querySelector('.mt-loop')!;
     const rows = ['#mt-rate', '#mt-loopstate', '#mt-src-grp', '.mt-tl', '.mt-read']
@@ -227,7 +233,7 @@ test('the source placeholder fits the field it is in', async ({ page }) => {
   // "paste a youtube ur" — the case is 236px and that is its own measured minimum, so the field
   // cannot grow and the WORDS had to shrink. A truncated placeholder reads as a broken control.
   // Measured in the field's own computed font, so it survives a type change.
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#loop');
   const fit = await page.evaluate(() => {
     const src = document.getElementById('mt-src') as HTMLInputElement;
     const probe = document.createElement('span');

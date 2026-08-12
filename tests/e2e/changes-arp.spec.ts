@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
+// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
+// own hash. It is not a test affordance — `#changes` is how anyone links to this app — but it is what
+// makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
+
 // ── ARPEGGIATED GRADING (chooser practice-room-apps Q3/02) ───────────────────────────────
 // ITS OWN PROJECT because the fake microphone is a browser LAUNCH flag: this file plays
 // `arp-dm7.wav` — D3 F3 A3 C4, plucked, 700ms each with a rest between — in place of a real
@@ -18,7 +24,7 @@ import { test, expect } from '@playwright/test';
 test.use({ viewport: { width: 1512, height: 900 } });
 
 test('arpeggiating the voicing lands its notes, one at a time', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
 
   // Sevenths, and deal until Dm7 — the chord the fixture actually plays.
   await page.getByTestId('deck-sevenths').click();
@@ -71,7 +77,7 @@ test('the grader lands ONLY the notes the chord contains', async ({ page }) => {
   // E7 (E G♯ B D) is the sharpest case available: it shares exactly ONE pitch class with the
   // fixture — D — so a working grader lands precisely one of its four notes and a grader that
   // merely reacts to sound lands more.
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   await page.getByTestId('deck-sevenths').click();
   let found = false;
   for (let i = 0; i < 40; i++) {
@@ -126,7 +132,7 @@ test('the mic is the TUNER\'s stream — one permission, one indicator', async (
     const real = md.getUserMedia.bind(md);
     md.getUserMedia = (c?: MediaStreamConstraints) => { (window as any).__gum++; return real(c!); };
   });
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   await page.getByTestId('arp-toggle').click();
   await expect
     .poll(() => page.evaluate(() => (window as any).__gum), { timeout: 5000 })

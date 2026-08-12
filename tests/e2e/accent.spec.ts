@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
+// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
+// own hash. It is not a test affordance — `#metronome` is how anyone links to this app — but it is what
+// makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
+
 // ── EVERY TEST HERE DRIVES A METRONOME CONTROL, SO THE FILE STATES THE DESKTOP WIDTH ────
 // Playwright's default is 1280, and with five cases the room SWIPES below 1477 (the
 // metronome's foot needs a 190px case, measured). On the phone layout the cases are five snap
@@ -19,7 +25,7 @@ test.use({ viewport: { width: 1512, height: 900 } });
 // whose visible state can quietly vanish.
 
 test('accent off demotes the downbeat voice; the setting persists', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
 
   // Default: on, disc filled.
   const acc = page.getByTestId('accent-toggle');
@@ -47,7 +53,7 @@ test('accent off demotes the downbeat voice; the setting persists', async ({ pag
 });
 
 test('the `>` mark states the accent, as a real rendered colour change', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   const mark = page.locator('#mt-acc-mark');
   const acc = page.getByTestId('accent-toggle');
 
@@ -98,7 +104,7 @@ test('the accent mark adds no layout — the digits do not move', async ({ page 
   // baseline (`.mt-rm` is a column flex and baselines on its first item, so an in-flow mark
   // row above the digits would drop the beats meter). The observable is therefore "toggling
   // the mark moves nothing", which is true in both layouts and is the regression that matters.
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   const beats = page.locator('#mt-beats-seg .rm-digits');
   const sub = page.locator('#mt-sub-seg .rm-digits');
   const a = (await beats.boundingBox())!;
@@ -139,7 +145,7 @@ test('the accent mark adds no layout — the digits do not move', async ({ page 
 // screen. The stacked spec row is a DESKTOP fact, so it has to be measured on the desktop
 // layout — which, per the note above, is every width from 1477 up.
 test('the meters stack flush left, in order', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   const beats = (await page.locator('#mt-beats-seg .rm-digits').boundingBox())!;
   const sub = (await page.locator('#mt-sub-seg .rm-digits').boundingBox())!;
 
@@ -178,7 +184,7 @@ test('the meters stack flush left, in order', async ({ page }) => {
 });
 
 test('the tap SNAPS — the ring overshoots on press and settles back', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   const tapBtn = page.getByTestId('tap');
   const ring = page.locator('#mt-tap .tk');
 
@@ -204,7 +210,7 @@ test('the tap SNAPS — the ring overshoots on press and settles back', async ({
 });
 
 test('the tap hold shortens as the tempo rises, so the snap always resolves', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // At 320 bpm a strike lands every 188ms; a fixed 90ms hold plus a 220ms settle
   // would still be settling when the next press arrives and the ring would never
   // return. The hold is min(90, interval/3), so it scales with the tempo.
@@ -227,7 +233,7 @@ test('the tap hold shortens as the tempo rises, so the snap always resolves', as
 });
 
 test('the control labels are lowercase; the READOUT keeps its case', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // Pick Q3/02, with the distinction that made it defensible: these are labels on a
   // control, so they go lowercase with `beats`/`subdivide`/`tap`. The tuner's readout
   // states a real note and a measured frequency, so it keeps A4 and Hz.
@@ -249,7 +255,7 @@ test('the control labels are lowercase; the READOUT keeps its case', async ({ pa
 });
 
 test('CLICKING THE MARK toggles the accent, and the rule agrees', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // The mark shipped as a bare <svg>: the state was drawn where the eye goes while the
   // control was the 140px rule below it, so the one thing that LOOKS like the accent
   // was the one thing that did not toggle it. ("i want to control the accent by
@@ -275,7 +281,7 @@ test('CLICKING THE MARK toggles the accent, and the rule agrees', async ({ page 
 });
 
 test('the mark is what a click on the `>` actually hits', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // A button that exists but sits under something else is the bug this catches — the
   // svg is absolutely positioned inside it, so a z-index or stacking mistake would
   // leave the visible glyph unclickable while every aria assertion above still passed.
@@ -287,7 +293,7 @@ test('the mark is what a click on the `>` actually hits', async ({ page }) => {
 });
 
 test('the mark button clears 24px and does not swallow the digits', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   const box = (await page.getByTestId('accent-mark').boundingBox())!;
   // The glyph is 9x8px, under any tap floor, so the button pads out to WCAG 2.5.8's
   // 24px. NOT 44px: a 44px box centred on the digit 1 would overlap the digit 2 button
@@ -309,7 +315,7 @@ test('the mark button clears 24px and does not swallow the digits', async ({ pag
 });
 
 test('the accent state stays readable while the pointer is ON the mark', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   const mark = page.locator('#mt-acc-mark');
   const btn = page.getByTestId('accent-mark');
   const style = () => mark.evaluate((el) => {
@@ -340,7 +346,7 @@ test('the accent state stays readable while the pointer is ON the mark', async (
 });
 
 test('the beats rule is ONE straight line — no tick, no stub', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // "can the line under beats be just a straight line". The left tick once carried the
   // accent state as a 3px height change; the `>` took that job, leaving a stub that
   // drew nothing. Asserting the COUNT is what stops it coming back — a second <line>
@@ -363,7 +369,7 @@ test('the beats rule is ONE straight line — no tick, no stub', async ({ page }
 });
 
 test('the rule button still shows hover feedback after the tick was deleted', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // The hover rule used to select `line[data-acc-tick]`, and that tick is gone — so the
   // selector matched nothing and the LARGER of the two accent targets silently lost its
   // hover state. A dangling descendant selector fails quietly: the CSS still parses.
@@ -379,7 +385,7 @@ test('the rule button still shows hover feedback after the tick was deleted', as
 });
 
 test('the mark is FILLED when accented and HOLLOW when not', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   const mark = page.locator('#mt-acc-mark');
   const btn = page.getByTestId('accent-mark');
   const paint = () => mark.evaluate((el) => {
@@ -419,7 +425,7 @@ test('the mark is FILLED when accented and HOLLOW when not', async ({ page }) =>
 });
 
 test('the accent toggle AUDITIONS the voice it just chose', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // Pick Q2/02. The accent was already audible, but only once the metronome was running
   // and only when the bar came round — so setting the switch while stopped told you
   // nothing. Now the toggle plays the tick it changes: G6 (1568 Hz) on, C6 (1046.5) off.
@@ -466,7 +472,7 @@ test('the accent toggle AUDITIONS the voice it just chose', async ({ page }) => 
 });
 
 test('the audition does not pollute the tick log', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#metronome');
   // `ping` is the sound; `click` is the sound PLUS the scheduler's bookkeeping. An
   // audition must not push to the ?e2e tick log or the pending queue — a toggle's
   // preview is not a tick, and logging it would corrupt every tick assertion in this

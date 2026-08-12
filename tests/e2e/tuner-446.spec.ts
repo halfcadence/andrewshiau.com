@@ -1,12 +1,18 @@
 import { test, expect } from '@playwright/test';
 
+// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
+// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
+// own hash. It is not a test affordance — `#tuner` is how anyone links to this app — but it is what
+// makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
+
 // Fake mic = a 446 Hz sine. This is the direction test the unit suite runs on
 // buffers, now end-to-end through a real getUserMedia → AnalyserNode → detector
 // chain: sharp must read SHARP. A tuner with a flipped sign passes every
 // "|cents| ≈ 23" assertion and tunes every string the wrong way.
 
 test('446 Hz mic reads A4 SHARP (+); calibrated to 446 it reads in tune', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#tuner');
   await page.getByTestId('mic-toggle').click();
 
   await expect(page.getByTestId('note')).toHaveText('A4', { timeout: 10_000 });

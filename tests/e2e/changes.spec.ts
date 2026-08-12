@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 
+// ── OPENED BY DEEP LINK (2026-08-12). The room is an INDEX now: it opens on the plan, and this
+// spec's instrument is a page you navigate to. Every `page.goto` here therefore carries the app's
+// own hash. It is not a test affordance — `#changes` is how anyone links to this app — but it is what
+// makes real-pointer assertions possible again: `page.mouse.move()` takes VIEWPORT coordinates, so
+// with the case off-screen the press landed on nothing and the ring's overshoot read as 1.
+
 // ── THE CHORD DEALER (chooser practice-room-apps Q1/02, grading Q3/02) ──────────────────
 // It sounds a voicing; you name it; you press the symbol to reveal what it was.
 //
@@ -12,7 +18,7 @@ const sym = (p: any) => p.getByTestId('chord-symbol');
 const answer = (p: any) => p.getByTestId('chord-answer');
 
 test('the symbol is hidden until you ask, and revealing prints the spelled notes', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   // THE MECHANIC IS THE WHOLE CASE: the symbol IS the answer, so it must not be readable
   // before you have tried to name it. A dealer that shows the answer is a chord chart.
   await expect(sym(page)).toHaveText('?');
@@ -47,7 +53,7 @@ test('the symbol is hidden until you ask, and revealing prints the spelled notes
 });
 
 test('the symbol IS the figure — the drone letter\'s 72px, reused not extended', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   // "One typeface, one size" survives a fourth case only because this reuses the drone's
   // single above-ramp exception. A NEW size here would be a change to the page's type system,
   // and the sheet's first draft claimed 72px could not fit — measured, it does.
@@ -80,7 +86,7 @@ test('the symbol IS the figure — the drone letter\'s 72px, reused not extended
 });
 
 test('deal gives a NEW chord and re-hides it', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   await sym(page).click();                       // reveal
   const first = await sym(page).textContent();
   await page.getByTestId('deal').click();
@@ -96,7 +102,7 @@ test('deal gives a NEW chord and re-hides it', async ({ page }) => {
 });
 
 test('the deck is a setting, it persists, and each deck deals its own chords', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   // `sevenths` is the default — the deck a jazz player lives in.
   await expect(page.getByTestId('deck-sevenths')).toHaveAttribute('aria-pressed', 'true');
 
@@ -123,7 +129,7 @@ test('the deck is a setting, it persists, and each deck deals its own chords', a
 // Measured against the shipped module before the fix: 3 of 11 deck chords disagreed with
 // their own symbol. This test is what stops that regressing.
 test('an altered chord is spelled from its DEGREE, not from the semitone count', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   await page.getByTestId('deck-sevenths').click();
 
   // Deal until F♯m7♭5 comes up — it is in the sevenths deck, and it is the case that breaks
@@ -142,7 +148,7 @@ test('an altered chord is spelled from its DEGREE, not from the semitone count',
 });
 
 test('the transport sounds it, and the case reports sounding', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   const toggle = page.getByTestId('chord-toggle');
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await toggle.click();
@@ -159,7 +165,7 @@ test('the transport sounds it, and the case reports sounding', async ({ page }) 
 // stacks in different keys is not a practice tool. The METRONOME is deliberately exempt: a
 // click over a chord is a legitimate thing to want, and it is percussive rather than sustained.
 test('starting the chord releases the drone, and the metronome is left alone', async ({ page }) => {
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   await page.getByTestId('drone-toggle').click();
   await expect(page.getByTestId('drone-toggle')).toHaveAttribute('aria-pressed', 'true');
   await page.getByTestId('metro-toggle').click();
@@ -189,7 +195,7 @@ test('the arpeggiate latch needs no microphone until you ask for one', async ({ 
     const real = md.getUserMedia.bind(md);
     md.getUserMedia = (c?: MediaStreamConstraints) => { (window as any).__gum++; return real(c!); };
   });
-  await page.goto('/practice-room/?e2e');
+  await page.goto('/practice-room/?e2e#changes');
   await expect(page.getByTestId('arp-toggle')).toHaveAttribute('aria-pressed', 'false');
   expect(await page.evaluate(() => (window as any).__gum),
     'opening the room asks for no microphone').toBe(0);
