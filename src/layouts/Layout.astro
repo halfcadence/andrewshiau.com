@@ -202,10 +202,16 @@ const iconBase = installable ? '/practice-room' : '';
          is that it was designed was a bare grey rectangle.
          og.png is a real raster, not the favicon SVG: no unfurl renderer draws SVG. It is
          generated from tools/og-card.html so the card is set in the site's own typeface and
-         hexes rather than approximated — recipe in README.md.
-         KNOWN STALE: og.png and tools/og-card.html are still Graphik at the old ramp, so the
-         unfurl card no longer looks like the site it links to. Re-shooting it is a step in the
-         design-system pass (it needs the card rebuilt in Plex, then the raster regenerated). -->
+         hexes rather than approximated.
+         REBUILT IN PLEX 2026-08-11 — the `KNOWN STALE` note that stood here is discharged. It
+         had stood for months, which is the argument for the check that replaced it: run
+         `python3 scripts/og-shoot.py` and the card is re-shot AND asserted against this site —
+         the claim must be index.astro's h1 verbatim, the `Currently` line must be the index
+         panel's, the mark's geometry must match MarkFigure.astro, and Graphik/olive must appear
+         nowhere. It also counts ink per band in the produced PNG, because the first fixed
+         version passed every source assertion and painted the foot row blank.
+         The staleness was found the hard way: the card shipped as a LinkedIn Featured thumbnail
+         and was, at full size beside the live site, obviously a different design. -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -217,7 +223,10 @@ const iconBase = installable ? '/practice-room' : '';
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <!-- The alt is read aloud in place of the card. It describes the card, not the site. -->
-    <meta property="og:image:alt" content="andrewshiau.com — Andrew Shiau is a frontend engineer who designs and builds. Taste finds the simplest form, engineering proves the simplest solution." />
+    <!-- The alt describes the CARD, not the site, so it changes when the card's wording does.
+         It now quotes what the card actually says (the index's h1 plus the `Currently` row);
+         the old alt still recited the retired two-clause thesis. -->
+    <meta property="og:image:alt" content="andrewshiau.com — Hi, I'm Andrew Shiau, frontend engineer who designs and builds. I value simplicity, curiosity and kindness. Currently: designing the Amazon store with AI." />
     <!-- `summary_large_image` is what makes the 1200×630 render wide instead of being
          cropped to a small square thumbnail beside the text. -->
     <meta name="twitter:card" content="summary_large_image" />

@@ -269,28 +269,35 @@ all done for `/work/stores-designer/`:
 
 ## Regenerating the social card (`public/og.png`)
 
-`tools/og-card.html` is the source. Do this when the claim, the palette, or the mark
-changes — the PNG is a fixed raster and can't track the site on its own.
-
-It has to be **served**, not opened as `file://`: the woff2 files only load same-origin, so
-a `file://` copy falls back to a system face and the card stops being cut from the real
-system. Run it on the **Mac** — never a server on the devbox.
-
 ```bash
-# on the Mac, in the repo
-cp tools/og-card.html public/og-card.html   # temporary — it must be under the served root
-npm run dev
-# then, in the browser at http://127.0.0.1:4321/og-card.html, capture the .card element
-# at exactly 1200×630 (deviceScaleFactor 1 — the meta says 1200×630, so don't ship @2x).
-rm public/og-card.html                      # do NOT leave it in public/: it would deploy
+npm run build && python3 scripts/og-shoot.py
 ```
 
-The copy is deliberately temporary. `tools/` is outside `src/pages/`, so the card is not a
-route and not in the sitemap — a bare card page is not something a reader should land on.
+`tools/og-card.html` is the source; the script serves `dist/` on 127.0.0.1, shoots the card
+through Playwright, and **asserts it still matches the site**. Run it when the index's h1, the
+`Currently` line, the palette or the mark changes — the PNG is a fixed raster and cannot track
+the site on its own.
 
-Then check the result: 1200×630, under ~100KB, and legible at thumbnail size (the ledger's
-small caps are the first thing to go). `Layout.astro` hardcodes the dimensions and the
-`og:image:alt` text — if the card's wording changes, change the alt with it.
+What it checks, and why each one exists:
+
+- **The claim is `index.astro`'s `<h1 class="statement">` verbatim**, and the foot is the index
+  panel's `Currently` value. The card quotes the page; it does not paraphrase it.
+- **The figure's geometry matches `MarkFigure.astro`** — the card is a third hand copy of the
+  mark (with `favicon.svg`), so it gets the same guard `/system/` gives the favicon.
+- **Graphik and the retired olive appear nowhere** in the live CSS. Both were in this card for
+  months after the mono pass.
+- **Ink per band in the produced PNG.** This is the one that matters most: the first fixed
+  version passed every source assertion above and painted the **foot row blank**, because
+  `chrome --headless --screenshot --virtual-time-budget` fires before the webfont settles the
+  final layout. The capture waits on `document.fonts.ready` now, and the band check is what
+  proves it did.
+
+The card is copied into `dist/` under a temporary name for the length of one capture and removed
+in a `finally` — `tools/` is outside `src/pages/`, so it is not a route and not in the sitemap.
+A bare card page is not something a reader should land on.
+
+If the card's wording changes, change `og:image:alt` in `Layout.astro` with it — the alt is read
+aloud in place of the card, so it describes the card rather than the site.
 
 ## Regenerating the favicons
 

@@ -82,6 +82,6 @@ export default defineConfig({
     // shipped detector before the test was written — D3 F3 A3 C4, 72 reads each, no spurious
     // notes — because a fixture nobody checked makes a test that cannot fail.
     mkProject('changes-arp', 'arp-dm7.wav', /changes-arp\.spec\.ts/),
-    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts|changes\.spec\.ts|loop\.spec\.ts/),
+    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts|changes\.spec\.ts|loop\.spec\.ts|room\.spec\.ts/),
   ],
 });

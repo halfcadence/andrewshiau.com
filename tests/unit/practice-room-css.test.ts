@@ -67,29 +67,37 @@ describe('/practice-room/ ships the stylesheet it was written with', () => {
     ['the scrub handles', '.mt-hd'],
     ['the drone case', '.mt-drone'],
     ["the drone's figure — its note letter", '.mt-dnote'],
-    ['the page words', '.pgword'],
+    ['the page indicator, now the instruments\' own glyphs', '.pgdot'],
     ['the reduced-motion block', 'prefers-reduced-motion'],
   ])('keeps %s (%s)', (_label, needle) => {
     expect(css).toContain(needle);
   });
 
-  // ── THE THIRD CASE (chooser metrotuner-drone-box, Q1/02 + Q2/05) ───────────
-  it('lays the room out as two equal cases plus the narrow third', () => {
-    // The pick is "the narrow third": the drone gets the width a letter and a verb need
-    // and no more, so the two worked instruments keep theirs. A future edit back to
-    // `repeat(3, minmax(0,1fr))` would be a different pick, silently.
-    expect(css).toContain('--mt-drone-w');
-    expect(css).toMatch(/grid-template-columns:minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)\s+var\(--mt-drone-w\)/);
-    expect(css, 'three equal columns is a different pick').not.toMatch(/repeat\(3,\s*minmax/);
+  // ── THE ROOM IS A QUEUE (chooser `practice-room-queue`, 2026-08-11) ───────────────────
+  // WHAT THESE TWO ASSERTIONS USED TO SAY, and why they had to change rather than be deleted:
+  // the room was five FIXED columns (`1fr 1fr var(--mt-drone-w) …`) and the phone was
+  // `repeat(5, 100%)`, and both were asserted as literal counts BECAUSE a track count that
+  // drifts from the case count is how a case becomes unreachable — a fourth case in a
+  // three-track scroller has no snap stop at all. That hazard is real and unchanged.
+  // What changed is where the count comes from: the script writes it from `fitRoom()`, so the
+  // CSS can no longer state it. So the assertion moves UP a level — the CSS must NOT hardcode
+  // a count, and the counting must be reachable from the ONE module that is unit-tested
+  // against the measured demands (tests/unit/room.test.ts).
+  it('takes its column count from the queue, not from a number in the CSS', () => {
+    expect(css, 'the columns come from the script').toMatch(/grid-template-columns:var\(--mt-cols/);
+    expect(css, 'the phone tracks come from the script').toMatch(/grid-template-columns:var\(--mt-pcols/);
+    // A HARDCODED COUNT IS THE DEFECT: five fixed columns is what gave a 1440px laptop the
+    // phone swiper, and `repeat(5, 100%)` is what left the order page with no snap stop.
+    expect(css, 'no fixed five-column room').not.toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\)\s+var\(--mt-drone-w\)/);
+    expect(css, 'no hardcoded phone page count').not.toMatch(/grid-template-columns:repeat\(\d+,\s*100%\)/);
   });
 
-  it('gives the phone five snap pages', () => {
-    // FIVE now (practice-room-apps Q1/02+03, Q2/01: the chord dealer and the loop joined the
-    // room). The count is asserted rather than the mechanism, because a page count that drifts
-    // from the case count is how a case becomes unreachable on a phone: the scroller sizes its
-    // tracks by number, so a fourth case with a three-track scroller simply has no snap stop.
-    expect(css).toMatch(/repeat\(5,\s*100%\)/);
-    expect(css, 'the earlier scrollers are gone').not.toMatch(/repeat\([234],\s*100%\)/);
+  it('keeps the measured per-instrument widths — they are why the queue can fit anything', () => {
+    // The demands did not go away with the fixed columns; they moved into room.ts, and these
+    // tokens are still what the drone/dealer/loop cases are drawn from on the phone.
+    for (const tok of ['--mt-drone-w', '--mt-changes-w', '--mt-loop-w']) {
+      expect(css, `${tok} is a measured minimum, not a leftover`).toContain(tok);
+    }
   });
 
   // ── THE ONE ABOVE-RAMP SIZE, NOW USED BY TWO FIGURES ────────────────────────────────

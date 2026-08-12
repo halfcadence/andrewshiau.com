@@ -698,6 +698,44 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <div class="mt-yt" id="mt-yt" aria-hidden="true"></div>
       </section>
+
+      <!-- ══ THE ORDER PAGE (chooser `practice-room-queue`, Q3/01 + Q4/01) ═══════════════
+           IT IS THE ROOM'S LAST PAGE, which is what keeps the screen free of chrome. The
+           mark was deleted from this tool on purpose ("not really part of this tool") and
+           every other trigger the sheet offered — a word in the top lead, the app's
+           diagonal as a wordmark, a plate on the room's own frame, a hairline edge — costs
+           a whole 28px lead of the row ladder, because the screen is
+           round(down,100dvh,28px) and global chrome cannot cost a fraction of a lead.
+           So the way in is the room's own scroll: past the final instrument, the next thing
+           along. The cost, stated: on a five-instrument queue it is four gestures away, and
+           it inverts what scrolling means, which until here only ever moved between
+           instruments. `aria-label` and the keyboard path are what stop that from making it
+           unreachable.
+           IT IS A CASE, not a dialog. Same hairline frame, same engraved plate, same row
+           ladder — so it sits in the queue rather than over it, and nothing has to open or
+           close. THE LIST IS ORDER AND NOTHING ELSE (the brief: "the configuration page lets
+           u choose order but nothing else").
+           Q4/01 IS DRAG, and drag is the one gesture with no keyboard equivalent — so each
+           row is also a BUTTON: press one to pick it up, press another to drop it there.
+           Same mechanism, reachable by Tab and Enter. Each row prints its instrument's
+           measured demand, because that number is what decides whether your fifth choice is
+           ever on screen. -->
+      <section class="mt-half mt-order" aria-label="Order">
+        <span class="mt-plate" aria-hidden="true">order</span>
+        <div class="mt-ctop">
+          <span class="mt-fr">
+            <span class="mt-gl" id="mt-order-hint">drag a row, or press one then another</span>
+          </span>
+        </div>
+        <div class="mt-mid">
+          <!-- filled by the script from src/lib/practice-room/room.ts, so the list and the
+               room's columns cannot disagree about the order -->
+          <ol class="mt-olist" id="mt-olist" data-testid="order-list"></ol>
+        </div>
+        <div class="mt-cfoot mt-ofoot">
+          <span class="mt-gl" id="mt-order-fit" data-testid="order-fit"></span>
+        </div>
+      </section>
     </div>
 
     <!-- The foot: the page indicator (phone only) and the one word out. The dots are
@@ -723,17 +761,22 @@ import Layout from '../layouts/Layout.astro';
            five discs cannot, and a wrapped two-line index is still readable where five
            unlabelled dots are a guessing game. The `.mt-dots` rule below reserves both
            lines so the wrap costs no reflow when you swipe. -->
-      <div class="mt-dots" id="mt-dots">
-        <button type="button" data-goto="0" data-testid="dot-tuner" class="pgword">tuner</button>
-        <span class="mt-lb" aria-hidden="true">·</span>
-        <button type="button" data-goto="1" data-testid="dot-metro" class="pgword">metronome</button>
-        <span class="mt-lb" aria-hidden="true">·</span>
-        <button type="button" data-goto="2" data-testid="dot-drone" class="pgword">drone</button>
-        <span class="mt-lb" aria-hidden="true">·</span>
-        <button type="button" data-goto="3" data-testid="dot-changes" class="pgword">the changes</button>
-        <span class="mt-lb" aria-hidden="true">·</span>
-        <button type="button" data-goto="4" data-testid="dot-loop" class="pgword">the loop</button>
-      </div>
+      <!-- ══ THE DOTS ARE THE INSTRUMENTS' OWN FIGURES NOW (queue chooser, Q5/02) ═══════
+           THE FIVE WORDS ARE GONE, and the reason is measured: at 390px
+           `tuner · metronome · drone · the changes · the loop` sets to 568px, so the row
+           wrapped to two lines and the foot took a second lead — and a sixth instrument
+           would make it three. Five 16px glyphs set on one line at any width.
+           EACH GLYPH IS THAT CASE'S OWN DRAWING, reduced: the tuner's dial arc and needle,
+           the metronome's pendulum, the drone's stacked interval, the dealer's voicing, the
+           loop's bracket. Not invented icons — which is what makes the mapping learnable by
+           swiping once rather than memorised.
+           THE COST, stated: a glyph does not NAME its page, where a word did. Two things
+           carry that instead — `aria-label` for assistive tech, and the engraved plate on
+           each case, which the phone kept. The row is written by the script from the same
+           GLYPHS map the order page uses, so the two cannot drift.
+           IT IS FILLED BY JS because the queue's order is a persisted value; markup here
+           would be one more place the order lives. -->
+      <div class="mt-dots" id="mt-dots"></div>
       <!-- THE MARK IS GONE (user call, 2026-08-04: "just delete the mark, it's not
            really part of this tool"). The instrument carries no site chrome at all;
            the way home is the browser and the index that linked here. The foot now
@@ -1262,12 +1305,37 @@ import Layout from '../layouts/Layout.astro';
      THE TWO NEW CASES ARE FIXED-WIDTH for the same reason the drone is — their contents do
      not change with width, and a `1fr` share would take the width out of the drawings that
      do. Both numbers are measured minimums, not preferences; see each token. */
+  /* ── THE ROOM IS A QUEUE NOW (chooser `practice-room-queue`, 2026-08-11) ───────────────
+     THE FIVE FIXED COLUMNS ABOVE ARE HISTORY. Everything in the comments above this rule is
+     kept because the measurements are still the reason each instrument needs the width it
+     needs — but the LAYOUT they describe is gone. It had two faults the queue fixes:
+       · the count was five, written into the grid, so a sixth instrument meant editing CSS;
+       · five fixed columns do not fit a laptop, so every viewport under 1477px got the PHONE
+         swiper — a 1440×900 and a 1366×768 both showed one case at a time on a desktop.
+     Now: you set an ORDER once (the room's last page) and the WIDTH decides how many of that
+     order are on screen. `--mt-cols` is written by the script from `fitRoom()` in
+     src/lib/practice-room/room.ts — the arithmetic is unit-tested against the measured
+     demands rather than expressed as media queries that can drift from them.
+     Q1/04, "fit by demand then share what's left": each shown case gets its measured demand
+     PLUS an equal share of the leftover, so the room is always full and the change goes back
+     into the drawings instead of into air. The cost the owner accepted: an instrument's width
+     depends on which others are on screen, so the same dial is drawn at two sizes.
+     THE QUEUE IS RENDERED, NOT DROPPED. Cases past the fit stay in the DOM at their own
+     demand and are reached by scrolling — silent truncation reads as breakage. Which is why
+     this element scrolls horizontally on the desktop now; it never did before.
+     Q2/04, "free scroll, lock on release": NO CSS snap, so the momentum is the browser's own;
+     a `scrollend` listener settles to the nearest case's left edge, keeping every case's ink
+     on the room's one 3ch inset datum. `scroll-behavior:smooth` is deliberately NOT set here
+     — the settle passes `behavior` per call so reduced-motion gets an instant jump. */
   .mt-pages{flex:1;min-height:0;position:relative;
     display:grid;
-    grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) var(--mt-drone-w)
-                          var(--mt-changes-w) var(--mt-loop-w);
+    grid-template-columns:var(--mt-cols, minmax(0, 1fr));
     column-gap:var(--group);
     padding:var(--group) var(--group) var(--lead);
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+    /* the room's own scroll padding, so a settled case's edge lands on the inset datum
+       rather than against the viewport */
+    scroll-padding-left:var(--group);
     grid-template-rows:
       [case-top]  var(--lead)           /* the case's own top air */
       [spec]      calc(var(--lead) * 2) /* a4 | beats + subdivide */
@@ -1288,6 +1356,61 @@ import Layout from '../layouts/Layout.astro';
       [hint]      var(--lead)           /* errors; empty on the metronome */
       [case-bot]  var(--lead)           /* the case's own bottom air */
       [case-end]}
+  /* the desktop room hides its scrollbar too — that the queue continues is said by the
+     cases themselves running past the edge, not by a grey bar */
+  .mt-pages::-webkit-scrollbar{display:none}
+  /* A QUEUED CASE keeps its own measured demand rather than a share of the room: it is not
+     on screen, so it has no leftover to be given. `--mt-qw` is written per case by the
+     script from the same module. */
+  .mt-half[data-queued]{width:var(--mt-qw)}
+
+  /* ── THE ORDER PAGE'S LIST ──────────────────────────────────────────────────────────
+     Rules, not boxes: each row is separated by a hairline and the last one draws none, so
+     the list is a stack of rules rather than five cards. The row's ink sits on the case's
+     own 3ch inset like everything else that does not radiate from an instrument.
+     THE NUMERAL IS `--faint` AND THE NAME IS INK: the position is a fact about the list,
+     the name is the thing itself. The demand is faint and right-aligned — it is the reason
+     a row is where it is, not a control.
+     A PICKED-UP ROW takes the accent, which is this site's one job for colour: you can act
+     on it. `cursor:grab` says drag; `aria-pressed` says picked up. */
+  /* ── EVERY SELECTOR BELOW IS `:global()`, AND THIS PAGE ALREADY KNEW WHY.
+     The rows are written by this file's SCRIPT at runtime, so Astro never stamps them with
+     the component's `data-astro-cid-*` — while it DOES add that attribute to every compiled
+     selector. `.mt-orow{…}` compiled to `.mt-orow[data-astro-cid-3jerlmmv]{…}`, which a
+     JS-created element can never satisfy, so the entire block was inert: the rows rendered at
+     their intrinsic 72px inside a 28px track and OVERLAPPED each other, which Playwright
+     reported as "the loop intercepts pointer events" on four unrelated tests. Not a click
+     bug — one dead stylesheet with four symptoms.
+     The rule of thumb the `.rm-rule line` note already states, applied: any CSS aimed at
+     markup this file's script generates must be `:global()`. Scoped tightly by `#mt-olist`
+     and `.mt-orow` so it leaks nowhere. */
+  #mt-olist{list-style:none;margin:0;padding:0;display:grid;align-content:start;
+    grid-auto-rows:var(--lead)}
+  #mt-olist :global(.mt-orow){display:flex;align-items:center;gap:1ch;width:100%;
+    height:var(--lead);
+    background:transparent;border:0;border-bottom:1px solid var(--line);
+    color:var(--ink);font:inherit;font-size:var(--step);text-align:left;padding:0;cursor:grab}
+  #mt-olist :global(li:last-child .mt-orow){border-bottom:0}
+  #mt-olist :global(.mt-orow[aria-pressed=true]){color:var(--accent);cursor:grabbing}
+  #mt-olist :global(.mt-orow:focus-visible){outline:1px solid var(--accent);outline-offset:2px}
+  #mt-olist :global(.mt-orow.drop){border-top:2px solid var(--accent)}
+  #mt-olist :global(.mt-orow.lift){opacity:.35}
+  /* NO SIZE. This screen has one type size and says everything else with colour and
+     position — `.mt-gl`'s notch labels are 15px `--faint`, not small type. A 12px numeral
+     here would have been the proof sheet's idiom imported into a page that does not use it,
+     and `practice-room-css.test.ts` says so: only 72px may be set. */
+  #mt-olist :global(.mt-on){color:var(--faint);width:3ch;flex:none;
+    font-variant-numeric:tabular-nums}
+  /* the 16px glyph, the same drawing the phone's dot row uses — one set, two places */
+  #mt-olist :global(.mt-og){flex:none;display:grid;place-items:center;width:16px;height:16px}
+  #mt-olist :global(.mt-og svg){display:block}
+  #mt-olist :global(.mt-onm){flex:1 1 auto;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  #mt-olist :global(.mt-od){color:var(--faint);flex:none;
+    font-variant-numeric:tabular-nums}
+  .mt-ofoot{justify-content:flex-start}
+  #mt-order-hint,#mt-order-fit{color:var(--faint);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
   /* THE SLACK IS TWO ROWS, AND THAT IS THE POINT (found by looking at the render, not at
      the numbers). The first version gave the FIGURE row all the leftover — `figure:
      minmax(0,1fr)` — and centred the drawing inside it. The alignment was correct and the
@@ -1535,7 +1658,7 @@ import Layout from '../layouts/Layout.astro';
      from the swiper's edge all the way up rather than stopping at a number I guessed.
      `min-width` only, therefore. If a future change takes cases back out of the room, re-bisect
      this — do not reinstate a number from the three-case era. */
-  @media (min-width: 1477px){
+  @media (min-width: 534px){
     .mt-pages{grid-template-rows:
       [case-top]  var(--lead)
       [spec]      calc(var(--lead) * 4)  /* two stacked meters, two leads each */
@@ -1754,7 +1877,7 @@ import Layout from '../layouts/Layout.astro';
      mobile rule): the viewport's own edges are the frame, so drawing one inside
      them would be a frame in a frame. The plate goes with it; the page dots name
      the pages. */
-  @media (max-width: 1476px){
+  @media (max-width: 533px){
     /* THE SNAP SCROLLER, ON THE SAME LADDER. What changes from the desktop case is only
        the COLUMN axis — each page is a full viewport wide, so the two columns become two
        100%-wide ones and the gap goes. `grid-auto-flow:column` is NOT used: the rows are
@@ -1771,7 +1894,16 @@ import Layout from '../layouts/Layout.astro';
        take all of it. Both new cases therefore get MORE room on a phone than on the desktop
        they were measured for. */
     .mt-pages{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-      grid-template-columns:repeat(5, 100%);column-gap:0;padding:0;
+      /* ── THE PHONE'S COLUMN COUNT COMES FROM THE QUEUE NOW, not from the number 5.
+         `repeat(5, 100%)` was written when five was the whole room; with the order page as a
+         sixth snap page and a queue that can grow, a hardcoded 5 leaves every page past the
+         fifth out of the scroller's geometry — the order page rendered at 56px because it had
+         no track. `--mt-pcols` is written by the script as `repeat(<n>, 100%)`, where n is the
+         order's length plus the order page.
+         AND THE BAND MOVED: this used to start at 1476px, which was the width five FIXED
+         columns needed. The room shares its width now, so the desktop layout holds far lower —
+         re-bisected below. */
+      grid-template-columns:var(--mt-pcols, repeat(6, 100%));column-gap:0;padding:0;
       /* the overlay's top datum is derived from this row — restated with it, never apart */
       --mt-case-top:calc(var(--lead) * 2);
       /* THE PHONE'S TOP AIR IS TWO LEADS (user, 2026-08-05: "the accent is too close to
@@ -1911,7 +2043,7 @@ import Layout from '../layouts/Layout.astro';
      scroller's padding is 0 there, and an absolutely-positioned ::before inside a scroll
      container lays out against the scrollable padding box — so it travels with the pages instead
      of staying stuck over page 1. */
-  @media (max-width: 1476px){
+  @media (max-width: 533px){
     .mt-pages::before{inset:0}
   }
 
@@ -2420,9 +2552,38 @@ import Layout from '../layouts/Layout.astro';
      from ~430px up. The foot's reserved row grows with it rather than the words leaving the
      screen — which is the trade named in the markup comment: naming five pages costs a second
      line on a phone, and five unlabelled discs would cost the reader the names. */
-  .mt-dots{display:flex;gap:1.5ch;align-items:baseline;
+  /* ── THE ROW HOLDS GLYPHS NOW, so it fits one line and the wrap above is history.
+     MEASURED at 390px: five 16px glyphs plus their 1.5ch gaps set to 148px, against the
+     568px the five words needed. `align-items:center` rather than `baseline` — a glyph has
+     no baseline to share, and baseline alignment on an svg row hangs it off the box bottom.
+     The `flex-wrap` and the reserved second line are kept for a queue longer than today's
+     five: at 16px + 1.5ch each, the row holds ~19 instruments at 390px before it wraps, so
+     this is insurance rather than a layout anyone sees. */
+  .mt-dots{display:flex;gap:1.5ch;align-items:center;
     flex-wrap:wrap;justify-content:center;max-width:100%}
-  @media (max-width: 1476px){ .mt-foot{display:flex} }
+  /* THE GLYPH DOT. 44px target via padding + matching negative margins (the device every
+     control on this screen uses), so the 16px drawing keeps a thumb-sized hit area without
+     the row growing. Current page = ink, the rest = faint: the same outline-vs-fill signal
+     the words carried, stated in weight of colour rather than in an underline. */
+  /* `:global()` for the same reason as the order rows: the dots are written by this file's
+     script, so Astro's scope attribute never reaches them and a compiled `.pgdot{…}` matched
+     nothing. The symptom was a 16px tap target where the padding should have made 44. */
+  #mt-dots :global(.pgdot){background:transparent;border:0;padding:14px 6px;margin:-14px -6px;
+    cursor:pointer;color:var(--faint);display:inline-flex;align-items:center;
+    border-radius:0;transition:color var(--dur-fast) var(--ease)}
+  #mt-dots :global(.pgdot svg){display:block}
+  #mt-dots :global(.pgdot.cur){color:var(--ink);cursor:default}
+  #mt-dots :global(.pgdot:not(.cur):hover){color:var(--accent)}
+  #mt-dots :global(.pgdot:focus-visible){outline:1px solid var(--accent);outline-offset:2px}
+  /* ── THE FOOT IS NOT PHONE-ONLY ANY MORE, and that is the queue's doing. It used to be:
+     on the desktop every case was on screen, so an indicator would have pointed at nothing.
+     Now the room seats what fits and the REST OF THE QUEUE IS OFF-SCREEN — so the glyph row is
+     the only thing on the page that says the queue continues, and the only way to jump to a
+     case without scrolling through the ones between. It shows at every width.
+     The dots' `.cur` maths reads `scrollLeft / clientWidth`, which is a PAGE index — exactly
+     right on the phone, and on the desktop it tracks the leading case, which is what "where am
+     I in the queue" means there. */
+  .mt-foot{display:flex}
   /* The page words (user nit 2026-08-04, the dots were unclear): current = ink, no
      underline (a fact); the other = faint, underlined (an offer) — the segment
      idiom. 44px targets via padding. */
@@ -2461,6 +2622,13 @@ import Layout from '../layouts/Layout.astro';
   import type { ChordTone } from '../lib/practice-room/naming';
   import { Scheduler, clampBpm, type Tick } from '../lib/practice-room/metronome';
   import { createTapTempo } from '../lib/practice-room/tap';
+  // THE ROOM'S ARITHMETIC. Which instruments a width buys, in the order you set — pure
+  // functions on numbers, unit-tested against the measured demands, so the layout is not a
+  // pile of media queries that can drift from what the cases actually need.
+  import {
+    INSTRUMENTS, BY_KEY, PAD, GAP,
+    fitRoom, normalizeOrder, moveTo, settleTo, glyphSvg,
+  } from '../lib/practice-room/room';
 
   // ONE AudioContext for tuner, tone and metronome, created on the first gesture —
   // browsers refuse both getUserMedia and audio playback without one.
@@ -2500,6 +2668,12 @@ import Layout from '../layouts/Layout.astro';
                 droneHz: () => Promise<number | null>;
                 readonly droneOut: GainNode | null;
                 readonly droneSources: { want: number; sample: string; srcHz: number; rate: number; sounds: number }[];
+                // THE QUEUE, for the room harness. A DOM assertion cannot tell a correct fit
+                // from a lucky one: the rendered column widths ARE the arithmetic's output, so
+                // reading them back is reading the mechanism rather than a symptom of it.
+                // `settled` is the settle's own target — the same reason the sheet's stamp is
+                // written from inside its handler and not beside it.
+                roomShown: string[]; roomWidths: number[]; order: string[]; settled: number | null;
                 readonly ctx: AudioContext | null; readonly mic: AudioNode | null } = {
     // `sounds` is the SPEAKER's log — every ping() scheduled, minus lookahead
     // clicks later cancelled. The smoothness harness asserts spacing on it.
@@ -2511,6 +2685,8 @@ import Layout from '../layouts/Layout.astro';
     // The topology lives in the test; the page only offers the tap. `gated` counts
     // frames the tuner disowned, so a green can be told from a gate that never fired.
     bleed: null, gated: 0, belowFloor: 0,
+    // the queue's own state, written by layoutRoom()/setOrder()/settle()
+    roomShown: [], roomWidths: [], order: [], settled: null,
     get a4() { return a4; },
     get bpm() { return bpm; },
     // ONE ENTRY PER SOUNDING NOTE, in pitch order: the root, then each switched interval.
@@ -4838,36 +5014,243 @@ import Layout from '../layouts/Layout.astro';
     paintTl();
   }
 
-  // ── the swipe indicator (chooser Q3/02) ──────────────────────────────────
-  // The pages are a CSS snap-scroller; JS only keeps the dots honest and gives the
-  // gesture a click-shaped fallback. The disc is the page on screen, the ring is
-  // the other one — the same outline-vs-fill signal the site's mark carries.
+  // ══ THE ROOM IS A QUEUE (chooser `practice-room-queue`, 2026-08-11) ═══════════════════
+  // Four mechanisms, all reading ONE state — the order — and all deriving their numbers from
+  // src/lib/practice-room/room.ts rather than from CSS or from each other:
+  //   the ROOM     writes `--mt-cols` from fitRoom(); the queue past the fit stays rendered
+  //   the SETTLE   locks a free scroll to the nearest case edge on `scrollend` (Q2/04)
+  //   the ORDER    the room's last page: drag a row, or press one then another (Q3/01+Q4/01)
+  //   the DOTS     one 16px glyph per instrument, the case's own drawing (Q5/02)
   const pages = document.getElementById('mt-pages')!;
-  const dotBtns = Array.from(document.querySelectorAll('#mt-dots button'));
+  const dots = document.getElementById('mt-dots')!;
+  const olist = document.getElementById('mt-olist')!;
+  const orderFit = document.getElementById('mt-order-fit');
   const still = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  // The page WORDS (nit, 2026-08-04): current page ink, the other faint+underlined.
-  function drawPageDots() {
+  // THE PERSISTED ORDER IS VALIDATED, NOT TRUSTED — localStorage outlives the code that
+  // wrote it, so a stale five-key list must not break a six-instrument room.
+  let order = normalizeOrder(store.get('mt:order'));
+
+  /** Every case section, by key. The order page is NOT one of these — it is the last page. */
+  const caseEls = new Map<string, HTMLElement>();
+  INSTRUMENTS.forEach((i, idx) => {
+    const el = pages.children[idx] as HTMLElement | undefined;
+    if (el) { el.dataset.mtKey = i.key; caseEls.set(i.key, el); }
+  });
+  const orderPage = pages.querySelector('.mt-order') as HTMLElement | null;
+
+  /** Is the room the phone swiper? One case per page, so the queue arithmetic is moot. */
+  const isPhone = () => window.matchMedia('(max-width: 533px)').matches;
+
+  /**
+   * THE ORDER PAGE'S WIDTH. It is a case like any other and needs a measured minimum for the
+   * same reason: its widest ink. The rows print `NN` + a 16px glyph + the longest name
+   * (`metronome`, 9ch) + a 3-digit demand, with 1ch gaps — 2ch + 16 + 9ch + 3ch + 3×9 = 169px,
+   * plus the two 3ch insets and the hairlines = 224. Rounded to 226 so `drag a row, or press
+   * one then another` in the top notch does not clip at 12px.
+   */
+  const ORDER_PAGE_W = 226;
+
+  // ── THE ROOM ────────────────────────────────────────────────────────────────────────
+  // `--mt-cols` is the whole layout. The DOM order of the sections is fixed (they are the
+  // page's markup); the QUEUE order is expressed with `order:` on each case, so re-ordering
+  // never moves a node and therefore never restarts an instrument that is sounding.
+  function layoutRoom() {
+    // THE PHONE'S TRACKS ARE ONE PER PAGE, and the count is the queue's length plus the order
+    // page — never the literal 5 the old CSS carried. Written on both layouts because a
+    // resize can cross the band without a reload.
+    pages.style.setProperty('--mt-pcols', `repeat(${order.length + 1}, 100%)`);
+    if (isPhone()) {
+      // one case per snap page: the queue arithmetic does not apply, and every case is shown
+      order.forEach((k, i) => {
+        const el = caseEls.get(k);
+        if (!el) return;
+        el.style.order = String(i);
+        delete el.dataset.queued;
+        el.style.removeProperty('--mt-qw');
+      });
+      if (orderPage) orderPage.style.order = String(order.length);
+      pages.style.removeProperty('--mt-cols');
+      if (orderFit) orderFit.textContent = 'one instrument per page — swipe';
+      if (E2E) { hook.roomShown = [...order]; hook.roomWidths = []; }
+      return;
+    }
+    // The room's own content width: the element minus its two `--group` paddings is what
+    // fitRoom() is given, because that is the width cases actually get.
+    const w = pages.clientWidth;
+    const fit = fitRoom(order, w);
+    // ONE COLUMN PER SHOWN CASE, plus a track each for the queued ones and for the order
+    // page. A grid item with no track gets an implicit one sized to its content, which is
+    // how the order page first rendered at 56px — its own padding and nothing else.
+    const queuedCols = order.slice(fit.shown.length).map((k) => `${BY_KEY[k].demand}px`);
+    pages.style.setProperty(
+      '--mt-cols',
+      [...fit.widths.map((x) => `${x.toFixed(2)}px`), ...queuedCols, `${ORDER_PAGE_W}px`].join(' '),
+    );
+    order.forEach((k, i) => {
+      const el = caseEls.get(k);
+      if (!el) return;
+      el.style.order = String(i);
+      const shownAt = fit.shown.indexOf(k);
+      if (shownAt >= 0) {
+        delete el.dataset.queued;
+        el.style.removeProperty('--mt-qw');
+      } else {
+        // a queued case gets its own measured demand — it has no leftover to share
+        el.dataset.queued = '';
+        el.style.setProperty('--mt-qw', `${BY_KEY[k].demand}px`);
+      }
+    });
+    if (orderPage) orderPage.style.order = String(order.length); // always last
+    if (orderFit) {
+      orderFit.textContent = fit.shown.length === order.length
+        ? `all ${order.length} fit this screen`
+        : `${fit.shown.length} of ${order.length} fit — scroll for the rest`;
+    }
+    if (E2E) {
+      hook.roomShown = fit.shown;
+      hook.roomWidths = fit.widths.map((x) => Math.round(x));
+    }
+  }
+
+  // ── THE SETTLE (Q2/04, free scroll then lock) ───────────────────────────────────────
+  // No CSS snap on the desktop room, so the momentum is the browser's own. `scrollend` is
+  // the mechanism; where it does not exist a debounced `scroll` stands in — that fallback is
+  // the reason this degrades to "no lock" rather than to "no scroll".
+  const caseOffsets = () =>
+    [...pages.children]
+      .filter((el) => !(el as HTMLElement).dataset.queued)
+      .map((el) => (el as HTMLElement).offsetLeft - PAD);
+
+  function settle() {
+    if (isPhone()) return;                       // the phone has real CSS snap; leave it alone
+    const to = settleTo(caseOffsets(), pages.scrollLeft);
+    if (to === null) return;                     // already there — no correcting animation
+    pages.scrollTo({ left: to, behavior: still.matches ? 'auto' : 'smooth' });
+    if (E2E) hook.settled = to;
+  }
+  if ('onscrollend' in window) {
+    pages.addEventListener('scrollend', settle);
+  } else {
+    let t = 0;
+    pages.addEventListener('scroll', () => {
+      window.clearTimeout(t);
+      t = window.setTimeout(settle, 140);
+    }, { passive: true });
+  }
+
+  // ── THE DOTS (Q5/02) ────────────────────────────────────────────────────────────────
+  // One 16px glyph per instrument, each the reduction of that case's own drawing. Built from
+  // the same GLYPHS map the order page reads, so the two rows cannot disagree.
+  function drawDots() {
+    dots.replaceChildren();
+    order.forEach((k, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pgdot';
+      b.dataset.goto = String(i);
+      b.dataset.testid = `dot-${k}`;
+      // the NAME is the accessible name — a glyph does not say "drone" to a screen reader
+      b.setAttribute('aria-label', BY_KEY[k].name);
+      b.innerHTML = glyphSvg(k);
+      b.addEventListener('click', () => {
+        const el = caseEls.get(k);
+        if (!el) return;
+        pages.scrollTo({
+          left: isPhone() ? i * pages.clientWidth : el.offsetLeft - PAD,
+          behavior: still.matches ? 'auto' : 'smooth',
+        });
+      });
+      dots.append(b);
+    });
+    paintDots();
+  }
+
+  function paintDots() {
     const idx = pages.clientWidth ? Math.round(pages.scrollLeft / pages.clientWidth) : 0;
-    dotBtns.forEach((b, i) => b.classList.toggle('cur', i === idx));
+    Array.from(dots.children).forEach((b, i) => b.classList.toggle('cur', i === idx));
   }
 
   let scrollRaf = 0;
   pages.addEventListener('scroll', () => {
     if (scrollRaf) return;
-    scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; drawPageDots(); });
+    scrollRaf = requestAnimationFrame(() => { scrollRaf = 0; paintDots(); });
   }, { passive: true });
 
-  dotBtns.forEach((b) => {
-    b.addEventListener('click', () => {
-      const i = Number(b.getAttribute('data-goto'));
-      pages.scrollTo({
-        left: i * pages.clientWidth,
-        behavior: still.matches ? 'auto' : 'smooth',
+  // ── THE ORDER PAGE (Q4/01, drag — with the keyboard path drag cannot have) ───────────
+  let lifted: string | null = null;
+
+  function drawOrder() {
+    olist.replaceChildren();
+    order.forEach((k, i) => {
+      const inst = BY_KEY[k];
+      const li = document.createElement('li');
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'mt-orow';
+      row.draggable = true;
+      row.dataset.mtKey = k;
+      row.dataset.testid = `order-${k}`;
+      row.setAttribute('aria-pressed', String(lifted === k));
+      row.setAttribute('aria-label',
+        `${inst.name}, position ${i + 1} of ${order.length}. Press to pick up, then press another row to drop it there.`);
+      row.innerHTML =
+        `<span class="mt-on" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>` +
+        `<span class="mt-og">${glyphSvg(k)}</span>` +
+        `<span class="mt-onm">${inst.name}</span>` +
+        `<span class="mt-od" aria-hidden="true">${inst.demand}</span>`;
+      if (lifted === k) row.classList.add('lift');
+
+      // THE DRAG
+      row.addEventListener('dragstart', (e) => {
+        lifted = k;
+        row.classList.add('lift');
+        e.dataTransfer?.setData('text/plain', k);
       });
+      row.addEventListener('dragend', () => { lifted = null; drawOrder(); });
+      row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drop'); });
+      row.addEventListener('dragleave', () => row.classList.remove('drop'));
+      row.addEventListener('drop', (e) => {
+        e.preventDefault();
+        row.classList.remove('drop');
+        const from = e.dataTransfer?.getData('text/plain') || lifted;
+        if (from && from !== k) setOrder(moveTo(order, from, order.indexOf(k)));
+        lifted = null;
+      });
+
+      // THE KEYBOARD / TOUCH PATH: press to pick up, press another to drop. Same mechanism,
+      // no drag — which is what makes the order reachable with a Tab and an Enter.
+      row.addEventListener('click', () => {
+        if (lifted === null) { lifted = k; drawOrder(); return; }
+        if (lifted === k) { lifted = null; drawOrder(); return; }
+        const from = lifted;
+        lifted = null;
+        setOrder(moveTo(order, from, order.indexOf(k)));
+      });
+
+      li.append(row);
+      olist.append(li);
     });
-  });
-  drawPageDots();
+  }
+
+  function setOrder(next: string[]) {
+    order = normalizeOrder(next.join(','));
+    store.set('mt:order', order.join(','));
+    layoutRoom();
+    drawDots();
+    drawOrder();
+    if (E2E) hook.order = [...order];
+  }
+
+  // `hook.order` is published on EVERY paint, not only on a reorder. It was written in
+  // setOrder() alone, so on load it stayed `[]` and a harness reading it saw an empty room
+  // while five rows were on the page — a stale field reporting nothing rather than a defect.
+  if (E2E) hook.order = [...order];
+  layoutRoom();
+  drawDots();
+  drawOrder();
+  // The room's width changes with the window, and the count changes with it.
+  new ResizeObserver(() => { layoutRoom(); paintDots(); }).observe(pages);
 
   // Leaving the page: stop everything. A tab that keeps a mic open after
   // navigation shows a recording indicator for a page that no longer exists.
