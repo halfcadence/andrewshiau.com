@@ -11,7 +11,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 const URL = '/practice-room/?e2e=1';
 const DEMAND: Record<string, number> = {
-  tuner: 170, metronome: 196, drone: 170, changes: 282, loop: 236,
+  tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236,
 };
 const PAD = 56, GAP = 56;
 /** bisected 2026-08-11: the desktop room first seats two cases at 534 (one at 533) */
@@ -192,6 +192,39 @@ test.describe('the order page is the room\'s last page (Q3/01)', () => {
     const orderPage = orders.find((o) => o.k === 'ORDER')!;
     expect(orderPage.o).toBe(orders.length - 1);
     for (const o of orders) if (o.k !== 'ORDER') expect(o.o).toBeLessThan(orderPage.o);
+  });
+
+  // NOTHING IN THE ORDER PAGE MAY SPILL ITS CASE. Two defects the render caught and 27 passing
+  // assertions did not: both labels reused `.mt-gl`, which is `position:absolute;top:-14px`
+  // because its job is to notch a BOX's top rule — so they stacked on the engraved plate and
+  // ran 125px past a 226px case; and the fit line's long form ("4 of 5 fit — scroll for the
+  // rest", 34 characters in a ~25-character case) rendered clipped.
+  test('nothing in the order page spills its case', async ({ page }) => {
+    await page.setViewportSize({ width: 1512, height: 900 });
+    await page.goto(URL);
+    await page.waitForTimeout(400);
+    await room(page).evaluate((el) => el.scrollTo({ left: el.scrollWidth, behavior: 'auto' }));
+    await page.waitForTimeout(400);
+    const bad = await page.evaluate(() => {
+      const sec = document.querySelector('.mt-order')!;
+      const sb = sec.getBoundingClientRect();
+      const out: string[] = [];
+      for (const sel of ['#mt-order-hint', '#mt-order-fit', '#mt-olist']) {
+        const e = sec.querySelector(sel);
+        if (!e) { out.push(`${sel} absent`); continue; }
+        const q = e.getBoundingClientRect();
+        if (q.right > sb.right + 0.5) out.push(`${sel} past the right edge`);
+        if (q.left < sb.left - 0.5) out.push(`${sel} past the left edge`);
+        // the plate is the ONLY thing allowed above the case's top rule (it straddles it)
+        if (q.top < sb.top - 0.5) out.push(`${sel} above the case top`);
+        if (getComputedStyle(e).position === 'absolute') out.push(`${sel} is absolutely positioned`);
+      }
+      // and the plate is present and straddling, which is the room's own idiom
+      const plate = sec.querySelector('.mt-plate');
+      if (!plate) out.push('no engraved plate');
+      return out;
+    });
+    expect(bad).toEqual([]);
   });
 
   test('every row prints its instrument\'s measured demand', async ({ page }) => {

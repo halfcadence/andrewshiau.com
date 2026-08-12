@@ -720,12 +720,15 @@ import Layout from '../layouts/Layout.astro';
            Same mechanism, reachable by Tab and Enter. Each row prints its instrument's
            measured demand, because that number is what decides whether your fifth choice is
            ever on screen. -->
+      <!-- `.mt-gl` IS NOT AVAILABLE HERE, and reusing it was a real defect: it is
+           `position:absolute; top:-14px` because its job is to NOTCH A BOX's top rule. Both
+           labels therefore stacked at y −13 on top of the engraved plate and overflowed the
+           226px case by 125px. They are ordinary rows in the ladder instead — `.mt-ol` — which
+           is what the spec and foot rows hold on every other case. -->
       <section class="mt-half mt-order" aria-label="Order">
         <span class="mt-plate" aria-hidden="true">order</span>
         <div class="mt-ctop">
-          <span class="mt-fr">
-            <span class="mt-gl" id="mt-order-hint">drag a row, or press one then another</span>
-          </span>
+          <span class="mt-ol" id="mt-order-hint">drag a row</span>
         </div>
         <div class="mt-mid">
           <!-- filled by the script from src/lib/practice-room/room.ts, so the list and the
@@ -733,7 +736,7 @@ import Layout from '../layouts/Layout.astro';
           <ol class="mt-olist" id="mt-olist" data-testid="order-list"></ol>
         </div>
         <div class="mt-cfoot mt-ofoot">
-          <span class="mt-gl" id="mt-order-fit" data-testid="order-fit"></span>
+          <span class="mt-ol" id="mt-order-fit" data-testid="order-fit"></span>
         </div>
       </section>
     </div>
@@ -1384,8 +1387,12 @@ import Layout from '../layouts/Layout.astro';
      The rule of thumb the `.rm-rule line` note already states, applied: any CSS aimed at
      markup this file's script generates must be `:global()`. Scoped tightly by `#mt-olist`
      and `.mt-orow` so it leaks nowhere. */
+  /* THE LIST STARTS AT THE TOP OF ITS ROW. `.mt-mid` is a subgrid whose middle row is the
+     figure's slack, and a five-row list centred in ~400px of it read as floating in the
+     case. `grid-row:1/-1` + `align-self:start` puts the list where a figure's group would
+     start, so it sits against the case's own top air like every other case's content. */
   #mt-olist{list-style:none;margin:0;padding:0;display:grid;align-content:start;
-    grid-auto-rows:var(--lead)}
+    grid-row:1 / -1;align-self:start;grid-auto-rows:var(--lead)}
   #mt-olist :global(.mt-orow){display:flex;align-items:center;gap:1ch;width:100%;
     height:var(--lead);
     background:transparent;border:0;border-bottom:1px solid var(--line);
@@ -1409,8 +1416,10 @@ import Layout from '../layouts/Layout.astro';
   #mt-olist :global(.mt-od){color:var(--faint);flex:none;
     font-variant-numeric:tabular-nums}
   .mt-ofoot{justify-content:flex-start}
-  #mt-order-hint,#mt-order-fit{color:var(--faint);white-space:nowrap;
-    overflow:hidden;text-overflow:ellipsis}
+  /* the order page's two labels: ordinary rows on the ladder, `--faint` like every other
+     supporting mark on this screen. NOT `.mt-gl` — see the markup note. */
+  .mt-ol{color:var(--faint);line-height:var(--lead);display:block;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* THE SLACK IS TWO ROWS, AND THAT IS THE POINT (found by looking at the render, not at
      the numbers). The first version gave the FIGURE row all the leftover — `figure:
      minmax(0,1fr)` — and centred the drawing inside it. The alignment was correct and the
@@ -2568,7 +2577,14 @@ import Layout from '../layouts/Layout.astro';
   /* `:global()` for the same reason as the order rows: the dots are written by this file's
      script, so Astro's scope attribute never reaches them and a compiled `.pgdot{…}` matched
      nothing. The symptom was a 16px tap target where the padding should have made 44. */
-  #mt-dots :global(.pgdot){background:transparent;border:0;padding:14px 6px;margin:-14px -6px;
+  /* THE TARGET GROWS VERTICALLY ONLY. `padding:14px 6px` with matching negative margins gave
+     a 28×44 target — but the horizontal pair pulls each dot 6px OUTSIDE the row's own box, so
+     the content spanned 140px inside a 134px row and the first and last glyph hung past its
+     edge (`scrollWidth > clientWidth`, measured). The row's `gap` is 1.5ch = 13.5px, which is
+     already more than a thumb needs between marks, so the horizontal padding was buying
+     nothing and leaking geometry. Vertical padding only: the target is 16×44, the gap does the
+     horizontal separating, and the row's box contains its contents. */
+  #mt-dots :global(.pgdot){background:transparent;border:0;padding:14px 0;margin:-14px 0;
     cursor:pointer;color:var(--faint);display:inline-flex;align-items:center;
     border-radius:0;transition:color var(--dur-fast) var(--ease)}
   #mt-dots :global(.pgdot svg){display:block}
@@ -5071,7 +5087,7 @@ import Layout from '../layouts/Layout.astro';
       });
       if (orderPage) orderPage.style.order = String(order.length);
       pages.style.removeProperty('--mt-cols');
-      if (orderFit) orderFit.textContent = 'one instrument per page — swipe';
+      if (orderFit) orderFit.textContent = 'one per page · swipe';
       if (E2E) { hook.roomShown = [...order]; hook.roomWidths = []; }
       return;
     }
@@ -5102,10 +5118,13 @@ import Layout from '../layouts/Layout.astro';
       }
     });
     if (orderPage) orderPage.style.order = String(order.length); // always last
+    // THE FIT LINE MUST FIT ITS OWN CASE — 226px is ~25 characters at 15px in this face, and
+    // `${n} of ${m} fit — scroll for the rest` is 34. It rendered clipped. The short form says
+    // the same thing: the count, and that the rest are behind a scroll.
     if (orderFit) {
       orderFit.textContent = fit.shown.length === order.length
-        ? `all ${order.length} fit this screen`
-        : `${fit.shown.length} of ${order.length} fit — scroll for the rest`;
+        ? `all ${order.length} on screen`
+        : `${fit.shown.length} of ${order.length} · scroll`;
     }
     if (E2E) {
       hook.roomShown = fit.shown;
@@ -5149,7 +5168,12 @@ import Layout from '../layouts/Layout.astro';
       b.type = 'button';
       b.className = 'pgdot';
       b.dataset.goto = String(i);
-      b.dataset.testid = `dot-${k}`;
+      // THE SHIPPED TESTIDS ARE KEPT VERBATIM, including the metronome's abbreviation. They
+      // were `dot-tuner / dot-metro / dot-drone / dot-changes / dot-loop` in markup; deriving
+      // them from the key would have quietly renamed `dot-metro` to `dot-metronome` and broken
+      // three tests that ask nothing about the dots' drawing — the swipe navigation and the
+      // metronome-keeps-running case. A test id is a contract with the suite.
+      b.dataset.testid = `dot-${k === 'metronome' ? 'metro' : k}`;
       // the NAME is the accessible name — a glyph does not say "drone" to a screen reader
       b.setAttribute('aria-label', BY_KEY[k].name);
       b.innerHTML = glyphSvg(k);

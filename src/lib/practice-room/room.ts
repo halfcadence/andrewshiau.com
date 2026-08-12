@@ -48,7 +48,16 @@ export const INSTRUMENTS: readonly Instrument[] = [
   { key: 'tuner',     name: 'tuner',       demand: 170, breaks: 'the calibration row wraps under its own label' },
   { key: 'metronome', name: 'metronome',   demand: 196, breaks: 'the tap button crosses the case edge' },
   { key: 'drone',     name: 'drone',       demand: 170, breaks: 'the voice row wraps to two lines' },
-  { key: 'changes',   name: 'the changes', demand: 282, breaks: 'the deck row wraps and the deal button is clipped' },
+  /* THE DEALER'S DEMAND IS 315, NOT THE 282 MY BISECTION FIRST REPORTED — and the gap is a
+     hole in the harness, worth recording. `measure-demand.mjs` breaks a case on ink crossing
+     the content edge, a row growing, or a control clipped. The chord SYMBOL does none of
+     those: `#mt-sym` renders whatever chord was dealt, so at 282px it happened to hold `Cmaj7`
+     (43px of ink) and the predicate saw nothing wrong. The case must fit the WIDEST symbol
+     the decks can deal — `F♯m7♭5`, 259px at 72px in this face — plus the two 3ch insets and
+     the hairlines: 259 + 54 + 2 = 315, which is exactly the width the page already shipped.
+     A predicate that only measures what is currently on screen cannot see a worst case that
+     is one deal away. Caught by `changes.spec.ts`, which probes the widest symbol directly. */
+  { key: 'changes',   name: 'the changes', demand: 315, breaks: 'the widest symbol F♯m7♭5 (259px) no longer fits beside its insets' },
   { key: 'loop',      name: 'the loop',    demand: 236, breaks: 'the speed row wraps past its track' },
 ];
 

@@ -2,8 +2,12 @@
 //
 // The numbers here are restated from the measurement run rather than imported from the
 // module, so a test cannot agree with a typo in the constant it is checking. The demands
-// (170/196/170/282/236) come from `work/understand/practice-room-queue/measure-demand.mjs`,
-// bisected on the built page one case at a time.
+// (170/196/170/315/236) come from `work/understand/practice-room-queue/measure-demand.mjs`,
+// bisected on the built page one case at a time — EXCEPT the dealer's 315, which that script
+// reported as 282 and was wrong about: its break predicate only sees the symbol currently
+// dealt, and the case must fit the widest one any deck can deal (`F♯m7♭5`, 259px at 72px,
+// + two 3ch insets + hairlines). A predicate that measures what is on screen cannot see a
+// worst case one deal away; `changes.spec.ts` probes the widest symbol directly and caught it.
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -14,7 +18,7 @@ import {
 const ORDER = ['tuner', 'metronome', 'drone', 'changes', 'loop'];
 /** the harness's OWN copy of the measured demands — see the file header */
 const DEMAND: Record<string, number> = {
-  tuner: 170, metronome: 196, drone: 170, changes: 282, loop: 236,
+  tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236,
 };
 
 describe('the measured demands', () => {
@@ -27,9 +31,9 @@ describe('the measured demands', () => {
     for (const i of INSTRUMENTS) expect(i.breaks.length).toBeGreaterThan(10);
   });
 
-  it('spans 1.66x from the narrowest to the widest — why a slot cannot be one size', () => {
+  it('spans 1.85x from the narrowest to the widest — why a slot cannot be one size', () => {
     const ds = INSTRUMENTS.map((i) => i.demand);
-    expect(Math.max(...ds) / Math.min(...ds)).toBeCloseTo(282 / 170, 2);
+    expect(Math.max(...ds) / Math.min(...ds)).toBeCloseTo(315 / 170, 2);
   });
 });
 
@@ -52,7 +56,7 @@ describe('fitRoom — how many a width buys', () => {
   }
 
   it('never drops the rest of the queue — shown + queued is always the whole order', () => {
-    for (const w of [300, 560, 840, 1390, 1920]) {
+    for (const w of [300, 560, 840, 1423, 1920]) {
       const f = fitRoom(ORDER, w);
       expect([...f.shown, ...f.queued]).toEqual(ORDER);
     }
@@ -79,9 +83,9 @@ describe('fitRoom — how many a width buys', () => {
     for (const o of overs) expect(o).toBeCloseTo(f.share, 6);
   });
 
-  it('holds all five at 1390px, which is what the five demands plus chrome come to', () => {
+  it('holds all five at 1423px, which is what the five demands plus chrome come to', () => {
     const need = Object.values(DEMAND).reduce((a, b) => a + b, 0) + PAD * 2 + GAP * 4;
-    expect(need).toBe(1390);
+    expect(need).toBe(1423);
     expect(fitRoom(ORDER, need).shown.length).toBe(5);
     // and one pixel under, the last one is still in the queue rather than gone
     const under = fitRoom(ORDER, need - 1);
