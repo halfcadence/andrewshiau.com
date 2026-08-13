@@ -328,3 +328,146 @@ test('a retired tool address still 301s to the tool, query string intact',
       expect(q.headers().location).toBe(`${old.to}?e2e`);
     }
   });
+
+// ── THE LATCH'S BERTH IS IN LINE WITH THE TEXT (annotation 2026-08-12: "this needs to be in
+// line with text"). One rule pushed all six berths down by a hand-derived `translateY(9.5px)`,
+// and the datum it was derived from belongs to only ONE of them. Measured on the live page
+// before the fix: the mic latch's ink centre sat 8.37px below the x-height centre of the type
+// in its own row, 4.50px below that type's baseline, 9.50px off the centre of its own 44px tap
+// target and 3.50px outside its 28px row; beside `arpeggiate`, 5.37px low.
+//
+// WHY THIS TEST EXISTS AND WHY IT LOOKS LIKE THIS. The vertical relationship was completely
+// unasserted — `tests/e2e/pitchgraph.spec.ts` measures this same mark's HORIZONTAL offset from
+// the case axis, its 32×16 size, its 44px target and its row's 28px height, and not one of
+// those moves when only the svg's translate does. So the nit was invisible to the suite, twice.
+//
+// IT MEASURES THE TYPE, NOT A CONSTANT. The optical centre is derived in the page: a zero-height
+// inline-block with `vertical-align:baseline` reports the type's baseline, and `1ex` on that same
+// element reports the font's x-height, so the target is `baseline − 1ex/2` at whatever type size
+// and typeface the page resolves. A hardcoded y would have to be re-edited by hand the next time
+// the mark or the ramp changes, which is how the 9.5 rotted (its own comment still claimed a
+// baseline-aligned row that `.mt-cap` stopped being).
+//
+// TWO CASES, DELIBERATELY, because the control has two alignment contexts and one number cannot
+// serve both: the five latches in `.mt-cap` get their y from the ROW, and the one beside
+// `arpeggiate` gets it from the WORD's baseline.
+// ALL SIX BERTHS, not three. The first version covered mic, loop-run and arp — one per route,
+// which is a route-coverage argument rather than a control-coverage one. The rule is per CONTROL
+// and there are six of them; the drone's and the metronome's sit on /console/ beside the tuner's
+// and were measured correct but unguarded, which is the same shape as the nit itself: a mark whose
+// position nothing asserts is a mark free to rot.
+// `type` NAMES THE TEXT THIS MARK HAS TO LINE UP WITH, and three of the six have none: the drone's,
+// the metronome's and the dealer's latches are bare berths alone in their row. Asking for a word
+// that is not there is what broke the first version of this loop — `btn.querySelector('.w')` was
+// null and the probe threw, which is the check reporting honestly that its own question does not
+// apply. So those three assert the ROW datum only, which is the whole of what "in line" can mean
+// where there is nothing to be in line with.
+const LATCHES = [
+  { route: '/practice-room/console/', testid: 'mic-toggle', type: '#mt-note', row: '.mt-read' },
+  { route: '/practice-room/console/', testid: 'drone-toggle', type: null, row: '.mt-read' },
+  { route: '/practice-room/console/', testid: 'metro-toggle', type: null, row: '.mt-read' },
+  { route: '/practice-room/loop/', testid: 'loop-toggle', type: '.mt-tl-read', row: '.mt-read' },
+  { route: '/practice-room/changes/', testid: 'chord-toggle', type: null, row: '.mt-read' },
+  // The worded one, and the only one with its word INSIDE the button. Its row is the 44px foot
+  // line, not a 28px lead, so there is no row centre to check — the word IS the datum here, which
+  // is the whole point of the pair.
+  { route: '/practice-room/changes/', testid: 'arp-toggle', type: null, row: null, word: true },
+] as const;
+
+for (const L of LATCHES) {
+  // BOTH WIDTHS. The nit is identical at 390 and 1512 (measured), and a derived offset should
+  // stay derived across the phone layout rather than being right at one width.
+  // AND BOTH COLOURWAYS, because the claim said so and the first version did not: it looped the
+  // two widths and never called `emulateMedia`, so every run was light. The offset is derived from
+  // `1ex` and cannot depend on a colour — which is exactly why asserting it is cheap, and why
+  // claiming it without asserting it was the wrong kind of confidence.
+  for (const width of [1512, 390]) for (const scheme of ['light', 'dark'] as const) {
+    test(`${L.testid}'s berth sits on the text's optical centre @${width} ${scheme}`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(L.route);
+      await page.waitForSelector(`[data-testid="${L.testid}"] .rd`, { state: 'attached' });
+      // One frame for the webfont: measured against a fallback metric, `1ex` is a different
+      // number and the check would be reading a document the reader never sees.
+      await page.evaluate(() => (document as any).fonts?.ready);
+
+      const m = await page.evaluate(({ testid, type, row }) => {
+        const btn = document.querySelector(`[data-testid="${testid}"]`)!;
+        const ink = btn.querySelector('.rd')!.getBoundingClientRect();
+        const box = btn.getBoundingClientRect();
+        // The type this mark has to line up with: the reading in its own row, or — for the
+        // worded latch — the button's own word.
+        const t = (type ? document.querySelector(type) : btn.querySelector('.w')) as HTMLElement | null;
+        // NO TEXT, NO x-HEIGHT CLAIM. A bare berth has nothing to be in line with, so the probe is
+        // skipped and the row datum below is the whole assertion. Returning null rather than
+        // throwing is the difference between "does not apply" and "broken".
+        if (!t) {
+          const rr0 = (row ? (btn.closest(row) ?? document.querySelector(row)) : null)?.getBoundingClientRect() ?? null;
+          return { inkC: ink.top + ink.height / 2, inkTop: ink.top, inkBot: ink.bottom,
+                   targetC: box.top + box.height / 2, target: { w: box.width, h: box.height },
+                   xC: null as number | null,
+                   rowC: rr0 ? rr0.top + rr0.height / 2 : null,
+                   rowTop: rr0?.top ?? null, rowBot: rr0?.bottom ?? null, rowH: rr0?.height ?? null };
+        }
+        const probe = document.createElement('span');
+        probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
+        t.appendChild(probe);
+        const baseline = probe.getBoundingClientRect().bottom;
+        probe.remove();
+        const exBox = document.createElement('div');
+        exBox.style.cssText = 'position:absolute;visibility:hidden;width:1px;height:1ex';
+        t.appendChild(exBox);
+        const ex = exBox.getBoundingClientRect().height;
+        exBox.remove();
+        const r = row ? (btn.closest(row) ?? document.querySelector(row)) : null;
+        const rr = r?.getBoundingClientRect() ?? null;
+        return {
+          inkC: ink.top + ink.height / 2,
+          inkTop: ink.top, inkBot: ink.bottom,
+          targetC: box.top + box.height / 2,
+          target: { w: box.width, h: box.height },
+          xC: baseline - ex / 2,   // the type's optical centre, in the page's own font
+          rowC: rr ? rr.top + rr.height / 2 : null,
+          rowTop: rr?.top ?? null, rowBot: rr?.bottom ?? null, rowH: rr?.height ?? null,
+        };
+      }, L);
+
+      // THE READING: the mark's ink centre is on the type's optical centre. 1.5px of slack and
+      // not 0.5, because the two contexts land on either side of it by construction and neither
+      // residual is worth a hand number: the 28px row's centre is 1.13px above the type's
+      // x-height centre (the bare latches), and the derived `(100% − 1ex)/2` lands the worded
+      // one on it to 0.00. Both are under a pixel and a half; the 8.37 this replaces is not.
+      if (m.xC !== null) {
+        expect(Math.abs(m.inkC - m.xC),
+          `${L.testid}: ink centre ${m.inkC.toFixed(2)} vs the type's optical centre ${m.xC!.toFixed(2)}`)
+          .toBeLessThan(1.5);
+      } else {
+        // and the three bare ones must still be MEASURED against something, or "does not apply"
+        // becomes a way of asserting nothing: their row centre is checked below, exactly.
+        expect(m.rowC, `${L.testid}: a bare berth must have a row to be centred in`).not.toBeNull();
+      }
+
+      // AND THE MECHANISM, not just the reading — a check that only measures the outcome passes
+      // for the wrong reason as soon as someone re-introduces a nudge that happens to cancel.
+      if (m.rowC !== null) {
+        // No word in this row: the 28px lead centres a 16px margin box on its own centre line,
+        // so the correct declaration is `none` and the correct measurement is exact equality.
+        expect(Math.abs(m.inkC - m.rowC),
+          `${L.testid}: the row centres the mark by construction — ink ${m.inkC.toFixed(2)} vs row ${m.rowC!.toFixed(2)}`)
+          .toBeLessThan(0.51);
+        // The ink is INSIDE its row, which the 9.5 broke by 3.5px at the bottom.
+        expect(m.inkTop, `${L.testid}: ink top inside the row`).toBeGreaterThanOrEqual(m.rowTop! - 0.51);
+        expect(m.inkBot, `${L.testid}: ink bottom inside the row`).toBeLessThanOrEqual(m.rowBot! + 0.51);
+        // And concentric with its own tap target: the padding is symmetric, so a mark that is
+        // off its target's centre is a mark that has been nudged out of it.
+        expect(Math.abs(m.inkC - m.targetC),
+          `${L.testid}: ink ${m.inkC.toFixed(2)} vs its own target's centre ${m.targetC.toFixed(2)}`)
+          .toBeLessThan(0.51);
+        expect(m.rowH, `${L.testid}: the reading row keeps its lead`).toBeCloseTo(28, 0);
+      }
+      // Nothing here is allowed to buy the alignment with a smaller target (WCAG 2.5.8).
+      expect(Math.min(m.target.w, m.target.h),
+        `${L.testid}: target ${m.target.w.toFixed(0)}×${m.target.h.toFixed(0)}`).toBeGreaterThanOrEqual(44);
+    });
+  }
+}

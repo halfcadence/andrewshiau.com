@@ -30,8 +30,10 @@ const BASE = process.env.VERIFY_BASE || 'http://127.0.0.1:4388';
 // state, both found by shooting the page mid-phrase instead:
 //   · the reading wrapped to two lines at 390 and 360 once a frequency was in it, which took the
 //     28px row to 56 and pushed the switch down into the record row;
-//   · the switch's 9.5px optical nudge overhangs its row by 3.5px, and with panels present that
-//     overhang was drawn into a panel's own figure.
+//   · the switch's 9.5px optical nudge overhung its row by 3.5px, and with panels present that
+//     overhang was drawn into a panel's own figure. (That nudge is deleted as of 2026-08-12 — the
+//     row was already centring the mark — so this one is history, not a live hazard. Kept because
+//     the reason the harness measures the RUNNING page is what it is a record of.)
 // Neither is visible without audio, so the harness takes the same phrase fixture the e2e suite
 // drives and measures the instrument RUNNING as well as at rest.
 const FIXTURE = new URL('../tests/e2e/fixtures/phrase-4.wav', import.meta.url).pathname;
@@ -186,7 +188,10 @@ for (const scheme of ['light', 'dark']) {
     });
     const page = await ctx.newPage();
 
-    await page.goto(`${BASE}/practice-room/`, { waitUntil: 'load' });
+    // THE TUNER HAS ITS OWN ROUTE (2026-08-12). `/practice-room/` is an index of three links now,
+    // so this harness had been failing on `#mt-mic .rd` — an uncaught TimeoutError before the first
+    // comparison, which reads as the whole pair being unverified rather than as a stale address.
+    await page.goto(`${BASE}/practice-room/console/`, { waitUntil: 'load' });
     await page.waitForSelector('#mt-mic .rd', { state: 'attached', timeout: 15000 });
     const room = await page.evaluate(readRoom);
 
@@ -381,9 +386,12 @@ for (const scheme of ['light', 'dark']) {
       live.ink.x + live.ink.w / 2, live.kase.x + live.kase.w / 2);
 
     // 3. THE TRANSPORT DOES NOT OVERLAP THE RECORD, and this is a check about RECTANGLES, not
-    //    about two y values. The switch's ink carries a 9.5px optical nudge so it hangs 3.5px
-    //    past its own row; the panels' drawings sit at the BOTTOM of theirs so that overhang
-    //    falls into the row's own slack.
+    //    about two y values. It USED to be about an overhang: the switch's ink carried a 9.5px
+    //    nudge and hung 3.5px past its own row, while the panels' drawings sat at the bottom of
+    //    theirs so the overhang fell into the row's slack. The nudge is gone (2026-08-12 — it was
+    //    a number derived for an alignment context the control had stopped having), so the switch's
+    //    ink is inside its row now and the rectangle check has one less reason to be near-miss.
+    //    It stays a rectangle check anyway, for the reason the next paragraph gives.
     //    THE FIRST VERSION COMPARED VERTICAL EDGES ONLY and reported "the transport overlaps
     //    the record by 3.50px" in all ten live configurations — on a page where the panels fill
     //    from the left inset and the switch is centred, so with three panels they were 546px

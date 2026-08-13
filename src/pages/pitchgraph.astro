@@ -329,16 +329,21 @@ import Layout from '../layouts/Layout.astro';
      THE RULE THIS PAGE ALREADY STATES TWICE: markup this page creates in JS needs its CSS in
      the `is:global` chunk. It was written for the SVG marks and for `.pg-sr`, and the panel's
      own box was left behind both times.
-     ── AND THE DRAWINGS SIT AT THE ROW'S BOTTOM (found by shooting the page mid-phrase):
-     the switch's ink carries `translateY(9.5px)` to sit on the type's optical centre, so it
-     hangs 3.5px BELOW its own 28px row. On the practice room that overhang falls into
-     `slack-b`, which is air; here the record row is the reading's immediate neighbour, so the
-     overhang lands in the row that holds the panels. The row is 3 leads and its drawings are 2,
-     so a whole lead of it is already slack — putting the drawings at the END moves that slack
-     to the TOP, exactly where the overhang is. No new number, nothing a reader can see moves.
-     Rejected: shrinking the 9.5px nudge (derived from the cap height, and the parity harness
-     pairs it with the room's), and a gap between the rows (a number off the ladder for a
-     problem the ladder's own slack already covers). */
+     ── AND THE DRAWINGS SIT AT THE ROW'S BOTTOM (found by shooting the page mid-phrase).
+     THE REASON THIS WAS WRITTEN FOR IS GONE, and it is recorded rather than quietly kept: the
+     switch's ink used to carry `translateY(9.5px)`, which hung it 3.5px BELOW its own 28px row
+     and put the overhang in the row that holds these panels, so the panels were pushed to the
+     END to move the row's spare lead up to meet it. That nudge is deleted (see `.pg-rd` below —
+     the row was already centring the mark, and the 9.5 was the defect the annotation "this
+     needs to be in line with text" was about). There is no overhang to absorb now.
+     `align-items:flex-end` STAYS, on its own merit and not as a compensation: the row is 3
+     leads and its drawings are 2, so a lead of it is slack either way, and a panel that grows
+     should grow upward from the reading it belongs to. It also cannot have moved with the
+     nudge's removal — a `transform` takes no part in layout, so the only thing that changed is
+     where the switch's ink paints, and the panels' boxes and the row's height are the same
+     numbers before and after (the spec's `panels` row and panel-height checks pass either way).
+     Rejected: a gap between the rows (a number off the ladder for a problem the ladder's own
+     slack already covers). */
   .pg-panel{flex:none;position:relative;border-left:1px solid var(--line);
     padding:0 2px;min-width:14px;
     display:flex;align-items:flex-end}
@@ -648,13 +653,23 @@ import Layout from '../layouts/Layout.astro';
      tall. The ink then sits where the row wants it and the target overhangs into the slack,
      which is air. Nothing is shrunk to fit — both axes still clear 44. */
   .pg-cap .pg-btn.pg-latch{min-height:0;padding:14px 6px;margin:-14px -6px}
-  /* THE TOGGLE SITS ON THE TEXT'S OPTICAL CENTRE. The row is a baseline-aligned flex, so
-     the svg's own box bottom lands on the text baseline — which puts a 16px mark 8.5px
-     ABOVE where the type reads as centred, because type's visual middle is half its cap
-     height above the baseline, not half its line box. 4.5 (half the 9px cap) + 5 (the
-     residue of half the svg's height) = 9.5, and it is measured rather than nudged: the
-     parity harness reads this transform off both pages and fails if they disagree. */
-  .pg-rd{flex:none;display:block;transform:translateY(9.5px)}
+  /* THE TOGGLE SITS ON THE TEXT'S OPTICAL CENTRE, AND THE ROW ALREADY PUTS IT THERE.
+     This carried `translateY(9.5px)`, copied from the room, on the stated ground that "the
+     row is a baseline-aligned flex, so the svg's own box bottom lands on the text baseline".
+     That stopped being true of `.pg-cap` when it took `align-items:center` over
+     `min-height:var(--lead)` together with the padding-and-pull above: the button's MARGIN box
+     is 16px (44 padded, 28 pulled back), so a 28px row centres the mark's ink on the row's own
+     centre line with no help. Measured on the built page at 1512px, transform removed: ink
+     centre == `.pg-read`'s centre, to 0.00. With the 9.5 the ink sat 9.50px below that centre,
+     8.37px below the x-height centre of the note beside it, and 3.50px outside its own row.
+     The arithmetic was stale as well — "4.5 (half the 9px cap) + 5 (half the svg's height)":
+     half of 16 is 8, not 5; the 5 was the residue of the old 22×11 mark.
+     ONE MARK, ONE DATUM: this page's switch has no word (treatment 05), so the only datum it
+     has is its row, and the row is right. The room's `.rd` keeps a derived nudge for the ONE
+     latch there that does sit beside a word (`arpeggiate`), and `none` for the five that
+     don't — this is the same `none`, and the parity harness reads both transforms and fails
+     if they disagree. */
+  .pg-rd{flex:none;display:block;transform:none}
   .pg-fld{fill:none;stroke:var(--line);stroke-width:1.5}
   .pg-dt{fill:var(--ink);
     transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}

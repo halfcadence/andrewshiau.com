@@ -5,8 +5,9 @@
 // configuration and which had two real defects the moment a note was played:
 //   · the reading wrapped to two lines at 390/360 once it had a frequency in it, doubling the
 //     28px row and pushing the transport down into the record row;
-//   · the switch's 9.5px optical nudge overhangs its own row by 3.5px, and the panels' figures
-//     were drawn at the TOP of theirs, so the two marks shared pixels once the record filled.
+//   · the switch's ink overhung its own row by 3.5px — a 9.5px optical nudge, since deleted
+//     (2026-08-12) — and the panels' figures were drawn at the TOP of theirs, so the two marks
+//     shared pixels once the record filled.
 // Both were found by looking at THIS shot. An idle instrument is a picture of furniture; the
 // state worth checking is the one a player is in.
 //

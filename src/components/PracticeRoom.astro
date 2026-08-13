@@ -2630,6 +2630,14 @@ const rooms = THINGS.map((t) => ({
      should report its WORD's baseline; naming two of the three kinds was the bug. The
      `gap:1ch` is harmless on `.scrubv`, which has no track to separate. */
   .tbtn{display:inline-flex;align-items:baseline;gap:1ch}
+  /* THE RING'S 2px IS THE SECOND ANSWER TO THE SAME QUESTION, and it is left standing on purpose.
+     The berth (`.rd`) now derives its offset from the type it sits beside — `(100% - 1ex)/2`, the
+     difference between centring a mark on its own box and centring type on its x-height. The ring
+     (`.tk`, on `tap` and `deal`) still carries a hand-typed 2px, so this page has two answers to
+     "where does a mark sit beside a word". That is a real inconsistency and the honest reason not
+     to fix it here is that the ring's whole vocabulary is question 2 of the controls chooser —
+     "use the design lang from the play/pause maybe here" — and a mark that may be replaced next
+     week is not worth re-deriving today. If the chooser keeps the ring, derive this the same way. */
   .tbtn .tk{flex:none;display:block;overflow:visible;transform:translateY(2px)}
   /* ── THE VERB SITS ON THE AXIS, NOT THE BUTTON (axis datum, 2026-08-05) ─────
      The transport is the figure's caption, so the WORD is what has to sit on the case's centre
@@ -2703,20 +2711,51 @@ const rooms = THINGS.map((t) => ({
      the pick's stated cost, not an oversight — but both axes still clear 44, which is the
      line that matters and is asserted in the e2e suite. */
   .mt-cap .tbtn.latch{min-height:0;padding:14px 6px;margin:-14px -6px}
-  /* THE TOGGLE SITS ON THE TEXT'S OPTICAL CENTRE, MEASURED (annotation 2026-08-07: "this
-     needs to be in line with text"). The row is a baseline-aligned flex, so the svg's own
-     box bottom lands on the text baseline — which puts a 16px-tall mark 8.5px ABOVE where
-     the type reads as centred, because type's visual middle is half its CAP height above
-     the baseline, not half its line box.
-     Measured on the built page at 1512px: cap height 9px (and the digits are 9px too, so
-     "A4" and "−4.1" agree), baseline y545, so the optical centre is y540.5. The svg's
-     centre was y532. The correction is 8.5px, on top of the 1px this rule already carried
-     for the old 22×11 mark → 9.5px.
-     Derived, not nudged: `50% of cap` is why it is 4.5, and `half the svg's height` is why
-     the rest is 5 — at 32×16 the svg's centre is 8px below its top, and its top sat 8.5px
-     above the cap centre. A future change to the mark's height or the type size changes
-     this number, and the harness measures it rather than trusting it. */
-  .rd{flex:none;display:block;transform:translateY(9.5px)}
+  /* THE TOGGLE SITS ON THE TEXT'S OPTICAL CENTRE (annotation 2026-08-07, repeated
+     2026-08-12: "this needs to be in line with text").
+     WHAT WAS WRONG. This was ONE hand number, `translateY(9.5px)`, on all six berths, and
+     it was derived for a datum only one of them has. Its comment said "the row is a
+     baseline-aligned flex, so the svg's own box bottom lands on the text baseline" — true
+     of the arp latch, and NOT true of the five in `.mt-cap`, which took `align-items:center`
+     over `min-height:var(--lead)` in the tap-target pass above. Those five get their y from
+     the ROW, and the row had already put them where they belong: measured on the built page
+     at 1512px, with the transform removed the mark's ink centre is 559.00 and `.mt-read`'s
+     centre is 559.00 — equal, by construction, because the padding-and-pull idiom above
+     leaves the button a 16px MARGIN box (44 padded, 28 pulled back) inside a 28px line.
+     So the 9.5 was pure surplus on five of six marks. Live it put the mic's ink 8.37px below
+     the x-height centre of the type in its own row, 4.50px below that type's baseline, 9.50px
+     off the centre of its own 44px tap target, and 3.50px OUTSIDE the 28px row — the berth
+     read as hanging off the reading rather than sitting on it. Beside `arpeggiate`, where the
+     datum really is the baseline, the same number landed 5.37px low. Two datums, one number:
+     it could not be right for both, and measured it was right for neither.
+     Its own arithmetic was stale too: "4.5 = half the cap height" plus "5 = half the svg's
+     height". Half of 16 is 8, not 5; the 5 was left over from the old 22×11 mark.
+     WHAT REPLACES IT — one rule per datum, each spelled in a quantity the page already has.
+     Here the datum is the WORD's baseline: `.tbtn{align-items:baseline}` synthesizes an
+     inline svg's baseline as its bottom margin edge, so an unnudged mark's centre sits half
+     its OWN height above the baseline, while type reads as centred on its x-height centre,
+     one half-ex above it. Lower it by the difference of those two halves:
+       (100% − 1ex) / 2  =  (16px − 7.734px) / 2  =  4.13px
+     `100%` on translateY is the element's own height and `1ex` is the font's own x-height, so
+     the number re-derives itself if the mark is resized or the type changes — nothing to
+     hand-edit. Measured after, on `arpeggiate` at 1512 and 390, light and dark: 0.00px off the
+     x-height centre (was 5.37 low).
+     Why the x-height and not the cap height, which is what the old comment used: `1ex`
+     resolves to 7.734px against a drawn x-ink of 8px (agrees to 0.27), where `1cap` resolves
+     to 10.469px against a drawn cap-ink of 9px (off by 1.47). The x-height is the quantity
+     this font actually reports honestly, and the two centres are 0.63px apart anyway. */
+  .rd{flex:none;display:block;transform:translateY(calc((100% - 1ex) / 2))}
+  /* AND WHERE THERE IS NO WORD, NOTHING TO CORRECT. The five latches in `.mt-cap` sit in a
+     28px row that centres a 16px margin box on its own centre line, which is 1.13px above the
+     type's x-height centre and 0.50px above its cap centre — both under a pixel, and kept as a
+     residual rather than removed with a second hand number. The win here is a number deleted,
+     not a number improved.
+     `transform:none` and not "no rule at all", because `.rd` above is the shared base for all
+     six marks; this is the override that says which of them has a baseline to answer to.
+     Paired with `.pg-rd` in src/pages/pitchgraph.astro — same construction, same fix, and
+     tools/verify-pitchgraph-parity.mjs compares the two pages' computed transforms to each
+     other, so a change to one without the other is a FAIL by design. */
+  .mt-cap .rd{transform:none}
   .fld{fill:none;stroke:var(--line);stroke-width:1.5}
   .dt{fill:var(--ink);
     transition:transform var(--dur) var(--ease),fill var(--dur) var(--ease)}
