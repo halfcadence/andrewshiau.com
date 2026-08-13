@@ -24,44 +24,24 @@ process, and is closed in a `finally` block. Never 0.0.0.0: an unauthenticated s
 all interfaces is a CRITICAL Qualys finding on this machine and has been cited twice.
 See CLAUDE.md, "Two rules that bite".
 
-Chrome: whatever `CHROME=` points at, else the Chrome-for-Testing build the MCP tooling
-installs under /tmp. There is no npm dependency here — the site has one runtime dep and
-this script does not add a second.
+Chrome discovery and the loopback server are shared with og-shoot.py: scripts/_browser.py.
+There is no npm dependency here — the site has one runtime dep and this script does not
+add a second.
 """
 import argparse
-import functools
-import http.server
 import os
 import re
-import socketserver
 import subprocess
 import sys
-import threading
+
+from _browser import find_chrome, serve_dir
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(REPO, "dist")
 PORT = int(os.environ.get("PRINT_CHECK_PORT", "8127"))
 
-CHROME_CANDIDATES = [
-    os.environ.get("CHROME", ""),
-    "/tmp/chromium-1208/chrome-linux64/chrome",
-    "/opt/google/chrome/chrome",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium",
-]
-
 # Letter at 96dpi minus the @page margins the stylesheet sets (14mm 16mm).
 PAGE_PT = 792.0
-
-
-def find_chrome() -> str:
-    for c in CHROME_CANDIDATES:
-        if c and os.path.exists(c):
-            return c
-    sys.exit(
-        "No Chrome found. Set CHROME=/path/to/chrome.\n"
-        "On this devbox the Chrome-for-Testing build lives under /tmp/chromium-*/."
-    )
 
 
 def main() -> int:
@@ -81,16 +61,7 @@ def main() -> int:
 
     chrome = find_chrome()
 
-    class Quiet(http.server.SimpleHTTPRequestHandler):
-        def log_message(self, *a):
-            pass
-
-    socketserver.TCPServer.allow_reuse_address = True
-    srv = socketserver.TCPServer(
-        ("127.0.0.1", PORT), functools.partial(Quiet, directory=DIST)
-    )
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
-    try:
+    with serve_dir(DIST, PORT):
         url = f"http://127.0.0.1:{PORT}{args.path}"
         subprocess.run(
             [
@@ -100,9 +71,6 @@ def main() -> int:
             ],
             capture_output=True, timeout=180,
         )
-    finally:
-        srv.shutdown()
-        srv.server_close()
 
     if not os.path.exists(args.out):
         sys.exit("Chrome produced no PDF.")

@@ -12,7 +12,7 @@ that were reported but not acted on.
 Every image is the real page (crops at 3-4x device scale, options applied for
 real over loopback). Numbers live in DATA below; nothing is hand-typed twice.
 
-  python3 tools/build-findings-chooser.py
+  python3 scripts/build-findings-chooser.py
 """
 import base64
 import json

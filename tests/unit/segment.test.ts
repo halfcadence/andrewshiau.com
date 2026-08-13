@@ -3,7 +3,7 @@ import {
   STRATEGIES, DEFAULT_STRATEGY_ID, createSegmenter, getStrategy, resolveParams,
   segment, noteRuns, shown, centerWeighted, AXIS_LIMIT_CENTS, IN_TUNE_CENTS,
   PRACTICE_BANDS, type Sample,
-} from '../../src/lib/practice-room/segment';
+} from '../../src/lib/segment';
 
 // The read cadence the instrument actually uses, so durations here are the durations
 // on the page rather than abstract frame counts.

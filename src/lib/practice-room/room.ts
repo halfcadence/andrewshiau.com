@@ -1,23 +1,10 @@
 // THE ROOM'S MEASUREMENTS, AND THE MARKS: what a case needs, what a page holds, what an app's
 // figure is.
 //
-// WHY THIS FILE EXISTS. The room used to be five columns written into the page —
-// `1fr 1fr 210px 315px 236px` — with the count fixed at five and the order fixed by source
-// position. A sixth instrument meant editing a grid, and every viewport under 1477px got the
-// phone swiper because five fixed columns do not fit a laptop.
-//
-// IT WAS A QUEUE FOR ONE DAY (chooser `practice-room-queue`, 2026-08-11): an order you set once,
-// a width that decided how many of it were on screen, the rest reached by scrolling. The owner
-// rejected it on sight of the built page — "the snapping and settling don't work quite right, i
-// also think its a bit concerningly busy on desktop" — and the room is an INDEX now: the plan is
-// page 0, every thing is one whole page, you press a box to open it and a mark to come back.
-//
-// SO THE QUEUE'S ARITHMETIC IS DELETED, not kept for a rainy day: `fitRoom`, `fitThings`,
-// `normalizeOrder`, `normalizeThings`, `moveTo`, `nudge`, `settleTo` and their two interfaces,
-// with the ~40 unit tests that covered them. A pure function nothing calls still describes the
-// design to whoever reads it next, and `settleTo` had already survived one round on the excuse
-// that its tests needed it — which is a deleted mechanism kept alive by its own harness. What is
-// left is what the page calls: the demands, PAD/GAP, THINGS, splitThing, and the mark generator.
+// The room is an INDEX: three boxes, each a standalone page. This module holds what the pages
+// call — the demands, PAD/GAP, THINGS, ROUTE_CASES, splitThing, and the mark generator. (A
+// scrolling queue preceded the index for one day, 2026-08-11; its arithmetic is deleted, in
+// git history under chooser `practice-room-queue`.)
 //
 // EVERY NUMBER BELOW IS MEASURED, NOT PREFERRED. `demand` is the width at which an
 // instrument's own ink breaks, bisected on the built page one case at a time by
@@ -115,6 +102,15 @@ export const THINGS: readonly Thing[] = [
 ];
 export const THING_BY_ID: Readonly<Record<string, Thing>> =
   Object.fromEntries(THINGS.map((t) => [t.id, t]));
+
+/**
+ * Route → the cases it renders, derived from THINGS: the room holds none, and each thing's
+ * route is its id. PracticeRoom.astro renders from this; tests/unit/routes.test.ts pins it.
+ */
+export const ROUTE_CASES: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  room: [] as readonly string[],
+  ...Object.fromEntries(THINGS.map((t) => [t.id, t.keys])),
+});
 
 /**
  * A thing's width demand: its members' measured demands plus one `GAP` between each.

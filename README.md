@@ -29,19 +29,20 @@ CRITICAL Qualys finding — it has happened twice. The one sanctioned exception 
 `scripts/print-check.py`, which binds `127.0.0.1`, runs in the foreground, and closes in
 a `finally`.
 
-Dependencies: **nothing ships at runtime** — no `dependencies` block at all, and the five
-devDependencies are build-time only (`astro`, `@astrojs/sitemap`, `tailwindcss` +
-`@tailwindcss/vite`, `basecoat-css`). Tailwind and Basecoat are used by `/system/` alone;
-`global.css` does the layout by hand. There is no markdown renderer either — `style.astro`
-carries its own ~145-line one for the thirteen constructs `STYLE.md` actually uses. Keep it
-that way: it must not grow into a parser.
+Dependencies: **nothing ships at runtime** — no `dependencies` block at all, and the seven
+devDependencies never leave the build or the test run (`astro`, `@astrojs/sitemap`,
+`tailwindcss` + `@tailwindcss/vite`, `basecoat-css`, plus `vitest` and `@playwright/test`).
+Tailwind and Basecoat are used by `/system/` alone; `global.css` does the layout by hand.
+There is no markdown renderer either — `style.astro` carries its own ~110-line one for the
+thirteen constructs `STYLE.md` actually uses. Keep it that way: it must not grow into a
+parser. These counts are asserted by `tests/unit/readme.test.ts`.
 
 ## Structure
 
 ```
 src/pages/index.astro        landing — pinned panel, Work + Experiments matrices, colophon
-src/pages/work/*.astro       8 case studies
-src/pages/writing/*.astro    3 explainers (own layout + quiz engine)
+src/pages/work/*.astro       10 case studies
+src/pages/writing/*.astro    4 explainers (own layout + quiz engine)
 src/pages/style.astro        renders STYLE.md itself, at build time
 src/pages/system.astro       every token and device drawn with the real classes
 src/pages/method.astro       the method files, with build-time assertions against method/
@@ -55,9 +56,9 @@ method/                      method.md + designer/builder/messaging, rendered by
 scripts/print-check.py       print a page for real and assert the PDF
 scripts/favicon-ico.py       regenerate the .ico files from MarkFigure.astro's geometry
 scripts/mac-preview.py       rewrite dist/ for file:// viewing on the Mac
+scripts/                     the only home for generator scripts (choosers, icons, og, checks)
 tools/og-card.html           source for public/og.png (not a route)
 deploy.sh                    rsync dist/ → droplet, with an empty-dist guard
-Caddyfile                    UNUSED — production is nginx
 ```
 
 To add an entry: append to `src/data/experiments.ts`, and add a page under
@@ -112,10 +113,8 @@ pages while the notes claimed 1.90.
 
 `/work/stores-designer/` is the one gated page.
 
-**What runs in production is nginx, not Caddy.** `systemctl is-active nginx caddy` on the
-droplet returns `active` / `inactive`; the live vhost is
+**What runs in production is nginx.** The live vhost is
 `/etc/nginx/sites-enabled/andrewshiau` (root `/var/www/andrewshiau`, certbot-managed TLS).
-The `Caddyfile` in this repo was never installed. Edit nginx, not the Caddyfile.
 
 **Read this first: this is a speed bump, not a safety guarantee.** It keeps a page out of
 Google and off a casual visitor's screen. It does **not** make the page safe for material
@@ -369,9 +368,9 @@ Non-app paths on the subdomain 301 to the apex, so the subdomain is not a second
 the site. And `$is_args$args` on every one of these redirects is deliberate: dropping
 `?e2e` once broke 21 tests.
 
-Certs were added with `certbot --nginx` rather than swapping in Caddy: nginx was already
-healthy serving every vhost, so adding certs in place had far lower blast radius than
-replacing the server on an EOL 512 MB box. That is why `Caddyfile` is unused.
+Certs were added with `certbot --nginx` rather than swapping in another server: nginx was
+already healthy serving every vhost, so adding certs in place had far lower blast radius
+than replacing the server on an EOL 512 MB box.
 
 **Anything destructive here — nginx config, certs, `rm` outside the webroot — stops and
 asks first.** Deploying does not: it is one rsync into a directory that holds nothing but

@@ -54,7 +54,7 @@ import Layout from '../layouts/Layout.astro';
 // discontinuous: move A4 → B4 and the reading wraps +49 → −49 without passing zero, so a
 // clean slur draws the same full-height vertical line a catastrophic error would. Deciding
 // WHEN the note changed is therefore load-bearing, and it has no answer that is right
-// everywhere. It lives in src/lib/practice-room/segment.ts as a registry of eight named,
+// everywhere. It lives in src/lib/segment.ts as a registry of eight named,
 // parameterised mechanisms with `node tools/segment-bench.mjs` to score them. This page
 // picks one; changing it is one string.
 //
@@ -815,7 +815,7 @@ import Layout from '../layouts/Layout.astro';
     createSegmenter, shown, centerWeighted, noteRuns,
     AXIS_LIMIT_CENTS, IN_TUNE_CENTS, PRACTICE_BANDS,
     type Sample,
-  } from '../lib/practice-room/segment';
+  } from '../lib/segment';
 
   const $ = (id: string) => document.getElementById(id)!;
 

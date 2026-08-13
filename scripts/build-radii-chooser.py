@@ -12,7 +12,7 @@ This sheet shows each option twice:
   · the REAL PAGE at true size — the whole width of the drawing, 2x device scale,
     needle live and centred, so you can judge whether 3.44px matters
 
-  python3 tools/build-radii-chooser.py
+  python3 scripts/build-radii-chooser.py
 """
 import base64
 import json

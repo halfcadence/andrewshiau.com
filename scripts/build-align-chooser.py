@@ -10,7 +10,7 @@ Every number comes from MEASURED below, read off the built page in headless
 Chrome over loopback (tools/_snap*.mjs). One data object → one page, so the
 prose and the tables cannot drift.
 
-  python3 tools/build-align-chooser.py
+  python3 scripts/build-align-chooser.py
 """
 import base64
 import json

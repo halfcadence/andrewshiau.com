@@ -8,7 +8,7 @@ everything else sits on. No grid, no module, no parity.
 Every number came off the built page in headless Chrome over loopback
 (tools/_two*.mjs). One data object -> one page.
 
-  python3 tools/build-datum-chooser.py
+  python3 scripts/build-datum-chooser.py
 """
 import base64
 import json

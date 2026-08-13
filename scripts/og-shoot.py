@@ -16,11 +16,13 @@ What it asserts, before and after the capture:
   4. Graphik and the retired olive appear nowhere in the card.
   5. The produced PNG is exactly 1200×630 and under 200kB.
 
-Server: 127.0.0.1 only, foreground, closed in a `finally`. Never 0.0.0.0 — an unauthenticated
-server bound to all interfaces on the dev desktop is a CRITICAL Qualys finding. Same pattern as
-scripts/print-check.py, which is the sanctioned exception on this box.
+Server: loopback only, via the shared scripts/_browser.py (same pattern as print-check.py,
+the sanctioned exception on this box). Never 0.0.0.0 — an unauthenticated server bound to
+all interfaces on the dev desktop is a CRITICAL Qualys finding.
 """
-import functools, http.server, os, re, shutil, socketserver, struct, subprocess, sys, threading, zlib
+import os, re, shutil, struct, subprocess, sys, zlib
+
+from _browser import serve_dir
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
@@ -30,21 +32,6 @@ MARK = os.path.join(ROOT, "src", "components", "MarkFigure.astro")
 OUT = os.path.join(ROOT, "public", "og.png")
 PORT = 8931
 SERVED_NAME = "__og-card.html"   # temporary, inside dist/ only
-
-CHROMES = [
-    os.environ.get("CHROME", ""),
-    "/tmp/chromium-1208/chrome-linux64/chrome",
-    "/opt/google/chrome/chrome",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium",
-]
-
-
-def find_chrome() -> str:
-    for c in CHROMES:
-        if c and os.path.exists(c):
-            return c
-    sys.exit("No Chrome found. Set CHROME=/path/to/chrome.")
 
 
 def norm(s: str) -> str:
@@ -177,13 +164,6 @@ def main() -> None:
     served = os.path.join(DIST, SERVED_NAME)
     shutil.copyfile(CARD, served)
 
-    class Quiet(http.server.SimpleHTTPRequestHandler):
-        def log_message(self, *a):
-            pass
-
-    socketserver.TCPServer.allow_reuse_address = True
-    srv = socketserver.TCPServer(("127.0.0.1", PORT), functools.partial(Quiet, directory=DIST))
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
     try:
         # ── PLAYWRIGHT, NOT `chrome --headless --screenshot`, AND THE REASON IS A REAL DEFECT.
         # The first cut of this script shot the card with headless Chrome's own --screenshot
@@ -202,17 +182,16 @@ def main() -> None:
         # correctly-sized artifact, and a third of the content missing. The assertions above
         # cannot catch it — they read the SOURCE. Only the pixels can, which is why the ink
         # check below is not optional.
-        r = subprocess.run(
-            ["node", os.path.join(ROOT, "tools", "og-capture.mjs"),
-             f"http://127.0.0.1:{PORT}/{SERVED_NAME}", OUT],
-            capture_output=True, timeout=180, cwd=ROOT, text=True,
-        )
+        with serve_dir(DIST, PORT):
+            r = subprocess.run(
+                ["node", os.path.join(ROOT, "tools", "og-capture.mjs"),
+                 f"http://127.0.0.1:{PORT}/{SERVED_NAME}", OUT],
+                capture_output=True, timeout=180, cwd=ROOT, text=True,
+            )
         if r.returncode != 0:
             fail(f"capture failed:\n{r.stdout}\n{r.stderr}")
         capture_report = r.stdout.strip()
     finally:
-        srv.shutdown()
-        srv.server_close()
         if os.path.exists(served):
             os.remove(served)   # must never deploy: it would be a real route
 

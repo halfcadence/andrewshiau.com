@@ -6,7 +6,7 @@ measured (tools/_recut3.mjs against the built page over loopback) and lives in
 MEASURED below; nothing is hand-typed per option, so the numbers cannot drift
 between the prose and the table.
 
-  python3 tools/build-column-chooser.py
+  python3 scripts/build-column-chooser.py
   → ~/workplace/work/understand/practice-room-column-grid/index.html
 """
 import base64

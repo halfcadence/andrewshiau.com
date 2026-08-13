@@ -10,3 +10,4 @@ tests/e2e/fixtures/
 # Playwright run output — a per-run artifact, committed once by accident.
 test-results/
 playwright-report/
+__pycache__/

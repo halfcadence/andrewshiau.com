@@ -12,7 +12,7 @@ Q2's answer changes how Q1's options read, so the sheet is REACTIVE per the
 skill's rule for element-scale questions: every Q1 option renders inside the
 CURRENT Q2 placement, and picking a placement re-renders all 12.
 
-  python3 tools/build-transport-chooser.py
+  python3 scripts/build-transport-chooser.py
 """
 import base64
 import pathlib

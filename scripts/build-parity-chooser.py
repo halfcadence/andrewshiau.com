@@ -10,7 +10,7 @@ PARITY, not of any grid.
 Every number in MEASURED came off the built page in headless Chrome over loopback
 (tools/_parity*.mjs, tools/_rulecheck.mjs). One data object → one page.
 
-  python3 tools/build-parity-chooser.py
+  python3 scripts/build-parity-chooser.py
 """
 import base64
 import json

@@ -25,9 +25,8 @@
    4. INK, PLUS ONE HUE FOR ONE JOB. Colour means "you can act on this" — links and the
       hovered row, nothing else. --design and --build no longer differ.
 
-  Typeface: IBM Plex Mono, self-hosted, four faces. Graphik is retired — its four woff2
-  files stay in public/fonts until the design system pass, because the explainer pages
-  under public/writing/ carry their own inline <style> and still ask for it.
+  Typeface: IBM Plex Mono, self-hosted, four faces. Graphik is retired from the site;
+  its woff2 files live in public/demo/fonts, used only by the archived layout demo there.
 */
 @font-face{
   font-family:"Plex"; font-style:normal; font-weight:400; font-display:swap;

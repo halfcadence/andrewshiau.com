@@ -32,7 +32,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SRC = join(HERE, '..', 'src', 'lib', 'practice-room', 'segment.ts');
+const SRC = join(HERE, '..', 'src', 'lib', 'segment.ts');
 const require = createRequire(import.meta.url);
 
 let transformSync;
