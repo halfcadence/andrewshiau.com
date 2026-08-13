@@ -34,10 +34,12 @@ npm run build && ./deploy.sh && git push
 ## Two rules that bite
 
 1. **Never run a dev server on the Amazon devbox.** `npm run dev` runs on the **Mac**
-   only. On the devbox, `npm run build` and view the Unison-synced `file://` copy. A
-   server bound to `0.0.0.0` here is a CRITICAL Qualys finding (it has happened twice).
-   The one sanctioned exception is `scripts/print-check.py`, which binds **127.0.0.1**,
-   runs in the foreground, and closes in a `finally` — see below for why it needs a server.
+   only. A server bound to `0.0.0.0` here is a CRITICAL Qualys finding (it has happened
+   twice). **Loopback** is the sanctioned shape: bind `127.0.0.1`, stay in the foreground,
+   close in a `finally` — that is what `scripts/print-check.py` does, and the devbox
+   browser (`mcp__playwright__*`) reaches `127.0.0.1`, verified 2026-08-13. So the devbox
+   route for a visual check is `npm run build` → loopback → devbox browser, not the
+   Unison-synced `file://` copy, which cannot resolve this site's assets (below).
 2. **A green build ≠ a correct change.** Fetch the LIVE bundle and grep for what you
    shipped, then eyeball the rendered page (light, dark, and phone width). Two bugs
    shipped clean-built.
