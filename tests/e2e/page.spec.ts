@@ -28,7 +28,12 @@ for (const [name, r] of Object.entries(ROUTES)) {
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 
     await page.goto(r.path);
-    for (const id of r.present) await expect(page.getByTestId(id), `${id} on /${name}/`).toBeVisible();
+    for (const id of r.present) {
+      // `.first()` for `plan-word`: the way back is rendered on EVERY case (each is its own page on
+      // a phone) and the desktop hides all but the first. A bare getByTestId is strict-mode ambiguous
+      // there, which is Playwright telling the truth about the markup rather than a test problem.
+      await expect(page.getByTestId(id).first(), `${id} on /${name}/`).toBeVisible();
+    }
     // AND THE OTHERS ARE ABSENT, not merely hidden: a case rendered on the wrong route would keep
     // its markup on the row ladder and its script wired to a control nobody can see.
     for (const id of r.absent) await expect(page.getByTestId(id), `${id} must not be on /${name}/`).toHaveCount(0);

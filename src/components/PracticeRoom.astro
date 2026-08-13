@@ -120,20 +120,11 @@ const rooms = THINGS.map((t) => ({
   <div id="mt-app" data-page={page}>
     <h1 class="visually-hidden">{META[page].h1}</h1>
 
-    <!-- ══ THE WAY BACK IS A LINK (2026-08-12) ══════════════════════════════════════════════
-         It was a button that scrolled: the plan was a page of this screen's own scroller, so
-         "going back" was a scroll position and the mark had to hide itself when the plan was
-         already up. The room is a URL now, so this is an anchor — it works with JS off, it
-         middle-clicks into a new tab, and there is no state to keep in sync with a scroll.
-         IT COSTS EXACTLY ONE LEAD OR NOTHING. The screen is round(down,100dvh,28px), which is
-         what lets every case share one row ladder; a 30px bar puts all of them off it.
-         AND IT IS ABSENT ON THE ROOM, where it would point at the page you are on. -->
-    {page !== 'room' && (
-      <div class="mt-chrome">
-        <a class="mt-planword" href="../" data-testid="plan-word">← the room</a>
-      </div>
-    )}
-
+    <!-- THE CHROME ROW IS GONE (2026-08-12). It was one lead holding `← the room`, and the
+         /proofs sheet's second question was exactly what that lead buys: 28px of every screen,
+         for the whole session, to serve one press at the end of it. The mark moved onto the
+         case's top rule beside the plate, which is a line the page already draws — so the row
+         had nothing left to hold and the instrument is a lead taller at both widths. -->
     <div class="mt-pages" id="mt-pages">
       <!-- ── TUNER, the left case / first page ─────────────────────────────── -->
       <!-- THE CASE (chooser: metrotuner-pendulum, Q2/01): a square hairline case per
@@ -144,7 +135,17 @@ const rooms = THINGS.map((t) => ({
            along the case's bottom edge; the hero owns the middle. -->
     {has('tuner') && (
       <section class="mt-half" aria-label="Tuner" data-mt-key="tuner">
-        <span class="mt-plate" aria-hidden="true">tuner</span>
+        <!-- THE WAY BACK IS AN ARROW BESIDE THE NAME (his pick, 2026-08-12): "just putting a
+             back arrow ← next to case name works for mobile and desktop very minimal". The
+             chrome row is DELETED with it, so the instrument gets that lead back at both
+             widths — the cost the /proofs sheet drew for every option that moved this mark.
+             ONE GROUP, so nothing has to be positioned relative to a name whose width
+             changes: the arrow and the plate are one absolutely-placed flex row straddling
+             the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
+        <span class="mt-np">
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <span class="mt-plate" aria-hidden="true">tuner</span>
+        </span>
         <!-- CALIBRATION IS A TOP CONTROL now (user nit 6, 2026-08-04): it sets what
              the whole instrument means by "in tune", so it reads like a spec plate —
              top line, opposite the engraved name — rather than a control you play. -->
@@ -292,7 +293,17 @@ const rooms = THINGS.map((t) => ({
            worked instruments keep the width they had. Widths state importance. -->
     {has('drone') && (
       <section class="mt-half mt-drone" aria-label="Drone" data-mt-key="drone">
-        <span class="mt-plate" aria-hidden="true">drone</span>
+        <!-- THE WAY BACK IS AN ARROW BESIDE THE NAME (his pick, 2026-08-12): "just putting a
+             back arrow ← next to case name works for mobile and desktop very minimal". The
+             chrome row is DELETED with it, so the instrument gets that lead back at both
+             widths — the cost the /proofs sheet drew for every option that moved this mark.
+             ONE GROUP, so nothing has to be positioned relative to a name whose width
+             changes: the arrow and the plate are one absolutely-placed flex row straddling
+             the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
+        <span class="mt-np">
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <span class="mt-plate" aria-hidden="true">drone</span>
+        </span>
         <!-- A4 IS ON BOTH CASES, ONE VALUE (the user's refinement on Q4: "it makes sense
              for both to have a pitch calibration but they're synced?"). The alternative on
              the sheet was one owner — either the tuner keeps it or it follows the sound —
@@ -452,7 +463,17 @@ const rooms = THINGS.map((t) => ({
            strike now carries it — the downbeat's tick strikes heavier. -->
     {has('metronome') && (
       <section class="mt-half" aria-label="Metronome" data-mt-key="metronome">
-        <span class="mt-plate" aria-hidden="true">metronome</span>
+        <!-- THE WAY BACK IS AN ARROW BESIDE THE NAME (his pick, 2026-08-12): "just putting a
+             back arrow ← next to case name works for mobile and desktop very minimal". The
+             chrome row is DELETED with it, so the instrument gets that lead back at both
+             widths — the cost the /proofs sheet drew for every option that moved this mark.
+             ONE GROUP, so nothing has to be positioned relative to a name whose width
+             changes: the arrow and the plate are one absolutely-placed flex row straddling
+             the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
+        <span class="mt-np">
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <span class="mt-plate" aria-hidden="true">metronome</span>
+        </span>
         <!-- METER ON TOP, TRANSPORT ON THE BOTTOM (user nit 2, 2026-08-04): the
              set-per-piece controls (beats, subdivision) read as spec lines at the
              top; the played controls (start, tap, tempo) stay in hand's reach at
@@ -642,7 +663,17 @@ const rooms = THINGS.map((t) => ({
            C2–C7, asserted). The foot line says so in one word: `arpeggiate`. -->
     {has('changes') && (
       <section class="mt-half mt-changes" aria-label="Chord dealer" data-mt-key="changes">
-        <span class="mt-plate" aria-hidden="true">the changes</span>
+        <!-- THE WAY BACK IS AN ARROW BESIDE THE NAME (his pick, 2026-08-12): "just putting a
+             back arrow ← next to case name works for mobile and desktop very minimal". The
+             chrome row is DELETED with it, so the instrument gets that lead back at both
+             widths — the cost the /proofs sheet drew for every option that moved this mark.
+             ONE GROUP, so nothing has to be positioned relative to a name whose width
+             changes: the arrow and the plate are one absolutely-placed flex row straddling
+             the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
+        <span class="mt-np">
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <span class="mt-plate" aria-hidden="true">the changes</span>
+        </span>
         <!-- THE DECK IS THE SPEC CONTROL, like calibration on the other cases: it says what
              the instrument MEANS by a chord, and you set it per session rather than per rep.
              A selector, not latches — the decks are mutually exclusive, and the Track
@@ -734,7 +765,17 @@ const rooms = THINGS.map((t) => ({
            by not starting the thing until it is needed. -->
     {has('loop') && (
       <section class="mt-half mt-loop" aria-label="Loop" data-mt-key="loop">
-        <span class="mt-plate" aria-hidden="true">the loop</span>
+        <!-- THE WAY BACK IS AN ARROW BESIDE THE NAME (his pick, 2026-08-12): "just putting a
+             back arrow ← next to case name works for mobile and desktop very minimal". The
+             chrome row is DELETED with it, so the instrument gets that lead back at both
+             widths — the cost the /proofs sheet drew for every option that moved this mark.
+             ONE GROUP, so nothing has to be positioned relative to a name whose width
+             changes: the arrow and the plate are one absolutely-placed flex row straddling
+             the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
+        <span class="mt-np">
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <span class="mt-plate" aria-hidden="true">the loop</span>
+        </span>
         <div class="mt-ctop">
           <span class="mt-fr">
             <!-- THE SOURCE IS THE SPEC CONTROL: what the instrument is pointed at. -->
@@ -1497,32 +1538,13 @@ const rooms = THINGS.map((t) => ({
      OVERLAPPED, which Playwright reported as "the loop intercepts pointer events" on four
      unrelated tests. One dead stylesheet, four symptoms. */
 
-  /* ── THE CHROME ROW: one lead, one word (Where Q2/02) ──────────────────────────────
-     Flush to the room's own 3ch inset — everything that does not radiate from an instrument
-     sits on that datum, which is the page's whole horizontal rule. The word is lowercase like
-     every other word on the instrument, and it is `--dim` at rest so it reads as chrome rather
-     than as an instrument's own label. */
-  .mt-chrome{flex:none;height:var(--lead);display:flex;align-items:center;
-    /* `--inset` DOES NOT EXIST — the token is `--mt-inset`, declared on `#mt-app`. Both places
-       that wrote `var(--inset)` therefore had their whole padding declaration dropped as invalid
-       at computed-value time, which is CSS's silent failure mode: no warning, no fallback, just
-       `padding:0px` where 83px was intended. Measured on the built page rather than read from
-       source — `getComputedStyle` returned `0px` while the source plainly said otherwise. */
-    padding:0 calc(var(--group) + var(--mt-inset))}
-  /* AN ANCHOR, NOT A BUTTON — and with none of the site's link decoration, because this is
-     chrome rather than prose: the arrow says where it goes and `--dim` says it is not the
-     instrument. `text-decoration:none` is stated because global.css underlines every `a`. */
-  .mt-planword{font:inherit;color:var(--dim);text-decoration:none;
-    padding:6px 0;margin:-6px 0;line-height:16px;display:inline-block;
-    transition:color var(--dur-fast) var(--ease)}
-  .mt-planword:hover,.mt-planword:focus-visible{color:var(--accent)}
-  /* AND IT STAYS ON THE PHONE NOW. It used to be `display:none` under 760 because the plan was a
-     page of this screen's own scroller — the word would have been a second route to a place the
-     swipe already reached. The room is a URL now and the swipe cannot reach it, so hiding the link
-     would leave a phone with no way back at all. 28px of a phone's height is what that costs. */
-  @media (max-width: 759px){
-    .mt-chrome{padding:0 var(--mt-inset)}
-  }
+  /* `.mt-chrome` AND `.mt-planword` ARE DELETED, not left unused: a rule for markup nothing
+     renders describes a design that is not there. What they held — one lead, one word, flush to the
+     room's 3ch inset — is an arrow on the case's own top rule now (see `.mt-np` above). The one
+     thing worth carrying forward is why the padding read `calc(var(--group) + var(--mt-inset))`:
+     `--inset` does not exist, and both places that wrote it had their whole padding declaration
+     dropped as invalid at computed-value time — CSS's silent failure mode, no warning, `0px` where
+     83px was intended, visible only in the computed value. */
 
   /* ── THE ROOM'S WALLS ARE THE CASE'S OWN FRAME (his annotation, 2026-08-12) ──────────────
      "dont need this container if the room has one". There WAS a second bordered div inside the
@@ -1758,8 +1780,31 @@ const rooms = THINGS.map((t) => ({
     display:grid;grid-template-rows:subgrid;
     grid-template-columns:minmax(0, 1fr);
     padding:0 var(--mt-inset)}
-  .mt-plate{position:absolute;top:-14px;left:24px;background:var(--paper);
-    padding:0 1ch;color:var(--faint)}
+  /* ── THE NAMEPLATE GROUP. The plate used to carry the absolute position itself; the group
+     carries it now and the plate is an ordinary child, because the arrow has to sit beside a name
+     whose width is `tuner` on one case and `the changes` on another — a second absolute element
+     would need that width as a number. `baseline` and not `center`: the arrow is type, and the two
+     sit on the line the rule notches.
+     THE ARROW IS ON THE DATUM, not the name. The group's `left:24px` is the plate's own historic
+     offset (one 3ch inset less its 1ch knock-out padding), so whatever is FIRST in the group lands
+     where the plate's ink used to. That is the arrow, and the name follows it — the leftmost ink on
+     the case's top rule is still on the case's datum. */
+  .mt-np{position:absolute;top:-14px;left:24px;display:flex;align-items:baseline;
+    background:var(--paper)}
+  .mt-plate{background:var(--paper);padding:0 1ch;color:var(--faint)}
+  /* AN ANCHOR, with the site's link idiom turned off: global.css underlines every `a`, which is
+     right for prose and wrong for a mark on a rule. `--dim` at rest, accent on hover — the same
+     two states the deleted chrome word had. */
+  .mt-back{font:inherit;color:var(--dim);text-decoration:none;padding:0 0 0 1ch;
+    line-height:var(--lead);transition:color var(--dur-fast) var(--ease)}
+  .mt-back:hover,.mt-back:focus-visible{color:var(--accent)}
+  /* ONE ARROW PER SCREEN ON THE DESKTOP. The console shows three cases at once and three copies
+     of one control is three ways to say the same thing; the first case owns it, which is also the
+     top-left corner of the screen. On a phone every case is its own page, so every case keeps its
+     own — swiping to the metronome must not leave you with no way out. */
+  @media (min-width: 760px){
+    #mt-app[data-page="console"] .mt-half:not([data-mt-key="tuner"]) .mt-back{display:none}
+  }
   /* THE MIDDLE IS THREE ROWS, not a centred leftover. It spans figure -> read ->
      transport and passes the ladder through, so the tuner's readout and BOTH transports
      sit on rows the other case also has. The figure centres itself INSIDE its own row,
@@ -2222,8 +2267,9 @@ const rooms = THINGS.map((t) => ({
       border:1px solid var(--line);pointer-events:none}
     /* The plate still straddles the frame's top edge: half a lead down, less half its own
        28px line box, and in from the frame by the content's gutter. */
-    .mt-plate{display:block;top:calc(1ch - 14px);
-      left:calc(var(--mt-inset) - 1ch)}
+    /* the GROUP straddles the drawn frame here, so the override moves with the position */
+    .mt-np{top:calc(1ch - 14px);left:calc(var(--mt-inset) - 1ch)}
+    .mt-plate{display:block}
     /* THE DATUMS ARE DRAWN ON THE PHONE TOO (datum pass). This used to be
        `display:none`, and the reason given was sound for what the rule then contained — a
        second twelve-column grid over one case would have been the two-grids-at-once problem.

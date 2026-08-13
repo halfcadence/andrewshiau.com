@@ -53,11 +53,26 @@ const ARMS = [
     covers: 'THE ROOM IS THREE LINKS',
   },
   {
+    // THE MARK IS PER CASE NOW (his pick: an arrow beside the case name), so the old `find` matched
+    // five times and the arm reported itself as never fired — which is the runner doing its job.
+    // Sabotage the CSS that keeps one visible on the desktop instead: three copies of one control
+    // is three ways to say the same thing.
+    name: 'all three console cases show their arrow on the desktop',
+    file: C,
+    find: `    #mt-app[data-page="console"] .mt-half:not([data-mt-key="tuner"]) .mt-back{display:none}`,
+    with: `    #mt-app[data-page="console"] .mt-half:not([data-mt-key="nope"]) .mt-back{display:block}`,
+    covers: 'THE WAY BACK IS AN ARROW BESIDE THE NAME',
+  },
+  {
+    // FIVE OCCURRENCES ON PURPOSE — one per case, since the mark is per case now. `count` says so;
+    // without it the runner's uniqueness guard reports the arm as never fired, which is correct
+    // behaviour for a `find` that might be hitting something other than what the author meant.
     name: 'the way back points at the site root instead of the room',
     file: C,
     find: `href="../" data-testid="plan-word"`,
     with: `href="/" data-testid="plan-word"`,
-    covers: 'THE WAY BACK IS A LINK',
+    count: 5,
+    covers: 'THE WAY BACK IS AN ARROW BESIDE THE NAME',
   },
   {
     name: 'the dot row comes back on the desktop',
@@ -121,13 +136,14 @@ const holes = [];
 
 for (const [i, arm] of ARMS.entries()) {
   const src = readFileSync(arm.file, 'utf8');
+  const want = arm.count ?? 1;
   const n = src.split(arm.find).length - 1;
-  if (n !== 1) {
-    holes.push(`${arm.name}: the sabotage target appears ${n} times — the arm never fired`);
-    console.log(`\n${i + 1}/${ARMS.length}  ✗ ${arm.name} — TARGET NOT UNIQUE (${n})`);
+  if (n !== want) {
+    holes.push(`${arm.name}: the sabotage target appears ${n} times, expected ${want} — the arm never fired`);
+    console.log(`\n${i + 1}/${ARMS.length}  ✗ ${arm.name} — TARGET COUNT ${n}, EXPECTED ${want}`);
     continue;
   }
-  writeFileSync(arm.file, src.replace(arm.find, arm.with));
+  writeFileSync(arm.file, src.split(arm.find).join(arm.with));
   let failed = false; let out = '';
   try {
     sh('npm run build');

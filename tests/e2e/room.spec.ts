@@ -93,19 +93,72 @@ test.describe('EACH THING IS A PAGE', () => {
     await expect(page.locator('[data-testid="plan-word"]')).toHaveCount(0);
   });
 
-  test('THE WAY BACK IS A LINK on every thing, and it costs one lead', async ({ page }) => {
+  test('THE WAY BACK IS AN ARROW BESIDE THE NAME, and it costs no row at all', async ({ page }) => {
+    // His pick off the /proofs sheet: "just putting a back arrow ← next to case name works for
+    // mobile and desktop very minimal". So the claim inverted — this used to assert the chrome row
+    // was EXACTLY one lead, on the argument that global chrome costs a whole lead or puts every
+    // case off the ladder. The row is deleted instead, and what has to be true now is that the
+    // mark sits on a line the page already draws and the instrument got the lead back.
     for (const url of ['/practice-room/console/', '/practice-room/changes/', '/practice-room/loop/']) {
       await page.setViewportSize({ width: 1512, height: 900 });
       await page.goto(url);
-      const back = page.locator('[data-testid="plan-word"]');
-      await expect(back).toHaveText('← the room');
-      // AN ANCHOR to `/`, which on the practice host IS the room. It was a button that scrolled,
-      // and it had to hide itself when the plan was already on screen; a link has no such state.
-      expect(await back.evaluate((e) => [e.tagName, e.getAttribute('href')])).toEqual(['A', '../']);
-      // the screen is round(down,100dvh,28px), so chrome costs a whole lead or every case leaves
-      // the ladder
-      const h = await page.locator('.mt-chrome').evaluate((e) => Math.round(e.getBoundingClientRect().height));
-      expect(h, `the chrome row on ${url}`).toBe(28);
+      await expect(page.locator('.mt-chrome'), `no chrome row on ${url}`).toHaveCount(0);
+      // ONE VISIBLE ARROW PER SCREEN on the desktop, even where three cases are rendered. The mark
+      // is on every case because each is its own page on a phone; the desktop hides all but the
+      // first, so `:visible` is the honest locator and the count is part of the claim.
+      const shown = page.locator('[data-testid="plan-word"]:visible');
+      await expect(shown, `one way out on ${url}`).toHaveCount(1);
+      await expect(shown).toHaveText('←');
+      expect(await shown.evaluate((e) => [e.tagName, e.getAttribute('href'), e.getAttribute('aria-label')]))
+        .toEqual(['A', '../', 'Back to the room']);
+      // BESIDE THE NAME, on the case's own top rule: same line box as the plate, to its left, and
+      // the two are one group so a longer name cannot push the arrow off the datum.
+      const geo = await page.evaluate(() => {
+        const a = document.querySelector('[data-testid="plan-word"]') as HTMLElement;
+        const plate = a.parentElement!.querySelector('.mt-plate') as HTMLElement;
+        const kase = a.closest('.mt-half') as HTMLElement;
+        const ar = a.getBoundingClientRect(), pr = plate.getBoundingClientRect(),
+              kr = kase.getBoundingClientRect();
+        return { sameLine: Math.abs(ar.top - pr.top) < 1, leftOf: ar.right <= pr.left + 0.5,
+                 group: a.parentElement!.className,
+                 straddles: Math.abs((ar.top + ar.bottom) / 2 - kr.top) < 2 };
+      });
+      expect(geo.group).toBe('mt-np');
+      expect(geo.sameLine, `the arrow shares the plate's line on ${url}`).toBe(true);
+      expect(geo.leftOf, `the arrow precedes the name on ${url}`).toBe(true);
+      expect(geo.straddles, `the group straddles the case's top rule on ${url}`).toBe(true);
+    }
+  });
+
+  test('EVERY PAGE OF THE PHONE CONSOLE keeps its own way out', async ({ page }) => {
+    // Each case IS a page there, and the swipe cannot reach the room — so an arrow only on the
+    // tuner would leave the drone and the metronome with no exit on the one platform that gives
+    // you no Back button.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(CONSOLE);
+    await page.waitForTimeout(300);
+    await expect(page.locator('[data-testid="plan-word"]:visible')).toHaveCount(3);
+    // and on the desktop, exactly one of the three
+    await page.setViewportSize({ width: 1512, height: 900 });
+    await page.waitForTimeout(300);
+    await expect(page.locator('[data-testid="plan-word"]:visible')).toHaveCount(1);
+  });
+
+  test('and the lead the chrome row cost is BACK — measured, at both widths', async ({ page }) => {
+    // The /proofs sheet drew this as the cost of every option that moved the mark, so it is the
+    // thing to measure: nothing above the scroller, and the case's top edge one lead higher.
+    for (const [w, h] of [[1512, 900], [390, 844]] as const) {
+      await page.setViewportSize({ width: w, height: h });
+      await page.goto(CONSOLE);
+      await page.waitForTimeout(250);
+      const top = await page.evaluate(() => {
+        const pages = document.getElementById('mt-pages')!;
+        const kase = document.querySelector('.mt-half') as HTMLElement;
+        return { case: Math.round(kase.getBoundingClientRect().top),
+                 pagesTop: Math.round(pages.getBoundingClientRect().top) };
+      });
+      expect(top.pagesTop, `nothing above the scroller at ${w}`).toBe(0);
+      expect(top.case, `the case's top at ${w}`).toBe(w < 760 ? 0 : 56);
     }
   });
 
@@ -116,7 +169,7 @@ test.describe('EACH THING IS A PAGE', () => {
       await page.locator(`[data-testid="plan-${t}"]`).click();
       await page.waitForURL(atThing(t));
       expect(await caseKeys(page)).toEqual(t === 'console' ? CONSOLE_KEYS : [t]);
-      await page.locator('[data-testid="plan-word"]').click();
+      await page.locator('[data-testid="plan-word"]:visible').first().click();
       await page.waitForURL(atRoom);
       await expect(page.locator('.mt-pbox')).toHaveCount(3);
     }

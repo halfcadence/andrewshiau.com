@@ -44,7 +44,7 @@ test('phone: the page words navigate; the current page reads ink', async ({ page
   await expect(page.getByTestId('dot-tuner')).toHaveClass(/cur/);
   await expect(page.getByTestId('dot-metro')).not.toHaveClass(/cur/);
   // AND THE WAY OUT OF THE CONSOLE IS THE LINK, not a dot: the room is not a page of this scroller.
-  await expect(page.locator('[data-testid="plan-word"]')).toHaveAttribute('href', '../');
+  await expect(page.locator('[data-testid="plan-word"]:visible').first()).toHaveAttribute('href', '../');
 });
 
 test('phone: the metronome still runs while the tuner page is shown', async ({ page }) => {
@@ -153,7 +153,9 @@ test('desktop: the console page seats its three in order, each at least its own 
   // when the room was a queue whose pages continued off-screen; his annotation put it back.
   await expect(page.locator('.mt-foot')).toBeHidden();
   // the way back to the room is ONE lead of chrome, and it is a link
-  await expect(page.getByTestId('plan-word')).toHaveText('← the room');
+  // the mark is an ARROW beside the case name now (his pick), and one per case
+  await expect(page.locator('[data-testid="plan-word"]:visible')).toHaveCount(1);
+  await expect(page.locator('[data-testid="plan-word"]:visible')).toHaveText('←');
   // The instrument still carries no SITE chrome: the mark is deleted (2026-08-04). The back mark
   // is the room's own navigation, not the site's.
   await expect(page.getByTestId('home-mark')).toHaveCount(0);
@@ -224,7 +226,7 @@ test('phone: three pages, three glyphs, one line', async ({ page }) => {
   // an address now, and the only way there from a phone is the link in the top lead — which is why
   // that link stopped being `display:none` under 760.
   await expect(page.locator('.mt-order')).toHaveCount(0);
-  const back = page.locator('[data-testid="plan-word"]');
+  const back = page.locator('[data-testid="plan-word"]:visible').first();
   await expect(back).toBeVisible();
   await back.click();
   await page.waitForURL(atRoom);
