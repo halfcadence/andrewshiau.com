@@ -143,7 +143,7 @@ const rooms = THINGS.map((t) => ({
              changes: the arrow and the plate are one absolutely-placed flex row straddling
              the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
         <span class="mt-np">
-          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
           <span class="mt-plate" aria-hidden="true">tuner</span>
         </span>
         <!-- CALIBRATION IS A TOP CONTROL now (user nit 6, 2026-08-04): it sets what
@@ -301,9 +301,22 @@ const rooms = THINGS.map((t) => ({
              changes: the arrow and the plate are one absolutely-placed flex row straddling
              the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
         <span class="mt-np">
-          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
           <span class="mt-plate" aria-hidden="true">drone</span>
         </span>
+        <!-- `set` IS IN THE TOP RAIL WITH THE NAME (his nit, 2026-08-12: "can set be in the top rail
+             with name"), at the OPPOSITE END of it — which is the construction the /proofs sheet
+             drew as Q2/02, "on the plate line, opposite the plate".
+             NOT 1ch AFTER THE NAME, which is where it went first: the plate and a `.vbtn` are both
+             `--faint` 15px at rest, so `drone set` rendered as one two-word label. The house rule is
+             that hierarchy comes from position rather than colour, so the two ends of the rule do the
+             separating and the rule itself shows between them. It is its own absolutely-placed
+             element for that reason — the nameplate group is shrink-to-fit around the name, so
+             nothing inside it can reach the far end.
+             It spent an hour on the hint row before this, where it took three rules to stop
+             colliding with the voice group. All three are gone. -->
+        <button type="button" class="vbtn mt-setbtn" id="mt-set" data-testid="set-toggle"
+          aria-expanded="false" aria-controls="mt-tune">set</button>
         <!-- A4 IS ON BOTH CASES, ONE VALUE (the user's refinement on Q4: "it makes sense
              for both to have a pitch calibration but they're synced?"). The alternative on
              the sheet was one owner — either the tuner keeps it or it follows the sound —
@@ -416,10 +429,7 @@ const rooms = THINGS.map((t) => ({
                  at any width, so the control has one position rather than a per-width one. -->
           </span>
         </div>
-        <div class="mt-setline">
-          <button type="button" class="vbtn mt-setbtn" id="mt-set" data-testid="set-toggle"
-            aria-expanded="false" aria-controls="mt-tune">set</button>
-        </div>
+
 
 
 
@@ -493,7 +503,7 @@ const rooms = THINGS.map((t) => ({
              changes: the arrow and the plate are one absolutely-placed flex row straddling
              the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
         <span class="mt-np">
-          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
           <span class="mt-plate" aria-hidden="true">metronome</span>
         </span>
         <!-- METER ON TOP, TRANSPORT ON THE BOTTOM (user nit 2, 2026-08-04): the
@@ -693,7 +703,7 @@ const rooms = THINGS.map((t) => ({
              changes: the arrow and the plate are one absolutely-placed flex row straddling
              the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
         <span class="mt-np">
-          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
           <span class="mt-plate" aria-hidden="true">the changes</span>
         </span>
         <!-- THE DECK IS THE SPEC CONTROL, like calibration on the other cases: it says what
@@ -795,7 +805,7 @@ const rooms = THINGS.map((t) => ({
              changes: the arrow and the plate are one absolutely-placed flex row straddling
              the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
         <span class="mt-np">
-          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the room">←</a>
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
           <span class="mt-plate" aria-hidden="true">the loop</span>
         </span>
         <div class="mt-ctop">
@@ -902,7 +912,12 @@ const rooms = THINGS.map((t) => ({
            box that rises as you reach for it. It is the only shadow on the screen. -->
       {page === 'room' && (
         <section class="mt-half mt-order" aria-label="The room" data-testid="plan-room">
-          <span class="mt-plate" aria-hidden="true">the room</span>
+          <!-- IN THE GROUP TOO, even with no arrow beside it. When `.mt-np` took over the absolute
+               positioning the plate used to carry, this one was left bare — so it fell INSIDE the
+               case as a static, 1344px-wide, 0px-tall line box sitting on no rule at all. Live for
+               an hour, and the reason hovering it highlighted a full-width strip instead of the
+               words. One rule for every plate is what stops that recurring. -->
+          <span class="mt-np"><span class="mt-plate" aria-hidden="true">practice room</span></span>
           <div class="mt-ctop"></div>
           <div class="mt-mid">
             <div class="mt-pfloor">
@@ -1275,17 +1290,23 @@ const rooms = THINGS.map((t) => ({
      fixed the word and broke six voice tests — a full-width 28px row above the voice group ate the
      clicks that had been eating the word, which is the same defect pointed the other way. So the
      row passes pointer events through and the 27px word takes its own pixels back. */
-  /* AT THE RIGHT END OF THE ROW, and that is what actually resolves the collision rather than the
-     stack order. `set` was flush left, directly under the voice group's own left-aligned buttons —
-     two 44px targets in adjacent 28px rows, overlapping by 35px, each eating the other depending on
-     which one a z-index favoured. Six voice tests and one `set` test took turns failing while I
-     moved the winner back and forth. Moving the word 380px to the right ends the overlap instead of
-     arbitrating it: nothing is stacked over anything.
-     `pointer-events` still says only the WORD takes clicks, because the row is full-width and sits
-     under the voice box's own overhang at its left end. */
-  .mt-setline{grid-row:hint;align-self:start;display:flex;align-items:baseline;
-    justify-content:flex-end;pointer-events:none}
-  .mt-setbtn{pointer-events:auto}
+  /* `set` IS A MEMBER OF THE TOP RAIL NOW (his nit). What this deletes is a whole row and three
+     failed placements: on the hint row it collided with the voice group's own 44px targets, then
+     with the drawer, then with the voice box's invisible padding — the fixes were a z-index, a
+     `pointer-events` pair and a right-alignment, and all three are gone with the row. A control that
+     needs three rules to avoid its neighbours is in the wrong place.
+     `margin-left:1ch` is the group's own separator: the plate already pads by 1ch, so this is the
+     second half of one character's air between the name and the word. */
+  /* THE MIRROR OF THE PLATE: same rail, same knock-out, same 24px inset, other end. The 44px
+     target comes from the padding-and-pull idiom every control on this screen uses, so the word
+     keeps a thumb-sized hit area without the rail growing. */
+  /* `.vbtn.mt-setbtn`, TWO CLASSES, because `.vbtn` is declared further down and a one-class rule
+     loses to it on source order — the same trap that computed the room's 2px walls as a hairline
+     this morning. It showed up here as a 9px asymmetry: `padding:8px 1ch` silently became
+     `.vbtn`'s `8px 0`, so the word's ink sat 25px from the case's right while the name's sat 34px
+     from its left. One 1ch, invisible, and only the ink measurement saw it. */
+  .vbtn.mt-setbtn{position:absolute;top:-14px;right:24px;background:var(--paper);
+    padding:8px 1ch;margin:-8px 0;line-height:var(--lead);z-index:1}
   .mt-setbtn[aria-expanded=true]{color:var(--ink)}
   .mt-drone[data-sounding=true] .mt-setbtn[aria-expanded=true]{color:var(--accent)}
   .mt-tune-btns{display:inline-flex;align-items:baseline;gap:1ch;flex-wrap:wrap}
@@ -2351,8 +2372,12 @@ const rooms = THINGS.map((t) => ({
       border:1px solid var(--line);pointer-events:none}
     /* The plate still straddles the frame's top edge: half a lead down, less half its own
        28px line box, and in from the frame by the content's gutter. */
-    /* the GROUP straddles the drawn frame here, so the override moves with the position */
+    /* the GROUP straddles the drawn frame here, so the override moves with the position — and so
+       does `set`, at the other end of the same rule. Missing that pair left the word 17px above the
+       name and 6px off the inset at 390: the phone draws the frame INSET by 1ch via `::before`
+       instead of using the case's border, so both ends of the rail move by the same 1ch. */
     .mt-np{top:calc(1ch - 14px);left:calc(var(--mt-inset) - 1ch)}
+    .vbtn.mt-setbtn{top:calc(1ch - 14px);right:calc(var(--mt-inset) - 1ch)}
     .mt-plate{display:block}
     /* THE DATUMS ARE DRAWN ON THE PHONE TOO (datum pass). This used to be
        `display:none`, and the reason given was sound for what the rule then contained — a

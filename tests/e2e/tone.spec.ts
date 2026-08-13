@@ -610,6 +610,48 @@ for (const width of [1512, 390]) {
     await expect(drawer).toBeHidden();
     await expect(set).toHaveText('set');
     await expect(set).toHaveAttribute('aria-expanded', 'false');
+    // IN THE TOP RAIL, at the opposite end from the name (his nit: "can set be in the top rail with
+    // name"). Asserted as a RELATIONSHIP rather than a coordinate: on the rule the plate is on, and
+    // on the far side of it — which is what makes the two read as two things rather than as the
+    // two-word label `drone set` that 1ch of air produced.
+    const rail = await page.evaluate(() => {
+      const set = document.getElementById('mt-set')!;
+      const plate = document.querySelector('.mt-half[data-mt-key="drone"] .mt-plate')!;
+      const kase = set.closest('.mt-half')!;
+      const sr = set.getBoundingClientRect(), pr = plate.getBoundingClientRect(),
+            kr = kase.getBoundingClientRect();
+      // MEASURE THE INK, NOT THE BOXES. The word pads out to a 44px target and the plate does not,
+      // and at 390 the plate is `display:block` inside its group — so comparing box edges compared
+      // two different things and reported an 18px asymmetry in a rail that is symmetric. A Range
+      // over each text node gives what a reader actually sees, which is the claim.
+      const ink = (el: Element) => {
+        const rg = document.createRange();
+        rg.selectNodeContents(el);
+        return rg.getBoundingClientRect();
+      };
+      const si = ink(set), pi = ink(plate);
+      return { sameRule: Math.abs((sr.top + sr.bottom) / 2 - (pr.top + pr.bottom) / 2) < 2,
+               pastTheName: si.left > pi.right,
+               fromTheEnd: Math.round(kr.right - si.right),
+               fromTheStart: Math.round(pi.left - kr.left) };
+    });
+    expect(rail.sameRule, "set sits on the rule the name is on").toBe(true);
+    expect(rail.pastTheName, 'and after it, not beside it').toBe(true);
+    // THE MATCHED INSETS ARE A DESKTOP CLAIM, and saying so is more honest than asserting it at both
+    // widths and quietly loosening the tolerance until 390 passed. On the desktop the case's border
+    // IS the frame, so both ends measure from the same edge and the ink lands 34px in on each side.
+    // At 390 the frame is DRAWN 1ch inside the case by `::before` and the plate becomes
+    // `display:block` inside a shrink-to-fit group — so "the case's edge" is not the edge a reader
+    // sees, and the two ends measure 45 and 27 from it. What I can defend there is that the word is
+    // inside the drawn frame and on the name's rule; the residual 18px is recorded, not asserted
+    // away, and it is a follow-up rather than a claim.
+    if (width >= 760) {
+      expect(Math.abs(rail.fromTheEnd - rail.fromTheStart),
+        'on the desktop the two ends of the rail are the same inset').toBeLessThanOrEqual(1);
+    } else {
+      expect(rail.fromTheEnd, 'at 390 the word is inside the drawn frame').toBeGreaterThanOrEqual(9);
+    }
+
     // SWIPE TO THE DRONE FIRST AT 390, because it is page 2 of the console's scroller there and
     // `elementsFromPoint` answers about the VIEWPORT: off-screen, it returns nothing and a
     // hit-testing assertion reads that as "covered". Playwright's own `.click()` scrolls for you,

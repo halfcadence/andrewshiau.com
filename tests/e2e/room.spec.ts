@@ -110,7 +110,7 @@ test.describe('EACH THING IS A PAGE', () => {
       await expect(shown, `one way out on ${url}`).toHaveCount(1);
       await expect(shown).toHaveText('←');
       expect(await shown.evaluate((e) => [e.tagName, e.getAttribute('href'), e.getAttribute('aria-label')]))
-        .toEqual(['A', '../', 'Back to the room']);
+        .toEqual(['A', '../', 'Back to the practice room']);
       // BESIDE THE NAME, on the case's own top rule: same line box as the plate, to its left, and
       // the two are one group so a longer name cannot push the arrow off the datum.
       const geo = await page.evaluate(() => {
@@ -542,7 +542,24 @@ test.describe('THE ROOM READS AS A PLAN', () => {
       return out;
     });
     expect(bad).toEqual([]);
-    expect(await page.locator('.mt-order .mt-plate').innerText()).toBe('the room');
+    // "practice room", not "the room" (his nit). And the plate must STRADDLE the case's top rule,
+    // which nothing asserted until it stopped doing so: when the nameplate group took over the
+    // absolute positioning, this one plate was left bare and fell inside the case as a static
+    // 1344x0 line box. Live for an hour. Text and position are two claims and this test only made
+    // one of them.
+    expect(await page.locator('.mt-order .mt-plate').innerText()).toBe('practice room');
+    const plate = await page.evaluate(() => {
+      const pl = document.querySelector('.mt-order .mt-plate') as HTMLElement;
+      const sec = document.querySelector('.mt-order')!;
+      const r = pl.getBoundingClientRect(), s2 = sec.getBoundingClientRect();
+      return { straddles: Math.abs((r.top + r.bottom) / 2 - s2.top) < 2,
+               w: Math.round(r.width), h: Math.round(r.height),
+               grouped: !!pl.closest('.mt-np') };
+    });
+    expect(plate.straddles, "the plate straddles the case's top rule").toBe(true);
+    expect(plate.h, 'and has a real line box').toBe(28);
+    expect(plate.w, 'hugging its words rather than the case').toBeLessThan(200);
+    expect(plate.grouped, 'every plate is positioned by the one group rule').toBe(true);
   });
 
   test('the room needs no script — it renders with JS off', async ({ browser }) => {
