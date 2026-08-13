@@ -104,12 +104,12 @@ const ARMS = [
     covers: 'THE ROOMS FILL THE FLOOR',
   },
   {
-    name: 'the room walls lose to `.mt-half` on source order',
+    // the walls are the site's hairline now (his annotation, "light line weight"), so the arm is
+    // the other direction: put the 2px ink back and the assertion must notice.
+    name: 'the room walls go back to 2px ink',
     file: C,
-    find: `  #mt-app[data-page="room"] .mt-order{
-    border-width:2px;border-color:var(--ink);border-left-color:transparent;`,
-    with: `  .mt-order{
-    border-width:2px;border-color:var(--ink);border-left-color:transparent;`,
+    find: '    border-color:var(--line);border-left-color:transparent;',
+    with: '    border-width:2px;border-color:var(--ink);border-left-color:transparent;',
     covers: "ONE box, and the CASE",
   },
 ];

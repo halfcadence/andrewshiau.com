@@ -1528,30 +1528,37 @@ const rooms = THINGS.map((t) => ({
      "dont need this container if the room has one". There WAS a second bordered div inside the
      case — `#mt-planroom` — so two nested boxes drew one room, and on a route where the room is
      the only thing on screen the outer one was already doing the job.
-     WHAT THE DOUBLED BOX WAS BUYING, kept: the walls are 2px INK and everything inside them is a
-     hairline, because a plan draws a wall heavier than the thing standing against it. That weight
-     difference IS the containment, and it is why a plain hairline box was rejected — it draws the
-     room and the rooms identically, so nothing says which contains which. The case frame carries
-     the 2px on this route only.
+     AND THE WALLS ARE THE SITE'S HAIRLINE (his next annotation, same evening: "cna this use light
+     line weight"). They shipped 2px INK for two hours, on the argument that a plan draws a wall
+     heavier than the thing standing against it — the weight difference IS the containment, and it
+     is why box chooser Q1/04 rejected a plain hairline box: it draws the room and the rooms
+     identically, so nothing says which contains which.
+     HE LOOKED AT THE RENDER AND PREFERRED LIGHT, which settles it: 2px of ink is the heaviest mark
+     on a screen whose whole vocabulary is one hairline and one type size, and it read as a border
+     around the page rather than as a plan. What carries the containment instead is NESTING and the
+     doorway — a box inside a box, with a threshold drawn on one wall. The cost, stated, is exactly
+     the one Q1/04 named: the two weights no longer say which is the room. Every other case on the
+     site says it the same way, so this is the page conforming rather than a new idiom.
      THE DOORWAY is a gap in the left wall: the border-left is transparent and two background
      gradients paint the wall segments above and below the opening. A drawn threshold rather
      than a fourth wall. Its cost, stated on the sheet and accepted: nothing goes in or out
-     through it — it is a drawing of a way in, on a plan where every room is already inside. */
-  /* `#mt-app[data-page="room"]` AND NOT `.mt-order` ALONE: `.mt-half` declares `border:1px solid
-     var(--line)` 200 lines further down, and two single-class selectors are decided by source
-     order — so a bare `.mt-order{border-width:2px}` computed to 1px and the walls were a hairline.
-     The route attribute also says what is true: these are the walls of the ROOM PAGE, not of any
-     case that happens to carry this class. */
+     through it — it is a drawing of a way in, on a plan where every room is already inside.
+     `#mt-app[data-page="room"]` AND NOT `.mt-order` ALONE, still: `.mt-half` declares its border
+     200 lines further down and two single-class selectors are decided by source order, so a bare
+     `.mt-order{…}` here silently lost. The route attribute also says what is true — these are the
+     walls of the ROOM PAGE, not of any case carrying this class. */
   #mt-app[data-page="room"] .mt-order{
-    border-width:2px;border-color:var(--ink);border-left-color:transparent;
-    background-image:linear-gradient(var(--ink),var(--ink)),
-                     linear-gradient(var(--ink),var(--ink));
+    border-color:var(--line);border-left-color:transparent;
+    background-image:linear-gradient(var(--line),var(--line)),
+                     linear-gradient(var(--line),var(--line));
     background-repeat:no-repeat;
-    background-size:2px 25%, 2px 45%;
+    /* 1px NOW, matching the border it continues. At 2px the segments were the wall and the border
+       was a hairline — two weights on one rectangle, which is the defect the annotation names. */
+    background-size:1px 25%, 1px 45%;
     background-position:left top, left bottom;
     /* THE FLOOR IS INSET FROM THE WALLS by the room's own 3ch datum — `--mt-inset`, not the
        misspelled `--inset` this rule shipped with, which made it `padding:0` and stood the first
-       and last room hard against the 2px walls. */
+       and last room hard against the walls. */
     padding:var(--lead) var(--mt-inset)}
 
   /* THE FLOOR IS THE SCREEN'S THIRDS (Q2/04): a box sits where its case will, so the plan is a

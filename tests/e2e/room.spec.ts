@@ -322,8 +322,15 @@ test.describe('THE ROOM READS AS A PLAN', () => {
           return q.left < rb.left - 0.5 || q.right > rb.right + 0.5
               || q.top < rb.top - 0.5 || q.bottom > rb.bottom + 0.5;
         }).length,
-        // the WALLS are heavier than the fittings — that weight difference IS the containment
+        // THE WALLS ARE THE SITE'S HAIRLINE, and this claim INVERTED on his annotation ("cna this
+        // use light line weight"). They were 2px ink for two hours on the argument that a plan
+        // draws a wall heavier than its fittings; he looked at the render and preferred light, so
+        // what carries the containment is nesting plus the doorway. The assertion is kept rather
+        // than deleted because the failure it guards is the same either way — a room drawn in a
+        // weight the rest of the site does not use.
         walls: [cs.borderTopWidth, cs.borderRightWidth, cs.borderBottomWidth].map((v) => Math.round(parseFloat(v))),
+        wallColour: cs.borderTopColor,
+        fittingColour: boxes.length ? getComputedStyle(boxes[0]).borderTopColor : null,
         doorway: cs.borderLeftColor,
         gradients: (cs.backgroundImage.match(/linear-gradient/g) || []).length,
         fitting: boxes.length ? Math.round(parseFloat(getComputedStyle(boxes[0]).borderTopWidth)) : null,
@@ -336,10 +343,13 @@ test.describe('THE ROOM READS AS A PLAN', () => {
     expect(r.boxes).toBe(3);
     expect(r.slots).toBe(3);
     expect(r.escapes, 'a room escaped the room').toBe(0);
-    expect(r.walls, 'the walls are 2px ink').toEqual([2, 2, 2]);
+    expect(r.walls, 'the walls are the site hairline').toEqual([1, 1, 1]);
+    // and the SAME hairline the fittings use — one line weight on the page, which is the whole
+    // point of the change
+    expect(r.wallColour).toBe(r.fittingColour);
     expect(/transparent|rgba\(0, 0, 0, 0\)/.test(r.doorway), 'the doorway leaves the left wall open').toBe(true);
     expect(r.gradients, 'two wall segments either side of the opening').toBe(2);
-    expect(r.fitting, 'the fittings are hairlines, lighter than the walls').toBe(1);
+    expect(r.fitting, 'the fittings are hairlines too').toBe(1);
     expect(r.pad, 'the floor is inset one lead and one 3ch datum').toEqual([28, 27]);
   });
 
