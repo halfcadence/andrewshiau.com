@@ -51,8 +51,8 @@ test.describe('EACH THING IS A PAGE', () => {
   const ROUTES: Array<[string, string, string[]]> = [
     ['the room', ROOM, []],
     ['the console', CONSOLE, CONSOLE_KEYS],
-    ['the changes', '/practice-room/changes/?e2e=1', ['changes']],
-    ['the loop', '/practice-room/loop/?e2e=1', ['loop']],
+    ['changes', '/practice-room/changes/?e2e=1', ['changes']],
+    ['loop', '/practice-room/loop/?e2e=1', ['loop']],
   ];
 
   for (const [name, url, keys] of ROUTES) {
@@ -480,7 +480,10 @@ test.describe('THE ROOM READS AS A PLAN', () => {
         return { name: nm.textContent, marks: b.querySelectorAll('svg').length,
                  truncated: rg.getClientRects().length === 1 && rg.getBoundingClientRect().width > box + 0.01 };
       }));
-      expect(r.map((x) => x.name), `names at ${w}`).toEqual(['console', 'the changes', 'the loop']);
+      // "changes" and "loop", not "the changes"/"the loop" (his nit). The article read as prose in a
+      // list of one-word labels, and the routes have been /changes/ and /loop/ since the split — the
+      // name matches the address now. One edit in room.ts drives all six places that print it.
+      expect(r.map((x) => x.name), `names at ${w}`).toEqual(['console', 'changes', 'loop']);
       // THE CONSOLE DRAWS ALL THREE OF ITS MEMBERS' MARKS — the grouping as a drawing, not a label
       expect(r[0].marks).toBe(3);
       expect(r[1].marks).toBe(1);

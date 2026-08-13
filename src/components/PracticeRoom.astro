@@ -64,16 +64,16 @@ const META: Record<Props['page'], { title: string; description: string; h1: stri
     h1: 'Console — tuner, drone, metronome',
   },
   changes: {
-    title: 'The changes — practice room',
+    title: 'Changes — practice room',
     description:
       'A chord dealer: it deals a symbol, you name it or play it, and it sounds the answer. Triads, sevenths and altered chords.',
-    h1: 'The changes — a chord dealer',
+    h1: 'Changes — a chord dealer',
   },
   loop: {
-    title: 'The loop — practice room',
+    title: 'Loop — practice room',
     description:
       'Loop a span of any YouTube video at a quarter, a half or three-quarter speed, for transcribing by ear.',
-    h1: 'The loop — a transcription looper',
+    h1: 'Loop — a transcription looper',
   },
 };
 
@@ -304,6 +304,14 @@ const rooms = THINGS.map((t) => ({
           <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
           <span class="mt-plate" aria-hidden="true">drone</span>
         </span>
+        <!-- THE WAY OUT OF THE SETTINGS, in the rail, and only while they are open. It is a second
+             `←` on a screen that already has one — and the two never show at once, because the
+             practice-room arrow is on the leftmost case and this one is on the case you are inside.
+             The rule they share: an arrow in a rail goes back to whatever encloses you. From an
+             instrument that is the practice room; from an instrument's settings it is the
+             instrument. -->
+        <button type="button" class="mt-back mt-setback" id="mt-set-back" data-testid="set-close"
+          aria-label="Back to the drone" hidden>←</button>
         <!-- `set` IS IN THE TOP RAIL WITH THE NAME (his nit, 2026-08-12: "can set be in the top rail
              with name"), at the OPPOSITE END of it — which is the construction the /proofs sheet
              drew as Q2/02, "on the plate line, opposite the plate".
@@ -704,7 +712,7 @@ const rooms = THINGS.map((t) => ({
              the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
         <span class="mt-np">
           <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
-          <span class="mt-plate" aria-hidden="true">the changes</span>
+          <span class="mt-plate" aria-hidden="true">changes</span>
         </span>
         <!-- THE DECK IS THE SPEC CONTROL, like calibration on the other cases: it says what
              the instrument MEANS by a chord, and you set it per session rather than per rep.
@@ -806,7 +814,7 @@ const rooms = THINGS.map((t) => ({
              the case's top rule, and the ARROW is what lands on the case's 3ch datum. -->
         <span class="mt-np">
           <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
-          <span class="mt-plate" aria-hidden="true">the loop</span>
+          <span class="mt-plate" aria-hidden="true">loop</span>
         </span>
         <div class="mt-ctop">
           <span class="mt-fr">
@@ -1238,34 +1246,26 @@ const rooms = THINGS.map((t) => ({
      changed nothing — because the grid, not the source order, decides where a child sits.
      `hint` is the tuner's error line, empty on this case, and the right home for a row that
      is only sometimes there. */
-  /* ── THE COMPARER IS A DRAWER NOW, not a row (2026-08-12) ──────────────────────────────
-     MEASURED ON THE LIVE PAGE, which is how this got found rather than by reading: the panel was
-     176px tall inside the 28px `hint` row it was assigned to — five buttons 99–198px wide wrapping
-     to five lines in a 353px case — and it overflowed its row into whatever was layered above it.
-     Three of its five buttons were unclickable at 1512 and ALL FIVE at 390. `elementsFromPoint` on
-     each button's own centre says so; a screenshot shows a panel that looks fine.
-     The previous comment (below) fixed exactly this bug once already, by moving the group out of
-     `.mt-ctop` into its own row — and the row it moved to is one lead tall, so the bug came back
-     the moment the fifth system was added. A control group that wraps cannot live in ANY single row
-     of a ladder made of 28px leads.
-     SO IT IS AN OVERLAY, inside the case, over the slack the figure floats in: `position:absolute`
-     with the case's own paper behind it and a hairline above it. Closed it costs nothing — no row,
-     no reflow, the ladder untouched, which is the whole reason it can afford to hold five wide
-     buttons. Open it covers air rather than an instrument: the drone's letter stays visible above
-     it, because the letter is what you are comparing the systems against. */
-  /* WHERE IT SITS WAS WRONG TWICE, and both times the render or a test said so rather than my
-     reading of the ladder. At `bottom:var(--lead)` it covered the very word that opens it — `set`
-     is on the foot line — so the only way to close it was the hotkey. At three leads up it cleared
-     the word and covered the STACK STRIP instead, which broke the one thing you do while comparing
-     tunings: `tone.spec`'s retune test stacks a major third and could no longer click a cell.
-     SO IT SITS IN `slack-a`, the placed air ABOVE the figure — the one band of this case that holds
-     nothing. Open, it covers air; the letter, the strip, the voice row and the word that opened it
-     are all still there. `top` is the ladder's own arithmetic: `case-top` plus `spec`, which is one
-     lead plus two (four on the desktop, where the spec row holds two stacked meters). */
-  .mt-tune{position:absolute;left:0;right:0;top:calc(var(--lead) * 5);z-index:2;
-    background:var(--paper);border-top:1px solid var(--line);
-    padding:var(--tight) var(--mt-inset) var(--tight);
-    display:flex;align-items:baseline;gap:1ch;flex-wrap:wrap}
+  /* ── THE COMPARER IS THE WHOLE INSTRUMENT WHILE IT IS OPEN (his nit, 2026-08-12: "can the set
+     page be full scren and have a back in top rail when its active. i mean full instrument lol").
+     So `inset:0` on the case rather than a strip in its slack: press `set` and the drone's own screen
+     becomes its settings, with a way back in the rail. What that buys over the strip is room to lay
+     five wide systems out as LINES instead of as a wrapping paragraph; what it costs is that the
+     letter and the strip are not visible while you are in here, which is the right trade for a screen
+     you are IN rather than glancing at.
+     HOW IT GOT HERE, because every step was a measurement rather than a preference. It began as a row
+     assigned to `hint`: 176px of panel in a 28px row, three of five systems unclickable at 1512 and
+     all five at 390. Then an overlay over the slack, which took four placements to stop covering the
+     word that opened it, the stack strip, the calibration box and the voice group. A full-case panel
+     has no neighbours to collide with — which is the argument for it that those four placements made.
+     `overflow-y:auto` because five systems and a beat readout are 205px against a 812px case today,
+     and a sixth system or a short landscape phone must scroll rather than spill. */
+  .mt-tune{position:absolute;inset:0;z-index:2;background:var(--paper);
+    padding:calc(var(--lead) * 2) var(--mt-inset) var(--lead);
+    overflow-y:auto;
+    display:flex;flex-direction:column;align-items:flex-start;gap:var(--tight)}
+  /* the systems become a column of lines here, not a wrapping row — the whole point of the space */
+  .mt-tune .mt-tune-btns{display:flex;flex-direction:column;align-items:flex-start;gap:0}
   .mt-tune[hidden]{display:none}
   /* the spec row is TWO leads on a phone and FOUR on the desktop (two stacked meters), so the band
      below it starts in two different places — the same reason the row ladder is declared twice.
@@ -1305,6 +1305,22 @@ const rooms = THINGS.map((t) => ({
      this morning. It showed up here as a 9px asymmetry: `padding:8px 1ch` silently became
      `.vbtn`'s `8px 0`, so the word's ink sat 25px from the case's right while the name's sat 34px
      from its left. One 1ch, invisible, and only the ink measurement saw it. */
+  /* the settings' own back mark sits where the practice-room arrow sits on the leftmost case: the
+     rail's left end, before the name. `border:0;cursor:pointer` because it is a BUTTON wearing the
+     link's clothes — it closes a panel rather than going anywhere. */
+  /* `#mt-set-back`, THE ID, and not `.mt-back.mt-setback` — which is what this rule said until the
+     computed padding disagreed with the source. Astro scopes `.mt-back` to
+     `.mt-back[data-astro-cid-…]` (0-2-0) but left my two-class selector UNSCOPED at 0-2-0, so the two
+     tied and the base won on source order: `margin:-8px 0` applied from my block and `padding:8px 1ch`
+     did not, which is not a thing specificity can do to one declaration block and is exactly the
+     tell. The id is 1-0-0 and cannot tie with anything here. Same trap as the room's walls and the
+     `set` padding, third variant: two selectors, equal weight, order decides. */
+  #mt-set-back{position:absolute;top:-14px;left:24px;background:var(--paper);
+    padding:8px 1ch;margin:-8px 0;line-height:var(--lead);z-index:3;border:0;cursor:pointer}
+  #mt-set-back[hidden]{display:none}
+  /* and the name steps aside for it — 3ch is the arrow's own cell (1ch of padding either side of one
+     character), the same arithmetic the plate's 24px offset uses */
+  .mt-half:has(#mt-set-back:not([hidden])) .mt-np{left:calc(24px + 3ch)}
   .vbtn.mt-setbtn{position:absolute;top:-14px;right:24px;background:var(--paper);
     padding:8px 1ch;margin:-8px 0;line-height:var(--lead);z-index:1}
   .mt-setbtn[aria-expanded=true]{color:var(--ink)}
@@ -1894,8 +1910,12 @@ const rooms = THINGS.map((t) => ({
      offset (one 3ch inset less its 1ch knock-out padding), so whatever is FIRST in the group lands
      where the plate's ink used to. That is the arrow, and the name follows it — the leftmost ink on
      the case's top rule is still on the case's datum. */
+  /* `z-index:3` PUTS THE RAIL ABOVE THE FULL-CASE PANEL. The plate straddles the case's top rule, so
+     its lower half is inside the case — and the settings panel is `inset:0` with its own paper
+     background at `z-index:2`, which painted over exactly that half: `drone` rendered as a name cut
+     off along the rule. The rail is chrome and the panel is content, so the rail wins. */
   .mt-np{position:absolute;top:-14px;left:24px;display:flex;align-items:baseline;
-    background:var(--paper)}
+    background:var(--paper);z-index:3}
   .mt-plate{background:var(--paper);padding:0 1ch;color:var(--faint)}
   /* AN ANCHOR, with the site's link idiom turned off: global.css underlines every `a`, which is
      right for prose and wrong for a mark on a rule. `--dim` at rest, accent on hover — the same
@@ -1908,7 +1928,11 @@ const rooms = THINGS.map((t) => ({
      top-left corner of the screen. On a phone every case is its own page, so every case keeps its
      own — swiping to the metronome must not leave you with no way out. */
   @media (min-width: 760px){
-    #mt-app[data-page="console"] .mt-half:not([data-mt-key="tuner"]) .mt-back{display:none}
+    /* `a.mt-back`, THE LINK, not every `.mt-back`. The settings' own back mark wears the same class
+       and is a BUTTON, and this rule was hiding it on the very case it belongs to — Playwright spent
+       30s on a control whose `hidden` attribute had been removed and whose CSS still said no. One
+       rule, two controls, one of them wrong. */
+    #mt-app[data-page="console"] .mt-half:not([data-mt-key="tuner"]) a.mt-back{display:none}
   }
   /* THE MIDDLE IS THREE ROWS, not a centred leftover. It spans figure -> read ->
      transport and passes the ladder through, so the tuner's readout and BOTH transports
@@ -4075,16 +4099,25 @@ const rooms = THINGS.map((t) => ({
   // word's `aria-expanded` and the panel's `hidden` cannot disagree — which they would the first
   // time one path was updated and the other was not.
   const setBtn = document.getElementById('mt-set') as HTMLButtonElement | null;
+  const setBack = document.getElementById('mt-set-back') as HTMLButtonElement | null;
   function showTuning(open: boolean) {
     if (!tuneWrap) return;
     tuneWrap.hidden = !open;
     setBtn?.setAttribute('aria-expanded', String(open));
+    // THREE THINGS, ONE FUNCTION: the panel, the word that opens it, the arrow that leaves it. `set`
+    // goes away while you are inside, because a control that opens what you are already in is a
+    // control doing nothing. Every path — the word, the arrow, ⌥T — comes through here, for the
+    // reason the two-path version needed asserting: one of them always gets updated and the other
+    // does not.
+    if (setBtn) setBtn.hidden = open;
+    if (setBack) setBack.hidden = !open;
     if (open) paintTuning();
   }
   setBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();   // the foot line sits inside no click-to-start target, but the strip does
+    e.stopPropagation();   // the rail sits inside no click-to-start target, but the strip does
     showTuning(!!tuneWrap?.hidden);
   });
+  setBack?.addEventListener('click', (e) => { e.stopPropagation(); showTuning(false); });
 
   // ⌥T matches ⌥G's grid overlay: the same modifier, the same "off until someone who knows asks".
   // Skips inputs so typing a4 in the calibration field cannot toggle it.

@@ -51,6 +51,11 @@ export interface Instrument {
  * 1600px reference. Re-run `measure-demand.mjs` after any change to a case's contents —
  * these are measurements with a date, not constants.
  */
+// THE ARTICLE IS GONE FROM TWO NAMES (his nit, 2026-08-12: "can u also retitel to just 'changes'
+// and 'loop'"). They were `the changes` and `the loop` — the definite article reads as prose in a
+// list of five one-word labels, and the routes have been `/changes/` and `/loop/` since the split,
+// so the name now matches the address. `name` is what the room's boxes, the plates, the dot row and
+// the page titles all print, so this is one edit rather than six.
 export const INSTRUMENTS: readonly Instrument[] = [
   { key: 'tuner',     name: 'tuner',       demand: 170, breaks: 'the calibration row wraps under its own label' },
   { key: 'metronome', name: 'metronome',   demand: 196, breaks: 'the tap button crosses the case edge' },
@@ -64,8 +69,8 @@ export const INSTRUMENTS: readonly Instrument[] = [
      the hairlines: 259 + 54 + 2 = 315, which is exactly the width the page already shipped.
      A predicate that only measures what is currently on screen cannot see a worst case that
      is one deal away. Caught by `changes.spec.ts`, which probes the widest symbol directly. */
-  { key: 'changes',   name: 'the changes', demand: 315, breaks: 'the widest symbol F♯m7♭5 (259px) no longer fits beside its insets' },
-  { key: 'loop',      name: 'the loop',    demand: 236, breaks: 'the speed row wraps past its track' },
+  { key: 'changes',   name: 'changes',     demand: 315, breaks: 'the widest symbol F♯m7♭5 (259px) no longer fits beside its insets' },
+  { key: 'loop',      name: 'loop',        demand: 236, breaks: 'the speed row wraps past its track' },
 ];
 
 export const BY_KEY: Readonly<Record<string, Instrument>> =
@@ -105,8 +110,8 @@ export interface Thing {
 
 export const THINGS: readonly Thing[] = [
   { id: 'console', keys: ['tuner', 'drone', 'metronome'], name: 'console' },
-  { id: 'changes', keys: ['changes'], name: 'the changes' },
-  { id: 'loop',    keys: ['loop'],    name: 'the loop' },
+  { id: 'changes', keys: ['changes'], name: 'changes' },
+  { id: 'loop',    keys: ['loop'],    name: 'loop' },
 ];
 export const THING_BY_ID: Readonly<Record<string, Thing>> =
   Object.fromEntries(THINGS.map((t) => [t.id, t]));

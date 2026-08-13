@@ -602,49 +602,42 @@ test('⌥T reveals the tuning comparer, and it is hidden by default', async ({ p
 // is the only instrument that sees this. A screenshot showed a panel that looked fine, and the suite
 // had a test that opened it and counted its buttons: presence is not reachability.
 for (const width of [1512, 390]) {
-  test(`the set drawer opens the intonation panel and every system is clickable @${width}`, async ({ page }) => {
+  test(`set opens the drone's settings as a full instrument, with a way back @${width}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/practice-room/console/?e2e');
-    const drawer = page.locator('#mt-tune');
+    const panel = page.locator('#mt-tune');
     const set = page.getByTestId('set-toggle');
-    await expect(drawer).toBeHidden();
+    const back = page.getByTestId('set-close');
+
+    await expect(panel).toBeHidden();
     await expect(set).toHaveText('set');
     await expect(set).toHaveAttribute('aria-expanded', 'false');
-    // IN THE TOP RAIL, at the opposite end from the name (his nit: "can set be in the top rail with
-    // name"). Asserted as a RELATIONSHIP rather than a coordinate: on the rule the plate is on, and
-    // on the far side of it — which is what makes the two read as two things rather than as the
-    // two-word label `drone set` that 1ch of air produced.
+    await expect(set).toHaveAttribute('aria-controls', 'mt-tune');
+    await expect(back, 'nothing to go back from until you are in it').toBeHidden();
+
+    // IN THE TOP RAIL, at the opposite end from the name (his earlier nit). Asserted as a
+    // RELATIONSHIP, not a coordinate: on the rule the plate is on, past it.
+    await set.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(250);
     const rail = await page.evaluate(() => {
-      const set = document.getElementById('mt-set')!;
+      const b2 = document.getElementById('mt-set')!;
       const plate = document.querySelector('.mt-half[data-mt-key="drone"] .mt-plate')!;
-      const kase = set.closest('.mt-half')!;
-      const sr = set.getBoundingClientRect(), pr = plate.getBoundingClientRect(),
-            kr = kase.getBoundingClientRect();
-      // MEASURE THE INK, NOT THE BOXES. The word pads out to a 44px target and the plate does not,
-      // and at 390 the plate is `display:block` inside its group — so comparing box edges compared
-      // two different things and reported an 18px asymmetry in a rail that is symmetric. A Range
-      // over each text node gives what a reader actually sees, which is the claim.
-      const ink = (el: Element) => {
-        const rg = document.createRange();
-        rg.selectNodeContents(el);
-        return rg.getBoundingClientRect();
-      };
-      const si = ink(set), pi = ink(plate);
+      const kase = b2.closest('.mt-half')!;
+      const ink = (el: Element) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect(); };
+      const sr = b2.getBoundingClientRect(), pr = plate.getBoundingClientRect(), kr = kase.getBoundingClientRect();
+      const si = ink(b2), pi = ink(plate);
       return { sameRule: Math.abs((sr.top + sr.bottom) / 2 - (pr.top + pr.bottom) / 2) < 2,
                pastTheName: si.left > pi.right,
-               fromTheEnd: Math.round(kr.right - si.right),
-               fromTheStart: Math.round(pi.left - kr.left) };
+               fromTheEnd: Math.round(kr.right - si.right), fromTheStart: Math.round(pi.left - kr.left),
+               topmost: document.elementsFromPoint(sr.left + sr.width / 2, sr.top + sr.height / 2)[0] === b2 };
     });
-    expect(rail.sameRule, "set sits on the rule the name is on").toBe(true);
+    expect(rail.sameRule, 'set sits on the rule the name is on').toBe(true);
     expect(rail.pastTheName, 'and after it, not beside it').toBe(true);
-    // THE MATCHED INSETS ARE A DESKTOP CLAIM, and saying so is more honest than asserting it at both
-    // widths and quietly loosening the tolerance until 390 passed. On the desktop the case's border
-    // IS the frame, so both ends measure from the same edge and the ink lands 34px in on each side.
-    // At 390 the frame is DRAWN 1ch inside the case by `::before` and the plate becomes
-    // `display:block` inside a shrink-to-fit group — so "the case's edge" is not the edge a reader
-    // sees, and the two ends measure 45 and 27 from it. What I can defend there is that the word is
-    // inside the drawn frame and on the name's rule; the residual 18px is recorded, not asserted
-    // away, and it is a follow-up rather than a claim.
+    expect(rail.topmost, 'and takes its own clicks').toBe(true);
+    // THE MATCHED INSETS ARE A DESKTOP CLAIM, said rather than asserted at both widths and quietly
+    // loosened until 390 passed: there the frame is DRAWN 1ch inside the case by `::before` and the
+    // plate is `display:block` inside a shrink-to-fit group, so the case's box is not the edge a
+    // reader sees. The 18px residual there is recorded as a follow-up, not asserted away.
     if (width >= 760) {
       expect(Math.abs(rail.fromTheEnd - rail.fromTheStart),
         'on the desktop the two ends of the rail are the same inset').toBeLessThanOrEqual(1);
@@ -652,83 +645,81 @@ for (const width of [1512, 390]) {
       expect(rail.fromTheEnd, 'at 390 the word is inside the drawn frame').toBeGreaterThanOrEqual(9);
     }
 
-    // SWIPE TO THE DRONE FIRST AT 390, because it is page 2 of the console's scroller there and
-    // `elementsFromPoint` answers about the VIEWPORT: off-screen, it returns nothing and a
-    // hit-testing assertion reads that as "covered". Playwright's own `.click()` scrolls for you,
-    // which is why the click passed while the measurement did not — the reader swipes, so the test
-    // swipes.
-    await set.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(250);
-    // HITTABLE WHILE CLOSED, which my first version of this test never checked — it asserted the
-    // word was reachable with the drawer OPEN and then opened the drawer with a click that would
-    // have hung. It did hang: the voice box's invisible 44px padding reaches into the row below it
-    // and owned every pixel of this word. A control's own centre must be the topmost thing there.
-    expect(await page.evaluate(() => {
-      const e = document.getElementById('mt-set')!;
-      const q = e.getBoundingClientRect();
-      return document.elementsFromPoint(q.left + q.width / 2, q.top + q.height / 2)[0] === e;
-    }), 'the set word must be the topmost thing at its own centre while closed').toBe(true);
-    // it says what it controls, which is what makes it a disclosure rather than a mystery
-    await expect(set).toHaveAttribute('aria-controls', 'mt-tune');
-
-    // CLOSED IT COSTS NOTHING. The case's height is the whole reason this is an overlay: a panel
-    // that grew the case would move every row of a ladder five cases share.
-    const before = await page.locator('.mt-half[data-mt-key="drone"]').evaluate((e) =>
-      Math.round(e.getBoundingClientRect().height));
-
+    // ── FULL INSTRUMENT (his nit: "can the set page be full scren … i mean full instrument lol").
+    // The claim inverted here, and the previous version of this test is why the inversion is worth
+    // stating: it asserted the panel covered NOTHING — not the letter, not the strip, not the
+    // calibration box — because it was a strip in the case's slack and four placements had been
+    // needed to keep it off its neighbours. A panel that fills the case has no neighbours, which is
+    // the argument for it. So what used to be forbidden is now required.
     await set.click();
-    await expect(drawer).toBeVisible();
-    await expect(set).toHaveAttribute('aria-expanded', 'true');
+    await expect(panel).toBeVisible();
+    await expect(set, 'the word that opens it goes away while you are in it').toBeHidden();
+    await expect(back, 'and a way back appears in the rail').toBeVisible();
+    await expect(back).toHaveText('←');
+    await expect(back).toHaveAttribute('aria-label', 'Back to the drone');
 
     const g = await page.evaluate(() => {
       const row = document.getElementById('mt-tune')!;
-      const btn = document.querySelector('[data-testid="set-toggle"]')!;
-      const kase = row.closest('.mt-half')!;
-      const rb = row.getBoundingClientRect(), sb = btn.getBoundingClientRect(),
-            kb = kase.getBoundingClientRect();
+      const kase = row.closest('.mt-half') as HTMLElement;
+      const b2 = document.getElementById('mt-set-back')!;
+      const plate = kase.querySelector('.mt-plate')!;
+      const rb = row.getBoundingClientRect(), kb = kase.getBoundingClientRect(),
+            bb = b2.getBoundingClientRect(), pb = plate.getBoundingClientRect();
+      const border = parseFloat(getComputedStyle(kase).borderTopWidth) || 0;
+      // TOPMOST, NOT MERELY PRESENT. `elementsFromPoint` returns the whole stack under a point, so
+      // `.includes(el)` is true for an element that is completely covered — it answers "is it there",
+      // and both claims here are about what a click would reach. `stack[0]` is that. (The earlier
+      // version of this check passed for the letter while a full-case panel was painted over it, and
+      // its "every system is clickable" arm had been weaker than it read for the same reason.)
       const hits = (el: Element) => {
         const q = el.getBoundingClientRect();
-        return document.elementsFromPoint(q.left + q.width / 2, q.top + q.height / 2).includes(el);
+        const first = document.elementsFromPoint(q.left + q.width / 2, q.top + q.height / 2)[0];
+        return !!first && (first === el || el.contains(first));
       };
       return {
-        caseH: Math.round(kb.height),
-        inside: rb.left >= kb.left - 0.5 && rb.right <= kb.right + 0.5 && rb.bottom <= kb.bottom + 0.5,
-        // the drawer must not cover the word that opens it — it did, at `bottom:var(--lead)`, and
-        // then the only way to close it was the hotkey
-        coversItsOwnControl: !(sb.bottom <= rb.top || sb.top >= rb.bottom),
-        setStillClickable: hits(btn),
-        // nor the letter you are comparing the systems against
-        letterVisible: (document.getElementById('mt-dnote')!.getBoundingClientRect().height > 0),
-        overStrip: (() => { const q = document.getElementById('mt-strip')!.getBoundingClientRect();
-          return !(q.bottom <= rb.top || q.top >= rb.bottom); })(),
-        overSpec: (() => { const e = document.getElementById('mt-a4-scrub-drone');
-          if (!e) return false; const q = e.getBoundingClientRect();
-          return !(q.bottom <= rb.top || q.top >= rb.bottom); })(),
-        stripCell: (() => { const e = document.querySelector('[data-testid="semi-4"]')!;
-          const q = e.getBoundingClientRect();
-          return document.elementsFromPoint(q.left + q.width / 2, q.top + q.height / 2).includes(e); })(),
+        // it FILLS the case, inside its own frame — the border is the one thing it must not cover
+        fillsW: Math.round(kb.width - rb.width) === Math.round(border * 2),
+        fillsH: Math.round(kb.height - rb.height) === Math.round(border * 2),
+        // the instrument is behind it, which is the point of a full-case panel
+        letterHidden: !hits(document.getElementById('mt-dnote')!),
+        // the rail is still chrome and still on top: the plate's lower half is inside the case and
+        // the panel paints there, so `drone` rendered cut along the rule until the rail was lifted
+        plateOnTop: hits(plate),
+        plateWhole: Math.round(pb.height) === 28,
+        backOnRule: Math.abs((bb.top + bb.bottom) / 2 - kb.top) <= 2,
+        backBeforeName: bb.right <= pb.left + 0.5,
+        backTarget: Math.min(Math.round(bb.width), Math.round(bb.height)),
+        backTopmost: hits(b2),
+        // five systems as LINES, not a wrapping paragraph — the room the full case buys
+        systems: row.querySelectorAll('[data-tuning]').length,
+        lines: new Set([...row.querySelectorAll('[data-tuning]')]
+          .map((e) => Math.round(e.getBoundingClientRect().top))).size,
         unclickable: [...row.querySelectorAll<HTMLElement>('[data-tuning]')]
           .filter((e) => !hits(e)).map((e) => e.dataset.tuning),
-        systems: row.querySelectorAll('[data-tuning]').length,
       };
     });
-    expect(g.caseH, 'the drawer must not change the case height').toBe(before);
-    expect(g.inside, 'the drawer stays inside its case').toBe(true);
-    expect(g.coversItsOwnControl, 'the drawer covers the word that opens it').toBe(false);
-    expect(g.setStillClickable, 'you can close it the way you opened it').toBe(true);
-    expect(g.letterVisible).toBe(true);
+    expect(g.fillsW, 'the panel fills the case inside its frame').toBe(true);
+    expect(g.fillsH, 'in both directions').toBe(true);
+    expect(g.letterHidden, 'the instrument is behind it').toBe(true);
+    expect(g.plateOnTop, 'the rail stays above it').toBe(true);
+    expect(g.plateWhole, 'and the name is not cut along the rule').toBe(true);
+    expect(g.backOnRule, "the way back is on the case's top rule").toBe(true);
+    expect(g.backBeforeName, 'before the name, where the room arrow sits on the first case').toBe(true);
+    // 24px IS THE FLOOR, and 44 is only reachable on one axis for a one-character mark: the arrow is
+    // 27x44 — one 9px glyph between two 1ch pads, 44 tall from the padding-and-pull idiom. That is
+    // the same target `set` has and the same WCAG 2.5.8 floor the /proofs sheet cited for it. Writing
+    // 28 here was me copying a number from the lead rather than from the rule.
+    expect(g.backTarget, 'the way back clears the 24px floor').toBeGreaterThanOrEqual(24);
+    expect(g.backTopmost).toBe(true);
     expect(g.systems).toBeGreaterThanOrEqual(5);
+    expect(g.lines, 'each system on its own line').toBe(g.systems);
     expect(g.unclickable, 'every tuning system must be clickable').toEqual([]);
-    // AND IT COVERS NOTHING YOU NEED WHILE COMPARING. It sat on the stack strip for one build, and
-    // the retune test — which stacks a major third and then switches systems — could not click a
-    // cell. Comparing tunings without a chord to compare is the one use this panel has.
-    expect(g.overStrip, 'the drawer covers the stack strip').toBe(false);
-    expect(g.overSpec, 'the drawer covers the calibration box').toBe(false);
-    expect(g.stripCell, 'a strip cell is still clickable with the drawer open').toBe(true);
 
-    // and a second press closes it — the round trip, not just the reveal
-    await set.click();
-    await expect(drawer).toBeHidden();
+    // and the arrow leaves — the round trip, through the control he asked for
+    await back.click();
+    await expect(panel).toBeHidden();
+    await expect(back).toBeHidden();
+    await expect(set).toBeVisible();
     await expect(set).toHaveAttribute('aria-expanded', 'false');
   });
 }
@@ -742,10 +733,15 @@ test('typing in the calibration field does not toggle the comparer', async ({ pa
 });
 
 test('switching the system RETUNES the sounding drone', async ({ page }) => {
+  // THE ORDER IS THE USER'S ORDER NOW: stack the chord, sound it, THEN go into the settings. The
+  // panel fills the case (his "full instrument" pick), so the strip is behind it while you are in
+  // there — this test used to open the comparer first and reach through it for a strip cell, which
+  // worked while the panel was a strip in the case's slack and cannot work now. What it asserts is
+  // unchanged; only the sequence is, and the new sequence is the one a player performs.
   await page.goto('/practice-room/console/?e2e');
-  await page.keyboard.press('Alt+t');
   await page.getByTestId('semi-4').click();          // stack a major third
   await page.getByTestId('drone-toggle').click();    // and sound it
+  await page.getByTestId('set-toggle').click();      // and now compare systems
   await expect.poll(async () =>
     (await page.evaluate(() => (window as any).__mt.droneRanks?.length ?? 0)),
   { timeout: 5000 }).toBeGreaterThan(1);
