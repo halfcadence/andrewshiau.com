@@ -584,7 +584,112 @@ test('⌥T reveals the tuning comparer, and it is hidden by default', async ({ p
   expect(await page.locator('#mt-tune-btns button').count()).toBeGreaterThanOrEqual(5);
   await page.keyboard.press('Alt+t');
   await expect(page.locator('#mt-tune')).toBeHidden();
+  // AND THE WORD AGREES WITH THE PANEL. Two ways in means two places the state can be written, and
+  // the first version of a pair like this always ends with one path updating and the other not.
+  await expect(page.getByTestId('set-toggle')).toHaveAttribute('aria-expanded', 'false');
+  await page.keyboard.press('Alt+t');
+  await expect(page.getByTestId('set-toggle')).toHaveAttribute('aria-expanded', 'true');
 });
+
+// ── `set` — THE COMPLICATED SETTINGS BEHIND ONE WORD (his pick, 2026-08-12: "maybe we can hid erly
+// complicated settings like drone intonation behidn a set type control"). He kept every other
+// control where it is, so this covers the one addition — and the panel it opens was measurably
+// broken before it, which is the substance of the test rather than the disclosure.
+//
+// MEASURED ON THE LIVE PAGE BEFORE THE CHANGE: the comparer was 176px tall inside the 28px `hint`
+// row it was assigned, five buttons 99–198px wide wrapping to five lines. Three of its five were
+// unclickable at 1512 and ALL FIVE at 390 — `elementsFromPoint` on each button's own centre, which
+// is the only instrument that sees this. A screenshot showed a panel that looked fine, and the suite
+// had a test that opened it and counted its buttons: presence is not reachability.
+for (const width of [1512, 390]) {
+  test(`the set drawer opens the intonation panel and every system is clickable @${width}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/practice-room/console/?e2e');
+    const drawer = page.locator('#mt-tune');
+    const set = page.getByTestId('set-toggle');
+    await expect(drawer).toBeHidden();
+    await expect(set).toHaveText('set');
+    await expect(set).toHaveAttribute('aria-expanded', 'false');
+    // SWIPE TO THE DRONE FIRST AT 390, because it is page 2 of the console's scroller there and
+    // `elementsFromPoint` answers about the VIEWPORT: off-screen, it returns nothing and a
+    // hit-testing assertion reads that as "covered". Playwright's own `.click()` scrolls for you,
+    // which is why the click passed while the measurement did not — the reader swipes, so the test
+    // swipes.
+    await set.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(250);
+    // HITTABLE WHILE CLOSED, which my first version of this test never checked — it asserted the
+    // word was reachable with the drawer OPEN and then opened the drawer with a click that would
+    // have hung. It did hang: the voice box's invisible 44px padding reaches into the row below it
+    // and owned every pixel of this word. A control's own centre must be the topmost thing there.
+    expect(await page.evaluate(() => {
+      const e = document.getElementById('mt-set')!;
+      const q = e.getBoundingClientRect();
+      return document.elementsFromPoint(q.left + q.width / 2, q.top + q.height / 2)[0] === e;
+    }), 'the set word must be the topmost thing at its own centre while closed').toBe(true);
+    // it says what it controls, which is what makes it a disclosure rather than a mystery
+    await expect(set).toHaveAttribute('aria-controls', 'mt-tune');
+
+    // CLOSED IT COSTS NOTHING. The case's height is the whole reason this is an overlay: a panel
+    // that grew the case would move every row of a ladder five cases share.
+    const before = await page.locator('.mt-half[data-mt-key="drone"]').evaluate((e) =>
+      Math.round(e.getBoundingClientRect().height));
+
+    await set.click();
+    await expect(drawer).toBeVisible();
+    await expect(set).toHaveAttribute('aria-expanded', 'true');
+
+    const g = await page.evaluate(() => {
+      const row = document.getElementById('mt-tune')!;
+      const btn = document.querySelector('[data-testid="set-toggle"]')!;
+      const kase = row.closest('.mt-half')!;
+      const rb = row.getBoundingClientRect(), sb = btn.getBoundingClientRect(),
+            kb = kase.getBoundingClientRect();
+      const hits = (el: Element) => {
+        const q = el.getBoundingClientRect();
+        return document.elementsFromPoint(q.left + q.width / 2, q.top + q.height / 2).includes(el);
+      };
+      return {
+        caseH: Math.round(kb.height),
+        inside: rb.left >= kb.left - 0.5 && rb.right <= kb.right + 0.5 && rb.bottom <= kb.bottom + 0.5,
+        // the drawer must not cover the word that opens it — it did, at `bottom:var(--lead)`, and
+        // then the only way to close it was the hotkey
+        coversItsOwnControl: !(sb.bottom <= rb.top || sb.top >= rb.bottom),
+        setStillClickable: hits(btn),
+        // nor the letter you are comparing the systems against
+        letterVisible: (document.getElementById('mt-dnote')!.getBoundingClientRect().height > 0),
+        overStrip: (() => { const q = document.getElementById('mt-strip')!.getBoundingClientRect();
+          return !(q.bottom <= rb.top || q.top >= rb.bottom); })(),
+        overSpec: (() => { const e = document.getElementById('mt-a4-scrub-drone');
+          if (!e) return false; const q = e.getBoundingClientRect();
+          return !(q.bottom <= rb.top || q.top >= rb.bottom); })(),
+        stripCell: (() => { const e = document.querySelector('[data-testid="semi-4"]')!;
+          const q = e.getBoundingClientRect();
+          return document.elementsFromPoint(q.left + q.width / 2, q.top + q.height / 2).includes(e); })(),
+        unclickable: [...row.querySelectorAll<HTMLElement>('[data-tuning]')]
+          .filter((e) => !hits(e)).map((e) => e.dataset.tuning),
+        systems: row.querySelectorAll('[data-tuning]').length,
+      };
+    });
+    expect(g.caseH, 'the drawer must not change the case height').toBe(before);
+    expect(g.inside, 'the drawer stays inside its case').toBe(true);
+    expect(g.coversItsOwnControl, 'the drawer covers the word that opens it').toBe(false);
+    expect(g.setStillClickable, 'you can close it the way you opened it').toBe(true);
+    expect(g.letterVisible).toBe(true);
+    expect(g.systems).toBeGreaterThanOrEqual(5);
+    expect(g.unclickable, 'every tuning system must be clickable').toEqual([]);
+    // AND IT COVERS NOTHING YOU NEED WHILE COMPARING. It sat on the stack strip for one build, and
+    // the retune test — which stacks a major third and then switches systems — could not click a
+    // cell. Comparing tunings without a chord to compare is the one use this panel has.
+    expect(g.overStrip, 'the drawer covers the stack strip').toBe(false);
+    expect(g.overSpec, 'the drawer covers the calibration box').toBe(false);
+    expect(g.stripCell, 'a strip cell is still clickable with the drawer open').toBe(true);
+
+    // and a second press closes it — the round trip, not just the reveal
+    await set.click();
+    await expect(drawer).toBeHidden();
+    await expect(set).toHaveAttribute('aria-expanded', 'false');
+  });
+}
 
 test('typing in the calibration field does not toggle the comparer', async ({ page }) => {
   // The hotkey skips inputs; without that, entering an a4 value with alt held would open it.

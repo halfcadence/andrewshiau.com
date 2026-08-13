@@ -396,7 +396,29 @@ const rooms = THINGS.map((t) => ({
               <button type="button" class="vbtn" data-voice="section" data-testid="voice-section"
                 aria-pressed="true">section</button>
             </span>
+            <!-- MOVED OUT OF THIS ROW, see below. -->
+            <!-- ── `set` — THE COMPLICATED SETTINGS, BEHIND ONE WORD (his pick, 2026-08-12:
+                 "maybe we can hid erly complicated settings like drone intonation behidn a set type
+                 control"). He chose 01 for all three questions of the controls chooser — the readout,
+                 the transport and the spec row all stay as they are — so this is the one addition,
+                 and it is scoped to the one control that earns it: the intonation comparer, five
+                 tuning systems and a beat rate, which is the only group on this screen a player sets
+                 once a month and reads an essay about.
+                 IT IS A WORD, not an icon or a triangle: `set` is the same `.vbtn` vocabulary as
+                 `organ cello section` above it, so the case gains a member rather than a new kind of
+                 thing. `aria-expanded` is what says it is a disclosure.
+                 AND IT IS ON THE `hint` ROW, not beside the voice group where it started. At 760 —
+                 the narrowest desktop console, where the drone's case is 170px — the voice group
+                 plus one more word wrapped, overflowed the 28px foot row and put `set` BELOW its own
+                 case, unhittable. `room.spec`'s "no control is clipped and none is unhittable" check
+                 said so at exactly that width; at 1512 it looked fine. The hint row is empty on this
+                 case (it is where the comparer used to be assigned) and one word cannot wrap in it
+                 at any width, so the control has one position rather than a per-width one. -->
           </span>
+        </div>
+        <div class="mt-setline">
+          <button type="button" class="vbtn mt-setbtn" id="mt-set" data-testid="set-toggle"
+            aria-expanded="false" aria-controls="mt-tune">set</button>
         </div>
 
 
@@ -1201,9 +1223,71 @@ const rooms = THINGS.map((t) => ({
      changed nothing — because the grid, not the source order, decides where a child sits.
      `hint` is the tuner's error line, empty on this case, and the right home for a row that
      is only sometimes there. */
-  .mt-tune{grid-row:hint;align-self:start;
-    display:flex;align-items:baseline;gap:1ch;flex-wrap:wrap;margin-top:var(--tight)}
+  /* ── THE COMPARER IS A DRAWER NOW, not a row (2026-08-12) ──────────────────────────────
+     MEASURED ON THE LIVE PAGE, which is how this got found rather than by reading: the panel was
+     176px tall inside the 28px `hint` row it was assigned to — five buttons 99–198px wide wrapping
+     to five lines in a 353px case — and it overflowed its row into whatever was layered above it.
+     Three of its five buttons were unclickable at 1512 and ALL FIVE at 390. `elementsFromPoint` on
+     each button's own centre says so; a screenshot shows a panel that looks fine.
+     The previous comment (below) fixed exactly this bug once already, by moving the group out of
+     `.mt-ctop` into its own row — and the row it moved to is one lead tall, so the bug came back
+     the moment the fifth system was added. A control group that wraps cannot live in ANY single row
+     of a ladder made of 28px leads.
+     SO IT IS AN OVERLAY, inside the case, over the slack the figure floats in: `position:absolute`
+     with the case's own paper behind it and a hairline above it. Closed it costs nothing — no row,
+     no reflow, the ladder untouched, which is the whole reason it can afford to hold five wide
+     buttons. Open it covers air rather than an instrument: the drone's letter stays visible above
+     it, because the letter is what you are comparing the systems against. */
+  /* WHERE IT SITS WAS WRONG TWICE, and both times the render or a test said so rather than my
+     reading of the ladder. At `bottom:var(--lead)` it covered the very word that opens it — `set`
+     is on the foot line — so the only way to close it was the hotkey. At three leads up it cleared
+     the word and covered the STACK STRIP instead, which broke the one thing you do while comparing
+     tunings: `tone.spec`'s retune test stacks a major third and could no longer click a cell.
+     SO IT SITS IN `slack-a`, the placed air ABOVE the figure — the one band of this case that holds
+     nothing. Open, it covers air; the letter, the strip, the voice row and the word that opened it
+     are all still there. `top` is the ladder's own arithmetic: `case-top` plus `spec`, which is one
+     lead plus two (four on the desktop, where the spec row holds two stacked meters). */
+  .mt-tune{position:absolute;left:0;right:0;top:calc(var(--lead) * 5);z-index:2;
+    background:var(--paper);border-top:1px solid var(--line);
+    padding:var(--tight) var(--mt-inset) var(--tight);
+    display:flex;align-items:baseline;gap:1ch;flex-wrap:wrap}
   .mt-tune[hidden]{display:none}
+  /* the spec row is TWO leads on a phone and FOUR on the desktop (two stacked meters), so the band
+     below it starts in two different places — the same reason the row ladder is declared twice.
+     DESKTOP: one lead of case-top plus a four-lead spec = 5.
+     PHONE: two leads of case-top plus a two-lead spec is 4 — and 4 was wrong, because the drone's
+     calibration box does not fit the row it is in. Measured at 390: the box runs 56→129 inside a
+     56→112 spec row, a 17px overflow that predates this drawer, so a drawer starting at 112 sat on
+     its bottom edge. FIVE at both widths clears it by 11px, and the ladder's two sums happening to
+     meet there is luck rather than derivation — stated, so the next person does not read it as one.
+     (The box overflowing its row is a separate defect and is now the first line of the follow-ups.) */
+  /* the word carries the open state, and the accent is this site's one job for colour: you can act
+     on it, and it is acting */
+  /* the row the comparer used to be assigned to, holding the word that opens it instead — one
+     28px line, flush to the case's own 3ch inset like every other label on this screen */
+  /* `position:relative;z-index:1` BECAUSE THE ROW ABOVE REACHES INTO THIS ONE. Every control on
+     this screen pads out to a 44px target with matching negative margins, and the voice box adds
+     its own `.mt-grp` padding on top of that — so the band directly under it belongs, invisibly, to
+     the `section` button. Measured: `elementsFromPoint` on the word's own centre returned the voice
+     button first and `set` third, and Playwright's click timed out for 45 seconds on a control that
+     looked perfectly placed. The stack order is what settles who owns a pixel; nothing moves. */
+  /* THE ROW IS TRANSPARENT TO CLICKS; ONLY THE WORD IS NOT. Lifting the whole row with a z-index
+     fixed the word and broke six voice tests — a full-width 28px row above the voice group ate the
+     clicks that had been eating the word, which is the same defect pointed the other way. So the
+     row passes pointer events through and the 27px word takes its own pixels back. */
+  /* AT THE RIGHT END OF THE ROW, and that is what actually resolves the collision rather than the
+     stack order. `set` was flush left, directly under the voice group's own left-aligned buttons —
+     two 44px targets in adjacent 28px rows, overlapping by 35px, each eating the other depending on
+     which one a z-index favoured. Six voice tests and one `set` test took turns failing while I
+     moved the winner back and forth. Moving the word 380px to the right ends the overlap instead of
+     arbitrating it: nothing is stacked over anything.
+     `pointer-events` still says only the WORD takes clicks, because the row is full-width and sits
+     under the voice box's own overhang at its left end. */
+  .mt-setline{grid-row:hint;align-self:start;display:flex;align-items:baseline;
+    justify-content:flex-end;pointer-events:none}
+  .mt-setbtn{pointer-events:auto}
+  .mt-setbtn[aria-expanded=true]{color:var(--ink)}
+  .mt-drone[data-sounding=true] .mt-setbtn[aria-expanded=true]{color:var(--accent)}
   .mt-tune-btns{display:inline-flex;align-items:baseline;gap:1ch;flex-wrap:wrap}
   .mt-tune-beat{font-variant-numeric:tabular-nums}
   .vbtn{font:inherit;background:transparent;border:0;border-radius:0;margin:0;
@@ -3959,9 +4043,26 @@ const rooms = THINGS.map((t) => ({
     retune();
   });
 
-  // ⌥T reveals it, matching ⌥G's grid overlay: the same modifier, the same "off until
-  // someone who knows asks". Skips inputs so typing a4 in the calibration field cannot
-  // toggle it.
+  // ── ONE TOGGLE, TWO WAYS IN. `set` on the drone's foot line is the way anyone finds it (his
+  // pick: "hide really complicated settings like drone intonation behind a set type control"); ⌥T
+  // stays because it was the way in for a week, it is in the site's own vocabulary beside ⌥G, and
+  // deleting a shortcut someone may have learned buys nothing. Both call the same function, so the
+  // word's `aria-expanded` and the panel's `hidden` cannot disagree — which they would the first
+  // time one path was updated and the other was not.
+  const setBtn = document.getElementById('mt-set') as HTMLButtonElement | null;
+  function showTuning(open: boolean) {
+    if (!tuneWrap) return;
+    tuneWrap.hidden = !open;
+    setBtn?.setAttribute('aria-expanded', String(open));
+    if (open) paintTuning();
+  }
+  setBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();   // the foot line sits inside no click-to-start target, but the strip does
+    showTuning(!!tuneWrap?.hidden);
+  });
+
+  // ⌥T matches ⌥G's grid overlay: the same modifier, the same "off until someone who knows asks".
+  // Skips inputs so typing a4 in the calibration field cannot toggle it.
   window.addEventListener('keydown', (e) => {
     if (!e.altKey || e.metaKey || e.ctrlKey) return;
     if ((e.key || '').toLowerCase() !== 't') return;
@@ -3969,8 +4070,7 @@ const rooms = THINGS.map((t) => ({
     if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
     if (!tuneWrap) return;   // the comparer is the drone's; ⌥T is a window listener on every route
     e.preventDefault();
-    tuneWrap.hidden = !tuneWrap.hidden;
-    if (!tuneWrap.hidden) paintTuning();
+    showTuning(!!tuneWrap.hidden);
   });
 
   buildStrip();
