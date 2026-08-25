@@ -6,8 +6,9 @@
 // scrolling queue preceded the index for one day, 2026-08-11; its arithmetic is deleted, in
 // git history under chooser `practice-room-queue`.)
 //
-// EVERY NUMBER BELOW IS MEASURED, NOT PREFERRED. `demand` is the width at which an
-// instrument's own ink breaks, bisected on the built page one case at a time by
+// EVERY NUMBER BELOW IS MEASURED, NOT PREFERRED — with ONE exception, flagged at its own line:
+// `live-loop`'s demand of 300, a preference until it is bisected. `demand` is otherwise the width
+// at which an instrument's own ink breaks, bisected on the built page one case at a time by
 // `work/understand/practice-room-queue/measure-demand.mjs`, against each case's SHIPPED row
 // heights. The first run of that script called all five broken at 900px because it measured
 // `scrollWidth` — but every control here pads out to a 44px tap target with matching negative
@@ -34,9 +35,10 @@ export interface Instrument {
 }
 
 /**
- * THE FIVE, in their default order. `demand` bisected 2026-08-11 on the built page at
- * 1600px reference. Re-run `measure-demand.mjs` after any change to a case's contents —
- * these are measurements with a date, not constants.
+ * THE FIVE, in their default order, plus `live-loop` (2026-08-25) which is not one of them:
+ * its number has no bisection behind it yet. The five were bisected 2026-08-11 on the built page
+ * at 1600px reference. Re-run `measure-demand.mjs` after any change to a case's contents — these
+ * are measurements with a date, not constants.
  */
 // THE ARTICLE IS GONE FROM TWO NAMES (his nit, 2026-08-12: "can u also retitel to just 'changes'
 // and 'loop'"). They were `the changes` and `the loop` — the definite article reads as prose in a
@@ -58,6 +60,10 @@ export const INSTRUMENTS: readonly Instrument[] = [
      is one deal away. Caught by `changes.spec.ts`, which probes the widest symbol directly. */
   { key: 'changes',   name: 'changes',     demand: 315, breaks: 'the widest symbol F♯m7♭5 (259px) no longer fits beside its insets' },
   { key: 'loop',      name: 'loop',        demand: 236, breaks: 'the speed row wraps past its track' },
+  /* 300 IS NOT MEASURED, and the header says every number here is. Bisect it with
+     `work/understand/practice-room-queue/measure-demand.mjs` once the case ships. Until that run
+     it is a preference, and `breaks` names what I expect to fail first, not what was observed to. */
+  { key: 'live-loop', name: 'live loop',   demand: 300, breaks: 'the four lane rows lose their labels beside the transport' },
 ];
 
 export const BY_KEY: Readonly<Record<string, Instrument>> =
@@ -84,7 +90,9 @@ export const GAP = 56;
    arithmetic already gives. Its demand is the sum of its members plus the gaps between them.
 
    THERE IS NO OUTSIDE (box Q4/04): every thing is always in the room, and positions are FIXED —
-   the plan has no shelf and no ordering, so THINGS is the whole model of what the room holds. */
+   the plan has no shelf and no ordering, so THINGS is the whole model of what the room holds.
+   ^ SUPERSEDED IN PART, 2026-08-25 — see ROOM_THINGS below. Left standing, not deleted, because
+   its reasoning still holds for POSITION; what it got wrong was MEMBERSHIP. */
 
 /** One thing the room can hold: a single instrument, or the console's three. */
 export interface Thing {
@@ -93,19 +101,31 @@ export interface Thing {
   keys: readonly string[];
   /** the word the plan and the phone's row print */
   name: string;
+  /** absent = listed on the index. `false` = still reachable at its URL, just unlisted. */
+  shown?: boolean;
 }
 
 export const THINGS: readonly Thing[] = [
-  { id: 'console', keys: ['tuner', 'drone', 'metronome'], name: 'console' },
-  { id: 'changes', keys: ['changes'], name: 'changes' },
-  { id: 'loop',    keys: ['loop'],    name: 'loop' },
+  { id: 'console',   keys: ['tuner', 'drone', 'metronome'], name: 'console' },
+  { id: 'live-loop', keys: ['live-loop'], name: 'live loop' },
+  { id: 'changes',   keys: ['changes'],   name: 'changes', shown: false },
+  { id: 'loop',      keys: ['loop'],      name: 'loop' },
 ];
 export const THING_BY_ID: Readonly<Record<string, Thing>> =
   Object.fromEntries(THINGS.map((t) => [t.id, t]));
 
+/* WHAT THE INDEX LISTS. The owner, 2026-08-25: `changes` on the homescreen "is currently kind of
+   worthless", and he asked for "some kind of internal system for controlling what's visible in
+   practice room homepage". This is that system — one optional field, read in one place, so there
+   is no second list to drift from THINGS.
+   HIDDEN IS NOT DELETED: ROUTE_CASES below still derives from THINGS, so `/changes/` builds and
+   answers exactly as before. Dropping the route with the box would 404 a URL that used to work. */
+export const ROOM_THINGS: readonly Thing[] = THINGS.filter((t) => t.shown !== false);
+
 /**
- * Route → the cases it renders, derived from THINGS: the room holds none, and each thing's
- * route is its id. PracticeRoom.astro renders from this; tests/unit/routes.test.ts pins it.
+ * Route → the cases it renders, derived from THINGS — not ROOM_THINGS, deliberately: an unlisted
+ * thing keeps its page. The room holds no cases, and each thing's route is its id.
+ * PracticeRoom.astro renders from this; tests/unit/routes.test.ts pins it.
  */
 export const ROUTE_CASES: Readonly<Record<string, readonly string[]>> = Object.freeze({
   room: [] as readonly string[],
@@ -159,8 +179,9 @@ export function splitThing(id: string, width: number): number[] {
  * its `sounds`.
  *
  * THE CEILING, stated because it is the one thing this rule cannot do. The space is
- * `maxRows × 2` = 8 marks. That is enough to identify the five instruments uniquely (verified
- * below and in the unit tests) and NOT enough for the 10–15 app suite the owner has in mind:
+ * `maxRows × 2` = 8 marks. Six are now spent, so two are left. That is enough to identify the six
+ * instruments uniquely (verified below and in the unit tests) and NOT enough for the 10–15 app
+ * suite the owner has in mind:
  * 15 apps into 8 marks collides by arithmetic, whatever the drawing. When the suite grows past
  * eight, the mark stops being an identifier and becomes a TYPE label — several apps share one,
  * and the name distinguishes them. Two ways out, both already costed on the sheets: widen the
@@ -169,7 +190,7 @@ export function splitThing(id: string, width: number): number[] {
  * at 0 collisions for 15 apps and 1 for 30.
  *
  * THE FACTS ARE SHARPENED RATHER THAN AVERAGED (encoding chooser Q3/03): each instrument's
- * `counts` is what it actually counts, chosen so the five are distinct. The metronome counts
+ * `counts` is what it actually counts, chosen so the six are distinct. The metronome counts
  * its four beats; the dealer counts a chord's three-note core, not the seventh, because
  * `counts: 4` would collide with the metronome at 4 bars. That is a data decision, recorded
  * here, and the alternative — a hand-drawn exception — is what the owner's pick forbids.
@@ -188,11 +209,16 @@ export const MARK = { box: 16, module: 4, halfSpan: 5.5, maxRows: 4 } as const;
  * see the note above on sharpening. Keyed to `INSTRUMENTS`.
  */
 export const MARK_FACTS: Readonly<Record<string, { counts: number; sounds: boolean; why: string }>> = {
-  tuner:     { counts: 1, sounds: false, why: 'one pitch, measured against a reference' },
-  metronome: { counts: 4, sounds: true,  why: 'four beats, sounded as clicks' },
-  drone:     { counts: 2, sounds: true,  why: 'a root and one interval, sounding together' },
-  changes:   { counts: 3, sounds: true,  why: "a chord's three-note core, sounded" },
-  loop:      { counts: 2, sounds: false, why: 'two carets, a and b, measured on a track' },
+  tuner:       { counts: 1, sounds: false, why: 'one pitch, measured against a reference' },
+  metronome:   { counts: 4, sounds: true,  why: 'four beats, sounded as clicks' },
+  drone:       { counts: 2, sounds: true,  why: 'a root and one interval, sounding together' },
+  changes:     { counts: 3, sounds: true,  why: "a chord's three-note core, sounded" },
+  loop:        { counts: 2, sounds: false, why: 'two carets, a and b, measured on a track' },
+  /* NOT `counts: 4` for its four lanes — same mechanism as the dealer's 3: `4@0` is already the
+     metronome's, and the formula admits no exceptions, so the truthful count is the one loop.
+     `1@0` was free (taken: tuner 1@45, drone 2@0, changes 3@0, metronome 4@0, loop 2@45); 3@45
+     and 4@45 still are. */
+  'live-loop': { counts: 1, sounds: true,  why: 'one loop, sounded — the bar grid the rest of the room lands on' },
 };
 
 /**

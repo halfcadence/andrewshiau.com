@@ -3,20 +3,27 @@ import { test, expect } from '@playwright/test';
 // Page-level checks that don't need audio: the document loads, the controls are
 // reachable, nothing threw on boot, and the A4 field clamps its range.
 
-// ── EVERY ROUTE BOOTS CLEAN (2026-08-12). This was one page with all five cases; it is four now,
-// and the sharpest thing this file can assert is that each of them evaluates the WHOLE shared
-// script without throwing. That is not hypothetical: the four routes run one `<script>`, and while
+// ── EVERY ROUTE BOOTS CLEAN (2026-08-12). This was one page with all five cases; it is one route
+// per thing plus the room now, and the sharpest thing this file can assert is that each of them
+// evaluates the WHOLE shared script without throwing. That is not hypothetical: the routes run one
+// `<script>`, and while
 // the split was in progress `/changes/` threw on the tuner's first `addEventListener` and lost the
 // dealer's own block — a dead page with nothing visible to a reader. A trimmed import did the same
 // on every route with a green `npm run build`, because Astro does not typecheck an inline script.
+// `plan-changes` MOVED FROM present TO absent on 2026-08-25 (`shown: false`): the index stopped
+// listing it. The `changes` entry below is unchanged, because the route still ships — a page whose
+// only coverage was the box it no longer has would be a page nothing tests.
 const ROUTES = {
-  room: { path: '/practice-room/', present: ['plan-console', 'plan-changes', 'plan-loop'],
-          absent: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'chord-toggle', 'loop-toggle', 'plan-word'] },
+  room: { path: '/practice-room/', present: ['plan-console', 'plan-live-loop', 'plan-loop'],
+          absent: ['plan-changes', 'mic-toggle', 'metro-toggle', 'drone-toggle', 'chord-toggle', 'loop-toggle', 'plan-word'] },
   console: { path: '/practice-room/console/',
              present: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'semi-7', 'voice-section', 'a4', 'a4-drone', 'plan-word'],
              absent: ['tone-toggle', 'chord-toggle', 'loop-toggle', 'plan-console'] },
   changes: { path: '/practice-room/changes/', present: ['chord-toggle', 'deal', 'arp-toggle', 'plan-word'],
              absent: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'loop-toggle'] },
+  'live-loop': { path: '/practice-room/live-loop/',
+                 present: ['ll-run', 'll-length', 'll-state', 'll-rec-0', 'll-mute-3', 'll-calibrate', 'll-latency', 'plan-word'],
+                 absent: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'chord-toggle', 'loop-toggle', 'plan-console'] },
   loop: { path: '/practice-room/loop/', present: ['loop-toggle', 'loop-src', 'rate-05', 'plan-word'],
           absent: ['mic-toggle', 'metro-toggle', 'drone-toggle', 'chord-toggle'] },
 } as const;
@@ -265,7 +272,11 @@ const PRACTICE_TOOLS = [
   { path: '/practice-room/', canonical: 'https://practice.andrewshiau.com/' },
   { path: '/practice-room/console/', canonical: 'https://practice.andrewshiau.com/console/',
     apexTo: 'https://practice.andrewshiau.com/' },
+  // UNLISTED IS STILL PUBLISHED (2026-08-25): `changes` left the index, not the practice host, so
+  // its three routing facts are unchanged.
   { path: '/practice-room/changes/', canonical: 'https://practice.andrewshiau.com/changes/',
+    apexTo: 'https://practice.andrewshiau.com/' },
+  { path: '/practice-room/live-loop/', canonical: 'https://practice.andrewshiau.com/live-loop/',
     apexTo: 'https://practice.andrewshiau.com/' },
   { path: '/practice-room/loop/', canonical: 'https://practice.andrewshiau.com/loop/',
     apexTo: 'https://practice.andrewshiau.com/' },
@@ -351,9 +362,9 @@ test('a retired tool address still 301s to the tool, query string intact',
 // TWO CASES, DELIBERATELY, because the control has two alignment contexts and one number cannot
 // serve both: the five latches in `.mt-cap` get their y from the ROW, and the one beside
 // `arpeggiate` gets it from the WORD's baseline.
-// ALL SIX BERTHS, not three. The first version covered mic, loop-run and arp — one per route,
-// which is a route-coverage argument rather than a control-coverage one. The rule is per CONTROL
-// and there are six of them; the drone's and the metronome's sit on /console/ beside the tuner's
+// EVERY BERTH, not three. The first version covered mic, loop-run and arp — one per route,
+// which is a route-coverage argument rather than a control-coverage one. The rule is per CONTROL;
+// the drone's and the metronome's sit on /console/ beside the tuner's
 // and were measured correct but unguarded, which is the same shape as the nit itself: a mark whose
 // position nothing asserts is a mark free to rot.
 // `type` NAMES THE TEXT THIS MARK HAS TO LINE UP WITH, and three of the six have none: the drone's,
@@ -368,6 +379,10 @@ const LATCHES = [
   { route: '/practice-room/console/', testid: 'metro-toggle', type: null, row: '.mt-read' },
   { route: '/practice-room/loop/', testid: 'loop-toggle', type: '.mt-tl-read', row: '.mt-read' },
   { route: '/practice-room/changes/', testid: 'chord-toggle', type: null, row: '.mt-read' },
+  // The seventh berth. Same shape as the mic's — a `.rd` latch in `.mt-read` beside a `.mrn`
+  // reading — so it takes the same datum. (`/changes/` above is unlisted since 2026-08-25 and
+  // stays here: its latch still ships.)
+  { route: '/practice-room/live-loop/', testid: 'll-run', type: '#mt-ll-read', row: '.mt-read' },
   // The worded one, and the only one with its word INSIDE the button. Its row is the 44px foot
   // line, not a 28px lead, so there is no row centre to check — the word IS the datum here, which
   // is the whole point of the pair.

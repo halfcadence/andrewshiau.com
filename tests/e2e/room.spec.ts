@@ -28,7 +28,10 @@ const PAD = 56, GAP = 56;
 /* THE CONSOLE IS THE ONE PAGE THAT HOLDS THREE, and 648 + 2×56 = 760 is why the phone band is
    there: below it the three cannot sit side by side at their measured minimums. */
 const CONSOLE_KEYS = ['tuner', 'drone', 'metronome'];
-const THINGS3 = ['console', 'changes', 'loop'];
+// WHAT THE INDEX LISTS — and `changes` stopped being one of them on 2026-08-25 (`shown: false` in
+// room.ts). Its route was NOT dropped, so every assertion below about a page still names it; only
+// the assertions about the index moved to `live-loop`.
+const THINGS3 = ['console', 'live-loop', 'loop'];
 const PHONE_MAX = 759;
 
 const room = (p: Page) => p.locator('#mt-pages');
@@ -51,7 +54,8 @@ test.describe('EACH THING IS A PAGE', () => {
   const ROUTES: Array<[string, string, string[]]> = [
     ['the room', ROOM, []],
     ['the console', CONSOLE, CONSOLE_KEYS],
-    ['changes', '/practice-room/changes/?e2e=1', ['changes']],
+    ['changes', '/practice-room/changes/?e2e=1', ['changes']],   // unlisted 2026-08-25, still routed
+    ['live loop', '/practice-room/live-loop/?e2e=1', ['live-loop']],
     ['loop', '/practice-room/loop/?e2e=1', ['loop']],
   ];
 
@@ -88,7 +92,7 @@ test.describe('EACH THING IS A PAGE', () => {
     // RELATIVE, because the room is `/` on the practice host and `/practice-room/` on the apex —
     // an absolute `/console/` is correct on one and a 404 on the other. Caught by this test failing
     // to navigate at all on the preview server.
-    expect(hrefs.map((h) => h.href)).toEqual(['console/', 'changes/', 'loop/']);
+    expect(hrefs.map((h) => h.href)).toEqual(['console/', 'live-loop/', 'loop/']);
     // and the room has no way back to itself
     await expect(page.locator('[data-testid="plan-word"]')).toHaveCount(0);
   });
@@ -99,7 +103,10 @@ test.describe('EACH THING IS A PAGE', () => {
     // was EXACTLY one lead, on the argument that global chrome costs a whole lead or puts every
     // case off the ladder. The row is deleted instead, and what has to be true now is that the
     // mark sits on a line the page already draws and the instrument got the lead back.
-    for (const url of ['/practice-room/console/', '/practice-room/changes/', '/practice-room/loop/']) {
+    // EVERY THING'S PAGE, listed or not: `/changes/` is off the index since 2026-08-25 and its way
+    // back has to keep working.
+    for (const url of ['/practice-room/console/', '/practice-room/changes/',
+                       '/practice-room/live-loop/', '/practice-room/loop/']) {
       await page.setViewportSize({ width: 1512, height: 900 });
       await page.goto(url);
       await expect(page.locator('.mt-chrome'), `no chrome row on ${url}`).toHaveCount(0);
@@ -180,8 +187,10 @@ test.describe('EACH THING IS A PAGE', () => {
     // who arrived from elsewhere) and `replaceState` (Back leaves, and the room's own mark is the
     // only way up). Routes make it moot: this is ordinary history.
     await page.goto(ROOM);
-    await page.locator('[data-testid="plan-changes"]').click();
-    await page.waitForURL(atThing('changes'));
+    // `live-loop`, not `changes`: the index stopped drawing a changes box on 2026-08-25, and this
+    // walk needs a box to press. `/changes/` keeps its own route coverage above.
+    await page.locator('[data-testid="plan-live-loop"]').click();
+    await page.waitForURL(atThing('live-loop'));
     await page.goBack();
     await page.waitForURL(atRoom);
     await expect(page.locator('.mt-pbox')).toHaveCount(3);
@@ -265,8 +274,9 @@ test.describe('THE ONE SCROLLER LEFT: the console on a phone', () => {
     expect(await room(page).evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
   });
 
-  test('the other three routes have no snap and nothing to swipe, at any width', async ({ page }) => {
-    for (const url of [ROOM, '/practice-room/changes/', '/practice-room/loop/']) {
+  test('the other routes have no snap and nothing to swipe, at any width', async ({ page }) => {
+    // `/changes/` is unlisted since 2026-08-25 but still served, so it stays in this sweep.
+    for (const url of [ROOM, '/practice-room/changes/', '/practice-room/live-loop/', '/practice-room/loop/']) {
       for (const w of [1512, 390]) {
         await page.setViewportSize({ width: w, height: 844 });
         await page.goto(url);
@@ -313,8 +323,8 @@ test.describe('THE ONE SCROLLER LEFT: the console on a phone', () => {
     await page.waitForTimeout(300);
     await expect(page.locator('.mt-foot')).toBeHidden();
 
-    // and it does not exist on the other routes at all
-    for (const url of [ROOM, '/practice-room/changes/', '/practice-room/loop/']) {
+    // and it does not exist on the other routes at all — including unlisted `/changes/` (2026-08-25)
+    for (const url of [ROOM, '/practice-room/changes/', '/practice-room/live-loop/', '/practice-room/loop/']) {
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(url);
       await expect(page.locator('#mt-dots'), `${url} has no dot row`).toHaveCount(0);
@@ -483,7 +493,9 @@ test.describe('THE ROOM READS AS A PLAN', () => {
       // "changes" and "loop", not "the changes"/"the loop" (his nit). The article read as prose in a
       // list of one-word labels, and the routes have been /changes/ and /loop/ since the split — the
       // name matches the address now. One edit in room.ts drives all six places that print it.
-      expect(r.map((x) => x.name), `names at ${w}`).toEqual(['console', 'changes', 'loop']);
+      // `changes` LEFT THIS LIST ON 2026-08-25 (unlisted, route intact) and `live loop` took the
+      // slot — the first two-word name here, which is why the truncation check below matters.
+      expect(r.map((x) => x.name), `names at ${w}`).toEqual(['console', 'live loop', 'loop']);
       // THE CONSOLE DRAWS ALL THREE OF ITS MEMBERS' MARKS — the grouping as a drawing, not a label
       expect(r[0].marks).toBe(3);
       expect(r[1].marks).toBe(1);
@@ -575,7 +587,7 @@ test.describe('THE ROOM READS AS A PLAN', () => {
     await p.goto(ROOM);
     await expect(p.locator('.mt-pbox')).toHaveCount(3);
     expect(await p.locator('.mt-pbox').evaluateAll((els) => els.map((e) => e.getAttribute('href'))))
-      .toEqual(['console/', 'changes/', 'loop/']);
+      .toEqual(['console/', 'live-loop/', 'loop/']);
     await ctx.close();
   });
 });
@@ -584,7 +596,9 @@ test.describe('THE MECHANISMS ARE GONE, not merely idle', () => {
   // CSS for a state nothing sets, and JS for a page that no longer exists, both describe a design
   // that is not there — which is what the next person to read this file would believe.
   test('no queue attributes, no snap attribute, no runtime column properties', async ({ page }) => {
-    for (const url of [ROOM, CONSOLE, '/practice-room/changes/?e2e=1', '/practice-room/loop/?e2e=1']) {
+    // Unlisted `/changes/` still runs this script (2026-08-25), so it is still swept here.
+    for (const url of [ROOM, CONSOLE, '/practice-room/changes/?e2e=1',
+                       '/practice-room/live-loop/?e2e=1', '/practice-room/loop/?e2e=1']) {
       for (const w of [1512, 390]) {
         await page.setViewportSize({ width: w, height: 844 });
         await page.goto(url);

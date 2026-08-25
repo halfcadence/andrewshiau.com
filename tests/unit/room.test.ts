@@ -8,23 +8,26 @@
 // dealt, and the case must fit the widest one any deck can deal (`F♯m7♭5`, 259px at 72px,
 // + two 3ch insets + hairlines). A predicate that measures what is on screen cannot see a
 // worst case one deal away; `changes.spec.ts` probes the widest symbol directly and caught it.
+//
+// `live-loop`'s 300 is the one number here with no bisection behind it. It is pinned like the
+// others so a drift is caught, but it is NOT evidence of anything until `measure-demand.mjs`
+// runs against the shipped case.
 
 import { describe, it, expect } from 'vitest';
 import {
   INSTRUMENTS, BY_KEY, PAD, GAP, glyphSvg, GLYPHS,
   MARK, MARK_FACTS, markInner, markSignature,
-  THINGS, THING_BY_ID, thingDemand, splitThing,
+  THINGS, ROOM_THINGS, THING_BY_ID, ROUTE_CASES, thingDemand, splitThing,
 } from '../../src/lib/practice-room/room';
 
-const ORDER = ['tuner', 'metronome', 'drone', 'changes', 'loop'];
-/** the harness's OWN copy of the measured demands — see the file header */
+/** the harness's OWN copy of the demands — see the file header on the provisional one */
 const DEMAND: Record<string, number> = {
-  tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236,
+  tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236, 'live-loop': 300,
 };
 
 describe('the measured demands', () => {
-  it('matches the bisection run for all five instruments', () => {
-    expect(INSTRUMENTS.length).toBe(5);
+  it('matches the bisection run for all five, plus the provisional sixth', () => {
+    expect(INSTRUMENTS.length).toBe(6);
     for (const i of INSTRUMENTS) expect(i.demand).toBe(DEMAND[i.key]);
   });
 
@@ -57,11 +60,12 @@ describe('the GENERATED marks — the formula, its output, and its ceiling', () 
   // θ = 0 if the pitches sound else 45. A test that imported the generator to check the
   // generator would prove nothing.
   const WANT: Record<string, { n: number; deg: number }> = {
-    tuner:     { n: 1, deg: 45 },
-    metronome: { n: 4, deg: 0  },
-    drone:     { n: 2, deg: 0  },
-    changes:   { n: 3, deg: 0  },
-    loop:      { n: 2, deg: 45 },
+    tuner:       { n: 1, deg: 45 },
+    metronome:   { n: 4, deg: 0  },
+    drone:       { n: 2, deg: 0  },
+    changes:     { n: 3, deg: 0  },
+    loop:        { n: 2, deg: 45 },
+    'live-loop': { n: 1, deg: 0  },
   };
 
   it('draws exactly n bars for each instrument', () => {
@@ -81,13 +85,21 @@ describe('the GENERATED marks — the formula, its output, and its ceiling', () 
     }
   });
 
-  it('THE FIVE DO NOT COLLIDE — every signature is distinct', () => {
+  it('NOTHING COLLIDES — every signature is distinct, over whatever INSTRUMENTS holds', () => {
+    // deliberately not a hardcoded list of six: a seventh instrument added without a free
+    // signature must fail HERE, not on the page.
     const sigs = INSTRUMENTS.map((i) => markSignature(i.key));
     expect(sigs.every(Boolean)).toBe(true);
     expect(new Set(sigs).size, `collision in ${sigs.join(' ')}`).toBe(INSTRUMENTS.length);
   });
 
-  it('states its ceiling honestly: maxRows x 2 marks, and 5 fit inside it', () => {
+  it("the live loop takes 1@0 — the four-lane reading would have been the metronome's", () => {
+    expect(markSignature('live-loop')).toBe('1@0');
+    expect(markSignature('metronome')).toBe('4@0');
+    expect(markSignature('live-loop')).not.toBe(markSignature('metronome'));
+  });
+
+  it('states its ceiling honestly: maxRows x 2 marks, and 6 fit inside it', () => {
     const space = MARK.maxRows * 2;
     expect(space).toBe(8);
     expect(INSTRUMENTS.length).toBeLessThanOrEqual(space);
@@ -133,9 +145,9 @@ describe('the 16px glyphs', () => {
     for (const i of INSTRUMENTS) expect(GLYPHS[i.key]).toBeTruthy();
   });
 
-  it('draws five DISTINCT glyphs — five identical marks is the failure mode', () => {
+  it('draws DISTINCT glyphs — two instruments sharing a drawing is the failure mode', () => {
     const drawings = INSTRUMENTS.map((i) => GLYPHS[i.key]);
-    expect(new Set(drawings).size).toBe(5);
+    expect(new Set(drawings).size).toBe(INSTRUMENTS.length);
   });
 
   it('carries no colour of its own, so a row can ink or accent it', () => {
@@ -158,14 +170,16 @@ describe('the 16px glyphs', () => {
   });
 });
 
-describe('THINGS — the console and the two standalones (box + plan choosers)', () => {
-  const D: Record<string, number> = { tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236 };
-  const ORDER3 = ['console', 'changes', 'loop'];
+describe('THINGS — the console and the three standalones (box + plan choosers)', () => {
+  const D: Record<string, number> = {
+    tuner: 170, metronome: 196, drone: 170, changes: 315, loop: 236, 'live-loop': 300,
+  };
+  const ORDER4 = ['console', 'live-loop', 'changes', 'loop'];
 
-  it('holds three things, not five instruments', () => {
-    expect(THINGS.length).toBe(3);
+  it('holds four things, not six instruments', () => {
+    expect(THINGS.length).toBe(4);
     expect(THINGS.flatMap((t) => t.keys).sort())
-      .toEqual(['changes', 'drone', 'loop', 'metronome', 'tuner']);
+      .toEqual(['changes', 'drone', 'live-loop', 'loop', 'metronome', 'tuner']);
   });
 
   it('the console seats exactly the three you play with', () => {
@@ -178,6 +192,8 @@ describe('THINGS — the console and the two standalones (box + plan choosers)',
     expect(thingDemand('console')).toBe(648);
     expect(thingDemand('changes')).toBe(D.changes);
     expect(thingDemand('loop')).toBe(D.loop);
+    expect(thingDemand('live-loop')).toBe(D['live-loop']);
+    expect(thingDemand('live-loop')).toBe(300);
     expect(thingDemand('nope')).toBe(0);
   });
 
@@ -201,10 +217,48 @@ describe('THINGS — the console and the two standalones (box + plan choosers)',
     expect(splitThing('loop', 400)).toEqual([400]);
   });
 
-  it('THINGS is the whole model — positions are fixed, so there is nothing to persist', () => {
-    // `normalizeThings` is deleted with the drag it validated for. The plan draws THINGS in
-    // source order at every width, so the order is a fact about this array and nothing else.
-    expect(THINGS.map((t) => t.id)).toEqual(ORDER3);
-    expect(Object.keys(THING_BY_ID)).toEqual(ORDER3);
+  it('positions are still fixed — the plan draws source order, so nothing is persisted', () => {
+    // `normalizeThings` is deleted with the drag it validated for. `shown` changed MEMBERSHIP of
+    // the index, not ordering: THINGS is still drawn in source order at every width.
+    expect(THINGS.map((t) => t.id)).toEqual(ORDER4);
+    expect(Object.keys(THING_BY_ID)).toEqual(ORDER4);
+  });
+});
+
+describe('ROOM_THINGS — what the homepage lists (owner, 2026-08-25)', () => {
+  it('lists everything except what is marked hidden', () => {
+    expect(ROOM_THINGS.map((t) => t.id)).toEqual(['console', 'live-loop', 'loop']);
+  });
+
+  it('drops changes and keeps the console and the live loop', () => {
+    const ids = ROOM_THINGS.map((t) => t.id);
+    expect(ids).not.toContain('changes');
+    expect(ids).toContain('console');
+    expect(ids).toContain('live-loop');
+  });
+
+  it('absent `shown` means shown — hiding is opt-in, so a new thing appears by default', () => {
+    for (const t of ROOM_THINGS) expect(t.shown).not.toBe(false);
+    expect(THINGS.find((t) => t.id === 'console')!.shown).toBeUndefined();
+    expect(THINGS.find((t) => t.id === 'changes')!.shown).toBe(false);
+  });
+
+  it('is a filter of THINGS, not a second list — same objects, same order', () => {
+    // a hand-maintained copy is the drift this field exists to avoid
+    for (const t of ROOM_THINGS) expect(THINGS).toContain(t);
+    expect(ROOM_THINGS.map((t) => t.id))
+      .toEqual(THINGS.filter((t) => t.shown !== false).map((t) => t.id));
+    expect(ROOM_THINGS.length).toBeLessThan(THINGS.length);
+  });
+
+  it('HIDING A THING MUST NOT DROP ITS ROUTE — the page stays reachable, only unlisted', () => {
+    // the guard: this fails if anyone hides a thing and deletes its entry from ROUTE_CASES.
+    const hidden = THINGS.filter((t) => t.shown === false);
+    expect(hidden.length, 'at least one hidden thing, or this guard proves nothing')
+      .toBeGreaterThan(0);
+    for (const t of hidden) {
+      expect(ROUTE_CASES[t.id], `${t.id} is unlisted but must still have a route`).toBeTruthy();
+      expect(ROUTE_CASES[t.id]).toEqual([...t.keys]);
+    }
   });
 });

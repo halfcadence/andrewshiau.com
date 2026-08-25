@@ -82,6 +82,18 @@ export default defineConfig({
     // shipped detector before the test was written — D3 F3 A3 C4, 72 reads each, no spurious
     // notes — because a fixture nobody checked makes a test that cannot fail.
     mkProject('changes-arp', 'arp-dm7.wav', /changes-arp\.spec\.ts/),
-    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts|changes\.spec\.ts|loop\.spec\.ts|room\.spec\.ts/),
+    // THE LIVE LOOP NEEDS A NON-SILENT MIC, and that is not a detail: a lane recorded from
+    // silence still reports that it holds audio, so the fake device's default would give a punch
+    // test that cannot distinguish a working recorder from one that writes zeros. A steady sine
+    // is enough here — unlike the pitch tests, nothing is being measured about the signal.
+    mkProject('live-loop', 'sine-440.wav', /live-loop\.spec\.ts/),
+    // `\/loop\.spec\.ts` AND NOT `loop\.spec\.ts`, because testMatch is unanchored and matched
+    // against the full path: the bare form also matches `tests/e2e/live-LOOP.spec.ts`, which
+    // silently ran the live loop's specs a SECOND time in this project — the one with no fake
+    // audio file, so the punch test there was recording whatever the default fake device gives.
+    // Requiring the separator immediately before `loop` excludes `live-loop` by construction.
+    // (Same failure shape as the sitemap alternation in astro.config.mjs: a pattern that matches
+    // the tail of a longer, newer name.)
+    mkProject('metronome', null, /metronome\.spec\.ts|tone\.spec\.ts|page\.spec\.ts|swipe\.spec\.ts|accent\.spec\.ts|scrub\.spec\.ts|smooth\.spec\.ts|changes\.spec\.ts|\/loop\.spec\.ts|room\.spec\.ts/),
   ],
 });

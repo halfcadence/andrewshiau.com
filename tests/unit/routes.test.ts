@@ -51,3 +51,33 @@ describe('route→instrument mapping equals THINGS', () => {
     }
   });
 });
+
+/* ROUTES ARE KEYED OFF THINGS, NOT ROOM_THINGS. `shown: false` unlists a thing from the index; it
+   does not unpublish its page. These assert against the model rather than the component, because
+   that is where the mistake would be made. */
+describe('an unlisted thing keeps its page', () => {
+  it('routes cover every thing, including the ones the homepage does not list', () => {
+    expect(Object.keys(room.ROUTE_CASES).sort())
+      .toEqual(['room', ...room.THINGS.map((t) => t.id)].sort());
+    expect(room.ROOM_THINGS.length).toBeLessThan(room.THINGS.length);
+  });
+
+  it('/changes/ still renders the changes case', () => {
+    expect(room.ROUTE_CASES.changes).toEqual(['changes']);
+    expect(room.ROOM_THINGS.map((t) => t.id)).not.toContain('changes');
+  });
+
+  it('/live-loop/ renders the live-loop case', () => {
+    expect(room.ROUTE_CASES['live-loop']).toEqual(['live-loop']);
+  });
+
+  it('EVERY HIDDEN THING HAS A ROUTE — hide the box, keep the URL', () => {
+    // the guard against hiding a thing and dropping its route in the same edit
+    const hidden = room.THINGS.filter((t) => t.shown === false);
+    expect(hidden.map((t) => t.id)).toEqual(['changes']);
+    for (const t of hidden) {
+      expect(room.ROUTE_CASES[t.id], `no route for unlisted ${t.id}`).toBeTruthy();
+      expect(room.ROUTE_CASES[t.id]).toEqual([...t.keys]);
+    }
+  });
+});

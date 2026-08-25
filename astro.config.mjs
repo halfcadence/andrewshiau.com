@@ -157,7 +157,13 @@ export default defineConfig({
         // and /loop/ — and each declares `practice.andrewshiau.com/<thing>/`. The pattern grew one
         // optional segment rather than three literals, so a fourth thing is excluded by existing.
         // The anchor still ends at `/`, which is what keeps /work/practice-room/ in the sitemap.
-        !/^https?:\/\/[^/]+\/(practice-room(\/(console|changes|loop))?|pitchgraph)\/$/.test(page),
+        // `live-loop` joins the list for the same reason as the rest, and the unit test
+        // caught its absence within a minute of the route existing: the page declares a
+        // canonical on practice.andrewshiau.com, so advertising the apex copy asks a crawler
+        // to index a URL the page itself disowns. Note `live-loop` must precede `loop` in the
+        // alternation — regex alternation is first-match, so `loop` alone would match the tail
+        // of `live-loop` and leave the `live-` prefix unconsumed, failing the anchor.
+        !/^https?:\/\/[^/]+\/(practice-room(\/(console|changes|live-loop|loop))?|pitchgraph)\/$/.test(page),
     }),
   ],
 });

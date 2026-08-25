@@ -1,6 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { THINGS, ROUTE_CASES, glyphSvg } from '../lib/practice-room/room';
+import { ROOM_THINGS, ROUTE_CASES, glyphSvg } from '../lib/practice-room/room';
+import { SONGS } from '../lib/practice-room/liveloop';
+// THE LANE NAMES COME FROM THE ENGINE so the markup and the processor cannot disagree about
+// how many lanes there are — a fifth name here with four buffers there would render a row
+// whose buttons address a lane that does not exist.
+import { LANES } from '../lib/practice-room/liveloopEngine';
 
 // ══ ONE COMPONENT, FOUR ROUTES (2026-08-12, the owner's second correction) ══════════════════
 // "i want to remove the scroll concept entirely (except on mobile console), each thing in the
@@ -26,7 +31,7 @@ import { THINGS, ROUTE_CASES, glyphSvg } from '../lib/practice-room/room';
 // `scrollLeft = 0` that existed because a snap container follows the element it snapped to. A
 // route IS the navigation, so none of that has anything left to do.
 export interface Props {
-  page: 'room' | 'console' | 'changes' | 'loop';
+  page: 'room' | 'console' | 'changes' | 'loop' | 'live-loop';
 }
 const { page } = Astro.props;
 
@@ -68,6 +73,16 @@ const META: Record<Props['page'], { title: string; description: string; h1: stri
       'Loop a span of any YouTube video at a quarter, a half or three-quarter speed, for transcribing by ear.',
     h1: 'Loop — a transcription looper',
   },
+  // TWO INSTRUMENTS WITH THE SAME VERB, AND THE NAMES HAVE TO CARRY IT. `/loop/` loops
+  // SOMEONE ELSE'S recording so you can learn it; `/live-loop/` records YOURS, in layers, so
+  // you can perform alone. Same word, opposite direction, so the description leads with the
+  // difference rather than with the mechanism.
+  'live-loop': {
+    title: 'Live loop — practice room',
+    description:
+      'A four-lane overdub looper for performing alone: bar-exact punch-in, measured latency compensation, per-lane mute, and one reverb after the loop. The microphone signal never leaves the page.',
+    h1: 'Live loop — a four-lane overdub looper',
+  },
 };
 
 // THE HREFS ARE RELATIVE, and this is not a style preference — it is the only form that works on
@@ -76,7 +91,11 @@ const META: Record<Props['page'], { title: string; description: string; h1: stri
 // So `/console/` is correct on one host and a 404 on the other, while `console/` resolves against
 // whichever directory the room is being served from and is right on both. The way back is `../` for
 // the same reason: `/` would leave the app for the site homepage on the apex.
-const rooms = THINGS.map((t) => ({
+// THE INDEX LISTS `ROOM_THINGS`, NOT `THINGS` — the room's visibility system (room.ts,
+// 2026-08-25). A thing with `shown: false` keeps its route and its page and simply is not
+// listed here, which is what the owner asked for when he called `changes` on the homescreen
+// "kind of worthless": unlist it, don't delete it. Nothing else in this file needs to know.
+const rooms = ROOM_THINGS.map((t) => ({
   id: t.id, name: t.name, marks: t.keys.map((k) => glyphSvg(k)).join(''), href: `${t.id}/`,
 }));
 
@@ -885,6 +904,115 @@ const rooms = THINGS.map((t) => ({
       </section>
     )}
 
+    <!-- ══ THE LIVE LOOP: FOUR LANES, ONE CLOCK (2026-08-25) ═══════════════════════════════
+         The room's first instrument that RECORDS, and the only one whose correctness is about
+         TIME rather than pitch. Two things in it are not cosmetic and should not be
+         "simplified" by a later pass:
+
+         1. THE LANES ARE FIXED AND NAMED BY INPUT — drums, harmony, voice, spare. Four
+            independent looping performers converge on that map (Sheeran's GUITAR/BOOM/RC20/VOX,
+            Dub FX's three blocks plus a live top, Rebillet's build order), and the reason is
+            not taste: a lane per input is what stops the stack turning to mud, because you can
+            mute and re-record one instrument without touching the others. Bass is deliberately
+            absent — on the songs this is for, the bass is the hook and stays in your hands.
+         2. THE FIGURE IS THE LANES, and it is the control. The room's idiom (the loop's
+            timeline, the drone's letter) is that the thing you read is the thing you touch.
+            Each lane row is its own strip, its own arm and its own mute.
+
+         WHAT THE READING IS: the loop's length in seconds, because that is the number that
+         decides everything else about performing with it — it is the reverb budget (half of
+         it), it is how long you have to get a part right, and it is what the song's bar count
+         and tempo multiply out to. The bar.beat counter sits on the right rail, where the
+         loop case puts its own secondary figure.
+
+         THE MICROPHONE IS NOT OPENED UNTIL YOU PRESS RUN — the same promise the tuner makes,
+         kept the same way: by not starting the thing until it is needed. -->
+    {has('live-loop') && (
+      <section class="mt-half mt-liveloop" aria-label="Live loop" data-mt-key="live-loop">
+        <span class="mt-np">
+          <a class="mt-back" href="../" data-testid="plan-word" aria-label="Back to the practice room">←</a>
+          <span class="mt-plate" aria-hidden="true">live loop</span>
+        </span>
+
+        <div class="mt-ctop">
+          <span class="mt-fr">
+            <!-- THE SONG IS THE SPEC CONTROL: it sets tempo and bar count together, which is
+                 the only pair that matters — a looper's loop length IS tempo × bars, and
+                 getting either wrong is unrecoverable once a layer is printed. Mutually
+                 exclusive, so a selector and not four latches (the drone's voice-row idiom). -->
+            <span class="mt-grp mt-llsong" id="mt-ll-song" role="group" aria-label="Song — sets the tempo and the loop length">
+              <span class="mt-gl" aria-hidden="true">song</span>
+              {SONGS.map((s, i) => (
+                <button type="button" class="vbtn" data-song={s.slug}
+                  data-testid={`ll-song-${s.slug}`}
+                  aria-pressed={i === 0 ? 'true' : 'false'}>{s.title}</button>
+              ))}
+            </span>
+          </span>
+        </div>
+
+        <div class="mt-mid">
+          <figure class="mt-gauge mt-llfig">
+            <div class="mt-lllanes" id="mt-ll-lanes">
+              {LANES.map((name, i) => (
+                <div class="mt-lllane" data-lane={i}>
+                  <span class="mt-llnm" aria-hidden="true">{name}</span>
+                  <span class="mt-llstrip" data-lane-strip={i} aria-hidden="true">
+                    <span class="mt-llfill"></span>
+                  </span>
+                  <button type="button" class="tbtn mt-llrec" data-lane-rec={i}
+                    data-testid={`ll-rec-${i}`} aria-pressed="false"
+                    aria-label={`record the ${name} lane on the next bar`}>rec</button>
+                  <button type="button" class="tbtn latch mt-llmute" data-lane-mute={i}
+                    data-testid={`ll-mute-${i}`} aria-pressed="false"
+                    aria-label={`mute the ${name} lane`}>mute</button>
+                </div>
+              ))}
+              <span class="mt-llhead" id="mt-ll-head" aria-hidden="true"></span>
+            </div>
+          </figure>
+          <div class="mt-read">
+            <span class="mrn mt-llread" id="mt-ll-read" data-testid="ll-length">—</span>
+            <div class="mt-cap">
+              <button type="button" class="tbtn latch" id="mt-ll-run" data-testid="ll-run"
+                aria-pressed="false" aria-label="run the loop">
+                <svg class="rd" width="32" height="16" viewBox="0 0 32 16" aria-hidden="true">
+                  <rect class="fld" x="0.75" y="0.75" width="30.5" height="14.5"/>
+                  <circle class="dt" cx="8" cy="8" r="3.2"/>
+                </svg>
+              </button>
+            </div>
+            <span class="mt-rr"><span class="mrh" id="mt-ll-pos"></span></span>
+          </div>
+        </div>
+
+        <div class="mt-cfoot">
+          <span class="mt-fr">
+            <span class="mt-grp mt-llopt" id="mt-ll-opt" role="group" aria-label="Options">
+              <span class="mt-gl" aria-hidden="true">count</span>
+              <button type="button" class="tbtn latch" id="mt-ll-click" data-testid="ll-click"
+                aria-pressed="true" aria-label="click">click</button>
+            </span>
+            <!-- CALIBRATION IS A CONTROL, NOT A SETTING, because the number it writes is the
+                 difference between a stack that lines up and one that smears. It is shown with
+                 its measured value beside it so a wrong one is visible rather than assumed;
+                 uncalibrated reads `0 ms — uncompensated`, which is the honest default. -->
+            <span class="mt-grp mt-llcal" id="mt-ll-cal" role="group" aria-label="Latency compensation">
+              <span class="mt-gl" aria-hidden="true">latency</span>
+              <button type="button" class="tbtn" id="mt-ll-calbtn" data-testid="ll-calibrate"
+                aria-label="measure the round-trip latency">measure</button>
+              <span class="mrh mt-llcalread" id="mt-ll-calread" data-testid="ll-latency">0 ms</span>
+            </span>
+          </span>
+        </div>
+
+        <div class="mt-loopline">
+          <span class="mt-loopstate" id="mt-ll-state" data-testid="ll-state" aria-live="polite"
+            >press run to open the microphone</span>
+        </div>
+      </section>
+    )}
+
       <!-- ══ THE ROOM: THE INDEX (choosers `practice-room-box` Q1/04 Q2/04 Q3/02 Q4/04,
            `practice-room-plan` Q5/01 — 2026-08-12) ══════════════════════════════════════════
            ONE BOX WITH THE THINGS AS ROOMS INSIDE IT, per the owner's correction: "you should
@@ -1431,6 +1559,50 @@ const rooms = THINGS.map((t) => ({
      thing the element is here to do. */
   .mt-yt{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;
     pointer-events:none;bottom:0;left:0}
+
+  /* ── THE LIVE LOOP ──────────────────────────────────────────────────────────
+     THE FIGURE IS FOUR STRIPS, one per lane, and one playhead crossing all four. That is the
+     whole readout: a performer needs to know which lanes hold audio, which is muted, which is
+     recording, and where in the bar they are. A single stacked meter could not say the first
+     three, and those are the ones a mistake lives in.
+     THE STRIPS SHARE ONE PLAYHEAD because the lanes share one loop position in the processor —
+     drawing a head per lane would imply they can drift, which is the one thing the engine's
+     design guarantees they cannot. */
+  .mt-lllanes{position:relative;display:grid;gap:6px;width:100%}
+  .mt-lllane{display:grid;grid-template-columns:5.5ch 1fr auto auto;align-items:center;
+    column-gap:1.5ch}
+  .mt-llnm{color:var(--faint);font-size:var(--fs-sm,inherit);line-height:var(--lead)}
+  /* The strip is a rule until it holds audio, then a filled band — the room's own vocabulary
+     for empty-versus-present (the timeline's axis and span, one level quieter). */
+  .mt-llstrip{position:relative;height:10px;display:block;
+    border-top:1px solid var(--line);align-self:center}
+  .mt-llfill{position:absolute;left:0;top:-1px;height:3px;width:0;background:var(--faint);
+    transition:width var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease)}
+  .mt-lllane[data-has="true"] .mt-llfill{width:100%;background:var(--ink)}
+  .mt-lllane[data-muted="true"] .mt-llfill{background:var(--line)}
+  /* RECORDING IS THE ONLY ACCENT IN THE CASE while it is happening, because it is the only
+     state that is destructive: the fill grows across the strip as the take prints. */
+  .mt-lllane[data-rec="true"] .mt-llfill{background:var(--accent)}
+  .mt-lllane[data-armed="true"] .mt-llstrip{border-top-color:var(--accent)}
+  .mt-llrec,.mt-llmute{font:inherit;background:transparent;border:0;border-radius:0;
+    padding:8px .75ch;margin:-8px 0;cursor:pointer;color:var(--faint);
+    transition:color var(--dur-fast) var(--ease)}
+  .mt-llrec:hover,.mt-llmute:hover{color:var(--accent)}
+  .mt-llrec:focus-visible,.mt-llmute:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .mt-lllane[data-armed="true"] .mt-llrec,.mt-lllane[data-rec="true"] .mt-llrec{color:var(--accent)}
+  .mt-llmute[aria-pressed="true"]{color:var(--ink)}
+  /* One head across the four strips. Hidden until the transport runs — a playhead on a stopped
+     loop is a line that means nothing, the same reason the timeline hides its own. */
+  .mt-llhead{position:absolute;top:0;bottom:0;width:1px;background:var(--accent);opacity:0;
+    z-index:1;pointer-events:none}
+  .mt-liveloop[data-sounding="true"] .mt-llhead{opacity:1}
+  /* THE SONG ROW WRAPS RATHER THAN ABBREVIATING. Four real titles do not fit one line in this
+     case's measured minimum, and the alternatives were both worse: an abbreviation ("NGHYB")
+     is a word nobody says, and a <select> is a control this room does not otherwise use. */
+  .mt-llsong{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 2ch}
+  .mt-llopt,.mt-llcal{display:inline-flex;align-items:baseline;gap:1.5ch}
+  .mt-llcalread{white-space:nowrap}
+  .mt-liveloop .mt-loopstate{margin-top:var(--unit)}
 
   /* ⌥G RAISES TWO OVERLAYS: the per-case one (axis + the box-rule pair) and the room's own
      TOP datum on the box's top rule. The CENTRE line (`.mt-mid::after`) and the BOTTOM datum
@@ -3106,6 +3278,13 @@ const rooms = THINGS.map((t) => ({
   import {
     INSTRUMENTS, BY_KEY, PAD, GAP, glyphSvg, THINGS, splitThing,
   } from '../lib/practice-room/room';
+  // THE LIVE LOOP: arithmetic in one module, real time in the other. Nothing here computes a
+  // loop length or a bar boundary by hand — those are the two numbers a looper cannot get
+  // slightly wrong, so they live where a unit test can hold them.
+  import {
+    SONGS, songBySlug, loopFrames, barFrames, loopSeconds, reverbCeilingSeconds,
+  } from '../lib/practice-room/liveloop';
+  import { LiveLoop, LANES, type LiveLoopView } from '../lib/practice-room/liveloopEngine';
 
   // ONE AudioContext for tuner, tone and metronome, created on the first gesture —
   // browsers refuse both getUserMedia and audio playback without one.
@@ -5645,6 +5824,195 @@ const rooms = THINGS.map((t) => ({
     }, { passive: true });
     drawDots();
     new ResizeObserver(paintDots).observe(pages);
+  }
+
+  /* ══ THE LIVE LOOP ═════════════════════════════════════════════════════════════════════
+     The glue only. The arithmetic is in liveloop.ts (unit-tested, sample-exact) and the
+     real-time work is in liveloopEngine.ts's worklet; this block owns the DOM and nothing else,
+     which is the same division every other instrument on this page keeps.
+
+     WHY THE RUN BUTTON OPENS THE MICROPHONE rather than a separate permission control: the
+     instrument cannot do anything at all without input, so a second button would be a step
+     that exists only to be pressed. The state line says what is about to happen before it does. */
+  const llLanesEl = $('mt-ll-lanes');
+  if (llLanesEl) {
+    const llRun = $('mt-ll-run');
+    const llRead = $('mt-ll-read');
+    const llPos = $('mt-ll-pos');
+    const llState = $('mt-ll-state');
+    const llHead = $('mt-ll-head');
+    const llClick = $('mt-ll-click');
+    const llCalBtn = $('mt-ll-calbtn');
+    const llCalRead = $('mt-ll-calread');
+    const llSongGrp = $('mt-ll-song');
+    const llCase = document.querySelector('.mt-liveloop') as HTMLElement | null;
+    const laneRows = Array.from(llLanesEl.querySelectorAll<HTMLElement>('.mt-lllane'));
+
+    let engine: LiveLoop | null = null;
+    let song = SONGS[0];
+
+    const llSay = (s: string) => { if (llState) llState.textContent = s; };
+
+    /** The reading is the loop's length, because that is the number performing with it depends
+     *  on — it is also the reverb budget, halved. Both are printed, so neither is folklore. */
+    // THE RIGHT RAIL HOLDS ONE SHORT VALUE, and that is a measured constraint rather than a
+    // preference: it read `4 bars · 90.7 bpm`, which WRAPS at 390px, and a wrapped rail grows
+    // `.mt-read` downward so the row's centre falls 14px below the transport's ink — breaking the
+    // room's "the row centres the mark by construction" rule in both colourways. Caught by
+    // page.spec.ts's berth check the moment this case was added to its table. The tempo lives in
+    // the state line instead, which is prose and may wrap all it likes.
+    const drawSpec = () => {
+      const secs = loopSeconds(song.countedBpm, song.bars);
+      if (llRead) llRead.textContent = `${secs.toFixed(2)} s`;
+      if (llPos) llPos.textContent = `${song.bars} bars`;
+    };
+
+    const paint = (v: LiveLoopView) => {
+      laneRows.forEach((row, i) => {
+        const l = v.lanes[i];
+        row.dataset.has = String(l.hasAudio);
+        row.dataset.muted = String(l.muted);
+        row.dataset.rec = String(l.recording);
+        row.dataset.armed = String(v.armed === i && v.armPending);
+        // The take's peak, on the row. It is what makes "recorded silence" visible rather than
+        // a mystery, and it is what the e2e asserts to prove the processor wrote SIGNAL and not
+        // just a buffer — `data-has` alone would be true either way.
+        row.dataset.peak = l.peak.toFixed(4);
+        const mute = row.querySelector<HTMLElement>('.mt-llmute');
+        mute?.setAttribute('aria-pressed', String(l.muted));
+      });
+      if (llHead) llHead.style.left = `${v.loopPos * 100}%`;
+      if (llCase) llCase.dataset.sounding = String(v.running);
+      if (v.running && llPos) llPos.textContent = `bar ${v.bar + 1}·${v.beat + 1}`;
+    };
+
+    const ensure = async (): Promise<LiveLoop | null> => {
+      if (engine) return engine;
+      llSay('opening the microphone…');
+      const e = new LiveLoop(audio());
+      try {
+        await e.open();
+      } catch (err) {
+        // The honest failure. Denied permission is the common one; a secure-context failure is
+        // the other, and it is worth naming because it is not the user's fault.
+        llSay(`no microphone: ${(err as Error).name}. It needs permission and a secure page.`);
+        return null;
+      }
+      e.onView = paint;
+      e.onRecorded = (lane, peak) => {
+        llSay(peak < 0.001
+          ? `${LANES[lane]} recorded SILENCE (peak ${peak.toFixed(4)}) — check the input, then clear it and go again.`
+          : `${LANES[lane]} printed, peak ${peak.toFixed(2)}.`);
+      };
+      engine = e;
+      return e;
+    };
+
+    const applySong = () => {
+      drawSpec();
+      if (!engine) return;
+      const sr = engine.sampleRate;
+      engine.setLoop(
+        loopFrames(song.countedBpm, song.bars, sr),
+        barFrames(song.countedBpm, sr),
+        song.bars,
+      );
+      // Reverb after the looper, decay capped at half the loop — the doctrine, applied by
+      // arithmetic rather than by ear.
+      engine.setReverb(0.22, reverbCeilingSeconds(loopSeconds(song.countedBpm, song.bars)));
+    };
+
+    llSongGrp?.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-song]');
+      if (!b) return;
+      const next = songBySlug(b.dataset.song || '');
+      if (!next) return;
+      song = next;
+      llSongGrp.querySelectorAll('[data-song]').forEach((el) => {
+        const on = el === b;
+        el.setAttribute('aria-pressed', String(on));
+        el.classList.toggle('on', on);
+      });
+      applySong();
+      llSay(song.note
+        ? song.note
+        : `${song.title} · ${song.countedBpm} bpm — ${song.cell.join(' ')}`);
+    });
+    llSongGrp?.querySelector('[data-song]')?.classList.add('on');
+
+    llRun?.addEventListener('click', async () => {
+      const e = await ensure();
+      if (!e) return;
+      if (e.running) {
+        e.stop();
+        llRun.setAttribute('aria-pressed', 'false');
+        llSay('stopped. the lanes keep what they hold.');
+        return;
+      }
+      applySong();
+      e.start();
+      llRun.setAttribute('aria-pressed', 'true');
+      llSay(e.calibrated
+        ? 'running. press rec on a lane — it starts on the next bar.'
+        : 'running, but UNCOMPENSATED — measure the latency or every layer prints late.');
+    });
+
+    laneRows.forEach((row, i) => {
+      row.querySelector('.mt-llrec')?.addEventListener('click', async () => {
+        const e = await ensure();
+        if (!e) return;
+        if (!e.running) { llSay('press run first — a punch needs a bar line to land on.'); return; }
+        // Pressing rec on an armed-or-recording lane cancels it. A looper without a cancel is a
+        // looper that punishes a mistimed press with a whole ruined cycle.
+        if (e.view.armed === i) { e.disarm(); llSay('punch cancelled.'); return; }
+        e.arm(i, 'replace');
+        llSay(`${LANES[i]}: recording from the next bar, for ${song.bars} bars.`);
+      });
+      row.querySelector('.mt-llmute')?.addEventListener('click', () => {
+        if (!engine) return;
+        engine.mute(i, !engine.view.lanes[i].muted);
+      });
+      // A long press clears the lane. Kept off the primary gesture on purpose: clearing is the
+      // one destructive action here, and it should not share a tap with arming.
+      let held = 0;
+      const strip = row.querySelector<HTMLElement>('.mt-llstrip');
+      strip?.addEventListener('pointerdown', () => {
+        held = window.setTimeout(() => {
+          engine?.clear(i);
+          llSay(`${LANES[i]} cleared.`);
+        }, 600);
+      });
+      const cancelHold = () => { if (held) { clearTimeout(held); held = 0; } };
+      strip?.addEventListener('pointerup', cancelHold);
+      strip?.addEventListener('pointerleave', cancelHold);
+    });
+
+    llClick?.addEventListener('click', () => {
+      const on = llClick.getAttribute('aria-pressed') !== 'true';
+      llClick.setAttribute('aria-pressed', String(on));
+      engine?.click(on);
+    });
+
+    llCalBtn?.addEventListener('click', async () => {
+      const e = await ensure();
+      if (!e) return;
+      llSay('measuring — patch output to input, or let the speakers reach the microphone.');
+      if (llCalRead) llCalRead.textContent = '…';
+      const r = await e.calibrate();
+      if (!r.ok) {
+        if (llCalRead) llCalRead.textContent = '0 ms';
+        llSay(`could not measure: ${r.reason}`);
+        return;
+      }
+      if (llCalRead) llCalRead.textContent = `${r.ms.toFixed(1)} ms`;
+      llSay(`round trip ${r.ms.toFixed(1)} ms (${r.frames} frames), jitter ${r.jitter.toFixed(1)} ms `
+        + `over ${r.passes} passes. Layers now print in the right place.`);
+    });
+
+    drawSpec();
+    llSay(`${song.title} · ${song.countedBpm} bpm — ${song.cell.join(' ')}. press run to open the microphone.`);
+
+    addEventListener('pagehide', () => engine?.release());
   }
 
   // Leaving the page: stop everything. A tab that keeps a mic open after
