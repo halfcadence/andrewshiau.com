@@ -112,3 +112,109 @@ test('the room lists live loop and not changes, but /changes/ still loads', asyn
   expect(res?.status()).toBeLessThan(400);
   await expect(page.locator('[data-mt-key="changes"]')).toBeVisible();
 });
+
+/* ══ WHAT A REVIEW FOUND, PINNED SO IT CANNOT COME BACK ═══════════════════════════════════════
+   Each of these covers a defect that shipped in the first version. The first one is the reason
+   this block exists: the page said "stopped. the lanes keep what they hold." and then erased
+   them on the next press. */
+
+test('STOP THEN RUN KEEPS THE LANES — the page promises it, so it is a test', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+
+  const lane = page.locator('.mt-lllane[data-lane="1"]');
+  await page.getByTestId('ll-rec-1').click();
+  await expect(lane).toHaveAttribute('data-has', 'true', { timeout: 25_000 });
+  const peakBefore = Number(await lane.getAttribute('data-peak'));
+  expect(peakBefore).toBeGreaterThan(0.01);
+
+  // stop
+  await page.getByTestId('ll-run').click();
+  await expect(page.getByTestId('ll-run')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByTestId('ll-state')).toContainText('lanes keep what they hold');
+  await expect(lane).toHaveAttribute('data-has', 'true');
+
+  // and run again — the take must still be there. It was not: `applySong()` re-sent `config`,
+  // which reallocated every lane buffer, so a 12-second performance died on a transport press.
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  await expect(lane).toHaveAttribute('data-has', 'true');
+  expect(Number(await lane.getAttribute('data-peak'))).toBeCloseTo(peakBefore, 3);
+});
+
+test('the rec button says ADD once a lane holds audio, because it overdubs then', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await expect(page.getByTestId('ll-rec-2')).toHaveText('rec');
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  await page.getByTestId('ll-rec-2').click();
+  await expect(page.locator('.mt-lllane[data-lane="2"]')).toHaveAttribute('data-has', 'true', { timeout: 25_000 });
+  await expect(page.getByTestId('ll-rec-2')).toHaveText('add');
+});
+
+test('undo puts back what a take replaced, and a second undo is a redo', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await expect(page.getByTestId('ll-undo')).toBeDisabled();
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+
+  const lane = page.locator('.mt-lllane[data-lane="0"]');
+  await page.getByTestId('ll-rec-0').click();
+  await expect(lane).toHaveAttribute('data-has', 'true', { timeout: 25_000 });
+  await expect(page.getByTestId('ll-undo')).toBeEnabled();
+
+  // undo → the lane is empty again (it was empty before the take)
+  await page.getByTestId('ll-undo').click();
+  await expect(lane).toHaveAttribute('data-has', 'false', { timeout: 5_000 });
+  // undo again → the take comes back, which is what one level of undo gives you for free
+  await page.getByTestId('ll-undo').click();
+  await expect(lane).toHaveAttribute('data-has', 'true', { timeout: 5_000 });
+});
+
+test('cancelling a punch keeps whatever the lane already had', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  const lane = page.locator('.mt-lllane[data-lane="3"]');
+  await page.getByTestId('ll-rec-3').click();
+  await expect(lane).toHaveAttribute('data-armed', 'true', { timeout: 5_000 });
+  await page.getByTestId('ll-rec-3').click();     // cancel while armed
+  await expect(page.getByTestId('ll-state')).toContainText('keeps what it had');
+  await expect(lane).toHaveAttribute('data-armed', 'false', { timeout: 5_000 });
+  await expect(lane).toHaveAttribute('data-has', 'false');
+});
+
+test('the playhead tracks the strips, not the whole figure', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  // The head must sit inside the strip column at every position it can take. Measured, because
+  // the head used to be positioned off the CONTAINER and so sat over the lane name at pos 0.
+  const geo = await page.evaluate(() => {
+    const strip = document.querySelector('.mt-llstrip')!.getBoundingClientRect();
+    const head = document.querySelector('.mt-llhead')!.getBoundingClientRect();
+    const lanes = getComputedStyle(document.querySelector('.mt-lllanes')!);
+    return {
+      stripL: strip.left, stripR: strip.right, headL: head.left,
+      x: lanes.getPropertyValue('--ll-strip-x').trim(),
+      w: lanes.getPropertyValue('--ll-strip-w').trim(),
+    };
+  });
+  expect(geo.x).not.toBe('');
+  expect(geo.w).not.toBe('');
+  expect(geo.headL).toBeGreaterThanOrEqual(geo.stripL - 1.5);
+  expect(geo.headL).toBeLessThanOrEqual(geo.stripR + 1.5);
+});
+
+test('calibration refuses while the transport runs — chirps would print into a take', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  await page.getByTestId('ll-calibrate').click();
+  await expect(page.getByTestId('ll-state')).toContainText('stop the transport first', { timeout: 10_000 });
+});

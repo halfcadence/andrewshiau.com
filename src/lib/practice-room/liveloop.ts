@@ -112,9 +112,69 @@ export function nextBarBoundary(
   sampleRate: number,
   beatsPerBar: number = BEATS_PER_BAR,
 ): number {
-  const bf = barFrames(bpm, sampleRate, beatsPerBar);
-  const barsAhead = Math.ceil((frame - originFrame) / bf);
-  return originFrame + barsAhead * bf;
+  return boundaryFrames(frame, originFrame, barFrames(bpm, sampleRate, beatsPerBar), 0);
+}
+
+/**
+ * THE LATE-PRESS FORGIVENESS WINDOW, in milliseconds.
+ *
+ * 300 ms is not a taste call — it is the only such number any manufacturer publishes:
+ * Singular Sound's Aeros documents 300 ms of late-press forgiveness for a loop boundary (and
+ * 600 ms for record-next-track). Boss never states its rounding rule or window width at all.
+ *
+ * WHY A WINDOW EXISTS. "Next boundary at or after the press" is correct for an EARLY press and
+ * feels like a bug for a late one: miss the bar line by 20 ms and you wait a whole extra bar,
+ * which on this material is 2.6 seconds of silence where the player expected a downbeat. Inside
+ * the window a late press is treated as though it had landed ON the line it just missed.
+ */
+export const FORGIVENESS_MS = 300;
+
+/**
+ * THE GRID, IN FRAMES — and this is the function the instrument actually runs.
+ *
+ * Everything above is expressed in bpm because that is how a song is written down; the engine
+ * holds `barFrames` as an integer it was given, and re-deriving it from a float bpm inside the
+ * audio thread is how the two disagree by a sample. So this is the primitive, and
+ * `nextBarBoundary` is the bpm-flavoured wrapper around it.
+ *
+ * `forgivenessFrames > 0` moves a press that is LESS than that far past a boundary back onto
+ * it. Zero gives the strict "at or after" behaviour.
+ */
+export function boundaryFrames(
+  frame: number,
+  originFrame: number,
+  barFramesValue: number,
+  forgivenessFrames: number = 0,
+): number {
+  const since = frame - originFrame - Math.max(0, forgivenessFrames);
+  const barsAhead = Math.ceil(since / barFramesValue);
+  return originFrame + barsAhead * barFramesValue;
+}
+
+/**
+ * A PUNCH, IN FRAMES: where it starts, where it ends, how long it is.
+ *
+ * `minBars` is the guaranteed pre-roll and it defaults to 1 for a reason that is not musical
+ * taste but arithmetic. With `minBars: 0`, a press in the same render quantum as the transport
+ * start puts `startFrame === originFrame`, and the record branch then evaluates
+ * `(frame − latency − origin) mod loopFrames` as NEGATIVE, folding the first `latency` frames
+ * of the take into the loop's TAIL — roughly 23 ms of pre-transport room noise printed at the
+ * seam, permanently. One guaranteed bar of pre-roll is longer than any plausible round trip
+ * (a bar here is 2.4–3.2 s against a round trip under 50 ms), so the fold cannot occur, and it
+ * doubles as the count-in a player needs anyway.
+ */
+export function spanFrames(
+  pressFrame: number,
+  originFrame: number,
+  barFramesValue: number,
+  loopFramesValue: number,
+  forgivenessFrames: number = 0,
+  minBars: number = 1,
+): { startFrame: number; endFrame: number; frames: number } {
+  const earliest = originFrame + Math.max(0, minBars) * barFramesValue;
+  const wanted = boundaryFrames(pressFrame, originFrame, barFramesValue, forgivenessFrames);
+  const startFrame = Math.max(earliest, wanted);
+  return { startFrame, endFrame: startFrame + loopFramesValue, frames: loopFramesValue };
 }
 
 /**
@@ -133,9 +193,14 @@ export function quantiseSpan(
   sampleRate: number,
   beatsPerBar: number = BEATS_PER_BAR,
 ): { startFrame: number; endFrame: number; frames: number } {
-  const startFrame = nextBarBoundary(pressFrame, originFrame, bpm, sampleRate, beatsPerBar);
-  const frames = loopFrames(bpm, bars, sampleRate, beatsPerBar);
-  return { startFrame, endFrame: startFrame + frames, frames };
+  return spanFrames(
+    pressFrame,
+    originFrame,
+    barFrames(bpm, sampleRate, beatsPerBar),
+    loopFrames(bpm, bars, sampleRate, beatsPerBar),
+    0,
+    0,
+  );
 }
 
 /**

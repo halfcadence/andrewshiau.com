@@ -10,6 +10,9 @@ import {
   reverbCeilingSeconds,
   SONGS,
   songBySlug,
+  spanFrames,
+  boundaryFrames,
+  FORGIVENESS_MS,
 } from '../../src/lib/practice-room/liveloop';
 
 const RATES = [44100, 48000];
@@ -241,5 +244,68 @@ describe('SONGS', () => {
   it('tempos carry the decimal the beat tracker reported, not a tidied integer', () => {
     // A whole number here means someone replaced a measurement with a guess.
     for (const s of SONGS) expect(Number.isInteger(s.bpm)).toBe(false);
+  });
+});
+
+/* ══ THE GRID IN FRAMES — the arithmetic the instrument ACTUALLY runs ═══════════════════════
+   These were added after a review found that `quantiseSpan`/`nextBarBoundary`/`compensate` had
+   ZERO call sites outside this file: 32 green tests on code that never executed, while the
+   punch ran on a copy of the logic inside the worklet string where no test could reach it. The
+   engine now calls `spanFrames` and sends an absolute frame to the processor, so these cover
+   the live path. */
+describe('spanFrames — the punch the engine actually commits', () => {
+  const SR = 44100;
+  const BF = barFrames(90.7, SR);          // 116692
+  const LF = loopFrames(90.7, 4, SR);      // 466768
+
+  it('is exactly barFrames * bars long, whatever the press', () => {
+    for (const press of [0, 1, BF - 1, BF, BF + 7, 5 * BF + 3]) {
+      const s = spanFrames(press, 0, BF, LF, 0, 1);
+      expect(s.endFrame - s.startFrame).toBe(LF);
+      expect(s.frames).toBe(LF);
+    }
+  });
+
+  it('starts on a bar line — the start is always a whole number of bars from the origin', () => {
+    for (const press of [1, BF + 1, 2 * BF - 5, 3 * BF + 900]) {
+      const s = spanFrames(press, 0, BF, LF, 0, 1);
+      expect((s.startFrame - 0) % BF).toBe(0);
+    }
+  });
+
+  it('guarantees one bar of pre-roll, which is what stops the negative-modulo fold', () => {
+    // A press in the same quantum as the transport start would otherwise give startFrame ===
+    // origin, and the record branch then evaluates (frame - latency - origin) as NEGATIVE,
+    // folding the take's first `latency` frames into the loop's TAIL.
+    const s = spanFrames(0, 0, BF, LF, 0, 1);
+    expect(s.startFrame).toBe(BF);
+    expect(s.startFrame - 0).toBeGreaterThanOrEqual(BF);
+    // and with minBars 0 the fold is reachable — the red arm for the guard above
+    expect(spanFrames(0, 0, BF, LF, 0, 0).startFrame).toBe(0);
+  });
+
+  it('forgives a LATE press inside the window and does not steal a bar from an early one', () => {
+    const forgive = Math.round(0.3 * SR);           // FORGIVENESS_MS
+    // 40 ms late: without forgiveness you wait a whole extra bar (2.6 s of silence)
+    const late = 2 * BF + Math.round(0.04 * SR);
+    expect(spanFrames(late, 0, BF, LF, 0, 1).startFrame).toBe(3 * BF);
+    expect(spanFrames(late, 0, BF, LF, forgive, 1).startFrame).toBe(2 * BF);
+    // 40 ms EARLY must still wait for the line it is early for — never start before the press
+    const early = 2 * BF - Math.round(0.04 * SR);
+    expect(spanFrames(early, 0, BF, LF, forgive, 1).startFrame).toBe(2 * BF);
+    // and a press further late than the window keeps the next bar
+    const veryLate = 2 * BF + Math.round(0.4 * SR);
+    expect(spanFrames(veryLate, 0, BF, LF, forgive, 1).startFrame).toBe(3 * BF);
+  });
+
+  it('FORGIVENESS_MS is the one number a manufacturer publishes', () => {
+    // Singular Sound's Aeros documents 300 ms of late-press forgiveness. Boss never states a
+    // rounding rule at all. If this changes, it should change because a source did.
+    expect(FORGIVENESS_MS).toBe(300);
+  });
+
+  it('boundaryFrames returns a boundary unchanged — a dead-on punch is not pushed a bar', () => {
+    expect(boundaryFrames(3 * BF, 0, BF, 0)).toBe(3 * BF);
+    expect(boundaryFrames(0, 0, BF, 0)).toBe(0);
   });
 });
