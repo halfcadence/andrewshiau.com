@@ -52,10 +52,18 @@ test('run opens the microphone and the transport reports it is sounding', async 
   await page.getByTestId('ll-run').click();
   await expect(page.getByTestId('ll-run')).toHaveAttribute('aria-pressed', 'true', { timeout: 15_000 });
   await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
-  // Uncalibrated is the honest default and the state line has to say so, because a player who
-  // does not know it is uncompensated will blame their timing for the engine's offset.
-  await expect(page.getByTestId('ll-state')).toContainText('UNCOMPENSATED');
-  await expect(page.getByTestId('ll-latency')).toHaveText('0 ms');
+  // UNMEASURED IS THE HONEST DEFAULT AND THE PAGE HAS TO SAY SO, because a player who does not
+  // know the offset is unmeasured will blame their own timing for the engine's.
+  //
+  // Asserted on the STAR rather than on a number: the engine seeds the offset from
+  // ctx.baseLatency + ctx.outputLatency, which is real on a Mac with an interface and is 42 ms in
+  // this headless browser — so pinning "0 ms" pinned the test environment, not the behaviour.
+  // The star means "not measured", and it is the thing that must be true either way.
+  await expect(page.getByTestId('ll-latency')).toContainText('*');
+  // and whichever state it is in, it names the fix rather than just the problem
+  const said = await page.getByTestId('ll-state').textContent();
+  expect(said).toMatch(/UNCOMPENSATED|OUTPUT latency only/);
+  expect(said).toContain('measure');
 });
 
 test('a punch prints audio into the armed lane on the next bar', async ({ page }) => {

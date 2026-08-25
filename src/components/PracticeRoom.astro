@@ -1600,17 +1600,27 @@ const rooms = ROOM_THINGS.map((t) => ({
      THE STRIPS SHARE ONE PLAYHEAD because the lanes share one loop position in the processor —
      drawing a head per lane would imply they can drift, which is the one thing the engine's
      design guarantees they cannot. */
-  .mt-lllanes{position:relative;display:grid;gap:6px;width:100%}
+  /* THE ROWS ARE 20px OF STRIP ON A 14px GAP, and both numbers are usability rather than
+     taste. The strip is the long-press-to-clear target, and at the 10px it shipped with it was
+     a 10px target for a 600 ms hold — unhittable on a phone. It is also the block that has to
+     fill the ladder's figure row: at 4×16px the lanes read as a small object floating in a tall
+     empty case, which a photographed walkthrough made obvious in a way the numbers did not. */
+  .mt-lllanes{position:relative;display:grid;gap:14px;width:100%}
   .mt-lllane{display:grid;grid-template-columns:5.5ch 1fr auto auto;align-items:center;
     column-gap:1.5ch}
   .mt-llnm{color:var(--faint);font-size:var(--fs-sm,inherit);line-height:var(--lead)}
   /* The strip is a rule until it holds audio, then a filled band — the room's own vocabulary
-     for empty-versus-present (the timeline's axis and span, one level quieter). */
-  /* `touch-action:none` so a drag that starts on the strip cannot become a page scroll — the
-     long-press-to-clear gesture lives here, and a browser-stolen gesture used to fire it. */
-  .mt-llstrip{position:relative;height:10px;display:block;touch-action:none;
-    border-top:1px solid var(--line);align-self:center}
-  .mt-llfill{position:absolute;left:0;top:-1px;height:3px;width:0;background:var(--faint);
+     for empty-versus-present (the timeline's axis and span, one level quieter). The rule is a
+     pseudo-element rather than a border so the hit area can be tall while the MARK stays a
+     hairline: a 20px border would be a 20px line.
+     `touch-action:none` so a drag that starts here cannot become a page scroll — the browser
+     stealing the gesture used to fire the clear timer anyway. */
+  .mt-llstrip{position:relative;height:20px;display:block;touch-action:none;align-self:center;
+    cursor:pointer}
+  .mt-llstrip::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;
+    margin-top:-0.5px;background:var(--line)}
+  .mt-llfill{position:absolute;left:0;top:50%;height:3px;margin-top:-1.5px;width:0;
+    background:var(--faint);
     transition:width var(--dur-fast) var(--ease),background var(--dur-fast) var(--ease)}
   .mt-lllane[data-has="true"] .mt-llfill{width:100%;background:var(--ink)}
   .mt-lllane[data-muted="true"] .mt-llfill{background:var(--line)}
@@ -1647,6 +1657,14 @@ const rooms = ROOM_THINGS.map((t) => ({
      is a word nobody says, and a <select> is a control this room does not otherwise use. */
   .mt-llsong{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 2ch}
   .mt-llopt,.mt-llcal{display:inline-flex;align-items:baseline;gap:1.5ch}
+  /* FOUR BOXED GROUPS IN ONE FOOT ROW NEED ROOM THE ROOM DOES NOT NORMALLY GIVE. `.mt-grp`
+     carries a negative side margin (`--mt-box-pull`) so a SINGLE group's border sits outside the
+     text it wraps; four of them in a row at the standard 2ch gap put each notch label over its
+     neighbour's border — legible-ish and plainly wrong, which the walkthrough photographed.
+     Cancel the pull on this row and widen the gap: the groups then read as four controls rather
+     than one collapsed heap. */
+  .mt-liveloop .mt-cfoot .mt-fr{gap:var(--lead) 3.5ch}
+  .mt-liveloop .mt-cfoot .mt-grp{--mt-box-pull:0px}
   .mt-llcalread{white-space:nowrap}
   .mt-liveloop .mt-loopstate{margin-top:var(--unit)}
 
@@ -5958,6 +5976,14 @@ const rooms = ROOM_THINGS.map((t) => ({
       if (llLanesEl) llLanesEl.style.setProperty('--ll-pos', String(v.loopPos));
       if (llCase) llCase.dataset.sounding = String(v.running);
       if (llUndo) llUndo.toggleAttribute('disabled', !v.lanes.some((l) => l.canUndo));
+      // THE LATENCY READOUT HAS TO SHOW THE SEEDED VALUE, not just a measured one. It read
+      // `0 ms` while the engine was already compensating by ctx.baseLatency + outputLatency,
+      // which is the worst of both: the number on screen was wrong AND it told the player they
+      // were uncompensated when they were partly compensated. A star marks "not measured".
+      if (llCalRead) {
+        const ms = (v.latencyFrames / (engine?.sampleRate || 48000)) * 1000;
+        llCalRead.textContent = v.calibrated ? `${ms.toFixed(1)} ms` : `${ms.toFixed(1)} ms*`;
+      }
       if (v.running && llPos) llPos.textContent = `bar ${v.bar + 1}·${v.beat + 1}`;
     };
 
@@ -6039,9 +6065,15 @@ const rooms = ROOM_THINGS.map((t) => ({
       applySong();
       e.start();
       llRun.setAttribute('aria-pressed', 'true');
+      const ms = (e.latencyFrames / e.sampleRate) * 1000;
       llSay(e.calibrated
         ? 'running. press rec on a lane — it starts on the next bar.'
-        : 'running, but UNCOMPENSATED — measure the latency or every layer prints late.');
+        : e.latencyFrames > 0
+          // The seed covers the OUTPUT half exactly and the input half not at all, so this is
+          // honestly "partly": saying UNCOMPENSATED here would be as wrong as saying compensated.
+          ? `running. compensating ${ms.toFixed(1)} ms of OUTPUT latency only — press measure for `
+            + 'the input half. press rec on a lane; it starts on the next bar.'
+          : 'running, but UNCOMPENSATED — measure the latency or every layer prints late.');
     });
 
     laneRows.forEach((row, i) => {
