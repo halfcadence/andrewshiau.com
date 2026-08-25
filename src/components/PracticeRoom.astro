@@ -945,25 +945,57 @@ const rooms = ROOM_THINGS.map((t) => ({
                  to know about, and it could not play anything that was not on the list.
                  Tempo × meter × bars is the loop length, which is the one thing that is
                  unrecoverable once a layer is printed. -->
-            <span class="mt-grp mt-llgrid" id="mt-ll-grid" role="group" aria-label="Grid — tempo, meter and loop length">
+            <span class="mt-grp mt-llgrid" id="mt-ll-grid" role="group" aria-label="Grid — tempo, beats per bar and loop length">
               <span class="mt-gl" aria-hidden="true">grid</span>
-              <label class="mt-lb visually-hidden" for="mt-ll-bpm">tempo in beats per minute</label>
-              <input id="mt-ll-bpm" data-testid="ll-bpm" type="number" inputmode="decimal"
-                     min="40" max="200" step="0.1" value="90" aria-label="tempo, beats per minute" />
-              <span class="mt-llunit" aria-hidden="true">bpm</span>
-              <span class="mt-llmeter" id="mt-ll-meter" role="group" aria-label="Meter — beats per bar">
-                {[3, 4, 5, 6, 7].map((n) => (
-                  <button type="button" class={n === 4 ? 'vbtn on' : 'vbtn'} data-meter={n}
-                    data-testid={`ll-meter-${n}`}
-                    aria-pressed={n === 4 ? 'true' : 'false'}>{`${n}/4`}</button>
-                ))}
+              <!-- THE TEMPO IS THE METRONOME'S TEMPO CONTROL, NOT A NEW ONE. Same input, same
+                   draggable `bpm` handle (`.mt-hd`, wired by the same `wireScrub`), same `tap`
+                   button in the same `.tbtn.mom` with the same draining ring. Two cases in one
+                   room that both set a tempo should not have two ways to set a tempo — and tap
+                   matters more here than there, because counting a tempo in with your hand is
+                   what you actually do at a gig. -->
+              <label for="mt-ll-bpm" class="mt-lb visually-hidden">beats per minute</label>
+              <input id="mt-ll-bpm" data-testid="ll-bpm" type="number" inputmode="numeric"
+                     min="40" max="200" step="1" value="90" title="type a value"
+                     aria-label="Beats per minute — type a value, or drag the bpm label horizontally" />
+              <span class="mt-lb mt-hd" data-testid="ll-bpm-handle"
+                    title="drag ↔ to change the tempo">bpm</span>
+              <button type="button" class="tbtn mom" id="mt-ll-tap" data-testid="ll-tap">
+                <svg class="tk" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                  <circle id="mt-ll-tap-ring" cx="7" cy="7" r="4.6"/>
+                </svg><span class="w">tap</span>
+              </button>
+            </span>
+            <!-- BEATS AND BARS ARE THE METRONOME'S RULED MEASURE: the digits are the buttons and
+                 the hairline under them is the value, growing to the digit you picked. `beats` is
+                 literally the same parameter the metronome calls `beats`, so it gets the same
+                 control; `bars` is the same idiom one row along, because a loop length in bars is
+                 the same kind of quantity — a small integer you pick by eye. -->
+            <span class="mt-fl mt-grp mt-llbeats">
+              <span class="mt-gl" aria-hidden="true">beats</span>
+              <span class="mt-lb">beats</span>
+              <span class="mt-rm" id="mt-ll-beats-seg" role="group" aria-label="Beats per bar">
+                <span class="rm-digits">
+                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                    <button type="button" class="rbtn" data-llbeats={n} data-testid={`ll-beats-${n}`}
+                      aria-pressed={n === 4 ? 'true' : 'false'}
+                      aria-label={`${n} beats per bar`}>{n}</button>
+                  ))}
+                </span>
+                <svg class="rm-rule" width="140" height="9" viewBox="0 0 140 9" aria-hidden="true" data-rule="grow"></svg>
               </span>
-              <span class="mt-llbars" id="mt-ll-bars" role="group" aria-label="Loop length in bars">
-                {[1, 2, 4, 8].map((n) => (
-                  <button type="button" class={n === 4 ? 'vbtn on' : 'vbtn'} data-bars={n}
-                    data-testid={`ll-bars-${n}`}
-                    aria-pressed={n === 4 ? 'true' : 'false'}>{`${n} bar${n === 1 ? '' : 's'}`}</button>
-                ))}
+            </span>
+            <span class="mt-fl mt-grp mt-llbars">
+              <span class="mt-gl" aria-hidden="true">bars</span>
+              <span class="mt-lb">bars</span>
+              <span class="mt-rm" id="mt-ll-bars-seg" role="group" aria-label="Loop length in bars">
+                <span class="rm-digits">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                    <button type="button" class="rbtn" data-llbars={n} data-testid={`ll-bars-${n}`}
+                      aria-pressed={n === 4 ? 'true' : 'false'}
+                      aria-label={`${n} bar loop`}>{n}</button>
+                  ))}
+                </span>
+                <svg class="rm-rule" width="160" height="9" viewBox="0 0 160 9" aria-hidden="true" data-rule="grow"></svg>
               </span>
             </span>
             <!-- SECTIONS: three whole sets of lanes, so a verse and a chorus can be different
@@ -1724,14 +1756,10 @@ const rooms = ROOM_THINGS.map((t) => ({
      is a word nobody says, and a <select> is a control this room does not otherwise use. */
   /* THE GRID ROW: a tempo field and two selectors, on one baseline, wrapping when it must. */
   .mt-llgrid{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--lead) 2ch}
-  .mt-llgrid input{width:5.5ch;min-width:0;font:inherit;font-size:16px;text-align:right;
-    background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--ink);
-    padding:0;border-radius:0;-moz-appearance:textfield;appearance:textfield}
-  .mt-llgrid input::-webkit-outer-spin-button,
-  .mt-llgrid input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-  .mt-llgrid input:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
-  .mt-llunit{color:var(--faint);margin-left:-1ch}
-  .mt-llmeter,.mt-llbars{display:inline-flex;align-items:baseline;gap:1.5ch}
+  /* No input styling here: `#mt-ll-bpm` is a bare number input like `#mt-bpm`, and the room
+     already styles those. Re-declaring them would be a second source of truth for one look. */
+  /* The two ruled measures sit on the spec row like the metronome's do. */
+  .mt-llbeats,.mt-llbars{flex:0 0 auto}
   /* SECTIONS. `on` is the one sounding; `used` gets a mark under it so you can see at a glance
      which sections hold anything; `pending` is armed and about to take over, and it is the only
      accent in the row because it is the only thing that is going to CHANGE. */
@@ -6010,8 +6038,6 @@ const rooms = ROOM_THINGS.map((t) => ({
     const llUndo = $('mt-ll-undo') as HTMLButtonElement | null;
     const llMon = $('mt-ll-mon');
     const llBpm = $('mt-ll-bpm') as HTMLInputElement | null;
-    const llMeterGrp = $('mt-ll-meter');
-    const llBarsGrp = $('mt-ll-bars');
     const llSectGrp = $('mt-ll-sect');
     const llCase = document.querySelector('.mt-liveloop') as HTMLElement | null;
     const laneRows = Array.from(llLanesEl.querySelectorAll<HTMLElement>('.mt-lllane'));
@@ -6140,42 +6166,57 @@ const rooms = ROOM_THINGS.map((t) => ({
       return true;
     };
 
-    const pressGroup = (grp: HTMLElement | null, attr: string, value: number) => {
-      grp?.querySelectorAll<HTMLElement>(`[data-${attr}]`).forEach((b) => {
-        const on = Number(b.dataset[attr]) === value;
-        b.setAttribute('aria-pressed', String(on));
-        b.classList.toggle('on', on);
-      });
-    };
-
-    // ── the grid controls
-    llBpm?.addEventListener('change', () => {
-      const n = Number(llBpm.value);
-      if (!Number.isFinite(n) || n < 40 || n > 200) { llBpm.value = String(bpm); return; }
+    // ── the grid controls, all three on the room's shared helpers
+    //
+    // `wireScrub` and `wireRuled` are the metronome's, used unchanged: one tempo control and one
+    // ruled-measure control in the room, not two of each. The only thing this case adds is that a
+    // grid change can be REFUSED (a loop longer than the buffer), so each setter checks and rolls
+    // back — which the metronome never has to do because a tempo has no buffer behind it.
+    const setBpmLL = (n: number) => {
       const prev = bpm;
-      bpm = n;
-      if (!applyGrid()) { bpm = prev; llBpm.value = String(prev); applyGrid(); return; }
-      llSay(`${bpm} bpm · ${meter}/4 · ${bars} bars — ${secs().toFixed(2)} s of loop.`);
+      bpm = Math.min(200, Math.max(40, Math.round(n)));
+      if (llBpm) llBpm.value = String(bpm);
+      if (!applyGrid()) { bpm = prev; if (llBpm) llBpm.value = String(prev); applyGrid(); return; }
+      llSay(`${bpm} bpm · ${meter} beats · ${bars} bar${bars === 1 ? '' : 's'} — ${secs().toFixed(2)} s of loop.`);
+    };
+    llBpm?.addEventListener('change', () => setBpmLL(Number(llBpm.value)));
+    if (llBpm && llCase) {
+      wireScrub({
+        handles: Array.from(llCase.querySelectorAll<HTMLElement>('.mt-llgrid .mt-hd')),
+        host: llCase, get: () => bpm, set: setBpmLL, min: 40, max: 200,
+      });
+    }
+
+    // TAP TEMPO, the metronome's own. Counting a tempo in with your hand is what you actually do
+    // at a gig; typing 96 into a field is what you do at a desk. The ring drains exactly as the
+    // metronome's does, from the same CSS.
+    const llTap = createTapTempo();
+    const llTapBtn = $('mt-ll-tap');
+    const llTapRing = document.getElementById('mt-ll-tap-ring');
+    llTapBtn?.addEventListener('pointerdown', () => {
+      const t = llTap.tap();
+      llTapRing?.classList.remove('fill');
+      void llTapRing?.getBoundingClientRect();
+      llTapRing?.classList.add('fill');
+      if (t !== null) setBpmLL(t);
+      else llSay('keep tapping — two taps set a tempo.');
     });
-    llMeterGrp?.addEventListener('click', (ev) => {
-      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-meter]');
-      if (!b) return;
+
+    const paintBeats = wireRuled('mt-ll-beats-seg', 'data-llbeats', 'grow', (v) => {
       const prev = meter;
-      meter = Number(b.dataset.meter);
-      if (!applyGrid()) { meter = prev; applyGrid(); return; }
-      pressGroup(llMeterGrp, 'meter', meter);
-      llSay(`${meter}/4 — ${secs().toFixed(2)} s of loop. the click accents beat one.`);
+      meter = v;
+      if (!applyGrid()) { meter = prev; paintBeats(prev); applyGrid(); return; }
+      llSay(`${meter} beats to the bar — ${secs().toFixed(2)} s of loop. the click accents beat one.`);
     });
-    llBarsGrp?.addEventListener('click', (ev) => {
-      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-bars]');
-      if (!b) return;
+    const paintBars = wireRuled('mt-ll-bars-seg', 'data-llbars', 'grow', (v) => {
       const prev = bars;
-      bars = Number(b.dataset.bars);
-      if (!applyGrid()) { bars = prev; applyGrid(); return; }
-      pressGroup(llBarsGrp, 'bars', bars);
+      bars = v;
+      if (!applyGrid()) { bars = prev; paintBars(prev); applyGrid(); return; }
       llSay(`${bars} bar${bars === 1 ? '' : 's'} — ${secs().toFixed(2)} s of loop. `
         + 'changing this clears the lanes.');
     });
+    paintBeats(meter);
+    paintBars(bars);
 
     // ── sections
     const goSection = async (i: number) => {

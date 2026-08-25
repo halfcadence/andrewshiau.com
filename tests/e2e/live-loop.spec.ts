@@ -28,8 +28,8 @@ test('the loop length reading is tempo x meter x bars — no songs involved', as
   await page.getByTestId('ll-bars-2').click();
   await expect(page.getByTestId('ll-length')).toHaveText('5.33 s');
 
-  // meter changes it too — 3/4 is three quarters of 4/4
-  await page.getByTestId('ll-meter-3').click();
+  // beats per bar changes it too — 3 beats is three quarters of 4
+  await page.getByTestId('ll-beats-3').click();
   await expect(page.getByTestId('ll-length')).toHaveText('4.00 s');
 
   // and the tempo field
@@ -45,7 +45,7 @@ test('a loop longer than the buffer is refused, not silently truncated', async (
   // 8 bars of 7/4 at 40 bpm is 84 s, far past the 16 s of buffer.
   await page.getByTestId('ll-bpm').fill('40');
   await page.getByTestId('ll-bpm').blur();
-  await page.getByTestId('ll-meter-7').click();
+  await page.getByTestId('ll-beats-7').click();
   await page.getByTestId('ll-bars-8').click();
   await expect(page.getByTestId('ll-state')).toContainText('longer than the', { timeout: 5_000 });
 });
@@ -345,4 +345,34 @@ test('a section switch repaints its lanes immediately, not on the next tick', as
   expect(state.section).toBe('true');
   expect(state.laneHas).toBe('false');
   expect(state.recWord).toBe('rec');
+});
+
+test('the grid reuses the metronome\'s own controls — scrub, tap and the ruled measure', async ({ page }) => {
+  // Not a cosmetic point: two cases in one room that both set a tempo must not have two ways to
+  // set one. These assert the SHARED idioms are actually present and wired, not merely similar.
+  await page.goto(LL);
+
+  // the draggable bpm handle, same `.mt-hd` the tuner and metronome use
+  const handle = page.getByTestId('ll-bpm-handle');
+  await expect(handle).toBeVisible();
+  const box = (await handle.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  const after = Number(await page.getByTestId('ll-bpm').inputValue());
+  expect(after).toBeGreaterThan(90);        // dragged right, tempo went up
+
+  // the ruled measure: digits are buttons and the rule GROWS to the one picked
+  await page.getByTestId('ll-beats-3').click();
+  const lines = await page.locator('#mt-ll-beats-seg .rm-rule line').count();
+  expect(lines).toBe(1);                    // `grow` draws one straight line
+  await expect(page.getByTestId('ll-beats-3')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('ll-beats-2')).toHaveClass(/on/);   // filled up to the pick
+  await expect(page.getByTestId('ll-beats-5')).not.toHaveClass(/on/);
+
+  // and tap is the metronome's tap, with its draining ring
+  await expect(page.getByTestId('ll-tap')).toBeVisible();
+  await page.getByTestId('ll-tap').click();
+  await expect(page.getByTestId('ll-state')).toContainText('keep tapping');
 });
