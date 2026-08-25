@@ -44,12 +44,37 @@ try {
   await page.goto(URL_, { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);   // shoot the real face, not a fallback
 
-  const kase = page.locator('.mt-liveloop');
   const state = () => page.getByTestId('ll-state').textContent();
-  const shot = async (name) => {
+  // FRAME THE INSTRUMENT, NOT THE CASE. The case is the full height of the room's row ladder,
+  // which on this route is mostly air — a screenshot of it is 60% empty paper and unreadable at
+  // any width a document will show it. So the clip is the UNION of the rows that carry marks,
+  // computed from the DOM rather than hardcoded, with one lead of padding. Same pixels, framed.
+  // A single rectangle cannot remove INTERIOR air, and `.mt-mid` is the ladder's tall figure row,
+  // so clipping to "the rows that carry marks" still framed 60% empty paper. The step-by-step
+  // frame is therefore the lanes and their reading — the marks that actually change — and the
+  // spec row, state line and foot get one shot each for orientation. The state line is a
+  // SENTENCE, and a photograph of a sentence is worse than the sentence, so it is quoted as text.
+  const shot = async (name, sel = ['.mt-liveloop .mt-lllanes', '.mt-liveloop .mt-read']) => {
     await page.waitForTimeout(120);
-    await kase.screenshot({ path: `${OUT}/${name}.png` });
-    note(`  [shot] ${name}.png`);
+    const clip = await page.evaluate((sel) => {
+      let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+      for (const s of sel) {
+        const el = document.querySelector(s);
+        if (!el) continue;
+        const q = el.getBoundingClientRect();
+        if (q.width < 1 || q.height < 1) continue;
+        l = Math.min(l, q.left); t = Math.min(t, q.top);
+        r = Math.max(r, q.right); b = Math.max(b, q.bottom);
+      }
+      const pad = 18;
+      return {
+        x: Math.max(0, l - pad), y: Math.max(0, t - pad),
+        width: Math.min(window.innerWidth, r + pad) - Math.max(0, l - pad),
+        height: Math.min(window.innerHeight, b + pad) - Math.max(0, t - pad),
+      };
+    }, sel);
+    await page.screenshot({ path: `${OUT}/${name}.png`, clip });
+    note(`  [shot] ${name}.png  ${Math.round(clip.width)}x${Math.round(clip.height)}`);
   };
   // What a player can actually see and press, right now.
   const survey = async (label) => {
@@ -90,6 +115,8 @@ try {
   // ── 1. arrive
   await survey('1 — you arrive. Nothing is running and the microphone is not open.');
   await shot('01-arrive');
+  await shot('00-song-row', ['.mt-liveloop .mt-np', '.mt-liveloop .mt-ctop']);
+  await shot('00-foot', ['.mt-liveloop .mt-cfoot']);
 
   // ── 2. run: this is what opens the microphone
   await page.getByTestId('ll-run').click();
@@ -149,6 +176,9 @@ try {
   await survey('10 — the same case at phone width.');
   await shot('10-phone');
 
+  await page.setViewportSize({ width: 1180, height: 900 });
+  await page.waitForTimeout(200);
+  await shot('00-whole', ['.mt-liveloop']);
   note(`\npage errors: ${errors.length ? errors.join(' | ') : 'none'}`);
   await writeFile(`${OUT}/tour.txt`, log.join('\n'));
   note(`\nwrote ${OUT}/tour.txt`);

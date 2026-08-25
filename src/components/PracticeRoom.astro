@@ -1627,7 +1627,11 @@ const rooms = ROOM_THINGS.map((t) => ({
   /* RECORDING IS THE ONLY ACCENT IN THE CASE while it is happening, because it is the only
      state that is destructive: the fill grows across the strip as the take prints. */
   .mt-lllane[data-rec="true"] .mt-llfill{background:var(--accent)}
-  .mt-lllane[data-armed="true"] .mt-llstrip{border-top-color:var(--accent)}
+  /* ARMED: the strip's own rule goes accent. This targets `::before` and not `border-top-color`
+     because the rule stopped being a border when the strip became a 20px hit area — the old
+     selector matched nothing, so the armed state was invisible on the strip and only the button
+     changed. Found by looking at a screenshot, not by any assertion. */
+  .mt-lllane[data-armed="true"] .mt-llstrip::before{background:var(--accent)}
   .mt-llrec,.mt-llmute{font:inherit;background:transparent;border:0;border-radius:0;
     padding:8px .75ch;margin:-8px 0;cursor:pointer;color:var(--faint);
     transition:color var(--dur-fast) var(--ease)}
@@ -1658,13 +1662,16 @@ const rooms = ROOM_THINGS.map((t) => ({
   .mt-llsong{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 2ch}
   .mt-llopt,.mt-llcal{display:inline-flex;align-items:baseline;gap:1.5ch}
   /* FOUR BOXED GROUPS IN ONE FOOT ROW NEED ROOM THE ROOM DOES NOT NORMALLY GIVE. `.mt-grp`
-     carries a negative side margin (`--mt-box-pull`) so a SINGLE group's border sits outside the
-     text it wraps; four of them in a row at the standard 2ch gap put each notch label over its
-     neighbour's border — legible-ish and plainly wrong, which the walkthrough photographed.
-     Cancel the pull on this row and widen the gap: the groups then read as four controls rather
-     than one collapsed heap. */
-  .mt-liveloop .mt-cfoot .mt-fr{gap:var(--lead) 3.5ch}
-  .mt-liveloop .mt-cfoot .mt-grp{--mt-box-pull:0px}
+     carries a negative side margin (`--mt-box-pull`) so a SINGLE group's border sits OUTSIDE the
+     text it wraps and the ink lands on the case's inset datum; four in a row at the standard 2ch
+     gap therefore overlap by (2 × pull − gap), and each notch label sat over its neighbour's
+     border — which the photographed walkthrough caught and no assertion had.
+     THE FIX IS THE GAP, NOT THE PULL. Cancelling the pull was the first attempt and
+     `practice-room-css.test.ts` was right to fail it: that rule ("the pull-back must be the
+     padding plus the 1px border") is what keeps a boxed group's ink on the datum, and it is
+     asserted across the whole stylesheet. The pull is 18px a side, so the gap has to clear 36px:
+     5ch is 45px in this face, leaving 9px of paper between boxes. */
+  .mt-liveloop .mt-cfoot .mt-fr{gap:var(--lead) 5ch}
   .mt-llcalread{white-space:nowrap}
   .mt-liveloop .mt-loopstate{margin-top:var(--unit)}
 
