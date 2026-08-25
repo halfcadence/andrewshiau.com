@@ -95,7 +95,14 @@ try {
           has: r.dataset.has, armed: r.dataset.armed, rec_on: r.dataset.rec,
           muted: r.dataset.muted, peak: r.dataset.peak,
         })),
-        songs: [...document.querySelectorAll('[data-song]')].map((b) => b.textContent.trim()),
+        grid: {
+          bpm: document.querySelector('#mt-ll-bpm')?.value,
+          meter: [...document.querySelectorAll('#mt-ll-meter [data-meter]')].find((b) => b.getAttribute('aria-pressed') === 'true')?.textContent,
+          bars: [...document.querySelectorAll('#mt-ll-bars [data-bars]')].find((b) => b.getAttribute('aria-pressed') === 'true')?.textContent,
+        },
+        section: [...document.querySelectorAll('#mt-ll-sect [data-section]')].map((b) => ({
+          n: b.textContent.trim(), on: b.getAttribute('aria-pressed'), pending: b.dataset.pending, used: b.dataset.used,
+        })),
         bleed: document.querySelector('.mt-liveloop')?.dataset.bleed ?? null,
         sounding: document.querySelector('.mt-liveloop')?.dataset.sounding ?? null,
         headVisible: vis(document.querySelector('.mt-llhead')),
@@ -108,7 +115,8 @@ try {
     for (const l of s.lanes) {
       note(`  lane ${l.name.padEnd(8)} btn=${l.rec.padEnd(4)} has=${l.has} armed=${l.armed} rec=${l.rec_on} muted=${l.muted} peak=${l.peak}`);
     }
-    if (s.songs) note(`  songs: ${s.songs.join(' | ')}`);
+    note(`  grid: ${s.grid.bpm} bpm · ${s.grid.meter} · ${s.grid.bars}`);
+    note(`  sections: ${s.section.map((x) => `${x.n}${x.on === 'true' ? '*' : ''}${x.pending === 'true' ? '→' : ''}${x.used === 'true' ? '·' : ''}`).join(' ')}`);
     return s;
   };
 
@@ -119,6 +127,8 @@ try {
   await shot('00-foot', ['.mt-liveloop .mt-cfoot']);
 
   // ── 2. run: this is what opens the microphone
+  await page.getByTestId('ll-bars-1').click();     // one bar, so the tour is not a coffee break
+  await shot('01b-grid', ['.mt-liveloop .mt-np', '.mt-liveloop .mt-ctop']);
   await page.getByTestId('ll-run').click();
   await page.waitForFunction(() => document.querySelector('.mt-liveloop')?.dataset.sounding === 'true', null, { timeout: 20000 });
   await survey('2 — run. The mic opens, the click starts, the loop is turning.');
@@ -169,6 +179,21 @@ try {
   const kept = stopped.lanes.filter((l) => l.has === 'true').length;
   note(`  lanes still holding audio after stop: ${kept}`);
   if (kept === 0) note('  !! CORRECTNESS: stopping erased the lanes');
+
+  // ── 9b. sections: record into A, switch to B, and B is EMPTY — a different set of lanes
+  await page.getByTestId('ll-run').click();
+  await page.waitForFunction(() => document.querySelector('.mt-liveloop')?.dataset.sounding === 'true', null, { timeout: 20000 });
+  await page.getByTestId('ll-sect-B').click();
+  await survey('9b — section B armed. It takes over on the next bar; A keeps its lanes.');
+  await shot('09b-section-armed', ['.mt-liveloop .mt-ctop']);
+  await page.waitForFunction(() => document.querySelector('[data-testid=ll-sect-B]')?.getAttribute('aria-pressed') === 'true', null, { timeout: 15000 });
+  await survey('9c — section B is sounding, and its lanes are its own.');
+  await shot('09c-section-b');
+  await page.getByTestId('ll-sect-A').click();
+  await page.waitForFunction(() => document.querySelector('[data-testid=ll-sect-A]')?.getAttribute('aria-pressed') === 'true', null, { timeout: 15000 });
+  await survey('9d — back in A, and A still holds what it held.');
+  await shot('09d-section-a');
+  await page.getByTestId('ll-run').click();
 
   // ── 10. the narrow case, because a tutorial reader may be on a phone
   await page.setViewportSize({ width: 390, height: 860 });

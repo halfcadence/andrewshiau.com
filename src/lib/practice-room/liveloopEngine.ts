@@ -249,7 +249,16 @@ class LiveLoopProcessor extends AudioWorkletProcessor {
   applySection(next) {
     this.section = next;
     this.pendingSection = -1;
-    this.port.postMessage({ type: 'section', section: next });
+    // CARRY THE NEW SECTION'S LANES WITH THE NEWS. Without this the page keeps painting the
+    // OUTGOING section's lanes until the next position report — up to 33 ms of a row saying "rec"
+    // for a lane that holds a take, or "add" for one that is empty. Caught by the walkthrough,
+    // which surveys the instant the switch lands.
+    this.port.postMessage({
+      type: 'section', section: next,
+      lanes: this.has[next].map((h, k) => ({
+        has: h, muted: this.muted[k], peak: this.peak[next][k], src: this.laneSrc[k],
+      })),
+    });
   }
 
   command(m) {
@@ -739,6 +748,12 @@ export class LiveLoop {
     } else if (m.type === 'section') {
       this.view.section = m.section as number;
       this.view.pendingSection = -1;
+      const lanes = m.lanes as { has: boolean; muted: boolean; peak: number; src: number }[] | undefined;
+      lanes?.forEach((l, i) => {
+        const v = this.view.lanes[i];
+        v.hasAudio = l.has; v.muted = l.muted; v.peak = l.peak; v.src = l.src;
+        v.recording = false; v.armed = false;
+      });
       this.onSection?.(this.view.section);
       this.emit();
     } else {

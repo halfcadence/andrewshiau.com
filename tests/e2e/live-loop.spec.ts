@@ -320,3 +320,29 @@ test('each lane picks which input it records from — the per-track input matrix
   // the other lanes were not touched
   await expect(page.locator('.mt-lllane[data-lane="1"] .mt-llsrc')).toHaveText('');
 });
+
+test('a section switch repaints its lanes immediately, not on the next tick', async ({ page }) => {
+  // The walkthrough caught this: the `section` message did not carry the incoming section's lane
+  // state, so for up to 33 ms the rows showed the OUTGOING section — a row reading "rec" for a
+  // lane that holds a take. Asserted with no wait at all after the switch lands.
+  await page.goto(LL);
+  await page.getByTestId('ll-bars-1').click();
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  await page.getByTestId('ll-rec-0').click();
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-has', 'true', { timeout: 20_000 });
+
+  await page.getByTestId('ll-sect-B').click();
+  await page.waitForFunction(
+    () => document.querySelector('[data-testid=ll-sect-B]')?.getAttribute('aria-pressed') === 'true',
+    null, { timeout: 15_000 });
+  // read in the SAME turn the indicator flipped — no polling, no retry
+  const state = await page.evaluate(() => ({
+    section: document.querySelector('[data-testid=ll-sect-B]')?.getAttribute('aria-pressed'),
+    laneHas: (document.querySelector('.mt-lllane[data-lane="0"]') as HTMLElement).dataset.has,
+    recWord: document.querySelector('[data-testid=ll-rec-0]')?.textContent?.trim(),
+  }));
+  expect(state.section).toBe('true');
+  expect(state.laneHas).toBe('false');
+  expect(state.recWord).toBe('rec');
+});

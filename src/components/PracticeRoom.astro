@@ -953,13 +953,15 @@ const rooms = ROOM_THINGS.map((t) => ({
               <span class="mt-llunit" aria-hidden="true">bpm</span>
               <span class="mt-llmeter" id="mt-ll-meter" role="group" aria-label="Meter — beats per bar">
                 {[3, 4, 5, 6, 7].map((n) => (
-                  <button type="button" class="vbtn" data-meter={n} data-testid={`ll-meter-${n}`}
+                  <button type="button" class={n === 4 ? 'vbtn on' : 'vbtn'} data-meter={n}
+                    data-testid={`ll-meter-${n}`}
                     aria-pressed={n === 4 ? 'true' : 'false'}>{`${n}/4`}</button>
                 ))}
               </span>
               <span class="mt-llbars" id="mt-ll-bars" role="group" aria-label="Loop length in bars">
                 {[1, 2, 4, 8].map((n) => (
-                  <button type="button" class="vbtn" data-bars={n} data-testid={`ll-bars-${n}`}
+                  <button type="button" class={n === 4 ? 'vbtn on' : 'vbtn'} data-bars={n}
+                    data-testid={`ll-bars-${n}`}
                     aria-pressed={n === 4 ? 'true' : 'false'}>{`${n} bar${n === 1 ? '' : 's'}`}</button>
                 ))}
               </span>
@@ -971,7 +973,8 @@ const rooms = ROOM_THINGS.map((t) => ({
             <span class="mt-grp mt-llsect" id="mt-ll-sect" role="group" aria-label="Section">
               <span class="mt-gl" aria-hidden="true">section</span>
               {SECTION_NAMES.map((n, i) => (
-                <button type="button" class="vbtn" data-section={i} data-testid={`ll-sect-${n}`}
+                <button type="button" class={i === 0 ? 'vbtn on' : 'vbtn'} data-section={i}
+                  data-testid={`ll-sect-${n}`}
                   aria-pressed={i === 0 ? 'true' : 'false'}>{n}</button>
               ))}
             </span>
@@ -1752,7 +1755,8 @@ const rooms = ROOM_THINGS.map((t) => ({
      padding plus the 1px border") is what keeps a boxed group's ink on the datum, and it is
      asserted across the whole stylesheet. The pull is 18px a side, so the gap has to clear 36px:
      5ch is 45px in this face, leaving 9px of paper between boxes. */
-  .mt-liveloop .mt-cfoot .mt-fr{gap:var(--lead) 5ch}
+  .mt-liveloop .mt-cfoot .mt-fr,
+  .mt-liveloop .mt-ctop .mt-fr{gap:var(--lead) 5ch}
   .mt-llcalread{white-space:nowrap}
   .mt-liveloop .mt-loopstate{margin-top:var(--unit)}
 
