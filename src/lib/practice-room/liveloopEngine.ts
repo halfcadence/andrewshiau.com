@@ -588,6 +588,8 @@ export class LiveLoop {
   onSameDevice: ((same: boolean) => void) | null = null;
   /** Fired when a pending section change actually lands, on the bar line. */
   onSection: ((section: number) => void) | null = null;
+  /** Fired when the input device this instrument opened has gone away. */
+  onInputLost: ((label: string) => void) | null = null;
 
   constructor(ctx: AudioContext) { this.ctx = ctx; }
 
@@ -681,6 +683,7 @@ export class LiveLoop {
 
     this.node.port.onmessage = (e) => this.fromWorklet(e.data);
     void this.checkDevices();
+    this.watchDevices();
     this.emit();
   }
 
@@ -690,6 +693,37 @@ export class LiveLoop {
    * two holds a comb-filtered copy of lane one, lane three holds two, and the stack turns to
    * mush one layer at a time. Matched on `groupId`, which is precisely what it is for.
    */
+  /**
+   * THE INTERFACE COMING UNPLUGGED IS A SET-ENDER, and the dangerous part is that it is silent:
+   * the stream ends, the browser falls back to a default input, and every overdub from then on
+   * re-records the room through the laptop's own microphone. Nothing on screen would say so.
+   * So: watch for the device we opened disappearing, STOP, and name it. Refusing to continue is
+   * the correct behaviour — substituting a different microphone mid-set is not a recovery.
+   */
+  private watchDevices(): void {
+    const openedId = this.stream?.getAudioTracks()[0]?.getSettings().deviceId;
+    const openedLabel = this.inputLabel;
+    if (!openedId) return;
+    const onChange = async () => {
+      try {
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        const still = devs.some((d) => d.kind === 'audioinput' && d.deviceId === openedId);
+        if (still) return;
+        this.stop();
+        this.onInputLost?.(openedLabel || 'the input device');
+      } catch { /* if we cannot enumerate, say nothing rather than something wrong */ }
+    };
+    navigator.mediaDevices.addEventListener?.('devicechange', onChange);
+    // A track that simply ends is the same event by another route.
+    this.stream?.getAudioTracks()[0]?.addEventListener('ended', () => {
+      this.stop();
+      this.onInputLost?.(openedLabel || 'the input device');
+    });
+  }
+
+  /** The human-readable name of the input we opened, for a message that names the missing thing. */
+  inputLabel = '';
+
   private async checkDevices(): Promise<void> {
     try {
       const devs = await navigator.mediaDevices.enumerateDevices();
@@ -699,6 +733,7 @@ export class LiveLoop {
       const outDev = devs.find((d) => d.kind === 'audiooutput' && d.deviceId === sink)
         ?? devs.find((d) => d.kind === 'audiooutput' && d.deviceId === 'default');
       if (!inDev?.groupId || !outDev?.groupId) return;   // unknown, so say nothing
+      this.inputLabel = inDev.label || '';
       const same = inDev.groupId === outDev.groupId;
       this.view.sameDevice = same;
       this.onSameDevice?.(same);

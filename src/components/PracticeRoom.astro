@@ -1710,7 +1710,13 @@ const rooms = ROOM_THINGS.map((t) => ({
   /* THE BLEED STATE. Input and output are the same physical device, so the loop is going out of
      the box the microphone is in. The state line carries the sentence; this makes the case itself
      say something is wrong, because the warning has to survive the next state message. */
-  .mt-liveloop[data-bleed="true"] .mt-loopstate{color:var(--accent)}
+  .mt-liveloop[data-bleed="true"] .mt-loopstate,
+  .mt-liveloop[data-lost="true"] .mt-loopstate{color:var(--accent)}
+  /* FOCUS LOST: the keys are dead and nothing else would say so. A rule under the lanes rather
+     than a dialog, because a dialog would need dismissing with the mouse you cannot reach. */
+  .mt-liveloop[data-blur="true"] .mt-lllanes::after{content:"keys are dead — click the page";
+    position:absolute;left:0;right:0;bottom:-1.6em;text-align:center;color:var(--accent);
+    font-size:.85em;pointer-events:none}
   .mt-llundo,.mt-llmon{display:inline-flex;align-items:baseline;gap:1.5ch}
   #mt-ll-undo[disabled]{opacity:.35;cursor:default}
   /* THE SONG ROW WRAPS RATHER THAN ABBREVIATING. Four real titles do not fit one line in this
@@ -6103,6 +6109,12 @@ const rooms = ROOM_THINGS.map((t) => ({
           : `${LANES[lane]} printed, peak ${peak.toFixed(2)}. undo puts back what was there.`);
       };
       e.onSection = (i) => llSay(`section ${SECTION_NAMES[i]}.`);
+      e.onInputLost = (label) => {
+        llCase?.setAttribute('data-lost', 'true');
+        if (llRun) llRun.setAttribute('aria-pressed', 'false');
+        llSay(`INPUT GONE — "${label}" disappeared, so the transport stopped. Reconnect it and `
+          + 'reload; carrying on would record the room through the laptop microphone.');
+      };
       e.onSameDevice = (same) => {
         if (!same) return;
         llCase?.setAttribute('data-bleed', 'true');
@@ -6185,6 +6197,7 @@ const rooms = ROOM_THINGS.map((t) => ({
       if (!e || !llRun) return;
       if (e.running) {
         e.stop();
+        void holdScreen(false);
         llRun.setAttribute('aria-pressed', 'false');
         llSay('stopped. the lanes keep what they hold.');
         drawSpec();
@@ -6192,6 +6205,7 @@ const rooms = ROOM_THINGS.map((t) => ({
       }
       if (!applyGrid()) return;
       e.start();
+      void holdScreen(true);
       llRun.setAttribute('aria-pressed', 'true');
       const ms = (e.latencyFrames / e.sampleRate) * 1000;
       llSay(e.calibrated
@@ -6318,6 +6332,44 @@ const rooms = ROOM_THINGS.map((t) => ({
       if (k === 'z') { ev.preventDefault(); engine?.undo(); llSay('went back one.'); return; }
       if (k === 'c') { ev.preventDefault(); (llClick as HTMLElement | null)?.click(); return; }
       if (k === 'm') { ev.preventDefault(); (llMon as HTMLElement | null)?.click(); return; }
+    });
+
+    /* ── TWO THINGS THAT END A SET, AND WHAT THIS PAGE DOES ABOUT THEM ──────────────────────
+       1. THE SCREEN SLEEPS and the set stops being controllable. A wake lock holds it open while
+          the transport runs, and is released when it stops so it does not hold the display open
+          all evening. It must be requested from a gesture, and it is dropped whenever the tab is
+          hidden, so it is re-taken on the way back.
+       2. THE TAB GETS BACKGROUNDED and timers are throttled — Chrome after 10 seconds, on a
+          budget that regenerates at 10 ms per second. The saving exemption is that "tabs which
+          are playing audio are considered foreground and aren't throttled", so a running loop is
+          safe; the exposure is the silent minute BEFORE the first take, which is exactly when a
+          performer might alt-tab to check something. The page cannot prevent it, so it says so on
+          the way back rather than leaving you to wonder why the first loop landed crooked. */
+    let wakeLock: { release: () => Promise<void>; released: boolean } | null = null;
+    const holdScreen = async (on: boolean) => {
+      try {
+        const wl = (navigator as unknown as { wakeLock?: { request: (t: string) => Promise<typeof wakeLock> } }).wakeLock;
+        if (on && wl && !wakeLock) wakeLock = await wl.request('screen');
+        else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+      } catch { /* unsupported, or refused — the set still runs, the screen may just dim */ }
+    };
+    // KEYBOARD FOCUS IS THE TRANSPORT. Lose it — a click on the desktop, a notification stealing
+    // it — and every key does nothing, with nothing on screen to say why. This is the cheapest
+    // possible fix: say it, and say how to fix it.
+    addEventListener('blur', () => {
+      if (!engine?.running) return;
+      llCase?.setAttribute('data-blur', 'true');
+    });
+    addEventListener('focus', () => llCase?.removeAttribute('data-blur'));
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        if (engine?.running) void holdScreen(true);
+        return;
+      }
+      if (engine?.running && !engine.view.lanes.some((l) => l.hasAudio)) {
+        llSay('this tab was in the background with nothing playing — the browser throttles timers '
+          + 'there, so check the first take landed where you meant it.');
+      }
     });
 
     if ('ResizeObserver' in window) new ResizeObserver(measureStrips).observe(llLanesEl);
