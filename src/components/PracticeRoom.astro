@@ -1,7 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { ROOM_THINGS, ROUTE_CASES, glyphSvg } from '../lib/practice-room/room';
-import { SONGS } from '../lib/practice-room/liveloop';
+// SONGS is deliberately NOT imported here any more: the instrument is song-agnostic and the
+// picker is a grid. The measured tempos still live in liveloop.ts as reference data, where the
+// unit tests pin them against the published field guide.
+import { SECTION_NAMES } from '../lib/practice-room/liveloopEngine';
 // THE LANE NAMES COME FROM THE ENGINE so the markup and the processor cannot disagree about
 // how many lanes there are — a fifth name here with four buffers there would render a row
 // whose buttons address a lane that does not exist.
@@ -936,16 +939,40 @@ const rooms = ROOM_THINGS.map((t) => ({
 
         <div class="mt-ctop">
           <span class="mt-fr">
-            <!-- THE SONG IS THE SPEC CONTROL: it sets tempo and bar count together, which is
-                 the only pair that matters — a looper's loop length IS tempo × bars, and
-                 getting either wrong is unrecoverable once a layer is printed. Mutually
-                 exclusive, so a selector and not four latches (the drone's voice-row idiom). -->
-            <span class="mt-grp mt-llsong" id="mt-ll-song" role="group" aria-label="Song — sets the tempo and the loop length">
-              <span class="mt-gl" aria-hidden="true">song</span>
-              {SONGS.map((s, i) => (
-                <button type="button" class="vbtn" data-song={s.slug}
-                  data-testid={`ll-song-${s.slug}`}
-                  aria-pressed={i === 0 ? 'true' : 'false'}>{s.title}</button>
+            <!-- THE GRID IS THE SPEC CONTROL, AND IT IS NOT A SONG. A looper is a buffer, a
+                 cursor and a grid; three numbers are the whole grid, and a song list was the
+                 wrong primitive — it made the instrument know about repertoire it has no reason
+                 to know about, and it could not play anything that was not on the list.
+                 Tempo × meter × bars is the loop length, which is the one thing that is
+                 unrecoverable once a layer is printed. -->
+            <span class="mt-grp mt-llgrid" id="mt-ll-grid" role="group" aria-label="Grid — tempo, meter and loop length">
+              <span class="mt-gl" aria-hidden="true">grid</span>
+              <label class="mt-lb visually-hidden" for="mt-ll-bpm">tempo in beats per minute</label>
+              <input id="mt-ll-bpm" data-testid="ll-bpm" type="number" inputmode="decimal"
+                     min="40" max="200" step="0.1" value="90" aria-label="tempo, beats per minute" />
+              <span class="mt-llunit" aria-hidden="true">bpm</span>
+              <span class="mt-llmeter" id="mt-ll-meter" role="group" aria-label="Meter — beats per bar">
+                {[3, 4, 5, 6, 7].map((n) => (
+                  <button type="button" class="vbtn" data-meter={n} data-testid={`ll-meter-${n}`}
+                    aria-pressed={n === 4 ? 'true' : 'false'}>{`${n}/4`}</button>
+                ))}
+              </span>
+              <span class="mt-llbars" id="mt-ll-bars" role="group" aria-label="Loop length in bars">
+                {[1, 2, 4, 8].map((n) => (
+                  <button type="button" class="vbtn" data-bars={n} data-testid={`ll-bars-${n}`}
+                    aria-pressed={n === 4 ? 'true' : 'false'}>{`${n} bar${n === 1 ? '' : 's'}`}</button>
+                ))}
+              </span>
+            </span>
+            <!-- SECTIONS: three whole sets of lanes, so a verse and a chorus can be different
+                 music rather than the same loop with things muted. They share ONE loop length and
+                 ONE playhead — that is what keeps them phase-locked, so a switch never resets the
+                 groove — and a switch is ARMED, landing on the next bar line. -->
+            <span class="mt-grp mt-llsect" id="mt-ll-sect" role="group" aria-label="Section">
+              <span class="mt-gl" aria-hidden="true">section</span>
+              {SECTION_NAMES.map((n, i) => (
+                <button type="button" class="vbtn" data-section={i} data-testid={`ll-sect-${n}`}
+                  aria-pressed={i === 0 ? 'true' : 'false'}>{n}</button>
               ))}
             </span>
           </span>
@@ -956,7 +983,16 @@ const rooms = ROOM_THINGS.map((t) => ({
             <div class="mt-lllanes" id="mt-ll-lanes">
               {LANES.map((name, i) => (
                 <div class="mt-lllane" data-lane={i}>
-                  <span class="mt-llnm" aria-hidden="true">{name}</span>
+                  <!-- THE NAME IS THE INPUT SELECTOR. Pressing it cycles which channel this lane
+                       records from — 1, 2, or both — because with a mic on input 1 and an
+                       instrument on input 2, a lane that records everything is not a mix. It rides
+                       on the name rather than taking a sixth column, which the row cannot spare at
+                       phone width. Greyed and inert on a mono device, where there is nothing to
+                       choose. -->
+                  <button type="button" class="mt-llnm" data-lane-src={i}
+                    data-testid={`ll-src-${i}`}
+                    aria-label={`the ${name} lane records from — press to change input`}
+                    >{name}<span class="mt-llsrc" aria-hidden="true"></span></button>
                   <span class="mt-llstrip" data-lane-strip={i} aria-hidden="true">
                     <span class="mt-llfill"></span>
                   </span>
@@ -973,6 +1009,14 @@ const rooms = ROOM_THINGS.map((t) => ({
                   <button type="button" class="tbtn latch mt-llmute" data-lane-mute={i}
                     data-testid={`ll-mute-${i}`} aria-pressed="false"
                     aria-label={`mute the ${name} lane`}>mute</button>
+                  <!-- CLEAR IS ONE PRESS, NOT A LONG PRESS. A 600 ms hold was the first design
+                       and it is indefensible on stage: it is slow exactly when you have no time,
+                       it fires on a tablet's scroll, and a 6 px thumb drift cancels it. One press
+                       is safe here because undo is one press too. It appears only on a lane that
+                       holds something, so an empty row stays a row and not a toolbar. -->
+                  <button type="button" class="tbtn mt-llclr" data-lane-clr={i}
+                    data-testid={`ll-clr-${i}`}
+                    aria-label={`clear the ${name} lane`}>clr</button>
                 </div>
               ))}
               <span class="mt-llhead" id="mt-ll-head" aria-hidden="true"></span>
@@ -1606,9 +1650,19 @@ const rooms = ROOM_THINGS.map((t) => ({
      fill the ladder's figure row: at 4×16px the lanes read as a small object floating in a tall
      empty case, which a photographed walkthrough made obvious in a way the numbers did not. */
   .mt-lllanes{position:relative;display:grid;gap:14px;width:100%}
-  .mt-lllane{display:grid;grid-template-columns:5.5ch 1fr auto auto;align-items:center;
+  .mt-lllane{display:grid;grid-template-columns:8.5ch 1fr auto auto auto;align-items:center;
     column-gap:1.5ch}
-  .mt-llnm{color:var(--faint);font-size:var(--fs-sm,inherit);line-height:var(--lead)}
+  .mt-llnm{color:var(--faint);font:inherit;line-height:var(--lead);background:transparent;
+    border:0;border-radius:0;padding:8px 0;margin:-8px 0;text-align:left;cursor:pointer;
+    transition:color var(--dur-fast) var(--ease)}
+  .mt-llnm:hover{color:var(--accent)}
+  .mt-llnm:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .mt-liveloop[data-mono="true"] .mt-llnm{cursor:default}
+  .mt-liveloop[data-mono="true"] .mt-llnm:hover{color:var(--faint)}
+  /* The channel, as a suffix on the name. Hidden on a mono device and when the lane takes both,
+     because "both" is the default and a label that never changes is furniture. */
+  .mt-llsrc{color:var(--accent);font-size:.85em}
+  .mt-llsrc:empty{display:none}
   /* The strip is a rule until it holds audio, then a filled band — the room's own vocabulary
      for empty-versus-present (the timeline's axis and span, one level quieter). The rule is a
      pseudo-element rather than a border so the hit area can be tall while the MARK stays a
@@ -1659,7 +1713,34 @@ const rooms = ROOM_THINGS.map((t) => ({
   /* THE SONG ROW WRAPS RATHER THAN ABBREVIATING. Four real titles do not fit one line in this
      case's measured minimum, and the alternatives were both worse: an abbreviation ("NGHYB")
      is a word nobody says, and a <select> is a control this room does not otherwise use. */
-  .mt-llsong{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 2ch}
+  /* THE GRID ROW: a tempo field and two selectors, on one baseline, wrapping when it must. */
+  .mt-llgrid{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--lead) 2ch}
+  .mt-llgrid input{width:5.5ch;min-width:0;font:inherit;font-size:16px;text-align:right;
+    background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--ink);
+    padding:0;border-radius:0;-moz-appearance:textfield;appearance:textfield}
+  .mt-llgrid input::-webkit-outer-spin-button,
+  .mt-llgrid input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .mt-llgrid input:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+  .mt-llunit{color:var(--faint);margin-left:-1ch}
+  .mt-llmeter,.mt-llbars{display:inline-flex;align-items:baseline;gap:1.5ch}
+  /* SECTIONS. `on` is the one sounding; `used` gets a mark under it so you can see at a glance
+     which sections hold anything; `pending` is armed and about to take over, and it is the only
+     accent in the row because it is the only thing that is going to CHANGE. */
+  .mt-llsect{display:inline-flex;align-items:baseline;gap:2ch}
+  .mt-llsect .vbtn{position:relative;min-width:2ch;text-align:center}
+  .mt-llsect .vbtn[data-used="true"]::after{content:"";position:absolute;left:50%;bottom:1px;
+    width:4px;height:1px;margin-left:-2px;background:currentColor}
+  .mt-llsect .vbtn[data-pending="true"]{color:var(--accent)}
+  .mt-llsect .vbtn[data-pending="true"]::before{content:"→";position:absolute;left:-1.4ch;
+    color:var(--accent)}
+  /* CLEAR APPEARS ONLY ON A LANE THAT HOLDS SOMETHING. An empty row keeps two controls, not
+     three, so the row reads as a lane rather than as a toolbar. */
+  .mt-llclr{font:inherit;background:transparent;border:0;border-radius:0;padding:8px .75ch;
+    margin:-8px 0;cursor:pointer;color:var(--faint);visibility:hidden;
+    transition:color var(--dur-fast) var(--ease)}
+  .mt-lllane[data-has="true"] .mt-llclr{visibility:visible}
+  .mt-llclr:hover{color:var(--accent)}
+  .mt-llclr:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
   .mt-llopt,.mt-llcal{display:inline-flex;align-items:baseline;gap:1.5ch}
   /* FOUR BOXED GROUPS IN ONE FOOT ROW NEED ROOM THE ROOM DOES NOT NORMALLY GIVE. `.mt-grp`
      carries a negative side margin (`--mt-box-pull`) so a SINGLE group's border sits OUTSIDE the
@@ -3352,10 +3433,10 @@ const rooms = ROOM_THINGS.map((t) => ({
   // THE LIVE LOOP: arithmetic in one module, real time in the other. Nothing here computes a
   // loop length or a bar boundary by hand — those are the two numbers a looper cannot get
   // slightly wrong, so they live where a unit test can hold them.
+  import { loopSeconds, reverbCeilingSeconds } from '../lib/practice-room/liveloop';
   import {
-    SONGS, songBySlug, loopFrames, barFrames, loopSeconds, reverbCeilingSeconds,
-  } from '../lib/practice-room/liveloop';
-  import { LiveLoop, LANES, type LiveLoopView } from '../lib/practice-room/liveloopEngine';
+    LiveLoop, LANES, SECTION_NAMES, CAPACITY_SECONDS, type LiveLoopView,
+  } from '../lib/practice-room/liveloopEngine';
 
   // ONE AudioContext for tuner, tone and metronome, created on the first gesture —
   // browsers refuse both getUserMedia and audio playback without one.
@@ -5902,52 +5983,38 @@ const rooms = ROOM_THINGS.map((t) => ({
      real-time work is in liveloopEngine.ts's worklet; this block owns the DOM and nothing else,
      which is the same division every other instrument on this page keeps.
 
-     WHY THE RUN BUTTON OPENS THE MICROPHONE rather than a separate permission control: the
-     instrument cannot do anything at all without input, so a second button would be a step
-     that exists only to be pressed. The state line says what is about to happen before it does. */
+     IT IS BUILT FOR A GIG, which is a different brief from "it works". A player holding a cello
+     cannot reach a trackpad, so EVERY action has a key — and a USB foot pedal that types
+     keystrokes (the transcription kind, about £25) turns any of those keys into a footswitch with
+     no driver, no MIDI permission and no pairing. That is the one thing a laptop looper has over
+     a pedal, so the keyboard map is the primary interface and the buttons are its documentation. */
   const llLanesEl = $('mt-ll-lanes');
   if (llLanesEl) {
     const llRun = $('mt-ll-run');
     const llRead = $('mt-ll-read');
     const llPos = $('mt-ll-pos');
     const llState = $('mt-ll-state');
-    const llHead = $('mt-ll-head');
     const llClick = $('mt-ll-click');
     const llCalBtn = $('mt-ll-calbtn');
     const llCalRead = $('mt-ll-calread');
-    const llSongGrp = $('mt-ll-song');
     const llUndo = $('mt-ll-undo') as HTMLButtonElement | null;
     const llMon = $('mt-ll-mon');
+    const llBpm = $('mt-ll-bpm') as HTMLInputElement | null;
+    const llMeterGrp = $('mt-ll-meter');
+    const llBarsGrp = $('mt-ll-bars');
+    const llSectGrp = $('mt-ll-sect');
     const llCase = document.querySelector('.mt-liveloop') as HTMLElement | null;
     const laneRows = Array.from(llLanesEl.querySelectorAll<HTMLElement>('.mt-lllane'));
 
     let engine: LiveLoop | null = null;
-    let song = SONGS[0];
-    // Undo is one level and lives in the foot, so it needs to know which lane it applies to.
-    let lastTouched = 0;
+    // THE WHOLE SPEC, IN THREE NUMBERS. No song, no preset, no repertoire.
+    let bpm = 90;
+    let meter = 4;
+    let bars = 4;
 
     const llSay = (s: string) => { if (llState) llState.textContent = s; };
+    const secs = () => loopSeconds(bpm, bars, meter);
 
-    /** The reading is the loop's length, because that is the number performing with it depends
-     *  on — it is also the reverb budget, halved. Both are printed, so neither is folklore. */
-    // THE RIGHT RAIL HOLDS ONE SHORT VALUE, and that is a measured constraint rather than a
-    // preference: it read `4 bars · 90.7 bpm`, which WRAPS at 390px, and a wrapped rail grows
-    // `.mt-read` downward so the row's centre falls 14px below the transport's ink — breaking the
-    // room's "the row centres the mark by construction" rule in both colourways. Caught by
-    // page.spec.ts's berth check the moment this case was added to its table. The tempo lives in
-    // the state line instead, which is prose and may wrap all it likes.
-    const drawSpec = () => {
-      const secs = loopSeconds(song.countedBpm, song.bars);
-      if (llRead) llRead.textContent = `${secs.toFixed(2)} s`;
-      if (llPos) llPos.textContent = `${song.bars} bars`;
-    };
-
-    // THE PLAYHEAD HAS TO LAND ON THE STRIPS, and the strips are not the full width of the
-    // figure: each lane row is a 4-column grid whose second column is the strip, so a head at
-    // `left: 50%` of the container sits somewhere over the lane NAME. The strip's geometry is
-    // measured once and published as two custom properties; the head is positioned off those.
-    // Measured rather than derived because the two button columns are `auto` — their width is
-    // the text's, which changes with the rec/add label and with the font.
     const measureStrips = () => {
       const strip = laneRows[0]?.querySelector<HTMLElement>('.mt-llstrip');
       if (!strip || !llLanesEl) return;
@@ -5958,6 +6025,16 @@ const rooms = ROOM_THINGS.map((t) => ({
       llLanesEl.style.setProperty('--ll-strip-w', `${r.width}px`);
     };
 
+    /** The reading is the loop's length, because that is what performing with it depends on: it
+     *  is also the reverb budget, halved, and the time you have to get a part right. The right
+     *  rail carries the bar count when stopped and the bar·beat counter when running — one short
+     *  value either way, because a wrapped rail grows the row and pushes the transport off its
+     *  own centre line (measured: 14px, caught by the room's berth check). */
+    const drawSpec = () => {
+      if (llRead) llRead.textContent = `${secs().toFixed(2)} s`;
+      if (llPos && !engine?.running) llPos.textContent = `${bars} bar${bars === 1 ? '' : 's'}`;
+    };
+
     const paint = (v: LiveLoopView) => {
       laneRows.forEach((row, i) => {
         const l = v.lanes[i];
@@ -5965,12 +6042,14 @@ const rooms = ROOM_THINGS.map((t) => ({
         row.dataset.muted = String(l.muted);
         row.dataset.rec = String(l.recording);
         row.dataset.armed = String(l.armed);
-        // The take's peak, on the row. It is what makes "recorded silence" visible rather than
-        // a mystery, and it is what the e2e asserts to prove the processor wrote SIGNAL and not
-        // just a buffer — `data-has` alone would be true either way.
         row.dataset.peak = l.peak.toFixed(4);
-        const mute = row.querySelector<HTMLElement>('.mt-llmute');
-        mute?.setAttribute('aria-pressed', String(l.muted));
+        row.querySelector<HTMLElement>('.mt-llmute')?.setAttribute('aria-pressed', String(l.muted));
+        // The channel suffix on the lane name: blank for "both", which is the default.
+        const srcTag = row.querySelector<HTMLElement>('.mt-llsrc');
+        if (srcTag) {
+          const want = v.inputChannels < 2 ? '' : l.src === 0 ? ' 1' : l.src === 1 ? ' 2' : '';
+          if (srcTag.textContent !== want) srcTag.textContent = want;
+        }
         const rec = row.querySelector<HTMLElement>('.mt-llrec');
         if (rec) {
           const word = l.hasAudio ? 'add' : 'rec';
@@ -5981,12 +6060,21 @@ const rooms = ROOM_THINGS.map((t) => ({
         }
       });
       if (llLanesEl) llLanesEl.style.setProperty('--ll-pos', String(v.loopPos));
-      if (llCase) llCase.dataset.sounding = String(v.running);
-      if (llUndo) llUndo.toggleAttribute('disabled', !v.lanes.some((l) => l.canUndo));
-      // THE LATENCY READOUT HAS TO SHOW THE SEEDED VALUE, not just a measured one. It read
-      // `0 ms` while the engine was already compensating by ctx.baseLatency + outputLatency,
-      // which is the worst of both: the number on screen was wrong AND it told the player they
-      // were uncompensated when they were partly compensated. A star marks "not measured".
+      if (llCase) {
+        llCase.dataset.sounding = String(v.running);
+        llCase.dataset.section = String(v.section);
+        llCase.dataset.mono = String(v.inputChannels < 2);
+      }
+      if (llUndo) llUndo.toggleAttribute('disabled', !v.canUndo);
+      // The section row shows three things at once: which section sounds, which is armed to take
+      // over on the next bar, and which ones hold any audio at all.
+      llSectGrp?.querySelectorAll<HTMLElement>('[data-section]').forEach((b) => {
+        const i = Number(b.dataset.section);
+        b.setAttribute('aria-pressed', String(i === v.section));
+        b.classList.toggle('on', i === v.section);
+        b.dataset.pending = String(i === v.pendingSection);
+        b.dataset.used = String(!!v.sectionsUsed[i]);
+      });
       if (llCalRead) {
         const ms = (v.latencyFrames / (engine?.sampleRate || 48000)) * 1000;
         llCalRead.textContent = v.calibrated ? `${ms.toFixed(1)} ms` : `${ms.toFixed(1)} ms*`;
@@ -6001,8 +6089,6 @@ const rooms = ROOM_THINGS.map((t) => ({
       try {
         await e.open();
       } catch (err) {
-        // The honest failure. Denied permission is the common one; a secure-context failure is
-        // the other, and it is worth naming because it is not the user's fault.
         llSay(`no microphone: ${(err as Error).name}. It needs permission and a secure page.`);
         return null;
       }
@@ -6012,11 +6098,7 @@ const rooms = ROOM_THINGS.map((t) => ({
           ? `${LANES[lane]} recorded SILENCE (peak ${peak.toFixed(4)}) — check the input, then undo.`
           : `${LANES[lane]} printed, peak ${peak.toFixed(2)}. undo puts back what was there.`);
       };
-      // THE BLEED WARNING, and it stays up. If the loop is coming out of the same box the
-      // microphone is in, every overdub re-records the lanes already playing: lane two holds a
-      // comb-filtered copy of lane one, lane three holds two, and it gets worse per layer
-      // rather than merely noisier. `echoCancellation:false` is right for fidelity and removes
-      // the browser's only defence, so the only fix is headphones — or a different input.
+      e.onSection = (i) => llSay(`section ${SECTION_NAMES[i]}.`);
       e.onSameDevice = (same) => {
         if (!same) return;
         llCase?.setAttribute('data-bleed', 'true');
@@ -6028,110 +6110,149 @@ const rooms = ROOM_THINGS.map((t) => ({
       return e;
     };
 
-    const applySong = () => {
+    /** Push the grid to the engine, refusing a loop longer than the allocated buffers rather
+     *  than truncating one silently. */
+    const applyGrid = (): boolean => {
       drawSpec();
-      if (!engine) return;
-      const sr = engine.sampleRate;
-      engine.setLoop(
-        loopFrames(song.countedBpm, song.bars, sr),
-        barFrames(song.countedBpm, sr),
-        song.bars,
-      );
-      // Reverb after the looper, decay capped at half the loop — the doctrine, applied by
-      // arithmetic rather than by ear.
-      engine.setReverb(0.22, reverbCeilingSeconds(loopSeconds(song.countedBpm, song.bars)));
+      if (!engine) return true;
+      if (!engine.setGrid(bpm, meter, bars)) {
+        llSay(`${secs().toFixed(1)} s is longer than the ${CAPACITY_SECONDS} s buffer — `
+          + 'fewer bars, or a faster tempo.');
+        return false;
+      }
+      engine.setReverb(0.22, reverbCeilingSeconds(secs()));
+      return true;
     };
 
-    llSongGrp?.addEventListener('click', (ev) => {
-      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-song]');
-      if (!b) return;
-      const next = songBySlug(b.dataset.song || '');
-      if (!next) return;
-      song = next;
-      llSongGrp.querySelectorAll('[data-song]').forEach((el) => {
-        const on = el === b;
-        el.setAttribute('aria-pressed', String(on));
-        el.classList.toggle('on', on);
+    const pressGroup = (grp: HTMLElement | null, attr: string, value: number) => {
+      grp?.querySelectorAll<HTMLElement>(`[data-${attr}]`).forEach((b) => {
+        const on = Number(b.dataset[attr]) === value;
+        b.setAttribute('aria-pressed', String(on));
+        b.classList.toggle('on', on);
       });
-      applySong();
-      llSay(song.note
-        ? song.note
-        : `${song.title} · ${song.countedBpm} bpm — ${song.cell.join(' ')}`);
-    });
-    llSongGrp?.querySelector('[data-song]')?.classList.add('on');
+    };
 
-    llRun?.addEventListener('click', async () => {
+    // ── the grid controls
+    llBpm?.addEventListener('change', () => {
+      const n = Number(llBpm.value);
+      if (!Number.isFinite(n) || n < 40 || n > 200) { llBpm.value = String(bpm); return; }
+      const prev = bpm;
+      bpm = n;
+      if (!applyGrid()) { bpm = prev; llBpm.value = String(prev); applyGrid(); return; }
+      llSay(`${bpm} bpm · ${meter}/4 · ${bars} bars — ${secs().toFixed(2)} s of loop.`);
+    });
+    llMeterGrp?.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-meter]');
+      if (!b) return;
+      const prev = meter;
+      meter = Number(b.dataset.meter);
+      if (!applyGrid()) { meter = prev; applyGrid(); return; }
+      pressGroup(llMeterGrp, 'meter', meter);
+      llSay(`${meter}/4 — ${secs().toFixed(2)} s of loop. the click accents beat one.`);
+    });
+    llBarsGrp?.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-bars]');
+      if (!b) return;
+      const prev = bars;
+      bars = Number(b.dataset.bars);
+      if (!applyGrid()) { bars = prev; applyGrid(); return; }
+      pressGroup(llBarsGrp, 'bars', bars);
+      llSay(`${bars} bar${bars === 1 ? '' : 's'} — ${secs().toFixed(2)} s of loop. `
+        + 'changing this clears the lanes.');
+    });
+
+    // ── sections
+    const goSection = async (i: number) => {
       const e = await ensure();
       if (!e) return;
+      e.selectSection(i);
+      llSay(e.running
+        ? `section ${SECTION_NAMES[i]} armed — it takes over on the next bar.`
+        : `section ${SECTION_NAMES[i]}.`);
+    };
+    llSectGrp?.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-section]');
+      if (b) void goSection(Number(b.dataset.section));
+    });
+
+    // ── transport
+    const toggleRun = async () => {
+      const e = await ensure();
+      if (!e || !llRun) return;
       if (e.running) {
         e.stop();
         llRun.setAttribute('aria-pressed', 'false');
         llSay('stopped. the lanes keep what they hold.');
+        drawSpec();
         return;
       }
-      applySong();
+      if (!applyGrid()) return;
       e.start();
       llRun.setAttribute('aria-pressed', 'true');
       const ms = (e.latencyFrames / e.sampleRate) * 1000;
       llSay(e.calibrated
         ? 'running. press rec on a lane — it starts on the next bar.'
         : e.latencyFrames > 0
-          // The seed covers the OUTPUT half exactly and the input half not at all, so this is
-          // honestly "partly": saying UNCOMPENSATED here would be as wrong as saying compensated.
           ? `running. compensating ${ms.toFixed(1)} ms of OUTPUT latency only — press measure for `
             + 'the input half. press rec on a lane; it starts on the next bar.'
           : 'running, but UNCOMPENSATED — measure the latency or every layer prints late.');
-    });
+    };
+    llRun?.addEventListener('click', () => void toggleRun());
+
+    // ── lanes
+    const punch = async (i: number) => {
+      const e = await ensure();
+      if (!e) return;
+      if (!e.running) { llSay('press run first — a punch needs a bar line to land on.'); return; }
+      const lane = e.view.lanes[i];
+      if (lane.armed || lane.recording) {
+        e.disarm();
+        llSay('punch cancelled — the lane keeps what it had.');
+        return;
+      }
+      const mode = lane.hasAudio ? 'overdub' : 'replace';
+      e.arm(i, mode);
+      llSay(`${LANES[i]}: ${mode === 'overdub' ? 'overdubbing' : 'recording'} from the next bar, `
+        + `for ${bars} bar${bars === 1 ? '' : 's'}.`);
+    };
+    const toggleMute = (i: number) => {
+      if (!engine) return;
+      engine.mute(i, !engine.view.lanes[i].muted);
+    };
+    const clearLane = (i: number) => {
+      if (!engine) return;
+      engine.clear(i);
+      llSay(`${LANES[i]} cleared — undo puts it back.`);
+    };
 
     laneRows.forEach((row, i) => {
-      row.querySelector('.mt-llrec')?.addEventListener('click', async () => {
+      row.querySelector('.mt-llrec')?.addEventListener('click', () => void punch(i));
+      row.querySelector('.mt-llmute')?.addEventListener('click', () => toggleMute(i));
+      row.querySelector('.mt-llclr')?.addEventListener('click', () => clearLane(i));
+      row.querySelector('.mt-llnm')?.addEventListener('click', async () => {
         const e = await ensure();
         if (!e) return;
-        if (!e.running) { llSay('press run first — a punch needs a bar line to land on.'); return; }
-        const lane = e.view.lanes[i];
-        // Pressing on an armed-or-recording lane cancels it, and cancelling is now free: the
-        // take was going into the lane's back buffer, so whatever was there is still playing.
-        if (lane.armed || lane.recording) {
-          e.disarm();
-          llSay('punch cancelled — the lane keeps what it had.');
+        if (e.view.inputChannels < 2) {
+          llSay(`this device gives one input channel, so there is nothing to route. `
+            + 'plug in a 2-in interface and reload.');
           return;
         }
-        lastTouched = i;
-        const mode = lane.hasAudio ? 'overdub' : 'replace';
-        e.arm(i, mode);
-        llSay(mode === 'overdub'
-          ? `${LANES[i]}: overdubbing from the next bar, for ${song.bars} bars.`
-          : `${LANES[i]}: recording from the next bar, for ${song.bars} bars.`);
+        const next = (e.view.lanes[i].src + 1) % 3;
+        e.setLaneSource(i, next);
+        llSay(`${LANES[i]} records from ${next === 0 ? 'channel 1' : next === 1 ? 'channel 2' : 'both channels'}.`);
       });
-      row.querySelector('.mt-llmute')?.addEventListener('click', () => {
-        if (!engine) return;
-        engine.mute(i, !engine.view.lanes[i].muted);
-      });
-      // A long press clears the lane. Kept off the primary gesture on purpose: clearing is the
-      // one destructive action here, and it should not share a tap with arming. `pointercancel`
-      // is in the cancel list because without it a page scroll started on the strip — which is
-      // what happens on a propped-up tablet — hands the gesture to the browser and the timer
-      // fires anyway, clearing a lane mid-performance.
-      let held = 0;
-      const strip = row.querySelector<HTMLElement>('.mt-llstrip');
-      strip?.addEventListener('pointerdown', () => {
-        held = window.setTimeout(() => {
-          held = 0;
-          lastTouched = i;
-          engine?.clear(i);
-          llSay(`${LANES[i]} cleared — undo puts it back.`);
-        }, 600);
-      });
-      const cancelHold = () => { if (held) { clearTimeout(held); held = 0; } };
-      strip?.addEventListener('pointerup', cancelHold);
-      strip?.addEventListener('pointerleave', cancelHold);
-      strip?.addEventListener('pointercancel', cancelHold);
     });
 
     llUndo?.addEventListener('click', () => {
       if (!engine) return;
-      engine.undo(lastTouched);
-      llSay(`${LANES[lastTouched]}: went back one. press undo again to come forward.`);
+      engine.undo();
+      llSay('went back one. press undo again to come forward.');
+    });
+
+    llClick?.addEventListener('click', () => {
+      const on = llClick.getAttribute('aria-pressed') !== 'true';
+      llClick.setAttribute('aria-pressed', String(on));
+      engine?.click(on);
     });
 
     llMon?.addEventListener('click', async () => {
@@ -6147,12 +6268,6 @@ const rooms = ROOM_THINGS.map((t) => ({
         : 'monitoring off.');
     });
 
-    llClick?.addEventListener('click', () => {
-      const on = llClick.getAttribute('aria-pressed') !== 'true';
-      llClick.setAttribute('aria-pressed', String(on));
-      engine?.click(on);
-    });
-
     llCalBtn?.addEventListener('click', async () => {
       const e = await ensure();
       if (!e) return;
@@ -6160,15 +6275,10 @@ const rooms = ROOM_THINGS.map((t) => ({
       if (llCalRead) llCalRead.textContent = '…';
       const r = await e.calibrate();
       if (!r.ok) {
-        if (llCalRead) llCalRead.textContent = '0 ms';
         llSay(`could not measure: ${r.reason}`);
+        paint(e.view);
         return;
       }
-      if (llCalRead) llCalRead.textContent = `${r.ms.toFixed(1)} ms`;
-      // DRIFT, if there is a previous measurement to compare against. Two devices with separate
-      // crystals move the true offset as a RAMP, and a single stored number cannot follow a ramp
-      // — so the useful thing a second measurement buys is not a better offset, it is knowing
-      // whether the offset is stable at all.
       const drift = r.ppm === null
         ? ' measure again after a song to see whether it drifts.'
         : Math.abs(r.ppm) > 20
@@ -6179,13 +6289,38 @@ const rooms = ROOM_THINGS.map((t) => ({
         + `over ${r.passes} passes.${drift}`);
     });
 
-    // The strip geometry changes with the layout, and the two button columns are `auto`-width,
-    // so it cannot be derived — only measured, and re-measured when the box changes.
+    /* ── THE KEYBOARD IS THE INSTRUMENT'S REAL SURFACE ────────────────────────────────────
+       Every action is one key, chosen so the whole set is reachable without looking: the
+       digits punch, the row above them mutes the same lane, and the home-row letters pick the
+       section. A keystroke foot pedal maps onto any of these for the price of a cable.
+       Ignored while a field has focus, so typing a tempo does not punch a lane. */
+    const KEY_LANE: Record<string, number> = { '1': 0, '2': 1, '3': 2, '4': 3 };
+    const KEY_MUTE: Record<string, number> = { q: 0, w: 1, e: 2, r: 3 };
+    const KEY_SECT: Record<string, number> = { a: 0, s: 1, d: 2 };
+    document.addEventListener('keydown', (ev) => {
+      if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+      const t = ev.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      const k = ev.key.toLowerCase();
+      if (ev.key === ' ') { ev.preventDefault(); void toggleRun(); return; }
+      if (k in KEY_LANE) {
+        ev.preventDefault();
+        // SHIFT CLEARS. It is the one destructive key, so it is the one that needs a modifier.
+        if (ev.shiftKey) clearLane(KEY_LANE[k]); else void punch(KEY_LANE[k]);
+        return;
+      }
+      if (k in KEY_MUTE) { ev.preventDefault(); toggleMute(KEY_MUTE[k]); return; }
+      if (k in KEY_SECT) { ev.preventDefault(); void goSection(KEY_SECT[k]); return; }
+      if (k === 'z') { ev.preventDefault(); engine?.undo(); llSay('went back one.'); return; }
+      if (k === 'c') { ev.preventDefault(); (llClick as HTMLElement | null)?.click(); return; }
+      if (k === 'm') { ev.preventDefault(); (llMon as HTMLElement | null)?.click(); return; }
+    });
+
     if ('ResizeObserver' in window) new ResizeObserver(measureStrips).observe(llLanesEl);
     measureStrips();
-
     drawSpec();
-    llSay(`${song.title} · ${song.countedBpm} bpm — ${song.cell.join(' ')}. press run to open the microphone.`);
+    llSay(`${bpm} bpm · ${meter}/4 · ${bars} bars — ${secs().toFixed(2)} s of loop. `
+      + 'press run (or space) to open the microphone.');
 
     addEventListener('pagehide', () => engine?.release());
   }

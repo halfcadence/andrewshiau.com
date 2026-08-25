@@ -18,20 +18,86 @@ import { test, expect } from '@playwright/test';
 
 const LL = '/practice-room/live-loop/';
 
-test('the loop length reading is tempo x bars, per song', async ({ page }) => {
+test('the loop length reading is tempo x meter x bars — no songs involved', async ({ page }) => {
   await page.goto(LL);
-  // Apocalypse is the default: 90.7 bpm, 4 bars.
-  await expect(page.getByTestId('ll-length')).toHaveText('10.58 s');
+  // Default grid: 90 bpm, 4/4, 4 bars = 16 beats at 0.6667 s = 10.67 s
+  await expect(page.getByTestId('ll-length')).toHaveText('10.67 s');
   await expect(page.getByTestId('ll-run')).toHaveAttribute('aria-pressed', 'false');
 
-  await page.getByTestId('ll-song-sunsetz').click();
-  await expect(page.getByTestId('ll-length')).toHaveText('12.45 s');
+  // bars halve the loop
+  await page.getByTestId('ll-bars-2').click();
+  await expect(page.getByTestId('ll-length')).toHaveText('5.33 s');
 
-  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
-  await expect(page.getByTestId('ll-length')).toHaveText('9.66 s');
+  // meter changes it too — 3/4 is three quarters of 4/4
+  await page.getByTestId('ll-meter-3').click();
+  await expect(page.getByTestId('ll-length')).toHaveText('4.00 s');
 
-  await page.getByTestId('ll-song-apocalypse').click();
-  await expect(page.getByTestId('ll-length')).toHaveText('10.58 s');
+  // and the tempo field
+  await page.getByTestId('ll-bpm').fill('120');
+  await page.getByTestId('ll-bpm').blur();
+  await expect(page.getByTestId('ll-length')).toHaveText('3.00 s');
+});
+
+test('a loop longer than the buffer is refused, not silently truncated', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  // 8 bars of 7/4 at 40 bpm is 84 s, far past the 16 s of buffer.
+  await page.getByTestId('ll-bpm').fill('40');
+  await page.getByTestId('ll-bpm').blur();
+  await page.getByTestId('ll-meter-7').click();
+  await page.getByTestId('ll-bars-8').click();
+  await expect(page.getByTestId('ll-state')).toContainText('longer than the', { timeout: 5_000 });
+});
+
+test('sections are three whole sets of lanes, and a switch is armed to the bar', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-bars-1').click();          // 2.67 s, so a bar comes round fast
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  await expect(page.getByTestId('ll-sect-A')).toHaveAttribute('aria-pressed', 'true');
+
+  // record into A
+  await page.getByTestId('ll-rec-0').click();
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-has', 'true', { timeout: 20_000 });
+
+  // switch to B: armed first, then it lands and B's lanes are EMPTY — a different set, not a mute
+  await page.getByTestId('ll-sect-B').click();
+  await expect(page.getByTestId('ll-state')).toContainText('armed');
+  await expect(page.getByTestId('ll-sect-B')).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-has', 'false');
+
+  // and A still holds its take when you come back
+  await page.getByTestId('ll-sect-A').click();
+  await expect(page.getByTestId('ll-sect-A')).toHaveAttribute('aria-pressed', 'true', { timeout: 10_000 });
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-has', 'true');
+});
+
+test('the keyboard drives it — space runs, digits punch, q mutes, z undoes', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-bars-1').click();
+  await page.locator('.mt-liveloop').click({ position: { x: 5, y: 5 } });   // focus the page, not a field
+  await page.keyboard.press('Space');
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+
+  await page.keyboard.press('1');
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-has', 'true', { timeout: 20_000 });
+  await page.keyboard.press('q');
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-muted', 'true');
+  await page.keyboard.press('q');
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-muted', 'false');
+  await page.keyboard.press('z');
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-has', 'false', { timeout: 5_000 });
+});
+
+test('typing a tempo does not punch a lane', async ({ page }) => {
+  await page.goto(LL);
+  await page.getByTestId('ll-run').click();
+  await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
+  // '1' inside the field must reach the field, not the lane keymap.
+  await page.getByTestId('ll-bpm').click();
+  await page.keyboard.type('1');
+  await expect(page.locator('.mt-lllane[data-lane="0"]')).toHaveAttribute('data-armed', 'false');
 });
 
 test('the four lanes are named by input and start empty', async ({ page }) => {
@@ -68,8 +134,8 @@ test('run opens the microphone and the transport reports it is sounding', async 
 
 test('a punch prints audio into the armed lane on the next bar', async ({ page }) => {
   await page.goto(LL);
-  // The shortest loop in the set, so the wait is one 9.66 s cycle rather than 12.45.
-  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  // One bar, so the wait is one short cycle.
+  await page.getByTestId('ll-bars-1').click();   // 2.67 s at the default grid
   await page.getByTestId('ll-run').click();
   await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
 
@@ -79,7 +145,7 @@ test('a punch prints audio into the armed lane on the next bar', async ({ page }
   await expect(lane).toHaveAttribute('data-armed', 'true', { timeout: 5_000 });
   await expect(page.getByTestId('ll-state')).toContainText('recording from the next bar');
 
-  // One bar to land plus one full loop to print. 9.66 s + a bar (2.4 s) + slack.
+  // One bar to land plus one full loop to print, plus slack.
   await expect(lane).toHaveAttribute('data-has', 'true', { timeout: 25_000 });
 
   // AND IT PRINTED SIGNAL, NOT AN EMPTY BUFFER. `data-has` is true the moment a take ends,
@@ -128,7 +194,7 @@ test('the room lists live loop and not changes, but /changes/ still loads', asyn
 
 test('STOP THEN RUN KEEPS THE LANES — the page promises it, so it is a test', async ({ page }) => {
   await page.goto(LL);
-  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await page.getByTestId('ll-bars-1').click();   // 2.67 s at the default grid
   await page.getByTestId('ll-run').click();
   await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
 
@@ -154,7 +220,7 @@ test('STOP THEN RUN KEEPS THE LANES — the page promises it, so it is a test', 
 
 test('the rec button says ADD once a lane holds audio, because it overdubs then', async ({ page }) => {
   await page.goto(LL);
-  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await page.getByTestId('ll-bars-1').click();   // 2.67 s at the default grid
   await expect(page.getByTestId('ll-rec-2')).toHaveText('rec');
   await page.getByTestId('ll-run').click();
   await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
@@ -165,7 +231,7 @@ test('the rec button says ADD once a lane holds audio, because it overdubs then'
 
 test('undo puts back what a take replaced, and a second undo is a redo', async ({ page }) => {
   await page.goto(LL);
-  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await page.getByTestId('ll-bars-1').click();   // 2.67 s at the default grid
   await expect(page.getByTestId('ll-undo')).toBeDisabled();
   await page.getByTestId('ll-run').click();
   await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
@@ -185,7 +251,7 @@ test('undo puts back what a take replaced, and a second undo is a redo', async (
 
 test('cancelling a punch keeps whatever the lane already had', async ({ page }) => {
   await page.goto(LL);
-  await page.getByTestId('ll-song-nothings-gonna-hurt-you-baby').click();
+  await page.getByTestId('ll-bars-1').click();   // 2.67 s at the default grid
   await page.getByTestId('ll-run').click();
   await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
   const lane = page.locator('.mt-lllane[data-lane="3"]');
@@ -225,4 +291,32 @@ test('calibration refuses while the transport runs — chirps would print into a
   await expect(page.locator('.mt-liveloop')).toHaveAttribute('data-sounding', 'true', { timeout: 15_000 });
   await page.getByTestId('ll-calibrate').click();
   await expect(page.getByTestId('ll-state')).toContainText('stop the transport first', { timeout: 10_000 });
+});
+
+test('each lane picks which input it records from — the per-track input matrix', async ({ page }) => {
+  // The RC-505's least-advertised feature and the one a 2-in rig most needs: with a mic on
+  // channel 1 and an instrument on channel 2, a lane that records BOTH is not a mix, it is a pile.
+  //
+  // WHAT THIS PROVES AND WHAT IT DOES NOT. It proves the selector cycles, reports itself, and
+  // reaches the processor. It does NOT prove the channels are actually kept apart, because the
+  // fake device feeds the same file to both — that needs a real interface with different signals
+  // on 1 and 2, and it is listed as unverified.
+  await page.goto(LL);
+  const name = page.getByTestId('ll-src-0');
+  const suffix = page.locator('.mt-lllane[data-lane="0"] .mt-llsrc');
+
+  await name.click();                       // both -> channel 1
+  await expect(page.getByTestId('ll-state')).toContainText('records from channel 1', { timeout: 15_000 });
+  await expect(suffix).toHaveText('1');
+
+  await name.click();                       // -> channel 2
+  await expect(page.getByTestId('ll-state')).toContainText('records from channel 2');
+  await expect(suffix).toHaveText('2');
+
+  await name.click();                       // -> both, and the suffix goes away because it is the default
+  await expect(page.getByTestId('ll-state')).toContainText('both channels');
+  await expect(suffix).toHaveText('');
+
+  // the other lanes were not touched
+  await expect(page.locator('.mt-lllane[data-lane="1"] .mt-llsrc')).toHaveText('');
 });

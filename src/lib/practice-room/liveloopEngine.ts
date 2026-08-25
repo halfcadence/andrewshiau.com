@@ -15,12 +15,15 @@
 //
 // This file is that machine, with three consequences designed in rather than discovered.
 //
-// ══ 1. TWO BUFFERS PER LANE, AND UNDO IS FREE ═════════════════════════════════════════════
-// Each lane owns `front` (playing) and `back` (the take being recorded). A finished take SWAPS
-// them, so the previous content survives as `back` and is what undo restores — the hardware's
-// one-spare-copy model, arrived at for the hardware's reason. It also makes the two failure
-// modes free instead of destructive: an abandoned punch simply never swaps, so `front` is
-// untouched, and nothing has to be zeroed while a take is in flight.
+// ══ 1. ONE BUFFER PER LANE PER SECTION, PLUS TWO SCRATCH BUFFERS ══════════════════════════
+// Lanes hold audio; a take in flight goes into ONE shared record buffer, and the content it
+// displaces goes into ONE shared undo buffer. A finished take is a three-way pointer rotation,
+// not a copy. Two buffers per lane per section would be 73 MB and pointless: only one take is
+// ever in flight and undo is one level deep, which is exactly why the hardware keeps exactly one
+// spare copy. It also makes the failure modes free — an abandoned punch never rotates, so the
+// lane is untouched, and nothing is zeroed while a take is running.
+// Clearing a lane is a FLAG, not a memset: a lane with has=false is never read, and the next
+// replace take overwrites through the record buffer anyway. So it is O(1) and undoable.
 //
 // ══ 2. LATENCY IS A WRITE OFFSET, NOT A DELAY YOU HEAR ════════════════════════════════════
 // You monitor through your own interface, so the round trip is inaudible while you play. What
@@ -51,7 +54,7 @@
 // output so it bypasses that reverb — a four-second hall on a reference tone is a wash under
 // the music, not a metronome.
 
-import { spanFrames, FORGIVENESS_MS } from './liveloop';
+import { spanFrames, barFrames, FORGIVENESS_MS } from './liveloop';
 
 export type LaneMode = 'replace' | 'overdub';
 
@@ -65,8 +68,8 @@ export interface LaneView {
   level: number;
   /** Peak of the last take. 0 with `hasAudio` true means the lane recorded SILENCE. */
   peak: number;
-  /** whether an undo is available — i.e. whether `back` holds something worth returning to */
-  canUndo: boolean;
+  /** which input this lane records from: 0 = channel 1, 1 = channel 2, 2 = both */
+  src: number;
 }
 
 export interface LiveLoopView {
@@ -75,12 +78,24 @@ export interface LiveLoopView {
   bar: number;
   beat: number;
   bars: number;
+  bpm: number;
+  beatsPerBar: number;
+  /** the section sounding now */
+  section: number;
+  /** the section armed to take over on the next bar line, or -1 */
+  pendingSection: number;
+  /** which sections hold any audio at all — so the picker can show what is worth switching to */
+  sectionsUsed: boolean[];
+  /** one level, for the instrument rather than per lane — the hardware model */
+  canUndo: boolean;
   lanes: LaneView[];
   latencyFrames: number;
   calibrated: boolean;
   /** null until known; true when input and output are the same physical device */
   sameDevice: boolean | null;
   monitoring: boolean;
+  /** how many input channels the device actually gave — 1 makes the per-lane source moot */
+  inputChannels: number;
 }
 
 export interface CalibrationResult {
@@ -100,11 +115,18 @@ export interface CalibrationResult {
  *  this instrument is for, the bass is the hook and stays in your hands. */
 export const LANES = ['drums', 'harmony', 'voice', 'spare'] as const;
 
-/** Buffer capacity, in seconds. Allocated ONCE at open() for the longest song the picker
- *  offers plus headroom, so changing song is an integer change and never an allocation —
- *  `new Float32Array(549104)` on the audio thread is 2.2 MB of zeroing inside a 2.9 ms render
- *  budget, i.e. a dropout at the exact moment the player pressed something. */
-export const CAPACITY_SECONDS = 20;
+/** Buffer capacity, in seconds, allocated ONCE at open(). Changing tempo, meter or bar count is
+ *  then three integers rather than an allocation — `new Float32Array(549104)` on the audio thread
+ *  is megabytes of zeroing inside a 2.9 ms render budget, i.e. a dropout at the exact moment the
+ *  player pressed something. It is also the hard cap on loop length: 16 s covers 8 bars of 4/4 at
+ *  120 bpm, and the UI refuses anything longer rather than silently truncating it. */
+export const CAPACITY_SECONDS = 16;
+
+/** How many whole sets of lanes the instrument holds. Three is verse / chorus / bridge, which is
+ *  the shape of nearly every song this is for; more is memory for nothing. Sections share ONE
+ *  loop length and ONE playhead, so they stay phase-locked and switching never resets the groove. */
+export const SECTIONS = 3;
+export const SECTION_NAMES = ['A', 'B', 'C'] as const;
 
 /* ══════════════════════════════════════════════════════════════════════════════════════════
    THE PROCESSOR. Authored as a string and loaded from a Blob URL so the whole instrument is
@@ -116,100 +138,155 @@ export const CAPACITY_SECONDS = 20;
    ══════════════════════════════════════════════════════════════════════════════════════════ */
 const PROCESSOR = String.raw`
 const PREP_CHUNK = 8192;
+// THE SEAM CROSSFADE, in samples. A take fills the loop exactly, so sample[last] jumps straight
+// to sample[0] and any mismatch there is a click you hear once per pass, forever. Aeros documents
+// recording 360 samples PAST every loop "to allow for clean crossfades between song parts when
+// transitioning and to avoid pops on the loop seam" — so the fix is to capture an overlap and fade
+// it over the head, NOT to fade the take's own ends, which would dip a downbeat attack. Boss does
+// the opposite and its own manual admits "it may sound as if some of the sound has been cut out".
+const XFADE = 360;
 
 class LiveLoopProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
     const o = options.processorOptions || {};
     this.laneCount = o.laneCount || 4;
-    this.capacity = o.capacity || ((sampleRate * 20) | 0);
+    this.sectionCount = o.sectionCount || 3;
+    this.capacity = o.capacity || ((sampleRate * 16) | 0);
     this.loopFrames = o.loopFrames || sampleRate * 2;
     this.barFrames = o.barFrames || this.loopFrames;
-    this.lanes = [];
-    for (let i = 0; i < this.laneCount; i++) {
-      this.lanes.push({
-        front: new Float32Array(this.capacity),
-        back: new Float32Array(this.capacity),
-        has: false, backHas: false, muted: false, level: 1, peak: 0, backPeak: 0,
-      });
+    this.beatsPerBar = o.beatsPerBar || 4;
+
+    // ONE BUFFER PER LANE PER SECTION, PLUS TWO SCRATCH BUFFERS FOR THE WHOLE INSTRUMENT.
+    // Two per lane per section would be 3 x 4 x 2 x 3 MB = 73 MB and pointless: only ONE take
+    // is ever in flight, and undo is one level, so one record buffer and one undo buffer serve
+    // every lane. A finished take is a three-way pointer rotation, not a copy.
+    this.fronts = [];
+    this.has = [];
+    this.peak = [];
+    for (let s = 0; s < this.sectionCount; s++) {
+      const f = [], h = [], p = [];
+      for (let i = 0; i < this.laneCount; i++) {
+        f.push(new Float32Array(this.capacity)); h.push(false); p.push(0);
+      }
+      this.fronts.push(f); this.has.push(h); this.peak.push(p);
     }
+    this.rec = new Float32Array(this.capacity);
+    this.undoBuf = new Float32Array(this.capacity);
+    this.undoRef = { section: -1, lane: -1, kind: '', has: false, peak: 0 };
+
+    this.muted = [];
+    this.level = [];
+    // PER-LANE INPUT SOURCE: 0 = channel 1, 1 = channel 2, 2 = both. This is the one feature on
+    // the RC-505 that is not on anyone's spec sheet and is what makes a few physical inputs behave
+    // like a console: each lane independently arms which input it records from. Without it a mic
+    // on channel 1 and a guitar on channel 2 both land in EVERY lane, which is not a mix, it is a
+    // pile. Default 2, because a mono device has nothing to choose.
+    this.laneSrc = [];
+    for (let i = 0; i < this.laneCount; i++) { this.muted.push(false); this.level.push(1); this.laneSrc.push(2); }
+
+    this.section = 0;
+    this.pendingSection = -1;
+
     this.origin = -1;
     this.armed = -1;
+    this.armSection = 0;
     this.armMode = 'replace';
     this.armStart = -1;
     this.armEnd = -1;
     this.recording = false;
     this.takePeak = 0;
     this.prepIdx = -1;
+    this.xfade = new Float32Array(XFADE);
+    this.xfadeGot = 0;
     this.latency = 0;
     this.click = true;
     this.reportAt = 0;
     this.port.onmessage = (e) => this.command(e.data);
   }
 
-  // Prepare the take's target a chunk at a time, during the pre-roll. A replace zeroes it; an
-  // overdub copies the current content in, so the record branch can simply ADD and the result
-  // is the destructive read-modify-write every hardware unit performs. Spreading it over the
-  // pre-roll is what keeps a 2.2 MB memset out of a single 2.9 ms render quantum.
+  // Prepare the take's target during the pre-roll, a chunk per render quantum. A replace zeroes
+  // it; an overdub copies the lane's current content in, so the record branch can simply ADD and
+  // the result is the destructive read-modify-write every hardware unit performs. Spreading it
+  // over the pre-roll keeps a 3 MB memset out of a single 2.9 ms quantum.
   prep(budget) {
     if (this.prepIdx < 0) return;
-    const l = this.lanes[this.armed];
-    if (!l) { this.prepIdx = -1; return; }
     const end = Math.min(this.loopFrames, this.prepIdx + budget);
-    if (this.armMode === 'overdub' && l.has) {
-      l.back.set(l.front.subarray(this.prepIdx, end), this.prepIdx);
+    if (this.armMode === 'overdub' && this.has[this.armSection][this.armed]) {
+      this.rec.set(this.fronts[this.armSection][this.armed].subarray(this.prepIdx, end), this.prepIdx);
     } else {
-      l.back.fill(0, this.prepIdx, end);
+      this.rec.fill(0, this.prepIdx, end);
     }
     this.prepIdx = end >= this.loopFrames ? -1 : end;
   }
 
   finishTake() {
-    const l = this.lanes[this.armed];
+    const s = this.armSection, l = this.armed;
     this.recording = false;
     if (this.prepIdx >= 0) this.prep(this.loopFrames);
-    l.backHas = l.has; l.backPeak = l.peak;
-    const f = l.front; l.front = l.back; l.back = f;
-    l.has = true;
-    l.peak = this.takePeak;
-    this.port.postMessage({ type: 'recorded', lane: this.armed, peak: this.takePeak });
+    // Blend the overlap over the take's head with a raised cosine, so the seam is continuous
+    // without dipping either end. Only as far as we actually captured.
+    const n = Math.min(this.xfadeGot, XFADE, this.loopFrames);
+    for (let q = 0; q < n; q++) {
+      const w = 0.5 - 0.5 * Math.cos((Math.PI * q) / n);   // 0 -> 1 across the overlap
+      this.rec[q] = this.rec[q] * w + this.xfade[q] * (1 - w);
+    }
+    this.xfadeGot = 0;
+    // Three-way rotation: the displaced content becomes the undo, the take becomes the lane,
+    // and the old undo buffer is recycled as the next record target. All pointers, no copies.
+    const displaced = this.fronts[s][l];
+    this.fronts[s][l] = this.rec;
+    this.rec = this.undoBuf;
+    this.undoBuf = displaced;
+    this.undoRef = { section: s, lane: l, kind: 'take', has: this.has[s][l], peak: this.peak[s][l] };
+    this.has[s][l] = true;
+    this.peak[s][l] = this.takePeak;
+    this.port.postMessage({ type: 'recorded', section: s, lane: l, peak: this.takePeak });
     this.armed = -1;
     this.prepIdx = -1;
+  }
+
+  applySection(next) {
+    this.section = next;
+    this.pendingSection = -1;
+    this.port.postMessage({ type: 'section', section: next });
   }
 
   command(m) {
     switch (m.type) {
       case 'config':
-        // O(1): the buffers were allocated once at construction, so a song change is two
-        // integers and a flag. Lanes are dropped deliberately — a stack kept at a new length
-        // would be silently wrong — but nothing is zeroed, because a lane with has=false is
-        // never read and the prep pass clears whatever it is about to write.
+        // O(1): the buffers were allocated once at construction, so changing tempo, meter or bar
+        // count is three integers and a flag. Lanes are dropped deliberately — a stack kept at a
+        // new length would be silently wrong — but nothing is zeroed, because a lane with
+        // has=false is never read and prep clears whatever it is about to write.
         if (m.loopFrames <= this.capacity) {
           this.loopFrames = m.loopFrames;
           this.barFrames = m.barFrames;
+          this.beatsPerBar = m.beatsPerBar || this.beatsPerBar;
         }
-        for (const l of this.lanes) { l.has = false; l.backHas = false; l.peak = 0; l.backPeak = 0; }
+        for (let s = 0; s < this.sectionCount; s++) {
+          for (let i = 0; i < this.laneCount; i++) { this.has[s][i] = false; this.peak[s][i] = 0; }
+        }
+        this.undoRef = { section: -1, lane: -1, kind: '', has: false, peak: 0 };
         this.origin = -1; this.armed = -1; this.recording = false; this.prepIdx = -1;
+        this.section = 0; this.pendingSection = -1;
         break;
       case 'start':
         this.origin = currentFrame + 128;
         this.port.postMessage({ type: 'started', origin: this.origin });
         break;
       case 'stop':
-        // STOP PRESERVES THE BUFFER. Every unit in the survey does, and this page says so on
-        // screen, so it had better be true: nothing here touches a lane.
+        // STOP PRESERVES EVERYTHING. Every unit surveyed does, and this page says so on screen.
         this.origin = -1; this.armed = -1; this.recording = false; this.prepIdx = -1;
         break;
       case 'arm': {
         if (this.origin < 0) break;
-        // A take already running is ENDED properly rather than abandoned silently — arming a
-        // second lane mid-take used to leave the first one marked empty and its audio lost.
         if (this.recording && this.armed >= 0) this.finishTake();
         this.armed = m.lane;
+        this.armSection = this.pendingSection >= 0 ? this.pendingSection : this.section;
         this.armMode = m.mode || 'replace';
-        // The grid was computed on the main thread by the unit-tested arithmetic. All this does
-        // is refuse a start already in the past, moving it by WHOLE BARS so it stays on the
-        // grid — the only thing the message's travel time can invalidate.
+        // The grid came from the main thread's unit-tested arithmetic; all this does is refuse a
+        // start already in the past, moving it by WHOLE BARS so it stays on the grid.
         let s = m.startFrame;
         while (s < currentFrame + 128) s += this.barFrames;
         this.armStart = s;
@@ -220,36 +297,54 @@ class LiveLoopProcessor extends AudioWorkletProcessor {
         break;
       }
       case 'disarm':
-        // Abandoning a punch costs nothing and destroys nothing: the take was going into the
-        // back buffer, so front is exactly as it was.
         this.armed = -1; this.recording = false; this.prepIdx = -1;
         this.port.postMessage({ type: 'disarmed' });
         break;
+      case 'section':
+        // ARMED, NOT IMMEDIATE, and applied on a BAR line: a section change that lands
+        // mid-beat is a stumble the audience hears. The transport never stops and the loop
+        // position never resets, so every section stays phase-locked to the same grid — which
+        // is what lets you swap a chorus in under a bass line you are still playing.
+        if (m.section === this.section) { this.pendingSection = -1; }
+        else if (this.origin < 0) { this.applySection(m.section); }
+        else { this.pendingSection = m.section; }
+        this.port.postMessage({ type: 'pending', section: this.pendingSection });
+        break;
       case 'undo': {
-        // One level, per lane, by swapping front and back — the hardware model. Undoing twice
-        // returns you to where you started, which is what a redo is.
-        const l = this.lanes[m.lane];
-        if (!l) break;
-        const f = l.front; l.front = l.back; l.back = f;
-        const h = l.has; l.has = l.backHas; l.backHas = h;
-        const p = l.peak; l.peak = l.backPeak; l.backPeak = p;
-        this.port.postMessage({ type: 'undone', lane: m.lane, has: l.has });
+        const u = this.undoRef;
+        if (u.lane < 0) break;
+        const h = this.has[u.section][u.lane], p = this.peak[u.section][u.lane];
+        if (u.kind === 'take') {
+          const cur = this.fronts[u.section][u.lane];
+          this.fronts[u.section][u.lane] = this.undoBuf;
+          this.undoBuf = cur;
+        }
+        this.has[u.section][u.lane] = u.has;
+        this.peak[u.section][u.lane] = u.peak;
+        // Swapping the record back into the undo slot is what makes a second press a redo.
+        this.undoRef = { section: u.section, lane: u.lane, kind: u.kind, has: h, peak: p };
+        this.port.postMessage({ type: 'undone', section: u.section, lane: u.lane });
         break;
       }
       case 'mute':
-        if (this.lanes[m.lane]) this.lanes[m.lane].muted = !!m.on;
+        this.muted[m.lane] = !!m.on;
         break;
       case 'level':
-        if (this.lanes[m.lane]) this.lanes[m.lane].level = m.value;
+        this.level[m.lane] = m.value;
+        break;
+      case 'lanesrc':
+        this.laneSrc[m.lane] = m.src | 0;
         break;
       case 'clear': {
-        const l = this.lanes[m.lane];
-        if (!l) break;
-        // Clearing is undoable too, by the same swap: front goes to back, the lane reads empty.
-        l.backHas = l.has; l.backPeak = l.peak;
-        const f = l.front; l.front = l.back; l.back = f;
-        l.has = false; l.peak = 0;
-        this.port.postMessage({ type: 'cleared', lane: m.lane });
+        // CLEARING IS A FLAG, NOT A MEMSET. A lane with has=false is never read, and the next
+        // replace take overwrites through the record buffer anyway — so this is O(1), undoable,
+        // and safe to press between songs without a pause.
+        const s = m.section === undefined ? this.section : m.section;
+        if (!this.has[s][m.lane]) break;
+        this.undoRef = { section: s, lane: m.lane, kind: 'flag', has: true, peak: this.peak[s][m.lane] };
+        this.has[s][m.lane] = false;
+        this.peak[s][m.lane] = 0;
+        this.port.postMessage({ type: 'cleared', section: s, lane: m.lane });
         break;
       }
       case 'latency':
@@ -265,7 +360,8 @@ class LiveLoopProcessor extends AudioWorkletProcessor {
     const music = outputs[0];
     const clickOut = outputs[1];
     const n = music[0].length;
-    const inCh = inputs[0] && inputs[0][0];
+    const in0 = inputs[0] && inputs[0][0];
+    const in1 = (inputs[0] && inputs[0][1]) || in0;   // a mono device: both sources are the same
 
     if (this.origin < 0) {
       for (const ch of music) ch.fill(0);
@@ -276,7 +372,7 @@ class LiveLoopProcessor extends AudioWorkletProcessor {
     this.prep(PREP_CHUNK);
     const lf = this.loopFrames;
     const bf = this.barFrames;
-    const beatFrames = bf / 4;
+    const beatFrames = bf / this.beatsPerBar;
     const clickLen = (sampleRate * 0.03) | 0;
 
     for (let i = 0; i < n; i++) {
@@ -288,32 +384,46 @@ class LiveLoopProcessor extends AudioWorkletProcessor {
         continue;
       }
 
+      // A pending section change lands on the next bar line.
+      if (this.pendingSection >= 0 && since % bf === 0) this.applySection(this.pendingSection);
+
+      // The overlap: keep capturing for XFADE samples past the loop's end, into a side buffer.
+      if (this.recording && frame >= this.armEnd && frame < this.armEnd + XFADE) {
+        const src = this.laneSrc[this.armed];
+        const x = !in0 ? 0
+          : src === 0 ? in0[i]
+          : src === 1 ? in1[i]
+          : (in0[i] + in1[i]) * 0.5;
+        this.xfade[frame - this.armEnd] = x;
+        this.xfadeGot = frame - this.armEnd + 1;
+        if (this.xfadeGot >= XFADE) this.finishTake();
+        for (const ch of music) ch[i] = ch[i] || 0;
+      }
+
       if (this.armed >= 0 && frame >= this.armStart && frame < this.armEnd) {
         if (!this.recording) {
           this.recording = true;
           if (this.prepIdx >= 0) this.prep(lf);
           this.port.postMessage({ type: 'recstart', lane: this.armed });
         }
-        const lane = this.lanes[this.armed];
         let wpos = (frame - this.latency - this.origin) % lf;
         if (wpos < 0) wpos += lf;
-        const x = inCh ? inCh[i] : 0;
-        // The peak is accumulated HERE, one compare per written sample, rather than scanned at
-        // the end of the take: a 549,104-sample scan inside one 128-frame quantum is a dropout
-        // at the exact moment the player is listening for the loop to come round.
+        const src = this.laneSrc[this.armed];
+        const x = !in0 ? 0
+          : src === 0 ? in0[i]
+          : src === 1 ? in1[i]
+          : (in0[i] + in1[i]) * 0.5;
         const a = x < 0 ? -x : x;
         if (a > this.takePeak) this.takePeak = a;
-        lane.back[wpos] = this.armMode === 'overdub' ? lane.back[wpos] + x : x;
-      } else if (this.recording && frame >= this.armEnd) {
-        this.finishTake();
+        this.rec[wpos] = this.armMode === 'overdub' ? this.rec[wpos] + x : x;
       }
 
       let pos = since % lf;
       if (pos < 0) pos += lf;
       let s = 0;
+      const fr = this.fronts[this.section], hs = this.has[this.section];
       for (let k = 0; k < this.laneCount; k++) {
-        const l = this.lanes[k];
-        if (l.has && !l.muted) s += l.front[pos] * l.level;
+        if (hs[k] && !this.muted[k]) s += fr[k][pos] * this.level[k];
       }
       for (const ch of music) ch[i] = s;
 
@@ -335,14 +445,19 @@ class LiveLoopProcessor extends AudioWorkletProcessor {
     if (currentFrame - this.reportAt > sampleRate / 30) {
       this.reportAt = currentFrame;
       let pos = (currentFrame - this.origin) % lf; if (pos < 0) pos += lf;
+      const u = this.undoRef;
       this.port.postMessage({
         type: 'pos',
         loopPos: pos / lf,
         bar: (pos / bf) | 0,
         beat: ((pos % bf) / beatFrames) | 0,
-        lanes: this.lanes.map((l) => ({
-          has: l.has, muted: l.muted, peak: l.peak, canUndo: l.backHas || l.has,
+        section: this.section,
+        pendingSection: this.pendingSection,
+        sectionsUsed: this.has.map((row) => row.some(Boolean)),
+        lanes: this.has[this.section].map((h, k) => ({
+          has: h, muted: this.muted[k], peak: this.peak[this.section][k], src: this.laneSrc[k],
         })),
+        canUndo: u.lane >= 0,
         recording: this.recording,
         armed: this.armed,
       });
@@ -436,6 +551,8 @@ export class LiveLoop {
   private moduleUrl: string | null = null;
 
   private bars = 4;
+  private bpm = 90;
+  private beatsPerBar = 4;
   private loopFramesValue = 0;
   private barFramesValue = 0;
   private originFrame = 0;
@@ -446,12 +563,13 @@ export class LiveLoop {
   running = false;
 
   view: LiveLoopView = {
-    running: false, loopPos: 0, bar: 0, beat: 0, bars: 4,
+    running: false, loopPos: 0, bar: 0, beat: 0, bars: 4, bpm: 90, beatsPerBar: 4,
+    section: 0, pendingSection: -1, sectionsUsed: SECTION_NAMES.map(() => false),
+    canUndo: false,
     lanes: LANES.map((name) => ({
-      name, hasAudio: false, recording: false, armed: false, muted: false,
-      level: 1, peak: 0, canUndo: false,
+      name, hasAudio: false, recording: false, armed: false, muted: false, level: 1, peak: 0, src: 2,
     })),
-    latencyFrames: 0, calibrated: false, sameDevice: null, monitoring: false,
+    latencyFrames: 0, calibrated: false, sameDevice: null, monitoring: false, inputChannels: 1,
   };
 
   onView: ((v: LiveLoopView) => void) | null = null;
@@ -459,6 +577,8 @@ export class LiveLoop {
   onRecorded: ((lane: number, peak: number) => void) | null = null;
   /** Fired once, if input and output turn out to be the same physical device. */
   onSameDevice: ((same: boolean) => void) | null = null;
+  /** Fired when a pending section change actually lands, on the bar line. */
+  onSection: ((section: number) => void) | null = null;
 
   constructor(ctx: AudioContext) { this.ctx = ctx; }
 
@@ -469,6 +589,8 @@ export class LiveLoop {
   private emit() {
     this.view.running = this.running;
     this.view.bars = this.bars;
+    this.view.bpm = this.bpm;
+    this.view.beatsPerBar = this.beatsPerBar;
     this.view.latencyFrames = this.latencyFrames;
     this.view.calibrated = this.calibrated;
     this.onView?.(this.view);
@@ -479,10 +601,17 @@ export class LiveLoop {
     // These three MUST be false. Echo cancellation exists to subtract what the speakers played
     // out of what the mic heard — and it treats an acoustic overdub as permanent double-talk,
     // so it cancels the PLAYER, not merely the bleed.
+    // TWO CHANNELS, NOT ONE. A 2-in interface is a mic on channel 1 and an instrument on channel
+    // 2, and collapsing them to mono means every lane records both — see `setLaneSource`. Asked
+    // for as `ideal` rather than exact so a built-in mono microphone still works.
     this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false, channelCount: 1 },
+      audio: {
+        echoCancellation: false, autoGainControl: false, noiseSuppression: false,
+        channelCount: { ideal: 2 },
+      },
       video: false,
     });
+    this.view.inputChannels = this.stream.getAudioTracks()[0]?.getSettings().channelCount ?? 1;
     this.moduleUrl = URL.createObjectURL(new Blob([PROCESSOR], { type: 'application/javascript' }));
     await this.ctx.audioWorklet.addModule(this.moduleUrl);
 
@@ -492,12 +621,18 @@ export class LiveLoop {
       numberOfOutputs: 2,                 // 0 = music (reverb applies), 1 = click (it must not)
       outputChannelCount: [2, 1],
       processorOptions: {
-        laneCount: LANES.length, capacity,
+        laneCount: LANES.length, sectionCount: SECTIONS, capacity,
         loopFrames: this.loopFramesValue || this.ctx.sampleRate * 2,
         barFrames: this.barFramesValue || this.ctx.sampleRate,
+        beatsPerBar: this.beatsPerBar,
       },
     });
     this.src = this.ctx.createMediaStreamSource(this.stream);
+    // `explicit`/`discrete` so a 2-channel input arrives as two channels rather than being
+    // up/down-mixed by the default `speakers` interpretation — the whole point is to keep them apart.
+    this.node.channelCount = 2;
+    this.node.channelCountMode = 'explicit';
+    this.node.channelInterpretation = 'discrete';
     this.src.connect(this.node);
 
     this.dry = this.ctx.createGain();
@@ -566,17 +701,22 @@ export class LiveLoop {
     if (m.type === 'pos') {
       const p = m as unknown as {
         loopPos: number; bar: number; beat: number; recording: boolean; armed: number;
-        lanes: { has: boolean; muted: boolean; peak: number; canUndo: boolean }[];
+        section: number; pendingSection: number; sectionsUsed: boolean[]; canUndo: boolean;
+        lanes: { has: boolean; muted: boolean; peak: number; src: number }[];
       };
       this.view.loopPos = p.loopPos;
       this.view.bar = p.bar;
       this.view.beat = p.beat;
+      this.view.section = p.section;
+      this.view.pendingSection = p.pendingSection;
+      this.view.sectionsUsed = p.sectionsUsed;
+      this.view.canUndo = p.canUndo;
       p.lanes.forEach((l, i) => {
         const v = this.view.lanes[i];
         v.hasAudio = l.has;
         v.muted = l.muted;
         v.peak = l.peak;
-        v.canUndo = l.canUndo;
+        v.src = l.src;
         v.recording = p.recording && p.armed === i;
         v.armed = p.armed === i && !p.recording;
       });
@@ -584,12 +724,22 @@ export class LiveLoop {
     } else if (m.type === 'started') {
       this.originFrame = m.origin as number;
     } else if (m.type === 'recorded') {
+      // The take may belong to a section other than the one sounding, if a switch was pending
+      // when it was armed — so only touch the visible lanes when it is the visible section.
       const lane = m.lane as number;
+      const section = m.section as number;
       const peak = (m.peak as number) ?? 0;
-      this.view.lanes[lane].hasAudio = true;
-      this.view.lanes[lane].peak = peak;
-      this.view.lanes[lane].canUndo = true;
+      if (section === this.view.section) {
+        this.view.lanes[lane].hasAudio = true;
+        this.view.lanes[lane].peak = peak;
+      }
+      this.view.canUndo = true;
       this.onRecorded?.(lane, peak);
+      this.emit();
+    } else if (m.type === 'section') {
+      this.view.section = m.section as number;
+      this.view.pendingSection = -1;
+      this.onSection?.(this.view.section);
       this.emit();
     } else {
       this.emit();
@@ -597,23 +747,45 @@ export class LiveLoop {
   }
 
   /**
-   * Loop geometry. Only reaches the processor when it actually CHANGED, and that guard is the
-   * fix for a data-loss bug: `config` drops every lane, so re-sending it on a transport press
-   * erased a whole performance one press after the page promised that stopping keeps it.
+   * THE GRID: tempo, meter, bar count. The instrument knows no songs — a looper is a buffer, a
+   * cursor and a grid, and three numbers are the whole grid. Frames are derived HERE by the
+   * unit-tested arithmetic so the processor is never handed a float to round.
+   *
+   * Only reaches the processor when the geometry actually CHANGED, and that guard is the fix for
+   * a data-loss bug: `config` drops every lane, so re-sending it on a transport press erased a
+   * whole performance one press after the page promised that stopping keeps it.
+   *
+   * Returns false and changes nothing if the requested loop exceeds the allocated capacity —
+   * refusing is honest, and truncating a loop silently would be a bug you only hear on stage.
    */
-  setLoop(loopFramesValue: number, barFramesValue: number, bars: number) {
+  setGrid(bpm: number, beatsPerBar: number, bars: number): boolean {
+    const bf = barFrames(bpm, this.sampleRate, beatsPerBar);
+    const lf = bf * bars;
+    if (lf > Math.round(this.sampleRate * CAPACITY_SECONDS)) return false;
+    this.bpm = bpm;
+    this.beatsPerBar = beatsPerBar;
     this.bars = bars;
-    if (loopFramesValue === this.loopFramesValue && barFramesValue === this.barFramesValue) {
+    if (lf === this.loopFramesValue && bf === this.barFramesValue) {
       this.emit();
-      return;
+      return true;
     }
-    this.loopFramesValue = loopFramesValue;
-    this.barFramesValue = barFramesValue;
+    this.loopFramesValue = lf;
+    this.barFramesValue = bf;
     this.view.lanes.forEach((l) => {
-      l.hasAudio = false; l.recording = false; l.armed = false; l.peak = 0; l.canUndo = false;
+      l.hasAudio = false; l.recording = false; l.armed = false; l.peak = 0;
     });
-    this.node?.port.postMessage({ type: 'config', loopFrames: loopFramesValue, barFrames: barFramesValue });
+    this.view.canUndo = false;
+    this.view.sectionsUsed = SECTION_NAMES.map(() => false);
+    this.node?.port.postMessage({
+      type: 'config', loopFrames: lf, barFrames: bf, beatsPerBar,
+    });
     this.emit();
+    return true;
+  }
+
+  /** Arm a section change. It lands on the next bar line and the transport never stops. */
+  selectSection(section: number) {
+    this.node?.port.postMessage({ type: 'section', section });
   }
 
   start() { this.running = true; this.node?.port.postMessage({ type: 'start' }); this.emit(); }
@@ -638,7 +810,9 @@ export class LiveLoop {
   }
 
   disarm() { this.node?.port.postMessage({ type: 'disarm' }); }
-  undo(lane: number) { this.node?.port.postMessage({ type: 'undo', lane }); }
+  /** One level, for the instrument — it undoes the last thing that changed a lane, wherever it
+   *  was. Pressing it twice is a redo, because the rotation is symmetric. */
+  undo() { this.node?.port.postMessage({ type: 'undo' }); }
   clear(lane: number) { this.node?.port.postMessage({ type: 'clear', lane }); }
 
   mute(lane: number, on: boolean) {
@@ -654,6 +828,19 @@ export class LiveLoop {
   }
 
   click(on: boolean) { this.node?.port.postMessage({ type: 'click', on }); }
+
+  /**
+   * WHICH INPUT A LANE RECORDS FROM: 0 = channel 1, 1 = channel 2, 2 = both.
+   *
+   * This is the RC-505's per-track input matrix, scaled to two channels, and it is the feature a
+   * small laptop rig most needs: with a mic on 1 and a guitar on 2, it is what makes punching the
+   * voice lane record the voice instead of the voice and the guitar. Not on any spec sheet.
+   */
+  setLaneSource(lane: number, src: number) {
+    this.view.lanes[lane].src = src;
+    this.node?.port.postMessage({ type: 'lanesrc', lane, src });
+    this.emit();
+  }
 
   /** Software monitoring: hear your own input through the page. Off by default — pointless if
    *  the interface has direct monitoring, and actively harmful into speakers. */
