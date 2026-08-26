@@ -1054,6 +1054,13 @@ const rooms = ROOM_THINGS.map((t) => ({
                     aria-label={`clear the ${name} lane`}>clr</button>
                 </div>
               ))}
+              <!-- THE RULER. A moving line with nothing to move against says only "something is
+                   happening": you cannot tell which beat you are on, how long a bar is, or how
+                   close the loop is to coming round. Bar lines full height, beat ticks as a short
+                   comb along the bottom — drawn as two repeating gradients rather than as elements,
+                   which is the same choice the transcription timeline makes for its sixteenths
+                   ("the marks are furniture, and 17 spans would be 17 nodes to keep in sync"). -->
+              <span class="mt-llruler" id="mt-ll-ruler" aria-hidden="true"></span>
               <span class="mt-llhead" id="mt-ll-head" aria-hidden="true"></span>
             </div>
           </figure>
@@ -1735,8 +1742,37 @@ const rooms = ROOM_THINGS.map((t) => ({
      over the lane NAME at phone width and past the mute button at the loop's end. `--ll-strip-x`
      and `--ll-strip-w` are written by the script from one `getBoundingClientRect`, because the
      two button columns are `auto` and their width is the label's, not a number this file knows. */
+  /* Behind the strips, over the strip column only — same two measured custom properties the
+     playhead uses, so the ruler and the head cannot disagree about where the loop starts.
+     The bar count and the total beat count are written by the script, because they change with
+     the grid and CSS cannot ask a number for them. */
+  .mt-llruler{position:absolute;top:0;bottom:0;z-index:0;pointer-events:none;
+    left:var(--ll-strip-x, 0px);width:var(--ll-strip-w, 0px);
+    /* A RULER ALONG THE BOTTOM, NOT A GRID THROUGH THE LANES. Full-height bar lines were the
+       first attempt and they read as a table: four verticals crossing four strips is a lot of
+       furniture competing with the one thing that is content. Nothing here needs to align to a
+       bar line either — a lane is a fill, not a waveform — so anchoring both scales to the bottom
+       edge says exactly the same thing and costs the composition nothing.
+       Tall ticks are bars, short ticks are beats. Three layers: the repeating bar scale, the
+       repeating beat scale, and a single closing tick, because a gradient with period 100%/bars
+       draws at 0 and every bar AFTER it but never at 100% — so the wrap point, the division you
+       are actually waiting for, was the one it left out. */
+    background-image:
+      repeating-linear-gradient(to right,
+        var(--mute, var(--faint)) 0 1px, transparent 1px calc(100% / var(--ll-bars, 4))),
+      repeating-linear-gradient(to right,
+        var(--faint) 0 1px, transparent 1px calc(100% / var(--ll-beats-total, 16))),
+      linear-gradient(var(--mute, var(--faint)), var(--mute, var(--faint)));
+    background-size:100% 12px, 100% 5px, 1px 12px;
+    background-position:0 100%, 0 100%, 100% 100%;
+    background-repeat:no-repeat, no-repeat, no-repeat;
+    opacity:0;transition:opacity var(--dur-fast) var(--ease)}
+  /* Visible whenever there is a grid to read — before the transport runs too, because that is
+     when you are deciding whether 4 bars is the length you want. */
+  .mt-liveloop .mt-llruler{opacity:.75}
+  .mt-lllane{position:relative;z-index:1}
   .mt-llhead{position:absolute;top:0;bottom:0;width:1px;background:var(--accent);opacity:0;
-    z-index:1;pointer-events:none;
+    z-index:2;pointer-events:none;
     left:calc(var(--ll-strip-x, 0px) + var(--ll-pos, 0) * var(--ll-strip-w, 0px))}
   .mt-liveloop[data-sounding="true"] .mt-llhead{opacity:1}
   /* THE BLEED STATE. Input and output are the same physical device, so the loop is going out of
@@ -6068,6 +6104,9 @@ const rooms = ROOM_THINGS.map((t) => ({
      *  own centre line (measured: 14px, caught by the room's berth check). */
     const drawSpec = () => {
       if (llRead) llRead.textContent = `${secs().toFixed(2)} s`;
+      // The ruler's divisions. Bars give the full-height lines, bars x beats the bottom comb.
+      llLanesEl?.style.setProperty('--ll-bars', String(bars));
+      llLanesEl?.style.setProperty('--ll-beats-total', String(bars * meter));
       if (llPos && !engine?.running) llPos.textContent = `${bars} bar${bars === 1 ? '' : 's'}`;
     };
 
@@ -6156,6 +6195,15 @@ const rooms = ROOM_THINGS.map((t) => ({
      *  than truncating one silently. */
     const applyGrid = (): boolean => {
       drawSpec();
+      // CHECKED IN SECONDS, BEFORE THE ENGINE EXISTS. The engine's own refusal compares frames
+      // against an allocated buffer, so it can only answer once the microphone is open — which
+      // meant you could set 8 bars of 7/4 at 90 bpm, watch the reading say 37 s, and only find out
+      // it was impossible when you pressed run. Seconds against seconds needs no device.
+      if (secs() > CAPACITY_SECONDS) {
+        llSay(`${secs().toFixed(1)} s is longer than the ${CAPACITY_SECONDS} s buffer — `
+          + 'fewer bars, or a faster tempo.');
+        return false;
+      }
       if (!engine) return true;
       if (!engine.setGrid(bpm, meter, bars)) {
         llSay(`${secs().toFixed(1)} s is longer than the ${CAPACITY_SECONDS} s buffer — `

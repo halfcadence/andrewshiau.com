@@ -101,4 +101,4 @@ If the file is missing or stale: the Mac-side server must be running
 server is down (the Chrome-MCP fallback still works in that state).
 
 **Never run the annotation server on the devbox** — it binds `0.0.0.0` on port 3846
-(a WSL2 workaround in its source), which is exactly the finding in rule 1.
+(a WSL2 workaround in its source) with no flag to override, which is rule 1's second half.

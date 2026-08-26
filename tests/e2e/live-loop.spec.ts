@@ -376,3 +376,31 @@ test('the grid reuses the metronome\'s own controls — scrub, tap and the ruled
   await page.getByTestId('ll-tap').click();
   await expect(page.getByTestId('ll-state')).toContainText('keep tapping');
 });
+
+test('the ruler divides the loop into its bars and beats, and refuses an impossible grid', async ({ page }) => {
+  await page.goto(LL);
+  const ruler = page.locator('#mt-ll-ruler');
+  await expect(ruler).toBeAttached();
+
+  // The divisions are custom properties the script writes, because CSS cannot ask for a number.
+  const read = () => page.evaluate(() => {
+    const st = getComputedStyle(document.querySelector('.mt-lllanes')!);
+    return { bars: st.getPropertyValue('--ll-bars').trim(), beats: st.getPropertyValue('--ll-beats-total').trim() };
+  });
+  expect(await read()).toEqual({ bars: '4', beats: '16' });
+
+  await page.getByTestId('ll-beats-3').click();
+  await page.getByTestId('ll-bars-2').click();
+  expect(await read()).toEqual({ bars: '2', beats: '6' });
+  await expect(page.getByTestId('ll-length')).toHaveText('4.00 s');
+
+  // AND THE REFUSAL WORKS WITH NO MICROPHONE OPEN. The engine's own check compares frames against
+  // an allocated buffer, so it can only answer once the mic is open — which meant you could set an
+  // impossible grid, watch the reading agree, and only find out on the downbeat. Seconds against
+  // seconds needs no device, so this asserts it before anything is armed.
+  await page.getByTestId('ll-beats-7').click();
+  await page.getByTestId('ll-bars-8').click();
+  await expect(page.getByTestId('ll-state')).toContainText('longer than the 16 s buffer');
+  // and it rolled back rather than half-applying
+  expect((await read()).bars).not.toBe('8');
+});
