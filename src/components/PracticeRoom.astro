@@ -1746,26 +1746,29 @@ const rooms = ROOM_THINGS.map((t) => ({
      playhead uses, so the ruler and the head cannot disagree about where the loop starts.
      The bar count and the total beat count are written by the script, because they change with
      the grid and CSS cannot ask a number for them. */
-  .mt-llruler{position:absolute;top:0;bottom:0;z-index:0;pointer-events:none;
+  /* A TWO-WEIGHT GRID (proof sheet `live-loop-lane-grid-options`, pick 08 of 8).
+     Bar lines full height at `--line`, beat lines full height at a weight BELOW `--line`, plus a
+     closing line — so the block reads as a measure with a hierarchy rather than as a row of
+     hairlines, and every lane's line carries a mark instead of the marks living in one scale four
+     rows away. The owner's ask was "something on every row's line, maybe it should just be a grid";
+     this is the version of a grid that admits which divisions matter.
+     THE BEAT WEIGHT IS DERIVED, NOT A NEW HEX. `color-mix` against `--paper` gives a line fainter
+     than `--line` that flips with the colour scheme for free — a fourth grey typed in by hand would
+     be a token that only this case knows about, and it would be wrong in one of the two schemes.
+     45% is not a taste number: it reproduces the #e6e5df the proof sheet's option 08 was judged
+     against, so what ships is what was approved rather than a near-miss of it.
+     The cost, chosen with the pick and worth stating: a filled lane's 3px bar HIDES the grid behind
+     it, which is why the divisions also have to be legible on the empty rows above and below. */
+  .mt-llruler{--ll-beat-line:color-mix(in srgb, var(--line) 45%, var(--paper));
+    position:absolute;top:0;bottom:0;z-index:0;pointer-events:none;
     left:var(--ll-strip-x, 0px);width:var(--ll-strip-w, 0px);
-    /* A RULER ALONG THE BOTTOM, NOT A GRID THROUGH THE LANES. Full-height bar lines were the
-       first attempt and they read as a table: four verticals crossing four strips is a lot of
-       furniture competing with the one thing that is content. Nothing here needs to align to a
-       bar line either — a lane is a fill, not a waveform — so anchoring both scales to the bottom
-       edge says exactly the same thing and costs the composition nothing.
-       Tall ticks are bars, short ticks are beats. Three layers: the repeating bar scale, the
-       repeating beat scale, and a single closing tick, because a gradient with period 100%/bars
-       draws at 0 and every bar AFTER it but never at 100% — so the wrap point, the division you
-       are actually waiting for, was the one it left out. */
     background-image:
       repeating-linear-gradient(to right,
-        var(--mute, var(--faint)) 0 1px, transparent 1px calc(100% / var(--ll-bars, 4))),
+        var(--line) 0 1px, transparent 1px calc(100% / var(--ll-bars, 4))),
       repeating-linear-gradient(to right,
-        var(--faint) 0 1px, transparent 1px calc(100% / var(--ll-beats-total, 16))),
-      linear-gradient(var(--mute, var(--faint)), var(--mute, var(--faint)));
-    background-size:100% 12px, 100% 5px, 1px 12px;
-    background-position:0 100%, 0 100%, 100% 100%;
-    background-repeat:no-repeat, no-repeat, no-repeat;
+        var(--ll-beat-line) 0 1px, transparent 1px calc(100% / var(--ll-beats-total, 16)));
+    background-repeat:no-repeat, no-repeat;
+    border-right:1px solid var(--line);
     opacity:0;transition:opacity var(--dur-fast) var(--ease)}
   /* Visible whenever there is a grid to read — before the transport runs too, because that is
      when you are deciding whether 4 bars is the length you want. */
