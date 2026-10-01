@@ -269,8 +269,11 @@ all done for `/work/stores-designer/`:
 ## Regenerating the social card (`public/og.png`)
 
 ```bash
-npm run build && python3 scripts/og-shoot.py
+npm run build && python3 scripts/og-shoot.py && npm run build && ./deploy.sh
 ```
+
+The second build is not optional: the script writes `public/og.png` only, and `dist/` still
+holds the card the first build copied in.
 
 `tools/og-card.html` is the source; the script serves `dist/` on 127.0.0.1, shoots the card
 through Playwright, and **asserts it still matches the site**. Run it when the index's h1, the
