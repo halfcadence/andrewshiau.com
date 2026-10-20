@@ -98,7 +98,7 @@ describe('the sitemap agrees with the canonicals', () => {
     const xml = readFileSync(sitemapPath, 'utf8');
     const listed = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(listed.length, 'the sitemap is empty — did the build change?')
-      .toBeGreaterThan(5);
+      .toBeGreaterThan(1);
 
     const contradictions: string[] = [];
     for (const url of listed) {
@@ -116,14 +116,10 @@ describe('the sitemap agrees with the canonicals', () => {
     expect(contradictions).toEqual([]);
   });
 
-  it.skipIf(!has)('still advertises the case study, which is a real page here', () => {
-    // The complement, so the exclusion can't over-reach: retiring the instrument's apex
-    // path must not take /work/practice-room/ with it. The regex that does the excluding
-    // ends in `/practice-room/$`, which /work/practice-room/ also matches — this is the
-    // test that would have caught that.
+  it.skipIf(!has)('advertises the two pages and none of the redirect stubs', () => {
     const xml = readFileSync(sitemapPath, 'utf8');
-    expect(xml).toContain('/work/practice-room/');
-    expect(xml).not.toMatch(/<loc>https:\/\/andrewshiau\.com\/practice-room\/<\/loc>/);
+    const listed = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    expect(listed.sort()).toEqual(['https://andrewshiau.com/', 'https://andrewshiau.com/resume/']);
   });
 });
 

@@ -32,53 +32,36 @@ a `finally`.
 Dependencies: **nothing ships at runtime** — no `dependencies` block at all, and the seven
 devDependencies never leave the build or the test run (`astro`, `@astrojs/sitemap`,
 `tailwindcss` + `@tailwindcss/vite`, `basecoat-css`, plus `vitest` and `@playwright/test`).
-Tailwind and Basecoat are used by `/system/` alone; `global.css` does the layout by hand.
-There is no markdown renderer either — `style.astro` carries its own ~110-line one for the
-thirteen constructs `STYLE.md` actually uses. Keep it that way: it must not grow into a
-parser. These counts are asserted by `tests/unit/readme.test.ts`.
+Tailwind and Basecoat style nothing since `/system/` was retired; `global.css` does the
+layout by hand. The devDependency count is asserted by `tests/unit/readme.test.ts`.
 
 ## Structure
 
+The site is a page of links (2026-10-20). The case studies, essays, `/method/`, `/style/`,
+`/system/`, `/stories/` and the demos are at tag `full-site-2026-10`; their URLs are
+redirect stubs to `/`, listed in `RETIRED` in `astro.config.mjs`.
+
 ```
-src/pages/index.astro        landing — pinned panel, Work + Experiments matrices, colophon
-src/pages/work/*.astro       10 case studies
-src/pages/writing/*.astro    4 explainers (own layout + quiz engine)
-src/pages/style.astro        renders STYLE.md itself, at build time
-src/pages/system.astro       every token and device drawn with the real classes
-src/pages/method.astro       the method files, with build-time assertions against method/
-src/pages/{resume,stories,gate,404}.astro
-src/data/experiments.ts      the Work + Experiments rows (edit here to add an entry)
-src/data/stories.ts          /stories/ content
+src/pages/index.astro        the links page
+src/pages/resume.astro       /resume/ — prints to PDF (scripts/print-check.py)
+src/pages/404.astro
+src/pages/practice-room/     the instrument, served by practice.andrewshiau.com
+src/pages/pitchgraph.astro   the intonation trace, same host
 src/layouts/Layout.astro     shared shell — head, landmarks, ⌥G grid overlay, favicon swap
-src/styles/global.css        the design system (tokens, grid, every block)
-src/styles/system.css        /system/ only — connects the system to basecoat-css
-method/                      method.md + designer/builder/messaging, rendered by /method/
+src/styles/global.css        tokens, grid, every block
+method/                      method.md + designer/builder/messaging (not rendered)
 scripts/print-check.py       print a page for real and assert the PDF
 scripts/favicon-ico.py       regenerate the .ico files from MarkFigure.astro's geometry
 scripts/mac-preview.py       rewrite dist/ for file:// viewing on the Mac
-scripts/                     the only home for generator scripts (choosers, icons, og, checks)
 tools/og-card.html           source for public/og.png (not a route)
 deploy.sh                    rsync dist/ → droplet, with an empty-dist guard
 ```
 
-To add an entry: append to `src/data/experiments.ts`, and add a page under
-`src/pages/work/` if it needs a case study. `PanelHead.astro` derives each case study's
-panel from that same data, so a row and its page cannot disagree — which also means a
-page whose `href` is not in the list must write its own panel (`/style/` does).
-
-### Two build-time behaviours worth knowing
+### A build-time behaviour worth knowing
 
 - **Comments are stripped from the built HTML** (`stripHtmlComments` in
   `astro.config.mjs`). The source carries long explanatory comments; the shipped page
-  doesn't. `<pre>`, `<code>`, `<script>` and `<style>` regions are masked first, so the
-  explainers' quiz engine survives.
-- **Several pages assert their own content and fail the build if it drifts.** `/method/`
-  quotes `method/*.md` and checks the sentences still exist. `/style/` requires 24+ headings
-  plus three literal rules by name. `/system/` checks that every token it documents is still
-  declared in `global.css` (and that deleted ones stayed deleted), and diffs `favicon.svg`'s
-  geometry against `MarkFigure.astro` — the one thing a hand copy can't guarantee. `/stories/`
-  and `/gate/` assert their own data. A build error from one of these is the assertion doing
-  its job: fix the source of truth, don't loosen the number.
+  doesn't. `<pre>`, `<code>`, `<script>` and `<style>` regions are masked first.
 
 ## Ship it
 
@@ -110,6 +93,10 @@ pages while the notes claimed 1.90.
 ---
 
 ## The password gate (nginx cookie gate, not Basic Auth)
+
+**Retired 2026-10-20.** `/work/stores-designer/` and `/gate/` are now redirect stubs, but the
+nginx block below still runs: a visitor without the cookie gets the `/gate/` stub as the 401
+body, and its meta refresh sends them to `/`. Removing the block is a droplet change.
 
 `/work/stores-designer/` is the one gated page.
 

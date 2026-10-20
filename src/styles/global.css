@@ -1101,26 +1101,10 @@ figure.demo.hang video{width:100%}
 /* The two blocks are one continuous document, so the panel gets no bottom rule, no bottom
    border, and no extra air beyond the group gap that separates every group from the next. */
 .pin{margin-bottom:var(--group)}
-/* ── ON A PHONE, CONTACT GOES BELOW THE WORK (chooser: andrewshiau-decisions, Q2/02).
-   Measured at 390×844 before this: the first Work row sat at y=938 — below the fold — because
-   the statement, the Currently row, Contact and Elsewhere all come first, and at ≤1060 the
-   Contact/Elsewhere pair un-hangs into two stacked blocks that cost ~120px. So a phone reader's
-   first artifact was `Method / The operating spec`: the most abstract thing on the site, with the
-   three projects off-screen. After: the first Work row is at y=620. Nothing was deleted and no
-   device changed — the same blocks are in a different order at one width.
-   `display:contents` is the mechanism and it is the only one that works here. `.pfeet` is a child
-   of `.pin`, and `order` only sorts an element among its own siblings — so ordering it could
-   never move it past `.feed`, which is `.pin`'s sibling, not its child. Dissolving `.pin` promotes
-   the statement, the ledger and the feet to grid items of `.grid.split`, and then one `order`
-   does it. This costs nothing because `.pin`'s only own declaration is the margin above, which the
-   `--sect` below replaces at this width.
-   The reasoning the panel's own comment gives for putting contact high — "reaching me shouldn't
-   require finishing the page" — is answered rather than overruled: the colophon has carried the
-   address all along, so on a phone it is below the work AND still on the page twice. */
+/* /resume and /404 are laid out against the dissolved panel at phone width. */
 @media(max-width:720px){
   .pin{display:contents}
   .pin > *{grid-column:1 / -1}
-  .pfeet{order:99;margin-top:var(--sect)}
 }
 /* `.splitrule` still ships in the markup of ten pages — PanelHead emits it, and so do
    index.astro and gate.astro. It draws NOTHING now. Kept as an explicit `display:none`

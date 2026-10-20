@@ -133,8 +133,7 @@ const ROLES: Role[] = [
         'Amazon design systems — generated from a prompt, not hand-coded.',
     ],
     more: [
-      'The public version of this problem is Luthier, three roles down. This work is internal, so ' +
-        'the case study stays high level.',
+      'The public version of this problem is Luthier, three roles down.',
     ],
   },
   {
@@ -415,18 +414,16 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
            is the first row of Experience 400px below. The panel's job on a resume is to say who
            you are and how to reach you — the roles say the rest.
            WHAT SURVIVES is exactly what the PDF's printhead carries: name, one line of practice,
-           contact. Same three facts, same order, on both media. The `/method/` link moves into the
-           practice line, where it is a pointer rather than a claim. -->
+           contact. Same three facts, same order, on both media. -->
       <div class="facts">
         {/* The panel row does NOT restate the dek. It said "I design and I build the systems other
             teams build against" and so does the dek 200px below — which is the exact defect that
             deleted `Both halves`, reintroduced by me one edit later. The panel's job here is the
-            two facts the dek doesn't carry: the current title, and where the working method is
-            written down. The dek makes the claim and gives the evidence. */}
+            fact the dek doesn't carry: the current title. The dek makes the claim and gives the
+            evidence. */}
         <div class="frow">
           <div class="fm">Now</div>
-          <div class="ftx">Frontend engineer, <b>Shopping Design Tech</b> at Amazon. How I work is
-            written down at <a href="/method/">/method/</a>.</div>
+          <div class="ftx">Frontend engineer, <b>Shopping Design Tech</b> at Amazon.</div>
         </div>
         <!-- The contact row EARNS its place on this page, unlike on a case study (where it was
              deleted — see PanelHead.astro). A resume's whole function is to produce a reply, so

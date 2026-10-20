@@ -83,8 +83,7 @@
 //
 // The other copy of this figure is `public/favicon.svg`, which cannot import anything and
 // carries its own hexes in a `<style>` block. If the geometry here changes, change it there.
-import type { Side } from '../data/experiments';
-interface Props { side?: Side }
+interface Props { side?: 'design' | 'build' | 'both' }
 const { side = 'both' } = Astro.props;
 ---
 {side === 'both' ? (

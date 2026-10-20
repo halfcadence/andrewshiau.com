@@ -70,8 +70,19 @@ function stripHtmlComments() {
 
 // Static site served from the DigitalOcean droplet (nginx + certbot).
 // `site` drives canonical URLs / sitemap; output is fully static (default).
+// Retired 2026-10-20; the pages are at tag full-site-2026-10. `/gate` stays a stub because nginx
+// serves /gate/index.html as the 401 body for /work/stores-designer/.
+const RETIRED = [
+  '/method', '/style', '/system', '/stories', '/gate',
+  '/work/aping', '/work/explain', '/work/luthier', '/work/photography', '/work/pitchgraph',
+  '/work/powerpoint', '/work/practice-room', '/work/proofs', '/work/recipes', '/work/stores-designer',
+  '/writing/10x-is-a-loop', '/writing/canele', '/writing/loops-vs-graphs', '/writing/personal-software',
+  '/demo/index-layouts', '/demo/practice-room-tap', '/demo/recipes-harmony', '/demo/recipes-ultrawide',
+];
+
 export default defineConfig({
   site: 'https://andrewshiau.com',
+  redirects: Object.fromEntries(RETIRED.map((path) => [path, '/'])),
   build: {
     // Emit /work/recipes/index.html style paths so the droplet serves them
     // without server rewrites.
@@ -100,69 +111,9 @@ export default defineConfig({
     // itself", and that is what happened: Astro 7 fires the hook, so 3.7.x works and the pin
     // is gone. 14 URLs in the sitemap before and after.
     sitemap({
-      // Two exclusions, both because the URL isn't a page a reader can land on.
-      //
-      // /demo/ — the three iframe payloads for the embeds on /work/proofs/: no mast, no
-      // nav, no way back to the site. A crawler that indexes one hands a reader a
-      // dead-ended fragment. Also Disallow'd in robots.txt; the filter keeps them out of
-      // the sitemap, the Disallow keeps them out of the index.
-      //
-      // /work/stores-designer/ — behind the password gate, so it answers 401 without the
-      // cookie. A sitemap is a request to index, and asking a crawler to index a URL that
-      // answers 401 is a contradiction: it lands as a search result that asks for a password.
-      //
-      // /gate/ — the 401 body nginx serves AT that URL (error_page). It is not a page anyone
-      // should land on by choice: on its own, out of context, it is a password box with no
-      // explanation of which page it opens. It also carries `noindex` for a crawler that finds
-      // it another way, since a sitemap filter only stops us advertising it.
-      //
-      // /stories/ — the story bank. Not gated (see stories.astro) and it does not 401, so the
-      // reason here is different from the case study's: it is a document I SEND rather than
-      // publish. A search result for it puts the working-out in front of a reader who has not
-      // seen the claim, which is the wrong order to meet someone in.
-      //
-      // /practice-room/ — the instrument, whose ONE public address is
-      // https://practice.andrewshiau.com/ (2026-08-06). The apex path serves the identical
-      // bytes (the subdomain's vhost does `try_files /practice-room/index.html` off the
-      // same webroot — verified byte-identical, same ETag), and the page has declared the
-      // subdomain canonical since the subdomain shipped. Advertising the apex path in the
-      // sitemap CONTRADICTED that canonical: it asks a crawler to index a URL the page
-      // itself says is not the address. The path is NOT deleted and cannot be — the app is
-      // served from it, and the manifest and icons live under it — it is just no longer
-      // advertised or linked.
-      //
-      // NOT excluded: the /writing/ explainers embedded on /work/aping/ and
-      // /work/explain/. Those are full pages that stand alone and should be indexed.
+      // Practice-host pages declare practice.andrewshiau.com canonical. Anchored on the host so
+      // a bare `/practice-room/$` can't over-match.
       filter: (page) =>
-        !page.includes('/demo/') &&
-        !page.includes('/work/stores-designer/') &&
-        !page.includes('/stories/') &&
-        !page.includes('/gate/') &&
-        // EVERY PAGE WHOSE ADDRESS IS ON practice.andrewshiau.com. The apex path 301s to
-        // that host, and the page declares it canonical, so advertising the apex URL here
-        // asks a crawler to index a URL the page itself disowns.
-        //
-        // Anchored on the host, not just the path ending: a `/practice-room\/$` regex also
-        // matches /work/practice-room/ and silently dropped the case study — caught by the
-        // complement test in tests/unit/built-html.test.ts, which exists for that
-        // over-reach. Adding /pitchgraph/ here was likewise not a guess: the relationship
-        // test ("no sitemap URL may name a page declaring a different canonical") went red
-        // on the build, which is the whole reason it is a rule and not a list.
-        //
-        // `pitchgraph` was `pitchgraph` until 2026-08-07. Only the built page needs naming
-        // here — /pitchgraph/ has no page any more, just a 301 on the apex vhost — so the
-        // stale term is removed rather than kept as a dead alternative.
-        //
-        // THE ROOM'S THINGS EACH HAVE A PAGE NOW (2026-08-12) — /practice-room/console/, /changes/
-        // and /loop/ — and each declares `practice.andrewshiau.com/<thing>/`. The pattern grew one
-        // optional segment rather than three literals, so a fourth thing is excluded by existing.
-        // The anchor still ends at `/`, which is what keeps /work/practice-room/ in the sitemap.
-        // `live-loop` joins the list for the same reason as the rest, and the unit test
-        // caught its absence within a minute of the route existing: the page declares a
-        // canonical on practice.andrewshiau.com, so advertising the apex copy asks a crawler
-        // to index a URL the page itself disowns. Note `live-loop` must precede `loop` in the
-        // alternation — regex alternation is first-match, so `loop` alone would match the tail
-        // of `live-loop` and leave the `live-` prefix unconsumed, failing the anchor.
         !/^https?:\/\/[^/]+\/(practice-room(\/(console|changes|live-loop|loop))?|pitchgraph)\/$/.test(page),
     }),
   ],
