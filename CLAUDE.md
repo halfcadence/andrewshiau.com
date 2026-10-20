@@ -1,10 +1,10 @@
 # andrewshiau.com — read this first
 
-Astro static personal site, hand-set in the Müller-Brockmann grid system.
+Astro static personal site: a page of links, `/resume/`, and the practice tools.
 
-- **Design + voice spec: [`STYLE.md`](STYLE.md)** — the source of truth for tokens, the
-  type ramp, grid, link system, motion, voice, and the `/design-critique` panel. Read it
-  before editing anything visual.
+- **Design + voice spec: [`STYLE.md`](STYLE.md)** — the source of truth for tokens, type,
+  grid, link system, motion, voice, and the `/design-critique` panel. Read it before
+  editing anything visual.
 - **Setup, droplet runbook, deploy: [`README.md`](README.md).**
 
 ## Ship it — don't sit on finished work

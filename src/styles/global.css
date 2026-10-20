@@ -48,16 +48,12 @@
 :root{
   color-scheme: light dark;
   --paper:#f4f3ef;
-  --panel:#ffffff;
   --ink:#141412;
   --dim:#5f5e57;
   --faint:#6e6d64;       /* meta labels — darkened to pass WCAG AA (4.7:1 on paper) */
   --line:#d5d4cd;
 
-  --design:#14306b;      /* navy — 11.36:1 on paper */
-  --build:var(--design);
-  --accent:var(--design);
-  --on-accent:#ffffff;   /* type on a filled --accent field: 12.61:1 */
+  --accent:#14306b;      /* navy — 11.36:1 on paper */
   --guide:rgba(20,48,107,0.06);
 
   --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23141412"/></svg>');
@@ -82,11 +78,10 @@
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --paper:#141413; --panel:#1b1b19; --ink:#f0efe8; --dim:#a09f96; --faint:#8f8e85;
+    --paper:#141413; --ink:#f0efe8; --dim:#a09f96; --faint:#8f8e85;
     --line:#2b2b27;
 
-    --design:#6ea8ff;    /* 7.64:1 on dark paper */
-    --on-accent:#141413; /* type on the lifted field: 7.64:1 (white would be 2.6) */
+    --accent:#6ea8ff;    /* 7.64:1 on dark paper */
     --guide:rgba(110,168,255,0.08);
 
     --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23f0efe8"/></svg>');
