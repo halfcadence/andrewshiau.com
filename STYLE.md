@@ -132,8 +132,6 @@ One idiom: **ink text, a 1px `--faint` underline at 4px offset; on hover the tex
   "github ↗ ↗".
 - Internal paths read as paths with one slash (`/resume`); the `href` keeps its trailing slash
   so nginx serves the directory without a redirect.
-- **Known deviation:** links inside `.frow .ftx` on `/resume` and `/404` render accent with no
-  underline. Fix it or leave it; don't copy it.
 
 ---
 

@@ -147,10 +147,10 @@ a[target]:not([href^="#"]):not(.entry)::after{content:"\00a0↗";font-size:.82em
   transition:opacity var(--dur-fast) var(--ease)}
 a[target]:not(.entry):hover::after{opacity:1}
 
-p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
+p a,.frow .ftx a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
   text-underline-offset:4px;text-decoration-thickness:1px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
-p a:hover{color:var(--accent);text-decoration-color:var(--ink)}
+p a:hover,.frow .ftx a:hover{color:var(--accent);text-decoration-color:var(--ink)}
 
 code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em}
 
