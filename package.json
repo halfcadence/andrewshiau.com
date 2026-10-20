@@ -14,10 +14,7 @@
   "devDependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "@playwright/test": "^1.62.1",
-    "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.1.6",
-    "basecoat-css": "^1.0.2",
-    "tailwindcss": "^4.3.3",
     "vitest": "^4.1.10"
   }
 }

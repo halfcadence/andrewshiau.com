@@ -29,11 +29,9 @@ CRITICAL Qualys finding — it has happened twice. The one sanctioned exception 
 `scripts/print-check.py`, which binds `127.0.0.1`, runs in the foreground, and closes in
 a `finally`.
 
-Dependencies: **nothing ships at runtime** — no `dependencies` block at all, and the seven
-devDependencies never leave the build or the test run (`astro`, `@astrojs/sitemap`,
-`tailwindcss` + `@tailwindcss/vite`, `basecoat-css`, plus `vitest` and `@playwright/test`).
-Tailwind and Basecoat style nothing since `/system/` was retired; `global.css` does the
-layout by hand. The devDependency count is asserted by `tests/unit/readme.test.ts`.
+Dependencies: **nothing ships at runtime** — no `dependencies` block at all, and the four
+devDependencies never leave the build or the test run (`astro`, `@astrojs/sitemap`, `vitest`,
+`@playwright/test`). The count is asserted by `tests/unit/readme.test.ts`.
 
 ## Structure
 

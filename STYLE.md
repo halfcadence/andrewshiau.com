@@ -4,6 +4,10 @@ The single source of truth for how this site looks, reads, and ships. Read this
 before editing content or CSS. If you change the system, change this file in the
 same commit.
 
+**Since 2026-10-20 the site is one page of links, `/resume/`, and the practice host.** Sections
+about the index lists, case studies, the colophon and `/method/` describe the full site at tag
+`full-site-2026-10`; the tokens, type, link system and voice still apply.
+
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, **MAY** are to be
 interpreted as in RFC 2119.
 
@@ -926,146 +930,6 @@ Kept because they're subtle and on-system. Don't add more without reason.
   `public/favicon.svg` is the same drawing and carries its own `prefers-color-scheme` block;
   change both together.
 - `g` → flash the column grid.
-
----
-
-## The design system — Basecoat, bound
-
-The base is **[Basecoat](https://basecoatui.com)**: shadcn/ui's components and visual patterns as
-plain HTML classes, with **no React**. Rendered at **andrewshiau.com/system/**.
-
-Researched before installing, because the obvious answer was wrong for this site:
-
-| | React? | Tailwind? | Verdict |
-|---|---|---|---|
-| shadcn/ui | **required** | **required** | its Astro install page requires `--add react`; components are imported as React components |
-| Basecoat | no | required v4 | **picked** — the patterns without the runtime |
-| Open Props | no | no | 500+ tokens where this site uses ~15 |
-
-The site ships **0 kb of JS** and has **one form control and no buttons**. shadcn's three main
-offers — button variants, Radix a11y primitives, Tailwind utilities — had nothing to attach to.
-
-### The one decision: Basecoat's tokens are bound to ours
-
-`src/styles/system.css` re-points all 149 of Basecoat's variables at tokens this site already
-measured, inside an `@theme` block so Tailwind's own utilities resolve to them too. A Basecoat
-component dropped on any page inherits Plex Mono at 15/28, warm paper, the three greys, the one hue
-and square corners **without being restyled at the call site** — and dark mode needs no second
-binding, because the right-hand side already flips.
-
-The alternative (let Basecoat's defaults win, override per component) is how a design system becomes
-a pile of `!important`, and would have put a rounded, sans-serif, blue button on a site whose whole
-argument is one typeface, one size, no rules.
-
-### Four rules enforced on Basecoat's own classes
-
-Tokens carry values; these are decisions, so they are stated as CSS:
-
-1. **No filled surfaces.** `.card`, `.alert`, `.popover`, `.dialog` lose their background, border
-   and padding. Every box came out with the document direction, including the one filled `.block`.
-2. **No caps, anywhere.** `.label`, `.btn`, `.badge`, `.kbd` get `text-transform:none`.
-3. **One size.** Every `-sm` / `-lg` modifier collapses to `--step`. A component offering size
-   modifiers is offering a ramp, and there isn't one.
-4. **The field is a line you type on** — the one Basecoat component actually used, rebound to the
-   shipped treatment.
-
-`system.css` loads **before** `global.css`, so where they disagree the site's measured rule wins on
-cascade order rather than on `!important`.
-
-### Imports are per-component and explicit
-
-Basecoat's full bundle is 234 kB for 38 components. Four are imported (`input`, `label`, `table`,
-`kbd`); two appear on a real page. **If a component has no call site, don't import it** — and if a
-specimen on `/system/` has no call site, delete the specimen. A system documenting unused
-components is a catalogue.
-
-The import path is `basecoat-css/components/<name>.css`. The short form the docs show
-(`basecoat-css/input`) fails with `Missing "./input" specifier`: the bare subpaths in that package's
-`exports` map are its **JavaScript** modules.
-
-### `/system/` is the visualizer, and every specimen is real
-
-No isolated sandbox and no second copy of any CSS — the specimens are `.frow`, `.entry`, `.f input`
-and `MarkFigure` with no overrides, so a specimen that renders correctly there renders correctly on
-a case study. Only the *chrome* (swatch, space bar, specimen row) is new CSS.
-
-The token values are duplicated in that page's frontmatter and **asserted against `global.css` at
-build time** — nine declarations, checked literally. A visualizer that lies is worse than no
-visualizer, so if a token moves and the page isn't updated, the build fails.
-
----
-
-## `/style/` — this file, as a page
-
-This document is rendered at **andrewshiau.com/style/**, from this file, at build time. It is set
-by the rules it states, so every claim on the page can be checked against the page itself.
-
-- **No markdown dependency.** `src/pages/style.astro` carries a ~90-line renderer for the
-  thirteen constructs this file actually uses. It is not a markdown parser and MUST NOT become
-  one — if this file needs a construct the renderer lacks, add the construct or change the prose.
-- **It escapes HTML first.** This file is full of tag names and selectors; without escaping, the
-  page would execute its own examples.
-- **Two build-time assertions:** ≥24 headings, and the literal presence of `One mechanism per job`,
-  `THERE IS NO TYPE RAMP` and `The two axes`. A renderer that silently stops understanding this
-  file fails the build instead of shipping a blank steering page.
-- **`.mdoc` is the one block it adds**, because a rendered document is the only content with its
-  own nested heading hierarchy. `h2` is ink on the `--label` axis with `--sect` above; `h3` is
-  faint with `--group`. It spans `1 / 9` like every other block — it used to bleed to 781px,
-  which made this page the widest text on the site. Long code fences and wide tables scroll inside their own box with a `mask-image`
-  fade, so a clipped line reads as "there is more" rather than as a bug.
-
----
-
-## Explainers (the /swiss + /explain artifacts)
-
-Three pages under `src/pages/writing/` — `10x-is-a-loop`, `canele`, `loops-vs-graphs`. They are
-**on `Layout.astro` and `global.css` like every other page** (chooser:
-`work/understand/andrewshiau-grid-options/`, Q5/02 — "fold into the document").
-
-**They used to be a second design system, and that was the site's largest inconsistency.** They
-rendered from `src/layouts/Explainer.astro`, which carried its own 307-line `is:global` copy of an
-entire stylesheet. Measured on the built `/writing/canele/` before the fold:
-
-| | the explainers | the other thirteen pages |
-|---|---|---|
-| font sizes | **12** (12px → 120px) | 1 (15px) |
-| typeface | Graphik | Plex Mono |
-| weight 700 | 35 elements | 0 |
-| uppercase | 11 elements | 0 |
-| rules | 2px ink, several per page | none |
-| content axis | 182px | 172px |
-
-Two sites under one domain, one click from the index — and **invisible to every check the site
-had**, because those pages never loaded `global.css`. The dead-CSS audit below records the same
-trap from the other direction.
-
-- **The panel is the masthead.** An explainer opens with `.pin` — `.smark` kicker, `h1`, a
-  `.facts` ledger of what it is and where it came from — exactly like a case study. The old
-  three-dot mark in a 2px-ruled bar is gone; the site has one identity block.
-- **Six devices are explainer-only**, and they live in `global.css` at the end: `.kicker`, `.sn`
-  (the section numeral), `.idea` (the one claim), `.num` (the one figure), `.quiz`, `.foot`.
-  Everything else an explainer needs — `.dek`, `.facts`/`.frow`, `.step`, `.block`, `h2` — is the
-  site's own device, unmodified.
-- **What the fold cost:** the display type. A 120px accent numeral, a 30px bold claim and an 80px
-  stat were the loudest marks on the site and are now 15px. What replaces them is what replaced
-  the ramp everywhere else — value, the space scale, and the two axes.
-- **The quiz survives, and it is the only interactive thing on the site.** Being able to check
-  yourself is what makes an explainer an explainer. The engine moved to `Layout.astro` behind a
-  `quiz` prop that defaults to `[]`, so the thirteen non-explainer pages ship no quiz markup.
-- **Quiz gotcha, still true:** the option buttons are created by JS (`createElement`), so scoped
-  `[data-astro-cid]` selectors miss them. Their CSS MUST be global — it is now in `global.css`,
-  which sidesteps the problem entirely. This bug shipped live twice under the old layout.
-- The correct-answer state MUST have a non-colour signal (`.opt.correct::before{content:"✓ "}`).
-  Colour alone isn't enough, and here colour means "you can act on this" anyway.
-- **What came out of the engine in the fold:** the score line's inline `style` (uppercase, tracked,
-  weight 700 — three off-system marks written from JS, where no stylesheet audit could see them;
-  it is `.qscore` now), the count-up animation (it existed to make a 120px numeral arrive), and
-  the scroll-progress bar (a 2px accent line pinned to the viewport — the site has no rules, and a
-  reading indicator on a 900-word page tells the reader what the scrollbar already says).
-- **Each page keeps at most one bespoke diagram**, in a page-level `is:global` block, rebuilt on
-  the system: canelé's flour scale and loops-vs-graphs' flow diagram. `10x-is-a-loop` has none.
-  Both diagrams lost their filled panels — an accent-filled box is a static mark in the one hue
-  that means interaction.
 
 ---
 

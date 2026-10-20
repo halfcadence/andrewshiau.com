@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-import tailwindcss from '@tailwindcss/vite';
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -87,16 +86,6 @@ export default defineConfig({
     // Emit /work/recipes/index.html style paths so the droplet serves them
     // without server rewrites.
     format: 'directory',
-  },
-  // TAILWIND v4 VIA THE VITE PLUGIN, not the `@astrojs/tailwind` integration. v4 dropped the
-  // config file and the PostCSS pipeline: the plugin reads `@import "tailwindcss"` from the CSS
-  // itself, so there is no tailwind.config.js and no content-globbing to keep in sync.
-  // It is here to serve ONE dependency — `basecoat-css`, which is built on Tailwind v4 source and
-  // cannot be used without it (verified against basecoatui.com/installation). Basecoat is the
-  // design-system base: shadcn/ui's components and visual patterns as plain HTML classes, with no
-  // React. See src/styles/system.css for what is imported and what is deliberately not.
-  vite: {
-    plugins: [tailwindcss()],
   },
   integrations: [
     stripHtmlComments(),

@@ -1,33 +1,34 @@
-/*
-  andrewshiau.com — THE DOCUMENT.
-  Ground-up mono redesign (chooser: andrewshiau-mono-redesign — Direction 02 "the
-  document", Typeface 01 IBM Plex Mono, Ramp 04 one size, Ground 05 ink plus one hue for
-  one job, Grid 01 invisible, Motion 01 hover only + 05 the one-character shift).
+/* Tokens and layout for andrewshiau.com. The rules behind them: STYLE.md. */
 
-  What this replaced, and why the whole file turned over rather than being trimmed: the
-  site was a 12-field Müller-Brockmann grid in Graphik with a seven-step ramp, structure
-  drawn by RULES, and two hues carrying content. Every one of those four is now the
-  opposite. Taking things away from that system was tried first and the brief was
-  explicit that it wasn't the ask — "not just taking a few things away from current."
-
-  The four rules that replace them:
-   1. ONE SIZE. 15px/28 for everything — prose, titles, labels, meta. Hierarchy comes
-      from case, colour VALUE and whitespace only. There is no ramp to reach for, so a
-      new size is a bug, not a decision. The single below-ramp exception is the 11px
-      micro-label (`.lb`), which the chooser kept because caps at 15px in a monospace
-      face are as wide as the title they label.
-   2. WHITESPACE IS THE STRUCTURE. Rules are gone — no 2px group openers, no per-row
-      hairlines, no vertical split rule. Groups are separated by 52px of air. A rule
-      that repeats has stopped being structure (it was already in STYLE.md; the document
-      direction takes it literally).
-   3. ONE COLUMN, SEVEN FIELDS of the twelve. The grid is still 12 and still invisible
-      (press `g`), but the page places one column in it. Reading is the layout.
-   4. INK, PLUS ONE HUE FOR ONE JOB. Colour means "you can act on this" — links and the
-      hovered row, nothing else. --design and --build no longer differ.
-
-  Typeface: IBM Plex Mono, self-hosted, four faces. Graphik is retired from the site;
-  its woff2 files live in public/demo/fonts, used only by the archived layout demo there.
-*/
+/* Tailwind preflight + Basecoat base, kept when both were removed: the pages are laid out
+   against them. Layered, so every unlayered rule still wins. */
+@layer base{
+  *,::after,::before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}
+  ::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--mono);
+    -webkit-tap-highlight-color:transparent;scroll-behavior:smooth}
+  hr{height:0;color:inherit;border-top-width:1px}
+  h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}
+  a{color:inherit;text-decoration:inherit}
+  b,strong{font-weight:bolder}
+  code,kbd,samp,pre{font-family:var(--mono);font-size:1em}
+  small{font-size:80%}
+  table{text-indent:0;border-color:inherit;border-collapse:collapse}
+  ol,ul,menu{list-style:none}
+  img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}
+  img,video{max-width:100%;height:auto}
+  button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;
+    font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;
+    background-color:#0000;border-radius:0}
+  ::file-selector-button{font:inherit;letter-spacing:inherit;color:inherit;opacity:1;
+    background-color:#0000;border-radius:0;margin-inline-end:4px;appearance:button}
+  ::placeholder{opacity:1;color:color-mix(in oklab,currentcolor 50%,transparent)}
+  textarea{resize:vertical}
+  button,input:where([type=button],[type=reset],[type=submit]){appearance:button}
+  [hidden]:where(:not([hidden=until-found])){display:none!important}
+  *{border-color:var(--line);outline-color:color-mix(in oklab,var(--accent) 50%,transparent)}
+  body{overscroll-behavior:none;background-color:var(--paper);color:var(--ink)}
+}
 @font-face{
   font-family:"Plex"; font-style:normal; font-weight:400; font-display:swap;
   src:url("/fonts/IBMPlexMono-Regular.woff2") format("woff2");
@@ -52,1177 +53,183 @@
   --dim:#5f5e57;
   --faint:#6e6d64;       /* meta labels — darkened to pass WCAG AA (4.7:1 on paper) */
   --line:#d5d4cd;
-  /* INK, PLUS ONE HUE FOR ONE JOB (chooser Q4/05). --design and --build are the SAME
-     token now, and the hue's only job is interaction: a link, and the hovered row's
-     title. Nothing else on the site is coloured, so colour always means "you can act on
-     this" — which is the strongest thing one hue can be made to say.
-     The pair is kept as two names rather than collapsed to one because `side` in
-     experiments.ts is still design/build/both and the marker still reads that fact; what
-     changed is that the fact is no longer carried by HUE (it's the ring vs. the disc —
-     see MarkFigure.astro). Two names, one value, so nothing has to pretend the duality
-     went away. It didn't; it stopped being a colour.
-     The old --build (olive #5c6b12) is gone entirely. It was 5.30:1 on paper against
-     navy's 11.36:1, and the two were only 2.14:1 apart in greyscale. */
+
   --design:#14306b;      /* navy — 11.36:1 on paper */
   --build:var(--design);
   --accent:var(--design);
   --on-accent:#ffffff;   /* type on a filled --accent field: 12.61:1 */
   --guide:rgba(20,48,107,0.06);
-  /* ── THE DOT CURSOR IS INK NOW, NOT THE ACCENT (chooser: andrewshiau-cursor-options, 03).
-     The drawing is unchanged — an 18px filled disc, hotspot dead centre. What changed is the
-     fill, and it is the colour rule catching up with the pointer.
-     MEASURED ON THE LIVE INDEX, and the finding is the reason the hue had to go: `cursor` here
-     is declared on `body`, so it INHERITS, and an inherited cursor loses to any cursor the UA
-     declares on the element itself. So the disc never reached the 20 links (they keep the
-     native pointing hand) or the password field (it keeps its I-beam), and it painted the other
-     65 of 181 elements — the paper, the headings, the prose. The accent hue was appearing on
-     everything a reader CANNOT act on and on nothing they can: the exact inverse of the one job
-     colour has on this site (Q4/05).
-     `--ink`, therefore, not `--design`, and the token still flips with the scheme.
-     THE I-BEAM IS BACK TOO, in a second pass — see the `:is(…):not(a *)` rule under `body`.
-     The disc's scope is now PAPER: margins, gutters, the empty modules. Type gets the browser's
-     text cursor, links keep the hand, the field keeps its I-beam. So the drawing appears where
-     it reads and where a bare arrow said nothing, and it no longer hides an affordance. */
+
   --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23141412"/></svg>');
-  /* THE ONE SIZE, and its leading. A token because "15px" appearing in forty rules is
-     forty chances to drift; `--step` appearing in forty rules is one number.
-     28px of leading on 15px type is 1.87 — loose for a UI and correct for a document.
-     It is what makes a single size readable as prose: the air between lines does the
-     work a size change would have done. */
+
   --step:15px;
   --lead:28px;
-  --unit:24px;           /* baseline unit — every vertical space is a multiple */
-  /* ── THE SPACE SCALE — the hierarchy, since there is no ramp and (now) no caps either.
-     This is what the second annotation pass asked for: "more legibility / clarity through
-     use of space (not necessarily through a ramp)."
-     FOUR steps, each a multiple of the leading, because vertical space that isn't a
-     multiple of the leading puts every following line off the baseline:
-       --tight  = 0.5 lead (14px) — label to its own value. Bound together.
-       --lead   = 1   lead (28px) — between lines, and between peer rows.
-       --group  = 2   lead (56px) — between groups inside one section.
-       --sect   = 4   lead (112px) — between sections. The page's largest interval.
-     THE RATIO IS 2× AT EVERY STEP, and that is the whole mechanism: a reader can't measure
-     14 against 20, but 28 against 56 is unmistakable, and 56 against 112 is unmistakable
-     again. Hierarchy by doubling — the same trick a type ramp uses, applied to the axis
-     that still has room in it.
-     --group was 52px (2.17 units, deliberately off-grid to beat the old 48). It is 56 now
-     — exactly 2 leads — because once every interval is a multiple of the leading the whole
-     page sits on one baseline, and 56 vs 28 already reads as a break without needing to be
-     an odd number. --sect is NEW: sections used to be `3.5 × --unit` = 84px, which was 3
-     leads and change, so it landed off the baseline and read as only slightly more than a
-     group. At 4 leads it is twice a group, which is what a section is. */
+  --unit:24px;
+
   --tight:14px;
   --group:56px;
   --sect:112px;
   --gutter:28px;
-  /* ── THE LABEL COLUMN, DERIVED FROM THE GRID (chooser: andrewshiau-grid-options, Q4/02).
-     It was `16ch` — 144px, a typographic number — and that was a real defect, found by drawing
-     the ⌥G overlay under a ledger and measuring: the content axis landed at 144 + 28 = 172px,
-     while column 3 starts at 182. Every field label, section head and panel on the site put its
-     value 10px INSIDE the gutter. Two grids were running at once, the typographic one silently
-     winning, and nothing in the CSS said so.
-     So the label column is now stated as what it should always have been: TWO COLUMNS of the
-     page's own grid, plus the gutter between them.
-       track = (grid − 11 gutters) / 12,  and grid = min(100vw, measure) − 2 gutters
-             = (min(100vw, --measure) − 13 gutters) / 12
-     At the 1120px measure that is 63px, so --label is 154px and the content axis is 182px —
-     column 3's exact left edge. Derived, so it stays on the grid at every width instead of
-     being right at one width and wrong everywhere else.
-     WHY THIS ALSO SETS THE BREAKPOINT: the formula says --label is 144px — exactly 16ch, the
-     longest label on the site — when the viewport is 1060. Below that the column can no longer
-     hold its own label, which is why the hung layout stops at 1060 and not at some round number
-     someone liked. The one defect and the one breakpoint come out of the same equation.
-     `100vw` includes the scrollbar, so between ~1060 and ~1135 this can read a couple of pixels
-     wide. Above the measure it clamps and is exact; below 1060 nothing is hung. Stated because
-     an undocumented approximation is how the last one survived four passes. */
+
   --track:calc((min(100vw, var(--measure)) - var(--gutter) * 13) / 12);
   --label:calc(var(--track) * 2 + var(--gutter));
-  /* The measure. A token because THE BOX has to bleed its scrollport back out to the viewport
-     edge, and a second literal 1120px in that calc would be a number that drifts from this
-     one. `.wrap` reads it too, so there is exactly one place the page's width is stated. */
+
   --measure:1120px;
-  --ease:cubic-bezier(0.16,1,0.3,1);  /* signature easing — everything animates on this */
+  --ease:cubic-bezier(0.16,1,0.3,1);
   --dur:220ms; --dur-fast:140ms; --dur-big:340ms;
-  /* ONE TYPEFACE, and it is the mono (chooser Q2/01 — IBM Plex Mono). `--mono` is the
-     body stack now, not a two-role exception, so `--sans` is GONE: nothing on these 14
-     pages sets Graphik any more. Plex over JetBrains because its italic is a true italic
-     rather than a slanted roman, and the site's one emphasis device — the thesis clause —
-     is italic; over system-mono because a portfolio that can't specify its own typeface
-     renders as Menlo on one machine and Consolas on the next. */
+
   --mono:"Plex",ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
 }
 @media (prefers-color-scheme: dark){
   :root{
     --paper:#141413; --panel:#1b1b19; --ink:#f0efe8; --dim:#a09f96; --faint:#8f8e85;
     --line:#2b2b27;
-    /* the one hue, lifted for the near-black ground — not inverted, not recoloured */
+
     --design:#6ea8ff;    /* 7.64:1 on dark paper */
     --on-accent:#141413; /* type on the lifted field: 7.64:1 (white would be 2.6) */
     --guide:rgba(110,168,255,0.08);
-    /* the disc, in the dark colourway's ink — see the light block for why it is no longer the
-       hue. `#f0efe8` is `--ink` here; the value is inlined because a data-URI cannot read a
-       custom property. */
+
     --cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="5" fill="%23f0efe8"/></svg>');
   }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-/* THE ONE SIZE, set once and inherited by everything. No `letter-spacing`: negative
-   tracking is a correction for large sans display type, and in a monospace face the
-   advance width IS the cell `1ch` is measured against — tightening it would stop the
-   hover shift landing on a character. */
+
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:var(--mono);font-size:var(--step);line-height:var(--lead);font-weight:400;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-  /* dot cursor — an ink disc, and it INHERITS: links and the field keep their native cursors,
-     because a UA-declared cursor beats an inherited one. See `--cursor` for the measurement. */
+
   cursor:var(--cursor) 9 9, auto}
-/* ── THE I-BEAM COMES BACK OVER TYPE. This is the other half of the cursor fix, and it closes
-   the cost the ink disc was still carrying: the disc replaced the text cursor over every
-   paragraph on the site, so a document of 15px mono did not advertise that it is selectable.
-   A pointer that hides an affordance is not a delight, it is a regression with a nice drawing.
-   The disc's job survives — it is the cursor over PAPER: the margins, the grid, the empty
-   modules, which is where a bare pointer says nothing anyway and where the drawing reads.
-   Over type the browser's own I-beam is the correct mark, and it is free.
-   `:not(a *)` IS THE WHOLE RULE, and it was found by measuring rather than by reasoning. The
-   naive selector (the same list, unscoped) computed `auto` on `.entry .eh`, `.entry .en` and
-   `.smeta` — every index row is an `<a>` whose title is a `<span>`, so it stripped the pointing
-   hand off the site's most-used link and left it on the anchor's own thin padding. Nine rows
-   would have looked unclickable at the exact pixel a reader aims for. `:not(a *)` excludes any
-   descendant of a link, so a link's text keeps the hand and a paragraph's text gets the I-beam.
-   `span` is IN the list on purpose: the ledger (`.pk`/`.pv`) and the colophon (`.ck`/`.cv`) are
-   spans holding real facts a reader may want to copy — an email address, a date. Excluding them
-   would have left the two most copyable strings on the site un-selectable-looking.
-   Verified on the live index with the rule injected: prose/h1/h2/ledger/colophon → `auto`;
-   `.entry .eh`, `.entry .en`, the marker SVG and all 20 links → `pointer`; `.f input` → `text`;
-   `main` and `.wrap` → still the disc. */
+
+/* The disc cursor is for paper only: type keeps the text cursor, links the hand. */
 :is(p,h1,h2,h3,li,dd,dt,code,blockquote,figcaption,span):not(a *){cursor:auto}
-/* text highlight — pure invert (ink on paper → paper on ink) */
+
 ::selection{background:var(--ink);color:var(--paper)}
 .wrap{max-width:var(--measure);margin:0 auto;padding:0 var(--gutter) calc(var(--unit)*5);position:relative}
 
-/* THE GRID — 12 fields */
 .grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);row-gap:0}
-/* One LEAD between two rows of a page, not 24px. Every vertical interval on the site is now a
-   multiple of the leading, so the whole page sits on one baseline — a 24px gap between 28px
-   lines puts everything after it 4px off. */
+
 .grid + .grid{margin-top:var(--lead)}
-/* THE PAGE'S TOP EDGE — 1.5 units of air above the first row, on every page.
-   Measured before this existed: the index and /gate/ opened at y=36 because each carried an
-   inline `style="margin-top:calc(var(--unit)*1.5)"` on its first `.grid`, and the nine case
-   studies opened at y=0 — marker, title and dek all flush against the top of the window with
-   no air at all. Two pages had the value and nine didn't, which is what an inline style does:
-   it can't be applied to a page nobody remembered to edit.
-   As a rule it is one number in one place, and the two inline copies are gone. Set on
-   `main > .grid:first-child` rather than on `.wrap`'s padding, because the guide overlay is
-   `inset:0` inside `.wrap` — padding there would start the column guide 36px down the page and
-   the guide would stop describing the grid it's drawing.
-   1.5 units, not 1: it's the value the index already used and the same air `.grid + .grid` gives
-   a section (1) plus half again, so the page's top edge reads as a wider break than the gap
-   between two rows of one page. */
+
 main > .grid:first-child{margin-top:var(--group)}
-/* THE THREE spans these pages actually place: full measure, and the half-and-half pair.
-   `.c1-2`, `.c3-12`, `.c1-8`, `.c1-10` and `.c4-12` were also declared here and none of them
-   selected anything — leftovers from the full-width stack the split replaced, where a section
-   head sat at c1–2 with its text at c3–12. Inside the feed those spans are wrong by
-   construction (the feed re-divides its 8 columns into 12 of its own, so a block is placed on
-   the FEED's tracks), which is why they stopped being used and why adding one back means
-   checking it against the feed's width rather than the page's. Add a span when a page places
-   it, not in advance. */
-/* `.c1-12` is `1 / -1`, not `1 / 13`, and the rename is deliberate: the class NAME says twelve
-   because that is what the page's grid has, but the VALUE says "every track of whatever grid you
-   are in". Almost every use of it is inside the feed's own nested grid, and a literal 13 there is
-   the phantom-measure bug this redesign hit four times — a track count written against one grid
-   and evaluated inside another. `-1` cannot be wrong. */
-.c1-6{grid-column:1 / 7}   .c7-12{grid-column:7 / 13}   .c1-12{grid-column:1 / -1}
-/* ── THE HALF-AND-HALF PAIR COLLAPSES AT 1060, with every other two-column device.
-   This was the worst measured defect on the site and it is entirely a gap between two rules:
-   the grid pass moved every HUNG device to 1060 (the width where `--label` can no longer hold
-   its own label) and left the half-and-half spans at their own breakpoints, so between 1060
-   and 720 a `.c1-6` was still six of a shrinking twelve.
-   Measured on /work/luthier/ at 760px: `figure.demo.c1-6` rendered 216px — and these are
-   1000px screen recordings of a Figma UI. The note beside `figure.demo` in this file argues
-   that at 291px "the thing the page is evidence FOR is unreadable, which is the one failure a
-   case study cannot have." 216 is 26% worse than the number this stylesheet already calls a
-   failure. Also measured: `.flow` 203px at 721, `.step` 296px at 1000.
-   1060 is the right number rather than a new one, because it is the same condition — below it
-   the document is too narrow for two of anything to hold text. That makes 1060 mean ONE thing
-   site-wide: two-column devices become one column. `.duo`'s 900 rule and `.mscatter`'s 720 rule
-   are now redundant; they are left in place because each is a single harmless line, and folding
-   them in is a separate change with its own verification. */
-@media(max-width:1060px){ .c1-6,.c7-12{grid-column:1 / -1} }
-/* ── THE TRACKS COLLAPSE TOO, not just the children. This is a real overflow fix, measured.
-   The rule below has always put every child on `1 / -1` at ≤720, so the twelve tracks stop
-   placing anything — but they were still DECLARED, and a 12-track grid has an irreducible
-   minimum width of its own gutters: 11 × 28px = 308px, no matter that `minmax(0,1fr)` lets
-   each track reach zero. Plus `.wrap`'s 2 × 28px padding, that is a 364px floor.
-   So every page scrolled sideways below 364px. Measured on the live site before the fix:
-   `.pin` rendered 308px wide inside a 320px viewport, `scrollWidth` 336 against `clientWidth`
-   320, on 15 of 15 pages. It is pre-existing — the 12-track grid and the 28px gutter predate
-   the grid pass — and it was invisible because every sweep tested 390 and up, which straddles it.
-   `minmax(0,1fr)`, NOT a bare `1fr`. `1fr` means `minmax(auto,1fr)`, whose minimum is
-   min-content — and I tried it: /style/ went from 336px to 847px, because the 1165px table
-   inside `.mdoc` forced the single track open to fit it. The zero-minimum clamp is the whole
-   point of the declaration and it has to survive the collapse.
-   `.duo` and `.links` declare their own twelve tracks and carry the same floor, so they
-   collapse here too. `.guide` is the overlay that draws the columns; with one track it draws
-   one field, which is correct — below 720 there is one field. */
+.c1-12{grid-column:1 / -1}
+
 @media(max-width:720px){
-  .grid,.guide,.duo,.links{grid-template-columns:minmax(0,1fr);column-gap:0}
+  .grid,.guide{grid-template-columns:minmax(0,1fr);column-gap:0}
   .grid > *{grid-column:1 / -1 !important}
 }
 
-/* THE COLUMN GUIDE — hidden by default; press `g` to flash on */
 .guide{position:absolute;inset:0 var(--gutter);display:none;
   grid-template-columns:repeat(12,minmax(0,1fr));column-gap:var(--gutter);pointer-events:none;z-index:0}
 .guide i{background:var(--guide);display:block}
-/* `:is(html, body).showgrid` — the class lands on `<html>` when the head script restores it
-   (body doesn't exist that early in the parse) and on `<body>` when the hotkey toggles it. One
-   selector for both rather than two rules that can drift. */
+
 :is(html,body).showgrid .guide{display:grid}
 .content{position:relative;z-index:1}
 
-/* ══ ONE MECHANISM PER JOB ═══════════════════════════════════════════════════════════════
-   The instruction that governs everything below, and it overrides the literal picks where they
-   collide: "in general i like the idea of mostly using color and spacing / grouping for
-   hierarchy. and prioritize overall consistency over my individual choices — i think in some
-   cases if one thing adds the hierarchy needed, like hanging label in col, it might not also
-   need the color change in the same place."
-   So the sheet's Q1 picks (02 labels in ink + 03 hang the label + 06 a pair is a group) are NOT
-   applied as three stacked treatments. They are applied as ONE rule with a condition:
-
-     A LABEL EARNS ITS HIERARCHY FROM POSITION IF IT HAS A POSITION; OTHERWISE FROM VALUE.
-       hung in its own column  → stays `--faint`. The column IS the hierarchy (pick 03).
-       stacked above its value → goes to `--ink`.  There is no column, so value is (pick 02).
-     And in both cases the PAIR is the unit, with `--group` between pairs (pick 06).
-
-   That is why `.frow` labels are faint and `.colo .ck` labels are ink, which looks inconsistent
-   in the stylesheet and is the opposite on the page: every label is exactly as loud as it needs
-   to be to separate from its value, and no label is loud twice.
-   The three greys keep their jobs — `--ink` is the fact, `--dim` is support, `--faint` is
-   annotation — and colour + space are still the only two mechanisms in play. No new size, no
-   caps, no rules, no third weight. ═══════════════════════════════════════════════════════ */
-
-/* ── THE LABEL — the one device, and now genuinely ONE SIZE.
-   Annotation: "i dont love the small caps treatment, it might be cool if all text was Camel,
-   but we should use space as hierarchy to differentiate headers and content" — and, on the
-   colophon claiming the site is one size: "its not even all one size currently right? we need
-   a pass lol". Both were right, and they are the same finding. The site shipped 15 selectors at
-   `font-size:11px` with `text-transform:uppercase` + `letter-spacing:.14em`, so "one typeface,
-   one size" was false by 15 rules, and the thing making it false was the label treatment.
-   SO THE LABEL LOSES ITS CAPS AND ITS SIZE. It is now sentence case at `--step`, in `--faint`,
-   with `--tight` of air below it. What separates a label from its value: VALUE (faint vs. ink)
-   and SPACE (tight to its own value, a full lead from the next pair). Nothing else.
-   That leaves `--step` as the only font-size on the site that sets type. `.f input`'s 16px
-   remains, forced by iOS Safari's focus zoom, and `a[target]::after`'s `.82em` scales one glyph.
-   Tracking goes too. `.14em` on lowercase is a typewriter effect, and the reason caps needed it
-   (capital letters have no ascender/descender rhythm to separate them) doesn't apply. */
-.smark,
-.step .sl,
-figure.demo figcaption,
-.specblock figcaption,
-figure.embed figcaption,
-figure.embed .esrc,
-.frow .fm,
-.pin .pk,
-.pin .pfoot,
-.colo-lab,
-.colo .ck,
-.links a .lu{font-size:inherit;letter-spacing:normal;
+.smark,.frow .fm,.pin .pk,.pin .pfoot{font-size:inherit;letter-spacing:normal;
   text-transform:none;font-weight:400;color:var(--faint);line-height:1.2}
-/* STACKED labels go to ink (pick 02). These are the ones with no column of their own, so value
-   is the only thing that can separate them from the value beneath — and at `--faint` above
-   `--dim` the two lines were 1.4:1 apart, which is why the panel read as one grey paragraph.
-   `--ink` above `--dim` is 2.6:1 and the label becomes a scannable column of entry points.
-   The hung labels (`.frow .fm`, `.specblock .sk`) are deliberately NOT in this list — see the
-   ONE MECHANISM PER JOB note. */
-/* `.colo .ck` CAME OUT OF THIS LIST, and the rule above is exactly why. Constraining the
-   colophon (Q3/02) turned it into a two-axis ledger, so its label now HAS a column — and a label
-   with a column must not also take a colour, or it is using two mechanisms for one job. It stays
-   `--faint` from the shared rule above, identical to `.frow .fm`, which is the device it now is.
-   It goes back to ink below 1060, where the block stacks and the column goes away — the
-   condition, not the element, is what decides. That conditional is stated once, in the media
-   query beside `.colo`, rather than as a second entry here. */
-.pin .pk,
-.step .sl,
-.duo .dk,
-.links a .lu{color:var(--ink)}
-/* `line-height:1.2` (18px), not the 28px body leading, and this is the fix for a bug I could see
-   in the render: with a 28px line box PLUS 14px of margin, a label sat ~42px from its own value
-   and read as floating above the pair rather than belonging to it. The label is one short line
-   that never wraps, so it doesn't need reading leading — it needs to sit close. 18 + 14 = 32px
-   from label baseline to value baseline, against 56px to the next pair. That 1:2 is what makes
-   the pair read as one object. */
-/* TYPE — ONE SIZE (chooser Q3/04: "one size, 15px, everything").
-   There is no ramp. `h1` and `h2` are the same 15px/28 as a paragraph and a meta label,
-   and the only things that separate them are WEIGHT (500 vs 400) and, on the section
-   heads, CASE. What this replaced: seven steps plus a 72px display size, all with their
-   own negative tracking — a system where a new piece of content meant choosing a size,
-   and where the answer drifted (the statement already overrode the h1 it was set as).
-   One size cannot drift. It also cannot fake importance: a title earns attention by what
-   it says and by the air around it, which is the whole document direction.
-   `--step` / `--lead` are inherited from body, so these rules only set what differs.
-   `overflow-wrap:anywhere` stays on the h1 — a long unbroken title at 390px in a fixed
-   advance-width face has no other way out. */
+
+.pin .pk{color:var(--ink)}
+
 h1{font-weight:500;font-size:inherit;line-height:inherit;margin:0;overflow-wrap:anywhere}
-/* SECTION HEADS: INK AT 500 (pick Q2/02), and not caps. The caps went for the reason the labels'
-   did — if space is the hierarchy, case is a second mechanism doing the same job worse, and in a
-   monospace face caps are literally wider (`EXPERIMENTS` at .14em tracking is 15 cells against
-   `Experiments`' 11, so the head was the widest line in the section it only labels).
-   Then `--faint` was wrong in the other direction: a head that opens a section is the strongest
-   thing in it, and at faint it was the weakest — the same inversion the `/method/` columns had.
-   INK AT WEIGHT 400, and dropping the 500 is the annotation's own finding: "some of these don't
-   follow the rule of — a label earns its hierarchy from position if it has a position; otherwise
-   from value." The section head was the violation, and it was mine: it hangs in the 16ch column
-   (POSITION), it is `--ink` (VALUE), and it was weight 500 (WEIGHT) — three mechanisms where the
-   rule allows one, on the element that states the rule most visibly.
-   Position plus value is already two, and the pair is defensible because they do different jobs
-   here: the column says "this is an annotation of the section", the ink says "and it is the
-   strongest thing in it". The weight was the third and it earned nothing — at 15px in a monospace
-   face, ink-vs-dim is a 2.8× contrast step and 500-vs-400 is 7% more stem width, so the weight was
-   invisible next to the colour it sat on top of.
-   Weight 500 is now reserved for `<b>` inside body copy — where it is the ONLY mechanism, because
-   emphasis inside a sentence may not change colour (see `b,strong`). One mechanism, one job, in
-   both directions. */
+
 h2{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
-/* h3–h6 had NO base rule, because until `/style/` the site had no heading below h2 — `.duo h3`
-   was the only one and it set its own size. So a rendered markdown file's `h3` fell through to the
-   browser default of `1.17em` and measured 17.55px: a FOURTH font size, on the page whose whole
-   subject is that there is one. Caught by measuring the rendered sizes rather than reading it.
-   Reset here rather than in `.mdoc`, because the bug is that the base was missing — scoping the
-   fix would leave the next `h3` anyone writes to fall through again. */
+
 h3,h4,h5,h6{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
 .dek{color:var(--dim);margin:0;font-weight:400;max-width:62ch}
-/* THE STATEMENT — one sentence at body size, and now literally one sentence. It used to
-   carry the two thesis clauses after the name, in italic, which is why this rule had a
-   `.t-design` / `.t-build` pair to set them; the clauses are gone (see index.astro) and the
-   pair went with them rather than staying as a live-looking selector nothing emits.
-   Still body size, not 39px, and still no colour: colour has one job on this site and that
-   job is interaction (chooser Q4/05) — a coloured clause mid-paragraph reads as a link that
-   won't click. Nothing inside the sentence is emphasised at all now, which is the simpler
-   version of the same rule. */
+
 .statement{font-weight:400;margin:0;max-width:62ch}
-/* 62ch, not 33em. In a monospace face the measure can be stated in characters exactly,
-   because every character is one cell wide — 62 is the band a reader tracks without
-   losing the line, and here it's literal rather than an approximation. */
+
 p{margin:0 0 var(--lead);max-width:62ch}
 p:last-child{margin-bottom:0}
-/* ── EMPHASIS IS WEIGHT, NEVER A COLOUR JUMP. Annotation: "again really don't like using color
-   for emphasis here, it pops out too much — maybe find another way if u want to emphasize body
-   text."
-   Measured, and the complaint is exact: body copy is `--dim` and every `<b>` inside it was
-   promoted to `--ink`, which on paper is a jump from 5.86:1 to 16.61:1 — a 2.83× contrast step
-   inside one sentence (2.31× in dark). Three words in the middle of a paragraph were higher
-   contrast than the section head above them. That is not emphasis, it is a different colour of
-   text, and it broke the site's own rule that value carries hierarchy BETWEEN elements while
-   nothing carries it inside a sentence.
-   So `<b>` inherits its parent's colour and says what it has to say with WEIGHT: 500 against
-   400 is about 7% more stem width at 15px, which in a monospace face — where every glyph is the
-   same width, so weight is the only thing that can vary — reads clearly without changing the
-   colour of the line.
-   The four `… b{color:var(--ink)}` overrides are deleted with it (`.frow .ftx`, `.pin .pv`,
-   `.specblock .sv`, `.duo li`), so this is one rule instead of five. */
+
 b,strong{font-weight:500;color:inherit}
 em,i{font-style:italic}
 a{color:var(--accent);text-underline-offset:4px}
-/* O7 — any link that opens in a new tab gets a ↗ marker; opacity lifts on hover.
-   Inherits currentColor so it takes the link's own colour in both states. Excludes .entry
-   (index rows say "external" with the marker, not a glyph). */
+
+/* External links get ↗ here; writing it in the link text renders "github ↗ ↗". */
 a[target]:not([href^="#"]):not(.entry)::after{content:"\00a0↗";font-size:.82em;opacity:.5;
   transition:opacity var(--dur-fast) var(--ease)}
 a[target]:not(.entry):hover::after{opacity:1}
-/* ── ONE LINK TREATMENT, EVERYWHERE. THE INVERT-FILL IS DELETED.
-   Annotation: "something is wrong with the link highlight styles — pick one that matches the
-   site and doesnt fuck up and make text unreadable." It was a real bug, and a cascade collision
-   rather than a contrast failure. Measured on the built page, hovering `hi@andrewshiau.com`:
-   `color` and `background-color` both computed to `rgb(20, 48, 107)`. Navy text on a navy field.
-   Invisible.
-   The cause: `.pfoot` is a `<p>`, so `p a:hover` painted the accent FIELD, and then
-   `.pin .pfoot a:hover` — higher specificity, defined later — set `color` back to `--accent`
-   without knowing a background had been applied underneath it. Two link systems overlapping on
-   one element, where each is correct alone. That is the failure mode of having two.
-   So the site has ONE: ink type, `--line` underline, and on hover the underline goes to ink and
-   the text goes to accent. It is what `.entry`, `.pin .pfoot a`, `.colo a` and `.links a` already
-   do — this makes prose links the same, and deletes the only treatment that painted a field
-   behind type. A filled rectangle behind a word was also the last box-like device in body copy,
-   which the same pass removed from `.block`.
-   What is lost, honestly: a filled field is more findable mid-paragraph than an underline. The
-   trade is accepted because an underline going to ink IS visible against 15px mono, and because
-   one idiom that always works beats two that collide.
-   ── THE UNDERLINE TOKEN IS `--faint`, NOT `--line`. Annotation, on /work/practice-room/ in dark
-   mode: "this link isnt obv — shouldnt it have perma underline". It had one; the underline was
-   invisible. Measured on the built page, the `Open the instrument` anchor computed
-   `text-decoration-color: rgb(43, 43, 39)` on `rgb(20, 20, 19)` paper — 1.30:1, and 1.34:1 in
-   light. `--line` is the HAIRLINE token: it draws structure between blocks, where near-invisible
-   is the point. A link's underline is not structure, it is the affordance, and it was borrowing a
-   token tuned for the opposite job.
-   `--faint` instead: 5.60:1 dark, 4.69:1 light — the same token the index numerals and meta
-   already use, so no new value enters the system. Chosen off a four-option proof sheet rendered
-   in both colourways at the real 15px Plex (`--line` / `--faint` / `--dim` / `--accent`): `--dim`
-   is 2.40:1 in light so it fixes one colourway and not the other, and `--accent` makes the
-   underline the loudest thing in the paragraph and re-introduces a second hue role that
-   interaction-only colour gave up.
-   ONE token, applied to all SEVEN underline sites at once (`p a`, `.entry .eh`, `.pin .pv a`,
-   `.pin .pfoot a`, `.colo a`, `.links a`, `.foot a`) — that is what "one idiom" is for. Hover is
-   unchanged: the underline still goes to `--ink`, which is now a smaller step and reads as a
-   darkening rather than an appearance.
-   Note for the audit: STYLE.md's contrast finding said "`--line` at 1.34:1 is a decorative
-   underline on text that carries 16.61:1 — 1.4.3 does not apply." That is still true as WCAG,
-   and it was answering a machine's question. The reader's question is whether the link is
-   findable, and the answer there was no. */
+
 p a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
   text-underline-offset:4px;text-decoration-thickness:1px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 p a:hover{color:var(--accent);text-decoration-color:var(--ink)}
-/* `code` no longer changes typeface OR size — the whole page is the mono at 15px, so the
-   old `font-family:var(--mono);font-size:.86em` said nothing and shrank the one thing on
-   the page that most needs to be read character by character. What's left is the tint,
-   which is the only part that was doing work. */
-/* NO TINT INSIDE A RENDERED DOCUMENT. The 6% wash marks a code span as "this is code" on a page
-   of prose — but STYLE.md is 520 inline code spans in 856 lines, and at that density the tint
-   stops marking anything and turns the page into highlighter. On `/style/` a code span is already
-   distinguishable by what it says (`--group`, `.frow`, `font-weight:500`), and the whole site is
-   set in the mono, so the tint was carrying no information at all.
-   Kept everywhere else: on a case study there are two or three spans per page and the wash is the
-   only thing that separates a token from the sentence around it. */
+
 code{background:color-mix(in srgb,var(--ink) 6%,transparent);padding:.05em .34em}
-/* `overflow-wrap:anywhere` because a code span is one unbreakable token and this document is
-   full of them. Measured at 320px: the column is 264px (29 characters) and the longest span on
-   /style/ is the 86-character font stack `ui-monospace, "SF Mono", SFMono-Regular, …`, which
-   pushed the page to a 334px scrollWidth. Isolated by hiding every `code` element and watching
-   the overflow disappear — 611 spans on the page, one of them too long for a phone.
-   `anywhere` rather than `break-word`: this is the same declaration `.shead > h2` uses for the
-   same reason, and inside a code span a mid-token break is the honest rendering — the alternative
-   is a horizontal scrollbar on an inline fragment. Prose is unaffected; this is scoped to
-   `.mdoc code`, and the site's own copy has no 29-character words in it. */
-.mdoc code{background:none;padding:0;color:var(--ink);overflow-wrap:anywhere}
-/* fine print — faint, not small. It was 13px/20; there is one size now, so the aside
-   recedes by VALUE alone. That is the ramp's whole replacement, stated in one rule. */
+
 .fine{color:var(--faint)}
 
-/* ── SECTION HEAD — HUNG IN THE MARGIN (pick Q3/03). The head moves OUT of the reading column
-   into the field the 62ch text doesn't use, so it sits beside its prose rather than above it.
-   Two things this buys, and they are the two the instruction asked for:
-   - The measure is untouched. 62ch stays 62ch — the pick was explicitly "keep 62ch, use the
-     margin for annotation", not "go wider". The prose column does not move at all; the head
-     moves left out of it.
-   - It is the SAME DEVICE as the ledger, one level up. `.frow` hangs a label at 16ch and this
-     hangs a head at 16ch, off the same left edge, so a case study has ONE annotation axis
-     running its whole length: the marker, the h1, every field label, and every section head all
-     start at column 1, and every value and every paragraph starts at 16ch + gutter. That is the
-     consistency the instruction prioritised over any single page.
-   `16ch` and NOT the 14ch the sheet rendered: the ledger needs 16 for "Dropdown refresh", and one
-   axis means one number. The head strings are longer than that ("What else was on the table" is
-   26), so they wrap to two or three short lines in the margin — which is what a hung head does in
-   a book, and why `overflow-wrap:anywhere` stays on.
-   It was a 12-track sub-grid at `grid-column:1 / 10` before the mono pass, and that was a phantom
-   measure inside the document column (502px of 609). The fix then was to delete the grid; the fix
-   now is a grid stated in `ch`, which cannot drift when the column moves.
-   IT HAD `grid-column:1 / 10` ON A TWELVE-TRACK SUB-GRID, and that is a phantom measure now:
-   inside the document column, ten of its own twelve tracks is 502px of a 609px column, so the
-   prose stopped 107px short of where the clips and the ledger stop. Measured on the built page
-   at 1440 — the prose ran to x=638 while the clip ran to x=797. The same defect the hung caption
-   had, from the same cause: a track count measured against a page width that the split's
-   deletion changed.
-   No sub-grid at all is the fix. `.shead` is a block, its h2 and prose take the full document
-   column, and the prose's own `62ch` cap is what sets the measure — one number, in the unit the
-   type is actually set in, rather than a track count that has to be re-derived every time the
-   column moves. That is the document's whole argument about measure.
-   `--group` under the head, not `--unit`: the head opens a group. */
-.shead{grid-column:1 / -1;display:grid;grid-template-columns:var(--label) 1fr;
-  column-gap:var(--gutter)}
-.shead > h2{grid-column:1;overflow-wrap:anywhere;margin-bottom:0}
-.shead > .sbody{grid-column:2;max-width:62ch}
-/* ── IT BLEEDS RIGHT, NOT LEFT, and getting that wrong was a real bug: bleeding the box left put
-   the head at x = −172, outside the page. Caught by measuring the head's own left edge against
-   the grid's, which is the only way to catch it — the page looked plausible and the head was
-   simply off-screen to the left.
-   The correct shape is the LEDGER's shape: the annotation stays at column 1 (where the marker,
-   the h1 and every field label are) and the CONTENT steps right to a second axis. So the box
-   grows right, into the five fields the document doesn't use, by exactly the label column plus a
-   gutter.
-   THE BLEED IS DELETED (chooser: andrewshiau-grid-options, Q2/03 — "nothing breaks out"). It
-   grew the head's box right by `--label + --gutter` so the prose inside it kept a 62ch measure
-   while the head hung in the margin; that made the head's box 781px on a 609px document, which
-   was the second of the page's three widths. The head now lives inside `.c1-8` like everything
-   else: 700px, of which the label takes 154 and the prose 518.
-   The trade is that `.sbody`'s prose is 518px rather than 558 — 57 characters instead of 62. The
-   62ch cap therefore stops binding inside a section head, and the column binds instead. Worth
-   stating plainly: this is the one place the pick costs measure, and 57 characters is still
-   inside the band a reader tracks.
-   THE TWO AXES SURVIVE, which was the point of the device: x=0 carries the marker, the h1, every
-   field label and every section head; x=182 (`--label + --gutter`, now a real grid line) carries
-   every value and every paragraph. */
-/* ── AND A BARE HEAD HANGS TOO. Seven of the site's twenty-five section heads are written
-   `<div class="c1-12"><h2>…</h2></div>` rather than inside a `.shead` — they are the ones that
-   open a ledger, a staircase or a clip instead of a paragraph, so there was no prose to pair
-   with. Left alone, `The problem` would hang at column 1 while `How it works` and
-   `Two instruments` sat flush above their content: two treatments for one element, which is
-   exactly the drift the instruction says to prioritise fixing over any single page's look.
-   They get the same 16ch column, with the content that follows stepping right to the same axis.
-   `:has()` rather than a new class, because that is the whole point — nothing in the markup has
-   to change, so no page can be missed.
-   The FEED's own bare heads (`Work`, `Experiments`, `Method` on the index) are excluded: they
-   label a list whose rows already start at column 1, and hanging them would put the head in a
-   margin beside a row that has no second axis. See `.feed > h2`. */
-/* The head takes the 16ch column and NOTHING ELSE. It does not need the bleed or a grid: its
-   wrapper is a `.grid` of its own with the content in the NEXT `.grid` (measured on the built
-   page), so there is no sibling here to step right — the content aligns because `.frow`,
-   `.shead > .sbody` and the media all independently start at the same 172px axis.
-   Just the width, so the head occupies one column instead of the whole seven. Measured before
-   this: `How it works` reported 609px against `The problem`'s 144. */
 .feed .grid > .c1-12:has(> h2:only-child) > h2{width:var(--label)}
-/* ── THE HUNG LAYOUT STOPS AT 1060 (chooser: andrewshiau-breakpoints, Q1/01 — "stack earlier").
-   1060 is not a preference, it is where `--label` falls to 144px, which is exactly the width of
-   the longest label on the site ("Dropdown refresh" and "Remove “add pen”", both 16 characters at
-   9px per glyph). One pixel narrower and the label wraps to two lines while its value still
-   starts on line one, so the pair stops reading as one object — measured, and visible immediately
-   in the proof sheet's red rungs at 1000 and 900.
-   The old breakpoint was 1100, chosen by eye, which left the 1100→1060 band hung when it didn't
-   need to be and — far worse — implied the problem was the viewport rather than the label.
-   What happens below it is the device that already shipped for phones: the label stacks above its
-   value and takes `--ink`, because it no longer has a column to earn hierarchy from. That is ONE
-   MECHANISM PER JOB doing exactly what it was written for, so the narrow layout needed no new
-   rule — only for the existing one to start 340px earlier. */
+
 @media(max-width:1060px){
   .feed .grid > .c1-12:has(> h2:only-child) > h2{width:auto}
-  .shead{display:block}
-  .shead > h2{margin-bottom:var(--lead)}
 }
-/* SECTION BREAK — air, no rule. A 1px ink line across all 12 columns was the heaviest
-   mark on a page whose section heads occupy two columns: the line and the thing it
-   opened never touched, so it read as a divider dropped between sections rather than as
-   any section's own top edge. Six of them on a page also flattened the hierarchy — every
-   break looked equally important. Deleting them leaves 3.5 units of air plus a bold head
-   in the left margin, which is already an unmistakable break, and it's the Müller-Brockmann
-   position: whitespace is structural, so a rule that repeats has stopped being structure.
-   This is a class on the section's own first .grid, not a spacer element — an empty div
-   that draws nothing has no reason to exist in the markup.
-   Rules that SURVIVE are the ones that belong to something: a .frow's top rule opens its
-   fact, an .entry's opens its cell, .colo-rule closes the page. Those touch their content.
-   `.rule` DID survive here for writing/*, and that was a mistake this file couldn't see: the
-   three explainers were built on Explainer.astro, whose `is:global` block was their only
-   stylesheet — they never loaded global.css. So the declaration here selected nothing on any of
-   the 14 pages that DO load this file, while the rule the explainers actually drew was their
-   own copy inside that layout.
-   BOTH ARE GONE NOW. `Explainer.astro` is deleted (chooser: andrewshiau-grid-options, Q5/02) and
-   the explainers use `.grid.sect`'s air like every other page — so `writing/*` no longer has any
-   rules either, and the site's "no rules" claim is finally true of all sixteen pages rather than
-   thirteen. This paragraph is kept as the record of how a dead declaration hid behind a live one
-   in a stylesheet nothing here could see. */
-/* .grid.sect, not .sect — it has to outrank `.grid + .grid`'s one-unit gap, and equal
-   specificity later in the file beats it without reaching for !important. */
-.grid.sect{margin-top:var(--sect)}
-/* the side marker as the case-study kicker — the FIRST thing on the page. There used to be
-   a 32px accent stub above it; 32px was not a column, not the word's width, not the
-   measure, so it read as decoration that arrived with the template. The marker replaces it
-   and does more: the two-dot mark plus the word says which half of the practice the page
-   belongs to before you read the title. Its 20px line + 4px gap keeps the header on the
-   baseline.
-   It is also the link home now (chooser: andrewshiau-panel-marks, Q5/06) — the logo above it
-   is gone, so this line carries both jobs. /gate/ still prints a plain-text `.smark`
-   ("Password required"), which is why everything below is scoped to `.smark-home` rather
-   than to `.smark a` or to the `<p>`: the type ramp belongs to the line, the mark and the
-   hover belong to the link. */
+
 .smark{margin:0 0 var(--tight)}
-/* 26px of figure above an 11px line. `inline-flex` + `align-items:center` sets the word
-   against the figure's middle rather than its baseline: the glyph is a drawing, and a 26px box
-   on an 18px line sits low. The negative top margin lets the figure grow UP out of the line
-   instead of pushing the h1 down. */
+
 .smark-home{display:inline-flex;align-items:center;gap:8px;color:inherit;
   text-decoration:none;margin-top:-3px}
 .smark-home .mark{width:26px;height:26px;display:block;flex:none;
   transition:transform var(--dur-big) var(--ease)}
-/* The same 90° turn the logo had: two dots joined by a rule, and turning it swaps which dot
-   leads without changing what it is. Scoped to the DIAGONAL figure only — rotating a single
-   centred dot animates nothing, so a one-sided page would advertise a control that appears
-   dead. Those get the word's colour lift instead, which is the site's ordinary link hover. */
+
 .smark-home:hover .mark:not(.mark-one){transform:rotate(90deg)}
 .smark-home:hover{color:var(--ink)}
 
-/* STEP — a labelled cell. It was `padding-top:12px` under a 2px ink rule with an 18px title;
-   the rule is gone with every other rule and the title is the one size. What separates a step
-   from its neighbour is the label above it and the air around it. `.step.accent` is dropped:
-   an accent rule can't mark a lead cell when there is no rule and colour means interaction. */
-.step .sl{display:block;margin-bottom:var(--tight)}
-.step .st{display:block;font-weight:500}
-.step .sd{display:block;color:var(--dim)}
-
-/* DUO — the two sides of the practice, side by side, each under its own hue. Used once,
-   on /method/, where the two instruments ARE the subject: the composition states the
-   duality before a word is read, which is the argument the page has to make.
-   Six columns each with no gap column: the two procedures are parallel and equal, so an
-   asymmetric split would rank one of them. Stacks ≤900px — at 6 columns each the ordered
-   lists wrap to one word per line well before the 720px breakpoint. */
-.duo{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-  column-gap:var(--gutter);row-gap:var(--group)}
-/* The two 3px hue rules are gone. They were the second sanctioned place the two hues carried
-   meaning; there is one hue now and its job is interaction, so the two columns are told apart
-   by their kickers and by sitting side by side — which was always the argument the composition
-   itself makes. */
-.duo .dcol{grid-column:span 6}
-/* ── THE HIERARCHY WAS INVERTED, and two annotations caught the same bug from two angles:
-   "arent 'two inst...' and 'design -- the ins' bigger titles than 'how a design...'? but 'how a
-   design' reads brighter / stronger, at least in dark mode — and the former two are same
-   hierarchy??" and "something is weird about the line heights between header and body, like its
-   weird that the line height is weirdly smaller on headers."
-   Both are one cause. `.dk` — "Design — the instrument is the eye" — is the SECTION TITLE of its
-   column, and it was swept into the shared label rule when the caps came off: `--faint` at
-   `line-height:1.2`. The `h3` beneath it, which is subordinate to it, kept `--ink` at weight 500.
-   So level 2 rendered weaker than level 3, and it rendered at a tighter leading than the body
-   text around it, which is the "weird line height on headers" — an 18px line box between two 28px
-   ones reads as a cramped line, not as a heading.
-   THE THREE LEVELS, now distinct and in order:
-     h2  `Two instruments`              — faint, the page's section label
-     .dk `Design — the instrument…`     — INK at 500, the column's title
-     h3  `How a design decision…`       — ink at 400, the procedure it introduces
-   Level 2 is now the strongest thing in the column, which is what it always was in the markup.
-   `line-height:inherit` on both, so a heading sits on the same 28px baseline as everything else —
-   a heading is not a label and does not want a label's tight leading. */
-.duo .dk{display:block;color:var(--ink);font-weight:500;line-height:inherit;
-  margin-bottom:var(--tight)}
-.duo h3{font-weight:400;font-size:inherit;line-height:inherit;margin:0;color:var(--ink)}
-/* The numerals hang in the margin and are the procedure's spine. `2ch` of indent, not
-   1.4em: in a monospace face the list marker plus its space is exactly two cells. */
-.duo ol{margin:var(--lead) 0 0;padding-left:2ch;color:var(--dim)}
-
-/* 1060, not 900 — the same width every other two-column device gives at. AND the grid itself
-   collapses: `.duo` declares its own twelve tracks, so leaving them at 12 keeps the 11 × 28px
-   gutter floor (308px) even when every child is `1 / -1`, which is what still overflowed a 320px
-   viewport after the `.grid` fix. Measured: `.dcol` rendered 308px inside a 264px column. */
-@media(max-width:1060px){
-  .duo{grid-template-columns:minmax(0,1fr);column-gap:0}
-  .duo .dcol{grid-column:1 / -1}
-}
-
-/* RULES — the five numbered rules on /method/, as a lattice of `.step` cells rather than
-   two `.grid` rows of hand-written `grid-column` spans. The spans were inline styles, which
-   no media query can re-cut without !important, and the 3-up they hard-coded was too narrow
-   for "Simplify by removal, not by hiding".
-   Auto-fit, not a fixed count: 3-up at the full measure, one column on a phone.
-   THE FLOOR IS NOW IN `ch`, and re-measured. It was 240px, derived from where an 18px `.st`
-   stopped wrapping to three lines — and there is no 18px step any more. At one size the honest
-   floor is the longest title the page sets: "Simplify by removal, not by hiding" is 35
-   characters, so `38ch` holds it on two lines with air. Stated in `ch` because the cell's
-   content is monospace and `ch` is the only unit that means anything to it.
-   `row-gap` is the group measure, so this device breaks to the same rhythm as everything.
-   ── `min(38ch,100%)`, AND THE 38ch FLOOR WAS UNREACHABLE. Two bugs, one expression.
-   `minmax(38ch,1fr)` sets an absolute 342px floor (38 × 9px). Two of those plus a gutter needs
-   712px — and the document's hard maximum is 700 (8 tracks + 7 gutters at the 1120 measure). So
-   `auto-fit` could never fit two columns at ANY viewport width: measured live at 1512, the
-   computed template was a single `700px` track. The comment above claims "3-up at the full
-   measure, one column on a phone"; both halves were false, and had been since the document went
-   from 12 fields to 8 — the number moved and this floor didn't get re-checked against it.
-   Worse at the bottom end: a floor is a floor, so at 390px the cells still rendered 342px inside
-   a 334px column and broke the document's right edge; below 370 it became real page scroll.
-   `min(38ch,100%)` is the standard auto-fit guard — the track wants 38ch but may not exceed its
-   container, so it shrinks instead of overflowing. That fixes the narrow end. The wide end stays
-   1-up, which is now honest rather than accidental, and the comment above says so. Making it
-   2-up would mean a ~32ch floor, and 32 characters is under the title's own 35 — the reason
-   38 was chosen. One column it is. */
-.rules{grid-column:1 / -1;display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(min(38ch,100%),1fr));
-  column-gap:var(--gutter);row-gap:var(--group)}
-
-/* BLOCK — NO LONGER A FILLED FIELD. Annotation: "dont like this block treatment its not in
-   system", on the navy panel in the middle of a case study.
-   It was right on its own terms. The block was the last survivor of the old system's "one
-   rationed filled form" — a device that made sense when the page had 2px rules, a seven-step
-   ramp and two hues, because a filled rectangle was one emphasis among several. On a page whose
-   entire vocabulary is one size of type on paper with no rules at all, a saturated navy panel is
-   the only box on the site and reads as an alert dropped in from another design.
-   It also broke the rule this pass established: colour means "you can act on this". The block
-   isn't interactive — it's a statement — so a coloured field on it is exactly the "coloured mark
-   that is not interactive" the file now calls a slop finding. That argument was in STYLE.md and
-   the block was grandfathered past it.
-   What it is now: the same words, indented `2ch`, with the statement in ink at weight 500 and
-   the detail under it in `--dim`. Emphasis by position and weight, which is the system.
-   `--accent` and `--on-accent` keep their tokens for the quiz state in the explainers. */
-/* THE MINIMALIST TREATMENT, and it uses the two mechanisms the page already has — air and
-   weight — rather than adding a third. Annotation: "this like quote block is generally kind of
-   not working in terms of the story, but if we're gonna use it maybe it can get some kind of
-   minimalist treatment to make it stand out."
-   De-filling it (the previous fix) removed the problem and left nothing in its place: at
-   `padding-left:2ch` with a 500 statement it was indistinguishable from a `.frow` pair.
-   So it stands out by being ISOLATED and by being the HEAVIEST type on the site:
-   - `--sect` above and below. That is the page's largest interval, the one otherwise reserved
-     for a section break, so the block sits alone in a field of white with nothing near it. On a
-     page built from 28px and 56px gaps, 112px on both sides is unmistakable — and it is the one
-     element that gets the section interval without being a section.
-   - Weight 600. Plex Mono's SemiBold has been loaded since the mono pass and used by NOTHING;
-     this is the one thing on the site set in it. So the block's statement is heavier than any
-     title, any head, any `<b>` — legible as the page's loudest sentence at a glance, without a
-     size change, a rule, a field of colour, or a box.
-   No indent: it stays at column 1 with everything else. Breaking the left edge was the
-   alternative (a hanging pull-quote) and it costs the one alignment invariant the page has to
-   make one element louder, which is a bad trade when air and weight are free.
-   THE CONTENT QUESTION IS STILL OPEN. The annotation's first clause — that the block isn't
-   working for the story — is a writing call, not a CSS one, and it is deliberately not answered
-   here: five pages emit a `.block`, and whether each one earns its sentence is a per-page edit. */
-/* FULL COLUMN, and `.c1-6` on it is overridden. Five pages emit `class="block c1-6"`, which was
-   written when the page was 12 fields wide and a half-width block meant ~518px. Inside the
-   document column it means 6 of the column's own re-divided 12 tracks = 291px — the same phantom
-   measure the section head and the hung caption had, and at 291px the page's loudest sentence was
-   its narrowest element, wrapping to five lines.
-   `grid-column:1 / -1` beats the `.c1-6` span without touching five files. The 62ch cap still
-   applies, so the block is exactly as wide as the prose it interrupts. */
-/* THE ISOLATION IS ON THE WRAPPER NOW, NOT ON THE BLOCK — and that is a measured bug fix, not a
-   refactor. Annotation on /method/: "i know we love space but we somehow might have a gotten a
-   little TOO Much space between 'jsut different' and 'rules for both' can u investigate how so
-   much space got in there."
-   Measured on the running page: 224px of white between the block's last line and the `Rules for
-   both` head, and 168px above it. Neither is on the scale (14/28/56/112) and 224 is twice the
-   page's largest interval.
-   The mechanism: this rule asked for `margin:var(--sect) 0`, but `.block` is a GRID ITEM — it is
-   placed on its `.grid` wrapper's tracks. Grid items do not margin-collapse with anything, ever.
-   So the block's 112 could not merge with the wrapper's interval the way a block-flow margin
-   would; it ADDED to it. Above: the wrapper's 56 + this 112 = 168. Below: this 112 + the next
-   `.grid.sect`'s 112 = 224. Two elements each claiming the same interval, which is exactly the
-   failure `.idea` and `.num` in this file already document — both of them zero their own margin
-   for this reason, and the note at `.idea` even asserts that "`.facts`, `.block`, `.matrix` leave
-   vertical space to its `.grid` wrapper". That was true of the other two and never true here.
-   The fix is to make that claim true: the block has NO margin, and the interval belongs to the
-   wrapper, stated once. `:has(> .block)` rather than a new class on seven pages — the same device
-   `.feed .grid > .c1-12:has(> h2:only-child)` already uses, and the condition is genuinely "this
-   grid contains the loud sentence" rather than something a hand-typed class would have to
-   remember. It outranks `.grid + .grid`'s one lead, so all seven call sites get `--sect` above
-   without an inline style (method.astro's `--group` inline is deleted — an inline would have beaten
-   this rule and kept the page at 168).
-   BELOW is left to whatever follows, which is the same principle: six of the seven blocks are
-   followed by a `.grid.sect`, whose own 112 is the isolation. The seventh is /work/explain/, where
-   the next element is the embed the block is talking about ("Both examples below are live") and its
-   36px inline holds the pair together on purpose. The block's air is now stated by ONE element in
-   every case, so there is nothing left to stack. */
-.grid:has(> .block){margin-top:var(--sect)}
-.block{grid-column:1 / -1;align-self:start;max-width:62ch;margin:0}
-.block .st{display:block;font-weight:600}
-.block .sd{display:block;color:var(--dim);margin-top:var(--tight);font-weight:400}
-
-/* DEMO — a case-study screen recording, no frame. It had `border:1px solid var(--ink)` on the
-   video, which the old file called "a hairline, not a card"; at 1px of ink all the way round a
-   1000px clip, it was a card. The clip is a rectangle of moving image on paper — it already has
-   an edge, and it doesn't need one drawn.
-   `--panel` stays as the background: it fills the box before the video paints, and a white flash
-   is better than a dark one on a light ground. */
-figure.demo{margin:var(--group) 0 0}
-figure.demo video{display:block;width:100%;height:auto;background:var(--panel)}
-/* The caption is the 11px micro-label, the page's one below-ramp exception, and its hairline
-   is gone — a caption sits under the thing it captions; it doesn't need a line to say so. */
-figure.demo figcaption{margin-top:var(--tight)}
-
-/* HUNG CAPTION — DELETED AS A DEVICE, and the reason is a measurement, not a preference.
-   Its entire purpose was that the clip's right edge should land on the same vertical the prose
-   lands on, so one line runs down the page through the head, the prose, the ledger and every
-   clip. It cannot do that any more. The figure sits INSIDE the document column and re-divides
-   that column into twelve sub-tracks of its own, so a `c1-8` written here means eight twelfths
-   of 609px, not of the page. Measured on the built page at 1440: the clip's right edge landed at
-   x=532 while the prose ran to x=638 — the device was drawing an alignment that did not exist,
-   which is the exact accident it was built to prevent.
-   So the clip takes the FULL column and the caption sits under it. There is no margin to hang a
-   caption in: seven fields of twelve is the document, and the five empty fields to its right are
-   the page's margin — putting type in them would make the margin a column, and then the
-   document would be two columns again.
-   `.hang` is kept as a selector because six pages emit it, and it now means "a clip at the full
-   column width", which is what every clip on the site is. The class becomes redundant in the
-   design-system pass; it is not lying in the meantime. */
-figure.demo.hang{grid-column:1 / -1;display:block}
-figure.demo.hang video{width:100%}
-
-/* ── TWO ALIGNED COLUMNS, cropped to one ratio. The staggered scatter is deleted.
-   Annotation: "i think this staggered thing no longer works, it should probably be
-   rationalized as two columns, and aspect ratio cropped a bit on the taller videos to match."
-   Right on both counts, and the second is what made the first possible.
-   THE SCATTER EXISTED TO HIDE A RATIO MISMATCH. Measured from the files: `pp-prototypeInUse`
-   and `pp-final` are 999×562 (1.778) and the other ten are 1000×626 (1.597). Two-up, the
-   taller one read as though its bottom edge were cropped — so the old fix was to make sure no
-   two frames ever shared a baseline, using a 12-column × 24px-row lattice with four hand-placed
-   `grid-row` spans. It worked, and it was a composition built around a defect in the assets.
-   On a page whose structure is now whitespace on a single column, a diagonal scatter of four
-   videos is also the loudest thing on the site.
-   FIX THE DEFECT INSTEAD: `aspect-ratio:1000/626` on the frame plus `object-fit:cover` on the
-   video crops the two 16:9 clips to the same shape as the other ten. Cropping to the TALLER
-   ratio loses 10.2% of WIDTH rather than 10.2% of HEIGHT, and that is the right direction —
-   these are screen recordings, so the height carries the toolbars the page is about while the
-   width carries empty canvas at the sides.
-   Then two columns need no lattice at all: `repeat(2, 1fr)` with `--gutter` between and
-   `--group` down. Every frame is the same size and lands on the same two verticals. One column
-   ≤720px. `.m-a`…`.m-d` keep their class names (four call sites emit them) and place nothing —
-   the grid's own auto-flow does it. */
-.matrix.mscatter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  column-gap:var(--gutter);row-gap:var(--group)}
-.mscatter figure.demo{margin:0}
-/* The frame sets the shape; the video fills it. `object-fit:cover` is what crops rather than
-   letterboxes — without it the 1.778 clips would sit inside a 1.597 box with bands top and
-   bottom, which is the mismatch made explicit instead of fixed. */
-.mscatter figure.demo video{aspect-ratio:1000 / 626;object-fit:cover;height:auto}
-@media(max-width:720px){
-  .matrix.mscatter{grid-template-columns:1fr}
-}
-
-
-/* SPEC BLOCK — what fills beat 2 on a Type A page that has no clip (chooser round 2, Q2
-   option 02). Stores Designer is the one page the type allows to skip the clip, and the
-   result was that the page's first beat after the dek was a ledger of two rows: the reader
-   met the least interesting fact first.
-   It MUST NOT appear on a page that has a clip — a page with both argues the same point
-   twice. That constraint is unchanged.
-   THE ARGUMENT THIS BLOCK MADE IS NOW THE WHOLE PAGE. It existed because setting a key/value
-   listing in `--mono` said "engineer" in the slot a screen recording would have filled — and
-   the site was Graphik, so the mono was a deliberate change of voice. Every page is Plex Mono
-   now, so the voice is no longer a contrast and `font-family:var(--mono)` here says nothing.
-   What survives is the SHAPE, which is what actually carried the meaning: an aligned key
-   column and a value column, read as a spec. In a monospace face at one size the alignment is
-   exact, so the block needs no grid tracks and no rules to hold — a fixed key width in `ch`
-   does it, because `ch` and the character are the same thing here.
-   `22ch` is measured against the longest key the page sets ("Verification") plus air. */
-/* `1 / 9`, with the document (chooser: andrewshiau-grid-options, Q1/02). It still said `1 / 8`
-   after the document went to eight fields, which made the spec block the one text element on
-   `/work/stores-designer/` that was 609px on a 700px page — an inconsistency of exactly the kind
-   the eighth column was added to remove. Found by grepping every span for the old width, not by
-   looking: 91px on one block of one page is invisible.
-   `--label`, not `22ch`. The key column was measured independently ("Verification" plus air), so
-   the spec block's value axis sat at 22ch + 2ch = 216px while every other value on the site sat at
-   182. It is the ledger's device with different numbers, which is the drift the two axes exist to
-   prevent — one number, one axis, everywhere. */
-/* `1 / -1`, and `1 / 9` here was a PHANTOM MEASURE I introduced while fixing the previous one.
-   The reasoning above is right that the block should be the document's width; the expression was
-   wrong, because `.specblock` sits inside `.feed`'s own nested 12-track grid. Eight of the FEED's
-   twelve tracks is 8 × 32.7 + 7 × 28 = 457px, not 700 — measured, and it is the fifth instance of
-   this exact bug in this redesign.
-   Which is the rule, stated once more because I just re-broke it: a track count is only meaningful
-   in the grid it is evaluated in. `-1` means "all of my parent's tracks" and is the only span
-   expression that cannot be wrong when the parent changes. Write `1 / -1` unless the block is
-   placed directly on the page grid (see `.colo`, which needs the literal `9`). */
-/* ── ROWS ARE SEPARATED BY THE LEADING NOW. Annotation: "not quite enoghs pace here makes them
-   blend in, maybe nneed space between each line?"
-   Measured on the running page: 0px between rows. Each `.srow` was a 28px line and they simply
-   stacked, so four facts read as one four-line paragraph with a ragged left edge — and the eye had
-   nothing to separate `constraint` from `approach` except the words themselves.
-   `.frow` — the same hung-label device, in the panel on the same page — had already answered this
-   and this block never got the answer: "the label and its value are now on the SAME line, so the
-   only thing separating one fact from the next is the space between rows. At 28px with no rule they
-   ran together." That is exactly the complaint, so the fix is the mechanism that already exists.
-   `--lead` here, not `.frow`'s `--group`: the four rows are ONE spec read as a unit — the block is
-   a single object standing in for the missing clip — where a ledger's rows are independent facts.
-   28px is a peer-row interval on the scale and it separates them without breaking the block into
-   four things. Measured at 56px first: the block ran 336px tall and stopped reading as one spec.
-   `:first-child` reset, so the block's own top interval stays the wrapper's. */
-.specblock{grid-column:1 / -1}
-.specblock .srow{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter);
-  margin-top:var(--lead)}
-.specblock .srow:first-child{margin-top:0}
-.specblock .sk{grid-column:1}
-.specblock .sv{grid-column:2;max-width:62ch}
-.specblock .sk{color:var(--faint)}
-.specblock .sv{color:var(--dim)}
-
-/* the one accent inside the block: the value that is the page's own claim. Accent on a
-   MONO value is still the sanctioned "lead member of a group" role — nothing new. */
-.specblock .sv i{color:var(--accent);font-style:normal}
-.specblock figcaption{margin-top:var(--tight)}
-/* ≤720px matches what `.frow` does at the same width: the two columns become two lines. */
-/* 1060, not 720. `.sk` is a hung label in the same column as `.frow .fm`, so it gives at the
-   same width and for the same reason — leaving it at 720 would have made the one page with a
-   spec block the one page whose labels behaved differently (chooser: andrewshiau-breakpoints,
-   Q1/01). */
-@media(max-width:1060px){
-  .specblock .srow{display:block}
-  .specblock .sk,.specblock .sv{display:block}
-  /* THE STACKED PAIRS NEED THE GROUP INTERVAL, and this was a real defect at 900px: stacked with
-     no space between rows, five key/value pairs rendered as one ten-line list with no visible
-     grouping — the same "one grey paragraph" failure the space scale was written to fix. `.frow`
-     already carries `margin-top:--group` at every width, which is why the ledger beside it looked
-     right and this did not.
-     The label also takes ink here, for the reason the rule at the top of this file states: it no
-     longer has a column, so value is the only mechanism left. */
-  .specblock .srow + .srow{margin-top:var(--group)}
-  .specblock .sk{color:var(--ink);margin-bottom:var(--tight)}
-}
-
-/* FACTS — the ledger. Any number of facts reads the same, which is the property that made
-   this a stack of rows rather than three cells across the grid in the first place (a cell
-   version wrapped luthier's Role fact to five lines and left holes when a fourth fact
-   arrived). Markup unchanged: .facts > .frow > .fm + .ftx. */
-/* `1 / -1`, NOT `1 / 8`. Caught by looking at /work/luthier/: the four "How it works" values
-   measured 344px against the panel ledger's 558. `.facts` in the FEED sits inside a nested
-   `.grid`, so `1 / 8` means seven of THAT grid's twelve tracks — 7 × 25.08 + 6 × 28 = 343.6px,
-   which is the number on screen. The panel's `.facts` is a direct child of `.pin` and has no
-   nested grid, so it was right all along, and the two disagreed by 214px.
-   Same phantom-measure class as the section head and the hung caption before it: a track count
-   written for the page's twelve fields, evaluated inside a seven-field column. `-1` means "the
-   last track" whatever the parent has, so the block fills its container in both places and the
-   62ch cap on `.ftx` is what actually sets the measure — which is the rule this file keeps
-   arriving at: state an inner measure in `ch`, never in tracks. */
 .facts{grid-column:1 / -1}
-/* THE LEDGER ROW, without its rules. It was a 12-track grid with a hairline per row under a
-   2px ink opener, a 13px caps key and a 16px value — three ramp steps and two rule weights to
-   say "label, value". Now: the key is the 11px micro-label ABOVE its value, the same device
-   the section heads and the `.proc` kickers use, and rows are separated by the leading.
-   Stacked rather than two columns because at one size a 22ch key column beside a 62ch value
-   pushes the value past the seven fields the document places — and a label above its value is
-   how a document annotates, where side-by-side is how a table does. */
-/* ── THE LEDGER HANGS ITS LABEL (pick 03) and its pairs are groups (pick 06).
-   `16ch` for the label column, measured against the real strings rather than guessed: the longest
-   field label on the site is "Remove “add pen”" / "Dropdown refresh" at 16 characters, and
-   "Layout by Figma" is 15. At 16ch every label on all ten pages sits on one line, and the value
-   axis is identical on every page — which is the consistency the instruction asked to prioritise
-   over any single page looking best.
-   `--group` (56px) between pairs, not `--lead` (28px): the label and its value are now on the
-   SAME line, so the only thing separating one fact from the next is the space between rows. At
-   28px with no rule they ran together; at 56 each pair is an object.
-   The label stays `--faint`. It has a column, so it does not also need a colour change — that is
-   the whole point of the rule at the top of this file. */
+
 .frow{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter);
   margin-top:var(--group)}
 .frow:first-child{margin-top:0}
 
-/* `.facts.claim` was an accent top-rule marking one ledger as the page's argument. It has no
-   call site and there are no rules to give it, so it stays deleted. */
 .frow .fm{grid-column:1;line-height:inherit}
-/* The value keeps `--ink` for its `<b>` emphasis and `--dim` for the rest. It is `--dim` rather
-   than ink because there is now an ink LABEL column on the other devices and a hung faint label
-   here — in both cases the value is the support text, and one of the two has to recede or the
-   pair has no internal hierarchy at all. */
+
 .frow .ftx{grid-column:2;color:var(--dim);max-width:62ch}
-/* ── THE LEDGER BLEEDS RIGHT so its value reaches the full measure. Four annotations, one cause:
-   "this should probably take up more cols bc its longish" / "mor cols too" / "more cols too" /
-   "more cols. apply to all case studies."
-   Measured: the document column is 609px and the hung label takes 16ch + a gutter = 172, so the
-   value had 437px = 49 characters — it could never reach the 62ch cap every other text element on
-   the site gets. The longest ledger values are the /method/ ones ("Three markdown files in this
-   site's repo — method.md and one per side…"), so they wrapped two lines earlier than the same
-   sentence would as a paragraph.
-   THAT BLEED IS DELETED TOO (Q2/03), and the eighth column is what pays for it. This was the
-   strongest argument for bleeding — the four annotations above are real, and a 49-character value
-   was a genuine defect. What changed is Q1/02: at 8 fields the document is 700px, so after the
-   154px label and its gutter the value gets 518px = 57 characters. Not the 62 the bleed bought,
-   but 8 characters more than the 49 that prompted the complaint, and inside one width instead of
-   spread across three.
-   So the two picks are load-bearing on each other: "nothing breaks out" is only affordable
-   BECAUSE the document went to 8 columns, and going to 8 columns is only worth it because it
-   removes the bleeds. Neither alone would have been right. */
+
 @media(max-width:1060px){
-  /* THE STACK NOW STARTS AT 1060, not 720 (chooser: andrewshiau-breakpoints, Q1/01).
-     This is the same rule it always was; only the number moved, and the number is derived —
-     1060 is where `--label` computes to 144px, the width of the site's longest label. Above it
-     the label column can hold its label; below it, it cannot, so the layout stops pretending.
-     The label takes the ink treatment it would have had if it never had a column — the condition
-     in the rule at the top of this file, applied at the width where the condition becomes true.
-     Everything from 1060 down to 390 now renders ONE device instead of a hung layout that
-     degraded for 340px and then flattened. */
   .frow{display:block}
   .frow .fm{color:var(--ink);margin-bottom:var(--tight)}
 }
 
-
-/* ── TEXT MEASURE ≠ FIGURE MEASURE ────────────────────────────────────────────────────
-   Annotation, on the two clips paired inside the document column: "these are too small in this
-   small column, need to either be vertically stacked or the max width needs to be bigger."
-   Measured: the column is 609px, so a `.c1-6` clip in it is 291px — and these are 1000px screen
-   recordings of the Figma UI. At 291px the thing the page is evidence FOR is unreadable, which
-   is the one failure a case study cannot have.
-   The fix is the second option, as a rule rather than a patch: PROSE is capped at 62ch because
-   that is the band a reader tracks, and a FIGURE has no such limit — it wants pixels. So media
-   breaks out of the document column to the full twelve fields. A paired clip goes 291 → 518px
-   (1.8×) and a full-width one 609 → 1064px, which is native size for these recordings.
-   This does NOT make the five empty fields a column: they hold no type. The document's measure
-   is a property of the TEXT, and the rule that a figure may exceed it is the oldest convention
-   in book design. Every text element still stops at 62ch, so the reading column is unmoved.
-   HOW IT ESCAPES, and this is the part a `grid-column:1 / 13` alone cannot do: the figures sit
-   in a `.grid` nested INSIDE `.feed`, so twelve tracks there are twelve tracks of 609px — a
-   full-width span is still 609px wide. Spanning more columns of a narrower grid buys nothing.
-   So the WRAPPER widens, by exactly the five fields the document doesn't use:
-     bleed = 5 × (field + gutter) = 5 × ((F + G)/7) where F is the feed's own width
-   Derived, not measured: seven fields plus six gutters make up F, so one field + one gutter is
-   (F + G)/7, and the five unused ones are five of those. At the 1120px measure that is 455px —
-   609 + 455 = 1064, which is the full grid width, so a bled figure lands exactly on the page's
-   own outer tracks. `width:calc(100% + …)` rather than negative margins on the figure itself,
-   because the wrapper is a grid and its tracks have to be recomputed at the new width for the
-   paired `.c1-6` / `.c7-12` clips to land on 6 fields each.
-   Clamped at `min(...)`: below the measure `.wrap` is narrower than 1120 and the bleed has to
-   stop at the viewport's own gutter, or a figure would push the page wider than the window. */
-/* ── NOTHING BREAKS OUT (chooser: andrewshiau-grid-options, Q2/03).
-   THE FOUR BLEED SELECTORS ABOVE ARE DELETED. What they did: a `.grid` holding a figure grew
-   right by `5 × (100% + gutter) / 7` so media landed on the page's outer tracks at 1064px while
-   the prose beside it stopped at 609.
-   Why they're gone. The page had THREE widths — 609 (prose), 781 (heads and ledgers), 1064
-   (media) — each derived by its own formula, none of them named, and a reader could see all
-   three on one screen. That is the inconsistency the sheet was built to settle, and the pick was
-   the strict answer: ONE width for everything. The document is `.c1-8` and so is a figure.
-   It also removes the defect class that cost the most time in this redesign. Four separate
-   phantom-measure bugs were all the same mistake — a track count or a percentage written against
-   one grid and evaluated inside another — and every one of them was inside a bleed formula. A
-   figure that simply spans the document cannot be measured against the wrong grid, because there
-   is only one grid left to measure against.
-   The trade, stated because it is real: media is now 700px instead of 1064. Two side-by-side
-   clips get 336px each rather than 518. For recordings of a UI that is a genuine loss of detail,
-   and the answer is that a screenshot which needs 1064px to read is a screenshot that should be
-   its own page — not a reason for the other nine pages to carry a second measure. */
-
-/* ─── THE DOCUMENT: ONE COLUMN ────────────────────────────────────────────────────────
-   The split is gone (chooser: andrewshiau-mono-redesign, Direction 02 "the document").
-   `.pin` and `.feed` are no longer two columns of a 4:8 grid with a vertical hairline between
-   them — they are two stacked blocks of ONE column, seven of the twelve fields wide, and the
-   page is read top to bottom like a text file someone wrote carefully.
-
-   What was deleted, and it was ~350 lines: the sticky panel, the vertical `.splitrule`, THE
-   BOX (a one-screen-tall grid with an internally scrolled feed, its own 693px height gate,
-   its bleeding scrollport and its styled scrollbar), the ≤1100px unwind, the ≤603px
-   short-viewport unstick, and the whole case-study re-cut that re-divided the feed's eight
-   columns into twelve of its own. Every one of those existed to make two columns work. There
-   is one column now, so they have nothing to solve.
-
-   The two guarantees the box worked hard to keep, kept for free: ONE scrollbar, so
-   find-in-page and deep links and the browser's own scroll position all just work; and no
-   state where content is trapped in a box too short to show it. The box's three stated costs
-   (two scrollbars, ⌘F not reflected in the page scrollbar, no in-feed anchors) are gone with
-   it. This is what the direction buys — not just a look, a whole class of layout problem
-   deleted.
-
-   The panel's CONTENT survives, in reading order: the statement, then the one ledger row,
-   then contact. `.pin` and `.feed` keep their class names because ten pages and PanelHead
-   emit them; renaming them would be a rename across every page for no gain, and the names
-   still describe what they hold. The design-system pass is where they become primitives.
-
-   SEVEN FIELDS of twelve (`1 / 8`), which is the chooser's own measure for this direction.
-   At the 1120px measure that is ~620px — close to the 62ch the prose caps at, so the column
-   the grid draws and the column the type occupies are the same column. The remaining five
-   fields are deliberately empty: that air is the page's right margin, and it is the only
-   thing on the page doing the job the vertical rule used to do. */
-/* EIGHT of the twelve, not seven (chooser: andrewshiau-grid-options, Q1/02).
-   Measured before the change: the document was 609px and its prose caps at 62ch = 558, so the
-   column was 51px wider than its own contents — too little slack for any rule to use, too much
-   to be invisible. At 8 fields it is 700px, which gives 142px of working room, and that is what
-   makes Q2/03 ("nothing breaks out") affordable: a ledger, a table or a two-up now fits INSIDE
-   the document instead of needing to bleed out of it.
-   The prose does not move. 62ch is still 62ch — the extra field is annotation and structure
-   room, not a wider measure. */
 .pin,.feed{grid-column:1 / 9}
-/* The two blocks are one continuous document, so the panel gets no bottom rule, no bottom
-   border, and no extra air beyond the group gap that separates every group from the next. */
+
 .pin{margin-bottom:var(--group)}
+
 /* /resume and /404 are laid out against the dissolved panel at phone width. */
 @media(max-width:720px){
   .pin{display:contents}
   .pin > *{grid-column:1 / -1}
 }
-/* `.splitrule` still ships in the markup of ten pages — PanelHead emits it, and so do
-   index.astro and gate.astro. It draws NOTHING now. Kept as an explicit `display:none`
-   rather than by deleting the element from ten files: the rule states the intent in one
-   place, and the design-system pass removes the markup. An empty div that draws nothing is
-   still a slop finding — this is a note that it's a known one, not a defence of it. */
+
 .splitrule{display:none}
-/* The statement takes the body's one size like everything else. The panel-width override
-   (`font-size:clamp(25px,2.6vw,31px)`) is gone with the ramp. */
+
 .pin .statement{max-width:62ch}
-/* THE CASE-STUDY PANEL'S LEDGER needs its own air, and this is a rule the deletion took out
-   rather than one the direction removed: `.pin h1` and `.pin .facts` both lived inside the
-   ≥1101px split block, so removing that block left the eight case-study titles sitting flush on
-   their first `TYPE` label with nothing between them. Caught by looking at /work/luthier/.
-   One leading of air, the same measure every other label/value pair on the page gets. */
+
 .pin .facts{margin-top:var(--group)}
-/* And the title needs to be distinguishable from the label under it. At one size, on a page
-   with no rules, the h1 has WEIGHT and nothing else — which is right, and it is also why the
-   air matters: `Luthier` at 500 directly above `TYPE` at 11px caps reads as a label group with
-   two labels. Air makes it a title with a ledger under it. */
-/* THE LEDGER — one row, and it is now a labelled line rather than a two-track grid with a
-   hairline. `Currently` sits above its value as an 11px micro-label, the same device the
-   `.proc` kickers and the section heads use, so the page has exactly one way of labelling a
-   thing. The 2px ink rule that opened it and the hairline under it are both gone. */
+
 .pin .pled{margin-top:var(--group)}
 .pin .prow{display:block;max-width:62ch}
-/* TWO ROWS NOW, so the ledger needs an interval between them (chooser Q3/03 — the `Also` row).
-   `--group`, which is what the page uses between two groups everywhere else, and it is the same
-   value `.pin .pfoot` takes below: a label-and-value pair is one object, and 14px binds the pair
-   while 56px separates one pair from the next. That 1:2 is the mechanism the label rule relies on
-   (see `line-height:1.2` above), so a smaller gap here would make the two rows read as one
-   four-line block with two labels in it. Stated as `+`, so a one-row ledger is unaffected —
-   every case-study panel still renders a single `.prow` with no interval to collapse. */
+
 .pin .prow + .prow{margin-top:var(--group)}
-/* THE LABEL, one device: `Currently`, `Contact`, `Elsewhere` — 11px tracked caps, faint. */
+
 .pin .pk,.pin .pfoot{display:block;margin-bottom:var(--tight)}
 .pin .pv{color:var(--dim)}
-/* LINKS INSIDE THE VALUE — the `Also` row's two bands and the canelé explainer (chooser Q3/03).
-   This is the first `.pv` that contains a link, and without the rule they would take the bare
-   `a{color:var(--accent)}` default: accent AT REST, which breaks the site's one link idiom
-   (`--line` underline, ink type, accent on hover — see ONE LINK TREATMENT above) and makes the
-   only coloured thing on the panel something that isn't responding to the reader.
-   `p a` doesn't reach them, and that is the trap this rule exists for: the idiom is written
-   against `p a`, but `.pv` is a `<span>`, so a link in the ledger silently falls out of the
-   system that every other link on the site is in. Same reason `.colo a` exists — the colophon's
-   values are spans too — and this is character-for-character that rule, applied to the panel.
-   Copying it rather than widening `.colo a`'s selector to cover both: they are two different
-   blocks, and one selector spanning them would mean a later change to either has to be checked
-   against the other. Ink at rest also keeps the value legible as prose — three accent-coloured
-   phrases in a two-line sentence would read as a list of links rather than a sentence with
-   links in it. `--dim` from `.pv` is deliberately NOT inherited here: a link is an ink-weight
-   object in this system, which is what separates it from the sentence around it. */
+
 .pin .pv a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
   text-decoration-thickness:1px;text-underline-offset:4px;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .pin .pv a:hover{color:var(--accent);text-decoration-color:var(--ink)}
 
 .pin .pfoot{margin-top:var(--group)}
-/* Contact and Elsewhere, side by side — two groups of alternatives, which is what the pair
-   is. They no longer travel to the foot of a full-height column (there is no full-height
-   column), so `margin-top:auto` is gone. `--group` between them, not `--gutter`: they are
-   two groups, and the page has one measure for the space between groups. */
-/* ON THE GRID, at column 4. Annotation: "why is this not aligned to grid, maybe should be on
-   like col4?" — it was a flex row with a `--group` gap, so `Elsewhere` landed wherever
-   `hi@andrewshiau.com` happened to end (x=386, which is not a column start). With the guide on,
-   it was visibly the one thing in the panel touching no column edge.
-   SEVEN tracks, not twelve, and that is the whole trick: `.pin` spans 7 of the page's 12 fields,
-   so a 7-track subgrid inside it has tracks at exactly the page's own column starts (0, 91, 182,
-   273 …). This is the honest version of what the deleted `grid-column:1 / 10` sub-grids were
-   trying to do — a nested subgrid only aligns with the page if its track count matches the
-   fields it spans. Twelve tracks in a 7-field column is the phantom measure this file warns
-   about twice.
-   `Contact` at field 1, `Elsewhere` at field 4. Field 4 because the address is 18 characters —
-   162px at 9px/char, which overruns field 3's start at 182 by a hair and lands clear at 273. */
-/* TWO COLUMNS ON THE SITE'S OWN AXES, not seven private ones. It declared
-   `repeat(7,minmax(0,1fr))` and placed its two blocks at `1 / 4` and `4 / 8` — a track count that
-   made sense when the document was seven fields and now makes none. Computed at the measure: its
-   own tracks are 76px, so `Elsewhere` started at 312px while every other value on the site starts
-   at 182. A THIRD axis on the page whose whole argument is that it has two, and the only page-level
-   block that had one.
-   It is what it always was semantically — a label beside a value — so it uses `--label` and the
-   content axis like `.frow`, `.colo` and `.specblock`. Found by auditing every span for the old
-   width after the document went to eight fields; the block looked fine. */
-/* TWO EQUAL COLUMNS. Annotation: "can u make this section like two columns" — and it supersedes
-   the stacked version shipped an hour earlier, which was the fix for "this seems too close to
-   contact". Both notes are about the same block and the second one wins; the history is kept
-   because it explains why the obvious `--label 1fr` is NOT what this block wants.
-   WHAT WENT WRONG BEFORE, measured on the render rather than read off the CSS. The block declared
-   `grid-template-columns: var(--label) 1fr` — a label column and a value column — but a `.pfoot`
-   carries its label ABOVE its value (`display:block` on the anchor), so it never needed two tracks.
-   Each `.pfoot` is a plain grid child, so the three of them AUTO-FLOWED into whatever cells
-   existed: Contact in the 154px label track, Résumé in the 518px value track BESIDE it, Elsewhere
-   wrapped to row 2. Three pairs, laid out as if they were two label/value rows. That mismatch is
-   what "too close to contact" was reporting, and a `padding-left` on top of it pushed Résumé to
-   x=497 — off every field edge on the page.
-   Now the tracks describe what is actually in them: two equal halves of the panel column, one pair
-   per cell. 336px each at the measure, against a longest value of 162px
-   (`hi@andrewshiau.com`), so nothing wraps and the second column has room to grow.
-   Three pairs in two columns leaves the third alone on row 2 — which is the same shape `.links`
-   takes on `/work/explain/`, so the site has ONE answer for "a short list in two columns" rather
-   than a bespoke arrangement per block. `--group` between the rows because the pairs are groups.
-   ONE COLUMN at 1060, with every other two-axis block (chooser: andrewshiau-breakpoints, Q1/01).
-   It was 720 — correct for the old private 7-track grid, and wrong once the block used `--label`. */
+
 .pin .pfeet{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
   column-gap:var(--gutter);row-gap:var(--group);margin-top:var(--group)}
 @media(max-width:1060px){
   .pin .pfeet{grid-template-columns:minmax(0,1fr)}
 }
 .pin .pfeet > .pfoot{margin-top:0}
-/* The document's link idiom, the same one `.entry .eh` uses: underline in `--line`, ink on
-   hover, and the accent — colour's one job. `display:block` stacks the two Elsewhere links. */
-/* THE VALUE, at the body size. The label's `font-size:11px` / `letter-spacing` / `uppercase`
-   are INHERITED by the anchor inside it, and left alone they set the email address as an 11px
-   tracked capital — measured on the built page, `HI@ANDREWSHIAU.COM` rendered at label scale.
-   That is the ramp's replacement working backwards: with one size, a label's styling is the
-   only thing distinguishing it, so anything nested inside a label silently becomes a label.
-   The reset is explicit for exactly that reason, and it is the pattern to copy anywhere a value
-   sits inside a `.pk`-style label. `--step` and not `inherit`: `inherit` would take the 11px. */
+
 .pin .pfoot a{display:block;font-size:var(--step);line-height:var(--lead);
   letter-spacing:normal;text-transform:none;
   color:var(--ink);text-decoration:underline;
@@ -1230,1177 +237,71 @@ figure.demo.hang video{width:100%}
   width:fit-content;
   transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
 .pin .pfoot a:hover{color:var(--accent);text-decoration-color:var(--ink)}
-/* The feed's section heads — `Work`, `Experiments`, `Method`. `--group` of air above each,
-   which is the whole structure now that the rules are gone. The first head loses it: the
-   panel above it already brought its own group gap. */
-/* A SECTION HEAD gets --sect above it and --lead below, so the asymmetry does the work: the
-   head is bound to the list it opens (one lead) and cut off from the section before it (four).
-   Space alone says "new section" now that the head is the same size and case as its own rows. */
+
 .feed > h2{margin-top:var(--sect);margin-bottom:var(--lead)}
-/* `margin-top:0` on the first head is right on DESKTOP — `.feed` is its own block below the
-   panel, so the panel's `--group` already supplies the interval and a `--sect` on top of it would
-   double. It is wrong at ≤720, where Q2/02 makes `.pin` `display:contents`: the panel's children
-   and the feed become siblings of one grid, so the panel's margin is gone and "Method" landed
-   FLUSH against the Currently value — measured, a 0px gap where every other head has 112.
-   Scoping the reset to above 720 restores the section interval on a phone without touching the
-   desktop stack. Found in the mobile screenshot, not by the numbers: the two blocks read as one
-   run-on paragraph. */
-@media(min-width:721px){ .feed > h2:first-child{margin-top:0} }
-/* ≤720px the grid already collapses every child to full measure (see the `.grid > *` rule
-   at the top of this file), so the one column needs no breakpoint of its own. That is the
-   other thing the direction buys: the layout that works at 390px is the same layout. */
 
-
-/* THE INDEX — one reference list, both sections. This replaced a calendar scatter that
-   dropped each cell into non-adjacent modules of a 12-col × baseline-row lattice. The
-   scatter was the better composition in isolation and the worse index: Work and Experiments
-   used the SAME device, so nothing but the heading distinguished them, the two sections
-   read as one long drift, and the page ran ~2.5 screens with neither list ever fully in
-   view. A reader arriving at an index wants to see what's there.
-   The row is the .frow device applied to a link — a hairline opens each row, a 2px ink rule
-   opens the list. No cards. The number stays a set figure in the accent, so the one thing
-   the scatter did well (numerals as the rhythm) survives at list scale. */
-/* No top margin: the `h2` above it owns the interval (see `.feed > h2`), and two elements both
-   claiming the same gap is how a 14px-here-28px-there inconsistency starts. */
-.matrix{display:block}
-/* THE LINK LINE — one row of the document (chooser Q1/02). It was a 12-track grid cell with
-   a hairline above it, a 2px ink rule opening each list, a 25px set numeral, a 25px title, a
-   blurb column and a marker column: five tracks and two rule weights per row, eight rows per
-   list. As a table that was correct. As a document it was a table pretending to be prose.
-   What it is now: title · leader · meta, on one 28px line, no rule at all. The gap between
-   title and meta is a flex spacer (`.ends`), which is how a printed index or a table of
-   contents sets a row — the eye tracks the title, the leader carries it right, the meta lands
-   in a column that forms itself because every row shares one measure.
-   The BLURB is gone from the row and lives on the page it describes. Eight blurbs in a list
-   is eight sentences you must read to find the one you want; the title plus the artifact noun
-   is what an index is for. This is the single biggest deletion in the pass and the one that
-   makes a single type size scannable — with the blurb in place, the row needed a size
-   distinction to separate title from description, and the ramp came back in through the door.
-   `align-items:baseline`, so title and meta sit on the SAME baseline. In a monospace face at
-   one size that alignment is exact rather than approximate, which is what lets the leader
-   space read as deliberate instead of as a gap. */
-/* `flex-wrap` and `min-width:0` are the whole responsive story, and both are load-bearing.
-   MEASURED BUG, caught at 390px: with `flex:none` on the title and the meta and no wrap, the
-   row could not fit its own content — the document scrolled to 430px against a 390px window and
-   the marker sat 40px off-screen. A one-line row needs somewhere to put the second line.
-   Wrapping is the honest fix rather than a breakpoint: the leader eats the slack until there is
-   none, then the meta drops to its own line. `min-width:0` on the title lets a long one wrap
-   instead of forcing the line wider than the column (the flex default is `min-width:auto`,
-   which refuses to shrink below the longest word — the same class of bug as the `min-height:0`
-   the deleted scrollport needed). */
-/* `padding:5px 0` was an arbitrary 10px of total row height that put every row 10px off the
-   baseline. A row is ONE LINE, so its box is one leading and nothing more: `line-height`
-   already provides the air, and the rows then stack on the baseline exactly. Eight rows that
-   each land on the grid read as a column; eight rows 10px off it read as a list of boxes. */
-.entry{display:flex;flex-wrap:wrap;align-items:baseline;gap:0;
-  text-decoration:none;color:var(--ink)}
-/* No `.entry:first-child` opening rule and no `.entry.accent`. The flagship row used to be
-   marked by an accent-coloured top rule; there are no rules, and colour now means "you can
-   act on this" (Q4/05) — a coloured rule on one row of eight would be the one thing on the
-   page that looks interactive and isn't. Position is the emphasis: the flagship is first.
-   `accent` is still emitted in the markup by two data entries; it selects nothing here, and
-   that is deliberate rather than an oversight — see the note in experiments.ts. */
-/* The numeral: same size as everything, faint, and one character cell wide plus a space.
-   `tabular-nums` is redundant in a monospace face (every glyph is one advance) and is kept
-   off for that reason — declaring it would imply the face needs it. */
-.entry .en{color:var(--faint);flex:none;margin-right:1ch}
-/* The title carries the underline, and the underline is the LINK affordance: `--line` at
-   rest, ink on hover. This is the document's one link idiom — see `.d2 .ln` in the chooser.
-   A monospace underline at 4px offset sits clear of the descenders at 15/28. */
-.entry .eh{font-weight:400;margin:0;flex:0 1 auto;min-width:0;
-  text-decoration:underline;text-decoration-color:var(--faint);
-  text-decoration-thickness:1px;text-underline-offset:4px;
-  transition:text-decoration-color var(--dur) var(--ease),
-             padding-left var(--dur) var(--ease),color var(--dur) var(--ease)}
-/* The leader — the space that carries the eye from title to meta. `flex:1 1 auto` with a
-   16px floor so a long title on a narrow window still separates from its meta instead of
-   colliding with it. It draws nothing: a dotted leader was tried in the chooser's Direction
-   03 and it turns a quiet list into a menu. */
-.entry .ends{flex:1 1 auto;min-width:16px}
-/* ── THE BLURB IS BACK, ON WORK ROWS ONLY (chooser: andrewshiau-decisions, Q1/02).
-   This was `display:none` — a rule kept for a device nothing emitted, which is the shape of dead
-   CSS even when it is deliberate. Meanwhile the blurbs existed for all nine artifacts in
-   `experiments.ts` and rendered for none, so the index called Luthier "Figma widget" and the
-   sentence about a pipeline making 50,000 marketing images a year sat unused in the data.
-   Three rows, not nine. STYLE.md's objection holds for a list you scan to choose from and not
-   for the three rows a stranger has to judge; Experiments keep the bare treatment, which makes
-   the bareness the signal that Work is the more important list. The index could not draw that
-   distinction before, because every row was identical.
-   `flex:0 0 100%` because `.entry` is a flex row: the blurb has to take a line of its own or it
-   competes with the meta column for the leader space. `padding-left:4ch` puts it on the TITLE's
-   axis (3ch numeral + 1ch gap), not the row's, so the sentence hangs under the thing it
-   describes rather than under the number. `--tight` above it, because a blurb and its title are
-   one object — the next ROW is `--group` away, and that 14-vs-56 ratio is what keeps three
-   three-line rows readable as three things.
-   `3ch` is measured, not derived: `.en` renders 18px wide (two digits) plus a `1ch` margin = 27px
-   to the title's edge, which is 3ch exactly. Verified with a Range over the text node rather than
-   a bounding box on the element — `.ed` is a full-width flex item, so its BOX starts at the row's
-   left edge and the padding moves its TEXT; measuring the box says 224 and measuring the text says
-   251, and only the second one is what a reader sees. Title text and blurb text both land on 251. */
-.entry .ed{flex:0 0 100%;display:block;color:var(--dim);max-width:62ch;
-  margin-top:var(--tight);padding-left:3ch}
-/* Row-to-row spacing has to grow with the blurb, or three 3-line rows run together into one
-   twelve-line block. `:has()` keeps Experiments at their own rhythm without a second class.
-   BOTH combinators are needed. `.entry + .entry` misses the pair either side of the locked row,
-   because `LockedRow` emits a `.egaterow` sibling between them — measured: the gap between rows
-   01 and 02 was 0 while 02→03 was 56. The second selector catches the row after that cell. */
-/* `~`, not `+`, and the DOM is why: `LockedRow` emits three siblings — the row, its `.egaterow`
-   gate cell, AND an inline `<script>` — so between row 01 and row 02 there are two nodes, not one.
-   Measured with `+ .egaterow + .entry`: the 01→02 gap was still 0 while 02→03 was 56. A general
-   sibling combinator doesn't care how many nodes intervene, and `:has(.ed)` already restricts it
-   to rows that carry a blurb, so it cannot leak into Experiments.
-   The `~` is scoped by `.matrix`, so it only ever matches inside one list. */
-.matrix .entry:has(.ed) ~ .entry{margin-top:var(--group)}
-@media(max-width:1060px){
-  /* The 3ch numeral column disappears when the row wraps, so the hanging indent would leave the
-     blurb floating 4 characters off the page's one left edge. */
-  .entry .ed{padding-left:0}
+@media(min-width:721px){ .feed > h2:first-child{margin-top:0}
 }
-/* THE MARKER, at the end of the line. It has no track any more — the leader puts it at the
-   right edge, and because every row shares one measure the markers form their own column
-   anyway. That is the document's argument in miniature: the alignment a grid track was
-   enforcing happens on its own once the type is one size in a fixed-advance face.
-   TYPE FIRST, SIDE TRAILING, ONE LINE (chooser: andrewshiau-panel-marks, Q1/05).
-   `row-reverse`, not source order: the DOM keeps SideDot FIRST so the marker's word is read
-   before the type by a screen reader and the `.side + .smeta` sibling selector still has
-   something to select. The visual order is a layout concern; the reading order isn't. */
-.entry .em{display:flex;flex-direction:row-reverse;align-items:center;
-  justify-content:flex-start;gap:8px;color:var(--faint);margin:0;flex:none;text-align:right}
-/* WRAPPED, the meta lands on its own line — and the breakpoint is 457px, not 560
-   (chooser: andrewshiau-mobile-meta-and-currently, Q1/02).
-   THE 3CH INDENT IS GONE, AND SO IS ~100PX OF THE RANGE THIS RULE USED TO COVER.
-   Annotation: "i dont love this indent on new line treatment it reads kind of lazy and
-   unconsidered … 1. removing completely 2. something with better alignment. this is on
-   mobile. on desktop its ok." It read unconsidered because it was answering a problem that
-   wasn't present at the width it was seen at, and the measurement is the whole argument:
-     the widest row — "PowerPoint Pen Toolbox" + "Prototype study" + the glyph — needs
-     402px of column: 27 numeral + 198 title + 16 leader floor + 135 meta + 18 glyph + 8 gap.
-     `.wrap` pads 28px either side, so the column is `viewport − 56` and 402px of column is
-     a 458px viewport. At the annotated 500px the column is 444 — 42px of slack.
-   So ≤560 fired about 100px early and bought a second line on all nine rows for nothing.
-   Verified in the live browser at 500px, both ways: with the meta forced back onto the line
-   every row was ONE line and `scrollWidth` stayed at 500 against a `clientWidth` of 500 —
-   no overflow, which is the failure the wrap exists to prevent. The old comment claimed 560
-   was measured; it was measured at 390px, where the wrap IS needed, and then generalised.
-   The threshold was found by shrinking the column and watching which row broke first:
-   402 holds, 400 wraps PowerPoint, 360 wraps Stores Designer, 340 wraps the Method row.
-   Hence `max-width:458px` — stated as the measurement rather than rounded to a friendly
-   number that would be wrong by 20px in one direction.
-   IT WAS 457, AND 458 IS A ONE-PIXEL BUG THE BUILT PAGE CAUGHT. Swept 456–470 against the
-   deployed CSS: at 458 the widest row wraps on its OWN — `flex-wrap` runs out of room a
-   pixel before the query fires — and with the query still inactive the meta keeps
-   `justify-content:flex-start`, so the marker landed at x=189 in the middle of the line
-   while the other eight sat at the right edge. One row, one width, and it is exactly the
-   ragged thing this rule exists to prevent. The wrap and the alignment that handles a wrap
-   have to switch on at the SAME width, so the query starts where the first natural wrap
-   does. Verified after the change: 459 and up → 0 wrapped, 458 and below → 9 wrapped and
-   every marker on the right edge, no overflow at any width down to 320.
-   `flex-basis:100%` still forces the wrap at the meta rather than mid-marker, which is what
-   was splitting the glyph from its own word at 390px.
-   AND THE WRAPPED LINE IS RIGHT-ALIGNED NOW (chooser Q1/04's alignment, kept for the range
-   where the wrap survives). `padding-left:3ch` put the meta on the title's axis, which was
-   wrong twice over: the Method row carries no numeral, so its title starts at the page's
-   edge and the "aligned" meta hung 3 characters INSIDE the title it was supposed to sit
-   under — visible in the annotation's own screenshot. And the alignment the row is actually
-   built on is the right edge: the leader (`.ends`) exists to push the marker there, and at
-   every width above this breakpoint nine markers form a column at the right margin. Keeping
-   that column through the wrap means the phone gets the same device the desktop has, so
-   nothing has to justify a 3ch offset to a moving target.
-   ── AND BELOW THIS WIDTH THE ROW DOESN'T WRAP AT ALL ANY MORE. THE ARTIFACT NOUN GOES AND THE
-   MARK STAYS (annotation: "what if the mobile site put only the icon rather than agent spec +
-   icon so it wouldn't need a second row"). Right, and it is the better trade at this width:
-   MEASURED — with `.smeta` out, the row holds ONE line down to a 260px column, which is a
-   316px viewport. No phone in use is narrower (the iPhone SE/mini floor is 320), so the wrap
-   this rule was written for stops happening at any width a reader actually has. The declaration
-   above is kept rather than deleted: it is what handles a 300px window and a 200% page zoom,
-   where the title alone finally runs out of room.
-   WHAT IT COSTS, stated because it is a real loss and not a free win: the artifact type —
-   `Agent spec`, `Design system tool`, `Photo set` — is the one fact in the meta column, and on
-   the phone it is now unavailable rather than merely quiet. The mark that replaces it carries a
-   DIFFERENT fact (which half of the practice), so this is not a shorter version of the same
-   thing. The reason it is acceptable here and not on the desktop: every row's type is stated
-   again, in full, in the ledger at the top of the page it links to (`metaOf` in
-   experiments.ts asserts they are character-for-character identical), so the phone reader loses
-   nine labels and no information — and gains nine rows that read as one line each, which is
-   what an index is for. The desktop keeps both because it has the room; nothing about the
-   desktop row changes.
-   `visibility:hidden` + `width:0`, NOT `display:none`. Same reasoning as `.sw` twenty lines
-   below: `display:none` drops a node from the accessibility tree, and this text is the only
-   place the artifact type is spoken on this page. Hidden-but-present, it still reaches a screen
-   reader and still answers a find-in-page; sized to nothing, the flex row measures the glyph
-   alone, so the mark lands exactly where a marker-only row should put it.
-   `.side + .smeta::before` is already suppressed on index rows (see below), so there is no
-   orphaned `·` to clean up — the separator that would have been left behind by removing the
-   word it separates was never rendered here in the first place.
-   AND `.em` GOES BACK TO `flex:none` HERE — hiding the word is only half the change, and
-   shipping the other half without this was a measured bug. `flex:0 0 100%` FORCES the meta onto
-   its own line whether or not it has anything visible in it, so with just the mark left the row
-   still spent a second line, on 18px of glyph: 32 line-boxes across the nine rows at 458px
-   against 23 at 459px. The icon-only row was longer than the row it was meant to shorten, which
-   is the opposite of the ask. `flex:none` puts the mark back on the title's line and the leader
-   pushes it to the right edge, exactly as it does above the breakpoint.
-   NOTHING FORCES A WRAP ANY MORE, and that is deliberate rather than an omission: `.entry` is
-   still `flex-wrap:wrap` with `min-width:0` on the title, so at a width where even the title
-   plus an 18px mark cannot fit — a 200% zoom, a 320px window with the longest title — the mark
-   drops to its own line on its own. The rule states where it lands in that case and lets the
-   flexbox decide when the case has arrived, instead of asserting a wrap at a width where there
-   is 200px of room. That inversion is the whole lesson of this breakpoint: the old ≤560 rule
-   also asserted a wrap the content didn't need.
-   `margin-left:auto` IS WHAT PUTS THE DROPPED MARK ON THE RIGHT, and it replaces a
-   `text-align:right` that could not do it. Caught in the 320px render, where "PowerPoint Pen
-   Toolbox" — the longest title — pushes the mark to a second line: `text-align` aligns INLINE
-   content inside a box, and `.em` is a flex ITEM whose box is only as wide as its content, so
-   there was no slack inside it to align and the mark sat at the left margin under the title.
-   Every other row was unaffected, so this is one row at one width, which is exactly how the
-   3ch-indent defect this rule replaced also presented. `auto` margin absorbs the free space in
-   the flex LINE, which is where the space actually is. `text-align:right` is kept alongside it
-   for the range above where `.smeta` is visible and there IS inline content to align. */
-@media(max-width:458px){
-  .entry .em{flex:none;justify-content:flex-start;text-align:right;padding-left:0;
-    margin-left:auto}
-  .entry .em .smeta{visibility:hidden;width:0;overflow:hidden;white-space:nowrap}
-}
-/* No `·`. The separator earns its place between two words; here the glyph IS the boundary,
-   and `row-reverse` would in any case put the dot on the wrong side of the pair. */
-.entry .em .side + .smeta::before{content:none}
-/* The word, hidden from the eye and kept for everything else. This is the one place the
-   side is not spelled out, so it is NOT deleted: it stays in the DOM for screen readers and
-   in `title` for a hover. Clipped rather than `display:none` — a display-none label is
-   dropped from the accessibility tree, which is the whole thing being preserved.
-   Sized 0 with the SVG excluded, so the flex row measures the glyph and nothing else. */
-.entry .em .side{gap:0}
-.entry .em .side .sw{position:absolute;width:1px;height:1px;overflow:hidden;
-  clip-path:inset(50%);white-space:nowrap}
-/* THE ONE-CHARACTER SHIFT (chooser Q6/01 + 05 — "hover only" plus "the one-character
-   shift"). On hover the title steps right by exactly `1ch` — one character cell of the
-   monospace grid — its underline goes to ink, and the numeral darkens from faint to ink.
-   Nothing fades, nothing scales, nothing tints.
-   `1ch` and not 8px, because on this page 1ch is a real unit: every glyph has the same
-   advance, so the row moves by the grid's own smallest increment and lands back ON the
-   grid. That is why the body sets no letter-spacing — tracking would make `1ch` and the
-   actual character cell disagree, and the motion would land between cells.
-   `padding-left` on the title only, not `transform` on the row: a transform would drag the
-   numeral and the marker with it, and the point is that the fixed columns hold still while
-   the title steps out of them. The row's total width is unchanged because `.ends` absorbs
-   the character — the meta column does not move.
-   The background tint the old row had is gone with the rules. A 4% wash is a box; this is
-   the document, and it moves the type instead of painting behind it.
-   The arrow glyph (`.arrowc`, one `→` per row) went too: with eight rows it was eight
-   arrows announcing that a link is a link, and the underline plus the shift already say it. */
-.entry:hover .eh{padding-left:1ch;text-decoration-color:var(--ink)}
-.entry:hover .en{color:var(--ink)}
-/* The ONE hue, doing its ONE job (chooser Q4/05): the hovered row's title is the only
-   coloured thing on the index. Colour therefore always means "you can act on this", and it
-   only ever appears in response to the reader — which is the strongest thing a single hue
-   can be made to say. */
-.entry:hover .eh{color:var(--accent)}
-/* Keyboard parity. The row is a link, so a `Tab` reader must get the same signal a mouse
-   reader gets; without this the shift and the colour are mouse-only affordances. */
-.entry:focus-visible{outline:none}
-.entry:focus-visible .eh{padding-left:1ch;text-decoration-color:var(--ink);color:var(--accent)}
-.entry:focus-visible .en{color:var(--ink)}
-/* No `.lock` word and no `.lockc` glyph. Both were built to advertise the locked row as shut
-   before the click — a drawn padlock at the title and a third line reading `Password` in the
-   marker cell. On the page they read as a warning label on the one row in the list that most
-   wants opening, in a matrix whose entire device is one arrow per row. The gate is its own
-   disclosure: the click opens the ask in place, under the row, so nothing is concealed and no
-   promise is broken by dropping the marks. The row now carries the same `→` as every other.
-   Deleted rather than left unused: `.entry .em .lock`, `.entry .lockc`, `.entry .lockc svg`,
-   and `.entry.open .lockc` had no remaining call site once LockedRow stopped emitting them,
-   and CSS for markup that doesn't exist is a trap for whoever greps this file next. */
-/* NO BREAKPOINT, AND NO RE-CUT. What was here: four separate cuts of this row — the 12-track
-   page version, a 3-track version for the 8-column feed (with a 184px marker track measured
-   against Graphik's advance width), a ≤1100px stack that undid the feed cut, and a ≤900px
-   collapse that undid both. Roughly 55 lines and four sizes of numeral, all of it in service
-   of fitting five tracks into a narrowing column.
-   The row is one flex line now — title, leader, meta — so there is nothing to re-cut. It
-   reflows because a flex line reflows: the leader absorbs the slack down to its 16px floor and
-   the meta wraps under the title when there is no room left. The behaviour at 390px is the
-   behaviour at 1440px with less leader.
-   This is the clearest measurement of what the direction bought: one device, no breakpoints,
-   and the ~55 lines that made the old one hold are deleted rather than ported. */
 
-/* ─── THE GATE ROW ───────────────────────────────────────────────────────────────────────
-   The locked row opens under itself and the ask happens inside it (chooser:
-   andrewshiau-gate-options, option 05). What it replaced: `auth_basic`, which handed the
-   reader the BROWSER's credential dialog — a box the site cannot style, drawn over the page,
-   with no sentence explaining what is behind it. The mechanism had to change for the design
-   to be possible at all; the runbook is in README.md.
-   It is a SIBLING of the row, not a child, and that is forced rather than chosen: `.entry` is
-   an `<a>`, and a `<form>` inside an anchor is invalid — the parser lifts the form out of the
-   link, so a nested version would render outside the row it belongs to. As a sibling of the
-   `.matrix` grid it takes the row's own tracks, so the ask starts on the title's left edge in
-   every one of the row's four cuts (12-track page, 3-track feed, ≤1100 stack, ≤900 collapse)
-   without a single new breakpoint: each rule below just mirrors what `.entry .eh` does there.
-   No top rule of its own. Every rule on this site owns the thing it touches, and this cell is
-   part of the row above it — a hairline between them would divide one object into two. The
-   open row's tint is what joins them, and it is the SAME hover tint the row already has, held
-   on: nothing new is introduced to say "open". */
-/* NO TRACKS. It was a 12-column sub-grid that mirrored the row's tracks in all four of the
-   row's cuts, so the ask would start on the title's left edge everywhere. The row is one flex
-   line now, and the title starts one character cell past the numeral, so the gate is indented
-   by that same `3ch` — two digits plus the `1ch` margin — and lands on the title's edge by
-   construction rather than by four synchronised rules. The one number, once. */
-.egaterow{padding-left:3ch}
-.egaterow[hidden]{display:none}
-.egaterow .egate{padding:0 0 var(--lead);max-width:62ch}
-/* THE OPEN STATE. The 4% tint is gone along with the hover tint it borrowed from — the row's
-   hover is a one-character shift now, and a shift cannot be "held on" to mean open. So the open
-   row says so the way the document says everything else: the gate is simply THERE, under the
-   row, with air around it. The disclosure is the content appearing, which is the most honest
-   signal available and the one the chooser's option 05 described ("the index row, opened in
-   place"). No tint, no rule, no bleed — and the three phone-width rules that existed to make the
-   tint readable at 390px go with it. */
-.egate .gsm{color:var(--dim);margin:0 0 var(--lead);max-width:62ch}
-.egate .gsm a{color:var(--accent)}
-/* The answer line. It replaces an `alert()`, and it is faint by default because most of the
-   time it says nothing; `.bad` is ink, not red — the site has no red, and "that password is not
-   right" is a fact, not an alarm. Faint-to-ink by VALUE, which is the ramp's replacement. */
-.egate .gmsg{color:var(--faint);margin:var(--lead) 0 0;min-height:var(--lead)}
-.egate .gmsg:not(:empty){color:var(--ink)}
-.egaterow .egate .f{max-width:34ch}
-
-/* ─── THE FIELD AND THE BUTTON ───────────────────────────────────────────────────────────
-   The site's FIRST form control, and for now its only one. There was no `input` and no
-   `button` anywhere before this, so the two rules below are a small addition to the system
-   rather than a component: a field is a rule you type on, and the button is `.block` — the
-   one filled accent form STYLE.md already sanctions, one per page, which is exactly what a
-   gate has room for.
-   The field is an underline, not a box, and it is now THE ONLY RULE ON THE SITE. Every other
-   border came out with the document direction, which makes this line unambiguous: a horizontal
-   rule under text means "type here", and it means nothing else anywhere. 1px, not the 2px it
-   was — there is no 2px ledger opener left for it to match, and at one weight the line reads as
-   a writing line rather than as a heading's underscore.
-   `border-radius:0` on both controls, explicitly. Every browser rounds these by default and the
-   site has no rounded corner anywhere else. */
 .f{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
-/* `min-height:44px` on the INPUT too, not just the button, and it is a fix not a belt-and-
-   braces: `align-items:stretch` only makes the field as tall as the button while the two share
-   a line. At 390px the row wraps, each line sizes itself, and the field fell back to its own
-   content box — 42px, measured, so WCAG 2.5.5 failed on the phone and nowhere else. A control's
-   tap target can't depend on a sibling staying beside it. */
-/* 16px is the ONE deliberate exception to the single size, and it is not a taste call: below
-   16px iOS Safari zooms the page on focus, which on a phone scrolls the row out of view
-   mid-typing. A ramp step chosen by a platform constraint is not a ramp step. It is 1px off the
-   body's 15 and invisible beside it, which is why this is affordable. */
+
 .f input{font:inherit;font-size:16px;
   color:var(--ink);background:transparent;border:0;border-bottom:1px solid var(--ink);
   padding:8px 0;min-height:44px;min-width:0;flex:1 1 24ch;border-radius:0;
   transition:border-color var(--dur-fast) var(--ease)}
 .f input::placeholder{color:var(--faint)}
-/* Focus is the accent on the line itself — the same "link interaction" role the accent has
-   everywhere else. `outline:0` is only acceptable BECAUSE the line changes colour and weight
-   with it; a bare `outline:0` would delete the only focus signal a keyboard reader gets. */
+
 .f input:focus{outline:0;border-bottom-color:var(--accent)}
-/* THE BUTTON IS DELETED with the markup that used it (annotation: "can this check for the right
-   pw and just go instead of having a submit btn"). The field checks as you type and navigates on
-   the first correct answer, so there is nothing left to press — and the filled ink field it used
-   was the last filled rectangle on the site after `.block` gave its up.
-   Five rules gone rather than left as CSS for markup that doesn't exist. The site now has ZERO
-   buttons: `.f input` is the only form control, and it is a line you type on.
-   `.f` keeps `display:flex` for one reason — the input's `flex:1 1 24ch` still needs a flex
-   parent to grow against, and the wrap rule below still applies at 390px. */
 
-/* THE METHOD ROW is now literally `.entry` — the whole spec-row device is deleted (annotation:
-   "cut the design / build sections here and just put title"). That removed ~25 rules: its own
-   flex head, its marker cell, its hover shift, its two `.proc` sub-rows and their kickers.
-   AND IT SITS AT COLUMN 1, flush. Annotation: "i want 'the operating...' to be on col 1 left
-   aligned." It had `padding-left:3ch` to fake the numeral its neighbours have, on the theory
-   that all three lists should share one title axis. Wrong call, and the annotation is the
-   correction: column 1 is the axis EVERYTHING else on the page uses — the statement, the labels,
-   the section heads, the prose, the clips. An indent to match two lists broke alignment with the
-   other nine elements, and it indented the row for a numeral that isn't there, which reads as a
-   hanging indent with nothing hanging in it.
-   Flush left, the row starts where the page starts. The 3ch offset on the Work and Experiments
-   titles is a real difference and it is now legible as one: those rows are numbered, and the
-   numeral is what occupies the space. */
-/* (no rule needed — `.entry` is flush by default) */
-/* SIDE MARKER — which half of the practice an entry belongs to, and THE ONLY PLACE THE MARK
-   APPEARS ON THE PAGE (chooser: andrewshiau-mark-options, Q3/05). The figure isn't a masthead
-   any more; it's this column's glyph, so every drawing of it that ships carries a fact. The
-   44px `.pin .pmark` logo above the name is deleted — see the note where it used to be.
-   The mark's own vocabulary does the distinguishing: the whole figure for both, the ring alone
-   for design, the disc alone for build (see MarkFigure.astro). Outline vs. fill is the signal,
-   which is the point — it survives greyscale, where the two duality hues do not (navy and olive
-   are only 2.14:1 apart). The WORD is still emitted regardless: a shape a reader has to learn
-   is not a label, and it costs nothing to keep.
-   `currentColor`, so the glyph takes `.em`'s `--faint` on an index row and the marker column
-   stays annotation rather than becoming eight small logos. It was the two hues; the hues are
-   what the ring/disc replaced. */
-.side{display:inline-flex;align-items:center;gap:6px;flex:none}
-/* 18px, and it is a floor rather than a preference. The figure's ring is stroked 1.8 in a
-   32-unit box — 0.056em — so at 16px the stroke lands at 0.9 device pixels, the ring greys out
-   to a soft blob and the trimmed rule (4.29 units) falls under 2.2px. At 18 the stroke clears
-   one pixel and the rule is ~2.4px: small, and still a line. 18 also happens to be the meta
-   line's own leading, so the glyph sits inside the row's rhythm instead of growing it. */
-.side .mark{width:18px;height:18px;flex:none;display:block;overflow:visible}
-.smeta{color:var(--faint)}
-/* The `·` between the marker and the artifact noun. Both index rows suppress it (the glyph is
-   the boundary there), so this is the case-study panel head's separator and nothing else. */
-.side + .smeta::before{content:"·";margin-right:6px;opacity:.55}
-/* COLOPHON — facts about the page, read after the work. Its 2px ink rule is gone with every
-   other rule; `--group` of air opens it, the same as every other group on the page. That also
-   settles a small inconsistency the rule was hiding: `.colo-lab` was tracked .16em and `.ck`
-   .13em, two values for one device, neither of which was the .14em the rest of the site uses.
-   One tracking now. The label is `--faint` rather than `--accent`, because the accent means
-   interaction and a colophon label is not interactive. */
-/* `.colo-rule` spanned all 12 fields; it is `1 / 9` now, with the document (Q3/02). It has no
-   border — the rules came out with the mono pass — so it is a spacer, and a spacer that is wider
-   than the block it opens was the full-bleed defect in its purest form. */
-.colo-rule{grid-column:1 / 9;height:0;margin-bottom:var(--lead)}
-.colo{color:var(--dim)}
-.colo .ck{display:block;margin-bottom:var(--tight)}
-/* The document's one link idiom, the same as `.entry .eh` and `.pin .pfoot a`. It was a
-   transparent 1px bottom border that filled in on hover — a second underline mechanism for the
-   same job. `text-decoration` is the one the rest of the site uses. */
-.colo a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
-  text-decoration-thickness:1px;text-underline-offset:4px;
-  transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
-.colo a:hover{color:var(--accent);text-decoration-color:var(--ink)}
-/* ── TWO ROWS OF TWO, not four across (annotation: "colophon should maybe be two rows now").
-   It was four facts each spanning 2 of the 12 fields — 154px, or 17 characters. Measured on the
-   built page: every one of the four rendered FOUR LINES TALL, because
-   "IBM Plex Mono at 15/28, one size, 62 characters." is 48 characters trying to fit 17 per line.
-   Four columns of four-line ribbons is what "should maybe be two rows" is looking at.
-   At 4 fields each (336px = 37ch) the longest value takes two lines and the shortest takes one,
-   so the block is two rows of two instead of one row of four — and no fact is a ribbon.
-   `row-gap:--group`, because the two rows are two groups: without it the second row's labels sit
-   one lead under the first row's values and the four pairs read as a single stack of eight lines.
-   Facts 1 and 3 open a row, so they start at column 5 where the old single row started; 2 and 4
-   sit beside them at column 9. The label stays at c1–3 in the margin, which is unchanged.
-
-   ── AND NOW IT IS CONSTRAINED TO THE DOCUMENT (chooser: andrewshiau-grid-options, Q3/02).
-   Everything above stays true about why four-across failed; what changed is where the block
-   lives. It was the ONE element on the index that used all 12 fields — a 2px rule across 1064px,
-   the label at c1–3, and facts at c5–9 and c9–13, which are grid lines nothing else on the site
-   touches. Every other block stopped at column 7.
-   Measured, that made the colophon the one inconsistency a reader could see without the overlay:
-   the page's whole argument is a left-weighted document, and its last block was full-bleed.
-   So the colophon is now the LEDGER, which is what it always was semantically — a list of
-   label/value pairs about the page. `.colo` rows use `--label` and the content axis like every
-   `.frow`, inside `.c1-8` like every other block. One left edge, one right edge, one device, for
-   the whole site.
-   The `.c1`–`.c4` classes stay in the markup and stop meaning "which column": they now only
-   carry the row order, so the page's HTML didn't have to change to make the block obey the grid.
-   Stacking at 1060 with everything else (Q6/01) — a colophon label is a hung label and gives at
-   the same width for the same reason. */
-/* `1 / 9`, NOT `1 / -1`, and this one is the exception to the rule stated at `.c1-12`.
-   I wrote `1 / -1` here first and it was wrong in exactly the way the colophon was wrong before:
-   the wrapper is a PAGE-level `.grid` — the colophon is a sibling of `.split`, not a child of
-   `.feed` — so `-1` resolves to all twelve tracks, 1064px, and the block was still full-bleed
-   after being "constrained". Caught by computing the span rather than by looking, because a
-   colophon that spans the page looks perfectly fine.
-   The rule generalises: `-1` means "every track of my parent", which is right for a block inside
-   the document and wrong for a block that IS placed on the document. At page level the document's
-   width has to be stated. */
-/* ══ AND NOW IT IS A 2×2 FIELD (chooser: andrewshiau-colophon-options, option 04).
-   Annotation: "i somehow wish this was more dynamic like could we still have a layotu like —
-   colophon. steered by / set in / before ai / grid", sketched as the four facts walking to the
-   right instead of stacked in a list. Six options were rendered on the real grid and the pick was
-   04 over the literal stagger.
-   What it is: the four facts as four BLOCKS on two axes, each label directly above its value, the
-   word `Colophon` hanging in the margin. Two rows of two, and the second row starts on the same
-   two verticals as the first.
-   Why this beats the sketch as drawn (option 02) and the staircase (03), stated after the choice:
-   the sketch's indent breaks the one alignment invariant the page has — every block on the site
-   starts at column 1 or on the 182px content axis, and a fact indented to a third vertical is a
-   third left edge that means nothing. 04 gets the same "not a table" reading out of COMPOSITION:
-   the label sitting on top of its value is what stops the block reading as rows, and two axes is
-   what makes it a field. One left edge kept, list defeated.
-   The label/value pair is `--tight` — they are one object, which is the rule the whole space scale
-   is built on — and the pairs are `--group` apart, so a pair binds tighter to itself than to its
-   neighbour. Without that the eight lines read as one stack again, which is the failure the
-   previous two-rows-of-two note records.
-   THE MARKUP DID NOT CHANGE. `.c1`–`.c4` already carried nothing but row order (see the note
-   above), so they now carry cell order instead: 1 and 3 at column 3, 2 and 4 at column 7 — the
-   same two verticals, one row apart. That is the third time this block has been re-cut without
-   touching index.astro, which is what those four classes are for. */
-.colo-lab,.colo{grid-column:1 / 9}
-/* `1 / 9` on the wrapper's twelve tracks and its own four cells inside — the block is placed on
-   the DOCUMENT (it is a sibling of `.split`, not a child of `.feed`), so the width has to be
-   stated rather than `-1`'d. This is the exception the rule at `.c1-12` names: `-1` here resolves
-   to all twelve tracks and the colophon goes full-bleed again. */
-.colofield{grid-column:1 / 9;display:grid;
-  grid-template-columns:repeat(8,minmax(0,1fr));column-gap:var(--gutter);
-  row-gap:var(--group)}
-/* The label hangs where every hung label on the site hangs: two tracks, the content axis at 182px.
-   It is the block's name, not a heading for the first cell — so it takes the field's first row and
-   nothing else sits beside it in column 1. */
-.colofield .colo-lab{grid-column:1 / 3;color:var(--faint)}
-.colo{color:var(--dim);display:block}
-/* The two verticals. c1/c3 open each row on the content axis at column 3; c2/c4 sit beside them.
-   THREE fields each, and the two cells fill the field's remaining six tracks exactly — the first
-   cut wrote `3 / 6` and `6 / 9`, which is also three each but left the second column ending at the
-   field's edge while the label's two tracks went unused above it. Measured after the fix: each cell
-   is 245px = 27 characters, and the longest value ("IBM Plex Mono at 15/28, one size.", 33
-   characters) wraps to two lines while the two link cells take one.
-   That two-line wrap is ACCEPTED rather than fixed by widening. The proof sheet rendered these
-   cells at four fields (336px) where every value fits one line, and that shape needs the label's
-   own two tracks — which would put the facts back at the page's left edge and delete the hung
-   label the whole site is built on. A colophon value wrapping to a second line costs nothing; a
-   third left edge costs the alignment invariant. The cells are equal width, on two verticals, and
-   no cell is the four-line ribbon that killed the original four-across. */
-.colo.c1,.colo.c3{grid-column:3 / 6}
-.colo.c2,.colo.c4{grid-column:6 / 9}
-.colo .ck{display:block;margin-bottom:var(--tight);color:var(--faint)}
-.colo .cv{display:block}
-@media(max-width:1060px){
-  /* One column, with every other two-column device (Q6/01). The label-above-value pair survives
-     the collapse unchanged — that is the advantage of 04 over the hung ledger it replaced: the
-     narrow layout IS the wide layout with one column instead of two, so there is no second shape
-     to maintain and no `display:block` reset to remember.
-     THE SELECTORS ARE REPEATED, not folded into `.colofield > *`, and that was a measured bug:
-     `.colofield .colo-lab` (0,2,1) and `.colo.c1` (0,2,0) both outrank a bare child selector, so
-     the cells kept their 2- and 3-track spans against a template that now has ONE track. Measured
-     at 1000px before the fix: the label computed `grid-column:1 / 3` and rendered 0px wide, and the
-     field's own template read `0px 0px 113px …` — the word "Colophon" was on the page and invisible.
-     Matching the specificity fixes it without `!important`, which is the same call `.grid.sect`
-     makes for the same reason (see the note there). */
-  .colofield{grid-template-columns:minmax(0,1fr);column-gap:0;row-gap:var(--group)}
-  .colofield .colo-lab,
-  .colo.c1,.colo.c2,.colo.c3,.colo.c4{grid-column:1 / -1}
-  /* The label goes to ink with every other STACKED label on the site: it no longer has a column of
-     its own, so value is the only mechanism left to separate it from what follows. That is the rule
-     at the top of this file, and the wide layout is the one that must NOT take the colour. */
-  .colofield .colo-lab{color:var(--ink)}
-  .colo .ck{color:var(--ink)}
-}
-
-/* ── /system/ SPECIMENS. Six rules, and they draw the SPECIMEN CHROME only — the swatch square,
-   the space bar, the row that lays a token beside its job. Every actual device on that page
-   (`.frow`, `.entry`, `.f input`, the marker) is the real class with no override, which is the
-   property that makes the page evidence rather than a mock-up. If a rule here ever starts styling
-   a device instead of a specimen, the page has stopped being true.
-   `.sysrow` is the two-axis pair one level down: swatch + token at the annotation edge, value and
-   job on the content side. It re-uses `16ch` so the specimen list lands on the page's own axis. */
-/* ── THE SPECIMEN ROW IS THE SITE'S OWN PAIR, one level down. Two attempts got this wrong by
-   trying to fit four columns on one line, and the arithmetic says it never fits: the document
-   column is 68ch, four tracks plus three gutters spend 53 of them, and the longest job string is
-   49 characters. Rows wrapped to six lines, then to four.
-   So it uses the device the rest of the site uses. The SPECIMEN (swatch or bar, plus the token
-   name) is the annotation and sits on the 16ch axis at column 1; the value and the job are the
-   content and sit on the second axis, the value above the job as a `--tight` pair. Identical
-   structure to a `.frow`, which is the point — a specimen sheet whose own rows disobey the system
-   it documents is not evidence. */
-.sysrows{grid-column:1 / -1;margin-top:0}
-.sysrow{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter);
-  margin-top:var(--group)}
-.sysrow:first-child{margin-top:0}
-/* The specimen cell: swatch/bar and token name together, on one line, in the annotation column. */
-.sysrow > .sw,.sysrow > .bar{grid-column:1;grid-row:1}
-.sysrow > code{grid-column:1;grid-row:1;padding-left:4ch;background:none;color:var(--ink)}
-.sysrow-bar > code{padding-left:0;grid-row:2;padding-top:var(--tight)}
-.sysrow .sysv{grid-column:2;grid-row:1;color:var(--faint)}
-.sysrow .sysj{grid-column:2;grid-row:2;color:var(--dim);max-width:62ch;
-  padding-top:var(--tight)}
-/* The swatch is a character cell, not a chip: 2ch square, so it sits in the grid the type sits in.
-   `--line` border so a swatch whose fill IS the paper still has an edge. */
-.sysrow .sw{width:2ch;height:2ch;background:var(--sw);border:1px solid var(--line);
-  display:block;align-self:center;
-  /* the clipped-word `.sw` in a marker is a different element entirely — this one is a block with
-     a size, so the absolute-positioned rule for `.entry .em .side .sw` cannot reach it */
-  position:static;clip-path:none;overflow:visible}
-/* The space bar draws the interval at ACTUAL SIZE, horizontally, so 14 / 28 / 56 / 112 can be
-   compared by eye rather than read as numbers. Ink, because it is the specimen's subject. */
-.sysrow .bar{display:block;width:var(--h);height:2px;background:var(--ink);align-self:center;
-  grid-column:1 / 2;min-width:var(--h)}
-/* The bar row puts its token UNDER the bar rather than beside it: `--sect` draws 112px = 12.4ch,
-   which fills the 16ch annotation column, so a token name beside it would have 3ch. Stacked, the
-   bar is drawn at actual size and labelled underneath — which is also how a scale is drawn in a
-   type specimen. */
-/* Two specimens side by side, for the hung-vs-stacked pair. Stacks below the split. */
-.syspair{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;column-gap:var(--gutter)}
-.syspair .sysstack{display:block;color:var(--dim);max-width:62ch}
-.sysmarks{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,1fr);
-  column-gap:var(--gutter)}
-.sysmarks > div{display:grid;grid-template-columns:3ch 1fr;column-gap:1ch;align-items:baseline}
-.sysmarks .sysj{grid-column:2;color:var(--dim)}
-/* THE JOIN SPECIMENS. The same component at the three sizes that decide the number: the 18px
-   floor, the 26px kicker, and one large enough that a tangent join reads as a visible gap.
-   `.jf` sizes the FIGURE and nothing else — the specimen must be the real `MarkFigure`, at a real
-   size, or the page is documenting a drawing instead of the component (see `/system/`'s own rule).
-   Sizes are stated here rather than inline because an inline `style` can't reach the child `svg`,
-   and `.side .mark` already fixes 18px for the index.
-   ORDER IS 18 → 26 → 96, smallest first. It shipped 26 → 18 → 96, which is what a specimen sheet
-   must never do: the row exists to show the figure getting bigger, and a non-monotonic sequence
-   makes the reader check the labels to find the order the picture should have given them free.
-   THE LABEL IS NOT A `<code>`. Screenshot-caught, and it is the kind of thing only looking finds:
-   `code` carries a 6% ink tint from the inline-code rule, and here it sits in a grid cell where it
-   computes to `display:block` — so the tint stretched the full column and drew three GREY BARS
-   under the specimens. A filled surface is exactly what the document direction deleted (STYLE.md,
-   "No filled surfaces"), and it was the loudest mark in the block. The size is a caption now: the
-   11px micro-label, which is what every other specimen on this page labels with. */
-.sysjoin{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,1fr);
-  column-gap:var(--gutter);align-items:end}
-/* The figure's own row is a fixed 96px box — the largest specimen — so all three marks sit on ONE
-   baseline instead of each floating at the bottom of its own cell. `align-items:end` inside it is
-   what puts the 18px mark on the same line as the 96px one. Without the fixed row the cells were
-   already bottom-aligned by the parent, but the 96px figure set the row height and the two small
-   ones had nothing to align against but the caption below them. */
-.sysjoin > div{display:grid;grid-template-rows:96px auto auto;row-gap:var(--tight);
-  align-items:end;justify-items:start}
-.sysjoin .jf{display:flex;align-items:flex-end}
-.sysjoin .jf .mark{display:block;overflow:visible}
-.sysjoin .jf-18 .mark{width:18px;height:18px}
-.sysjoin .jf-26 .mark{width:26px;height:26px}
-.sysjoin .jf-96 .mark{width:96px;height:96px}
-/* The size, as the 11px caption the rest of the page uses — not a tinted `code` box. */
-.sysjoin .jsz{font-size:11px;line-height:18px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--ink)}
-.sysjoin .sysj{color:var(--dim)}
-.sysfield{grid-column:1 / -1;max-width:34ch}
-/* 1060, with every other hung device (Q1/01). `.sysrow` uses `--label`, so if it stacked at 900
-   the page that DOCUMENTS the label column would be the page where it behaved differently. */
-@media(max-width:1060px){
-  .syspair,.sysmarks,.sysjoin{grid-template-columns:1fr;row-gap:var(--group)}
-  .sysrow,.sysrow:has(.bar){grid-template-columns:1fr;row-gap:0}
-  .sysrow .bar{grid-column:1}
-}
-
-/* ── THE MARKDOWN DOCUMENT (`/style/`). One block, and it is the only place on the site where a
-   heading hierarchy arrives already nested — a rendered markdown file brings its own h2/h3, its
-   own lists and tables, and no `.shead` to hang a head from.
-   It obeys the site's rules rather than getting an exception: 62ch measure, the space scale for
-   every interval, no rules, ink/dim/faint doing the hierarchy, and the two axes wherever the
-   content has a label. What it adds is the ONE thing a document needs that the site had no device
-   for: a heading that is subordinate to another heading.
-   `h3` USED TO GET `--faint`, and that was an inversion, not a hierarchy: measured, `--faint` is
-   4.69:1 on paper and `--dim` (which `.mdoc p` uses) is 5.86:1 — so every subsection heading on
-   the site's longest page was QUIETER than the paragraphs it introduced, 20 of them. The two greys
-   are also only 1.25:1 apart, which is under any threshold at which a reader reads them as two
-   levels; scanning for a head meant looking for the lighter text.
-   Both heads are `--ink` now and the SPACE SCALE carries the level, which is what the 4:2 ratio
-   below was always for: `h2` opens with `--sect`, `h3` with `--group`, `h4` with `--lead` plus a
-   `2ch` indent inside the hung column. That is one mechanism per job — position and interval do
-   the hierarchy, and value stays out of it.
-   IT NO LONGER BLEEDS (chooser: andrewshiau-grid-options, Q2/03). It was `grid-column:1 / 13`
-   plus a `--label + --gutter` bleed, which made /style/ the widest text on the site at 781px —
-   a rendered markdown file was the page least like the rest of it. Now it spans the document like
-   every other block: headings hang at column 1, body starts on the content axis at 182.
-   `1 / -1`, NOT `1 / 9`. `.mdoc` sits inside `.feed`'s own nested 12-track grid, so eight of THOSE
-   tracks is 457px, not 700 — the identical phantom measure `.specblock` had, from the identical
-   cause, both introduced by me while fixing the bleed. Measured on the built page: /style/'s right
-   edge reported 457 against the document's 700. See the note at `.specblock`. */
-.mdoc{grid-column:1 / -1;
-  display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter)}
-/* Headings hang. `h2` opens a section of the document and takes `--sect`; `h3` is a subsection
-   and takes `--group`. That 4:2 ratio is the space scale doing what a type ramp would have. */
-.mdoc > h2{grid-column:1;margin-top:var(--sect)}
-.mdoc > h3{grid-column:1;margin-top:var(--group)}
-/* h4 EXISTS NOW. STYLE.md has three `####` and the renderer used to clamp them to `h3`; with the
-   clamp fixed they need a rule, or they fall to the browser's `1.33em` and introduce a fourth font
-   size. `--lead` above (one step under h3's `--group`) and a 2ch indent inside the label column —
-   an indent is the one free axis left at a single size, and it is how a book marks a sub-subhead. */
-.mdoc > h4{grid-column:1;margin-top:var(--lead);padding-left:2ch}
-.mdoc > h2:first-child,.mdoc > h3:first-child,.mdoc > h4:first-child{margin-top:0}
-/* Everything else is body, on the second axis. `--lead` between blocks, which is the document's
-   ordinary line-to-line interval — a rendered file is prose, so its paragraphs sit one line
-   apart rather than one group apart. */
-.mdoc > :not(h2):not(h3):not(h4){grid-column:2;margin-top:var(--lead)}
-.mdoc > :first-child{margin-top:0}
-.mdoc p{color:var(--dim);max-width:62ch;margin:0}
-.mdoc ul,.mdoc ol{color:var(--dim);max-width:62ch;margin:0;padding-left:2ch}
-.mdoc li{margin:0}
-.mdoc li + li{margin-top:var(--tight)}
-/* A code block is the one place the 62ch cap is wrong: these are CSS declarations and token
-   lists, and wrapping one mid-selector makes it unreadable. `overflow-x:auto` so a long line
-   scrolls rather than widening the page — measured at 390px, where the longest fence is 74
-   characters. No frame and no fill: the mono is already the page's voice, so a code block is
-   marked by its indent and its own line breaks. */
-/* `min-width:0` is the fix, and it is the same flex/grid trap as `min-height:0` on the deleted
-   scrollport: a grid item's default `min-width:auto` refuses to shrink below its content, so
-   `overflow-x:auto` had nothing to clip and the longest fence ran straight out of the column and
-   off the page. Measured before: the ASCII beat diagram is 74 characters and was cut mid-arrow.
-   With it, a long fence scrolls inside its own box and the page stays 1512 wide. */
-/* A SCROLLING BOX MUST SAY SO. With `overflow-x:auto` alone the three long fences ended
-   mid-character at the column edge and looked like a rendering bug rather than a scrollport —
-   measured: 810px of content in a 609px box, cut at "→ a". A `mask-image` fades the last 3ch to
-   transparent, so the line visibly runs out rather than being chopped, and the fade disappears
-   when there is nothing to scroll (`scrollW == clientW` → the gradient's stop lands past the
-   content). No scrollbar: on a page with no rules a persistent grey bar under three of five code
-   blocks is the loudest thing in the section.
-   Also `overscroll-behavior-x:contain`, so a trackpad swipe that reaches the end of a fence
-   doesn't hand the gesture to the browser and trigger a back-navigation. */
-.mdoc pre{margin:0;overflow-x:auto;color:var(--dim);min-width:0;
-  white-space:pre;font:inherit;padding-left:2ch;
-  overscroll-behavior-x:contain;scrollbar-width:none;
-  mask-image:linear-gradient(to right,#000 calc(100% - 3ch),transparent)}
-.mdoc pre::-webkit-scrollbar{display:none}
-/* A table is a ledger with more than two columns — the one shape `.frow` can't take. Ink keys,
-   dim values, air for structure, no rules: the same grammar as every other pair on the site. */
-/* A TABLE SCROLLS INSIDE A WRAPPER, and the wrapper is load-bearing. Caught by the 390px sweep:
-   the token table's four columns need ~52 characters and a phone gives 37, so `width:100%` was a
-   lie and the table reported 428px inside a 390px window.
-   The first fix made it worse (428 → 586): putting `display:block; width:max-content;
-   overflow-x:auto` on the TABLE lets it size to its own content, and a block that sizes to
-   content cannot be constrained by `max-width` — it just drags the page. So the scrollport is a
-   `div` around it, which is a plain block that fills its column, and the table inside keeps
-   `display:table` so its columns still align.
-   Same fade as `.mdoc pre` so a clipped column reads as "there is more" rather than as a bug. */
-.mdoc .tw{min-width:0;max-width:62ch;overflow-x:auto;
-  overscroll-behavior-x:contain;scrollbar-width:none;
-  mask-image:linear-gradient(to right,#000 calc(100% - 3ch),transparent)}
-.mdoc .tw::-webkit-scrollbar{display:none}
-.mdoc table{border-collapse:collapse;margin:0;width:max-content;text-align:left}
-.mdoc th{color:var(--ink);font-weight:400;padding:0 var(--gutter) var(--tight) 0;
-  vertical-align:top}
-.mdoc td{color:var(--dim);padding:0 var(--gutter) var(--tight) 0;vertical-align:top}
-.mdoc tr:last-child td{padding-bottom:0}
-/* A blockquote is the document quoting a rule at itself. Indented `2ch` — the same indent a list
-   and a code block get — and in ink, because the four in STYLE.md are the statements of the rules
-   the file exists to state. */
-.mdoc blockquote{margin:0;padding-left:2ch;color:var(--ink);max-width:62ch}
-/* 1060, with every other hung device (chooser: andrewshiau-breakpoints, Q1/01). It was 1100,
-   picked by eye; the number is derived now — see `--label`. */
-@media(max-width:1060px){
-  .mdoc{display:block;width:auto}
-  .mdoc > h2,.mdoc > h3,.mdoc > h4{margin-bottom:var(--lead)}
-  .mdoc > :not(h2):not(h3):not(h4){margin-top:var(--lead)}
-}
-
-/* THE FOOTER IS DELETED — markup and rules together (annotation: the grid line "can be in
-   colophon"). It held a copyright name (deleted last pass) and the grid hotkey, which moved to
-   `.colo.c3` because it is a fact about how the page is made. What remained was a `<footer>`
-   landmark holding one sentence, `--sect` below the colophon that already ends the page: a second
-   ending after the real one. `.foot`, `.foot .fl` and `.foot .fr` are gone rather than left as
-   CSS for markup that doesn't exist.
-   The `.kb` / `.tou` pointer pair SURVIVES: `Press ⌥G` is a keyboard instruction, and printing it
-   on a phone tells the reader a fact they cannot act on.
-   ── IT IS UNSCOPED NOW, and that is a bug fix. It was declared twice — once under `.colo`, once
-   under `.foot` — so the mechanism only worked inside those two ancestors, and `/resume/` (which
-   states the ⌘P instruction the same way) rendered BOTH halves: "Press ⌘P and save as PDF … This
-   page is set for print: print it from your browser". Measured on the running page, `.kb` and
-   `.tou` both computed `display:inline`, because neither selector matched.
-   One mechanism, everywhere, which is what the pair should always have been: two ancestor-scoped
-   copies of one rule is the drift this file keeps arriving at. `.tou` is hidden by default and
-   swaps in on a coarse pointer, so any page can state a keyboard affordance without re-declaring
-   the rule — and the two `.foot` copies below are deleted with this change. */
 .kb{display:inline}
 .tou{display:none}
 @media(hover:none),(pointer:coarse){
   .kb{display:none}
   .tou{display:inline}
 }
-@media(max-width:720px){
-  /* nothing to re-cut: one line at every width */
-}
 
-/* TOUCH TARGETS — 44px of reachable area for the standalone controls, on touch only.
-   Measured at 390px before this rule: the brand mark was 26×26, `← Index` 12px tall, the
-   panel's contact line 21px, and the colophon links 15px. All well under the 44px in WCAG
-   2.5.5, and all four are things you navigate WITH rather than read.
-   The type ramp does NOT change. 12px uppercase tracked .12em is right for a back link at
-   any width, and growing it to reach 44px would make a subordinate control shout louder
-   than the h1 it sits above — the hierarchy is the design. What was wrong was the hit
-   area, not the letter size, so the fix is invisible padding and a negative margin that
-   gives it back, leaving every measured position identical.
-   Scoped to a pointer query, not a width: a 390px window on a laptop has a mouse, and a
-   mouse doesn't need 44px. Inline links inside a sentence are deliberately left alone —
-   WCAG exempts them, and padding a link mid-paragraph would break the line box it sits in.
-   Verified with `hasTouch` emulation: every rect below is ≥44 tall and none of the
-   surrounding geometry moved. */
 @media(hover:none),(pointer:coarse){
-  /* The mark needs nothing here any more. It was 26px of ink padded out to 44px of reach by
-     `padding:9px` with a negative margin giving the space back; the mark is now 44px of ink
-     (chooser Q2/02), so the target is the glyph. Padding it further would make a 62px hit
-     area that overlaps the statement's first line — a tap meant for the h1 landing on the
-     link home. The rule is deleted rather than zeroed: `padding:0` here would look like a
-     correction to something, when in fact there is no longer anything to correct. */
-  /* Contact in the panel. Already `display:block; width:fit-content`, so it only needs
-     the vertical run; the hover underline stays on the text, not the padding. */
   .pin .pfoot a{padding:12px 0;margin:-12px 0}
-  /* Colophon: two or three of these stack in one cell, so they need row spacing between
-     them as well as height, or the 44px boxes overlap and you tap the wrong one. */
-  .colo a{display:inline-block;padding:12px 6px;margin:-5px -6px}
 }
 
-/* THE CLOSING BAND — NO SNAP. The chooser asked for the closing sequence to arrive as one
-   screen (andrewshiau-panel-shape, Q3/04) and THE BOX used to deliver that by geometry; the box
-   is gone with the split, so the page simply ends where its text ends. That is the document's
-   answer to the same question, and it needs no mechanism at all.
-   The note below is KEPT because it records two measured defects that would come straight back
-   if anyone reaches for scroll-snap again:
-   It was implemented as `scroll-snap-type:y proximity` on `html` + `scroll-snap-align:end` on
-   `.foot` first, and measurement is what removed it. Two defects, both invisible to the build:
-   - It stopped EVERY page 96px short of its own bottom. `.foot` is in the shared layout, so
-     the align applied site-wide: /work/stores-designer/ ended at 608 of 704, /work/powerpoint/
-     at 3799 of 3895. The snap held the footer's end at the viewport edge minus the
-     `scroll-margin-bottom`, which is a position short of the real bottom — so the last 96px of
-     every long case study became unreachable by wheel.
-   - Fixing the index's own load position made the index worse. With the footer as the only
-     snap position on the page, `proximity` snapped to it AT LOAD on every viewport 950px and
-     taller (measured: opens at y=310, the first `h2` above the fold). A `scroll-snap-align:
-     start` fixed the load — and then ordinary discrete wheel clicks could never leave y=0,
-     because each click's momentum died inside the top position's proximity range.
-   A control with every snap declaration stripped never load-scrolled and always reached the
-   bottom, which is what pinned both defects on the snap rather than on the layout.
-   If this is ever revisited: the reachability bug is the hard one. Any `align:end` on an
-   element in the shared footer trades the bottom of all eight case studies for composition on
-   one page, and `scroll-margin-bottom` is what makes the snap position fall short. */
-
-/* The `← Index` back-link block was here, plus its phone tap-target rule and
-   `.pin .back{margin-bottom}`. All three are gone: `.back` ships on no page. The link home
-   is the marker now (chooser: andrewshiau-panel-marks, Q5/06 — see SideMark.astro), so every
-   page reaches the index through the figure at the head of the panel and nothing emits
-   `class="back"`. Deleted rather than kept for the next page that might want one: a rule
-   nothing selects is a rule nobody can trust, and the tap-target comment was actively lying
-   ("still here for /method, which has a `.back` line") about a page that uses PanelHead. */
-
-/* Live embed — the real site framed by a hairline, not a static shot */
-figure.embed{margin:var(--group) 0 0}
-/* One proportion for every embed: 16/10 on desktop, and 3/4 (portrait) under 720px.
-   The embedded page is itself a full site at whatever width the frame gives it, so on a
-   phone a landscape frame scaled its content to unreadable — going taller than square
-   gives the inner page a phone-shaped viewport instead of a letterbox. Caption stays
-   below in both states. */
-/* THE FRAME STAYS, and it is the one exception to "no boxes" — because this box is not
-   decoration, it is a boundary of fact. Inside it is somebody else's live page; the border is
-   what tells the reader where this site stops and the embedded one starts. Deleting it would
-   make an iframe's content read as this page's content. `.demo`'s frame came off because a
-   video is obviously not the page; an embedded website is not obviously anything else. */
-.embed-frame{border:1px solid var(--ink);aspect-ratio:16 / 10;overflow:hidden;background:var(--panel)}
-.embed-frame iframe{width:100%;height:100%;border:0;display:block}
-/* Both labels are the 11px micro-label, and the two hairlines that sandwiched the frame are
-   gone — the frame has its own edge, so a rule above and below it was three lines doing one
-   line's job. */
-/* both labels take the shared label rule; only their air differs */
-figure.embed figcaption{margin-top:var(--tight)}
-/* The link out repeats ABOVE the frame. An embed is tall — 3/4 on a phone — so a caption below
-   it puts the one actionable thing behind a screen of scrolling. */
-figure.embed .esrc{margin-bottom:var(--tight)}
-figure.embed figcaption a,figure.embed .esrc a{color:var(--accent)}
-@media(max-width:720px){ .embed-frame{aspect-ratio:3 / 4} }
-
-/* ── TWO ALIGNED COLUMNS. The ragged offset is deleted (annotation: "also think we should
-   re-rationalize this into two aligned columns").
-   The offset existed on the argument that two independent flows mean each photograph is just the
-   next one down, rather than half of a forced comparison pair — with the right column dropped 3
-   units so the two never start level. That argument was about MISMATCHED shapes, and measured
-   from the files there are none: all twelve photographs are 1400×933, ratio 1.501, within 0.01 of
-   each other. There was nothing to stagger away from.
-   So the columns align, and the pairing that was feared is not a problem: two photographs of the
-   same size side by side read as a contact sheet, which is what a photography page is. `--gutter`
-   between, `--group` down — the same two intervals the clip grid uses, so the site has one way of
-   laying out media.
-   Still two column DIVS rather than one twelve-item grid, because the markup splits the list in
-   the page (`left` / `right`) and a grid with `grid-auto-flow:row` would order them across rather
-   than down. Down is right: a reader scrolls one column and then the other, which is how a
-   contact sheet is read. */
-.g-rag{grid-column:1 / -1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  column-gap:var(--gutter)}
-/* EXPLICIT tracks, not `auto`. `auto` was a bug I caught by measuring: with it, both column divs
-   landed in track 1 and every photograph rendered at x=224 in a single 518px column — `auto`
-   means "the next available slot by auto-placement", and since each div is a block that spans one
-   track, they stacked instead of sitting side by side. Named tracks say what is meant. */
-.g-rag .col-l{grid-column:1}
-.g-rag .col-r{grid-column:2}
-.g-rag figure{margin:0 0 var(--group)}
-.g-rag figure:last-child{margin-bottom:0}
-/* No 1px frame. A photograph has its own edge, and a hairline round one is a mat — the card tell
-   in a gallery's clothing. */
-.g-rag img{display:block;width:100%;height:auto}
-@media(max-width:720px){
-  .g-rag{grid-template-columns:1fr}
-  .g-rag .col-l,.g-rag .col-r{grid-column:1}
-  /* the left column's last figure needs its gap back — it is no longer the end of a column */
-  .g-rag .col-l figure:last-child{margin-bottom:var(--group)}
-}
-
-/* External-link list — L2: diagonal staircase, each link steps down-and-right
-   across the grid (echoes the homepage experiment scatter). A gallery you navigate. */
-/* TWO COLUMNS, NOT A 3-TRACK STAGGER — and the stagger's real problem was a phantom measure.
-   Annotations: "this overflows to two lines when hovered very ugly, mabe the ffect shoudlb e like
-   transfomr?" and "i think the stagger makes les sense for the layout we have now maybe think about
-   2 columns layout". Both are the same defect, and the second one names the cause.
-   MEASURED, which is what turned two complaints into one fix: `.links` declared
-   `repeat(12,1fr)` while sitting INSIDE the document column, so the twelve tracks divided **700px,
-   not 1120** — 32.7px each instead of 63. Every `grid-column:1 / 6` span therefore resolved to
-   **275px** rather than the 427px the numbers imply. This is exactly the phantom-measure class
-   STYLE.md names ("A track count inside the document column is a phantom measure"), and it had
-   survived here because the staircase still *looked* deliberate at the wrong size.
-   275px is why the hover wrapped: the canelé title plus its arrow measures 270px, leaving **5px of
-   slack** against a `1ch` (9px) shift. It is the only one of the three that wrapped, which is
-   precisely the link the annotation landed on. The other two have 14px and 122px.
-   So the fix is the layout, not the motion: the shift stays `1ch` (it is the site's one motion
-   vocabulary and changing it here would make this block the odd one out), and the column gets wide
-   enough to hold it. Two equal halves of the document = **336px**, which leaves the canelé title
-   66px of slack. The blurbs still wrap to two lines and that is fine — they are a second line by
-   design, not an overflow.
-   The stagger is deleted rather than re-tracked: at three links it composed a diagonal across a
-   width the page no longer has, and `.mscatter` is the one surviving scatter (STYLE.md). Two
-   columns of a three-item list also means the third sits alone on row 2, which reads as a list
-   that continues rather than as a broken grid. */
-.links{grid-column:1 / -1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  column-gap:var(--gutter);row-gap:var(--group)}
-/* The document's link idiom again, at the two-column scale — which is now every other scale.
-   The 2px ink rule over each one is gone, and so is the accent rule on the first: `.links` is a
-   set of external links, and a coloured rule on the lead member is the "structural accent" role
-   that colour gave up when its one job became interaction. The composition needs no rules. */
-.links a{text-decoration:underline;text-decoration-color:var(--faint);
-  text-decoration-thickness:1px;text-underline-offset:4px;
-  color:var(--ink);font-weight:500;align-self:start;
-  background:none;padding:0;margin-left:0;margin-right:0;border-radius:0;
-  transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
-/* NO PER-CHILD PLACEMENT. The three `nth-child(3n+…)` spans and their two stagger margins are
-   deleted, not ported: each link is simply the next cell of a two-column flow, which is what makes
-   the block responsive with no arithmetic. The old rules also carried the phantom track counts
-   (`1 / 6`, `5 / 10`, `8 / 13`) that caused the wrap — leaving them would keep 12 tracks alive
-   inside a 2-track grid, where `8 / 13` points at columns that no longer exist. */
-.links a:hover{color:var(--accent);background:none;text-decoration-color:var(--ink)}
-/* The arrow slides by ONE CHARACTER, the same unit the index rows move by — one motion
-   vocabulary, stated in the grid's own increment rather than in 6 arbitrary pixels. */
-.links a .arrowc{color:var(--accent);display:inline-block;
-  transition:padding-left var(--dur-fast) var(--ease)}
-.links a:hover .arrowc{padding-left:1ch}
-/* `font-family:var(--sans)` was here, on a site that no longer has a sans. */
-.links a .lu{display:block;margin-top:var(--tight)}
-/* ONE COLUMN at 1060, with every other hung device. Two 336px halves become two ~150px halves as
-   the document narrows, and a 15px mono title needs ~18 characters — so below the breakpoint the
-   pair stops being two columns and becomes a list. The `nth-child` resets are gone with the spans
-   they were resetting; a two-column flow needs nothing but the track count changed. */
-@media(max-width:1060px){
-  .links{grid-template-columns:minmax(0,1fr);column-gap:0}
-}
-
-/* REDUCED MOTION. STYLE.md already required this ("Respect `prefers-reduced-motion` for
-   any new non-essential animation") and `Explainer.astro` obeyed it; this stylesheet never
-   did, so the ten hover transitions here had no escape.
-   The eight looping screen recordings on `luthier` and `powerpoint` are NOT handled here,
-   and can't be: `animation-play-state` governs CSS animations, not a playing <video>. CSS
-   cannot pause one. That is done in `Layout.astro`, which pauses each clip and gives it
-   `controls` so the reader can start it — the evidence stays on the page, it just holds
-   still until asked. This comment exists so the next person doesn't add a CSS rule here and
-   believe it worked. */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{
     animation-duration:0.01ms !important;
     animation-iteration-count:1 !important;
     transition-duration:0.01ms !important;
     scroll-behavior:auto !important}
-  /* The mark's 90° hover turn, in the ONE place it now happens: the case-study side marker,
-     which became the link home in Q5/06. The panel masthead's copy of this override went with
-     the masthead (chooser: andrewshiau-mark-options, Q3/05 — see where `.pin .pmark` used to
-     be). The index row marker never had a turn: it isn't a link, and it draws a fact.
-     The blanket rule above kills the TRANSITION; this kills the end state, so the glyph
-     doesn't snap to 90° instantly. */
+
   .smark-home:hover .mark:not(.mark-one){transform:none}
 }
 
-/* ═══ THE EXPLAINERS, FOLDED IN ══════════════════════════════════════════════════════
-   Chooser: andrewshiau-grid-options, Q5/02 — "fold into the document".
-   WHAT THIS REPLACED: `src/layouts/Explainer.astro` carried its own 307-line copy of an
-   entire design system, and the three /writing/ pages rendered from it. Measured on the built
-   /writing/canele/ before the fold: TWELVE font sizes (12px → 120px), Graphik rather than Plex,
-   weight 700 on 35 elements, uppercase on 11, 2px rules, and a content axis at 182px against the
-   rest of the site's 172 — every one of them a thing the mono pass deleted everywhere else.
-   Two sites under one domain, one click from the index. That is the answer to "is the site
-   consistent?": eight pages were, three weren't, and the three were invisible to every check
-   because they didn't load global.css at all.
-   WHAT THE FOLD COSTS, stated because it is the whole trade: the explainers lose their display
-   type. A 120px accent numeral, a 30px bold claim and an 80px stat were the loudest marks on the
-   site, and they are now 15px like everything else. What replaces them is what replaced the ramp
-   on the other thirteen pages — colour value, the space scale, and the two axes.
-   Only SEVEN rules are needed below, because folding in means the explainers use the site's own
-   devices for everything they share: `.facts`/`.frow` is the ledger, `.dek` is the dek, `.step`
-   and `.block` are already here, `h2` is already the section head. These seven are the devices an
-   explainer has that no other page does. */
+.rsect{grid-column:1 / -1;display:grid;grid-template-columns:min(var(--label),16ch) 1fr;
+  column-gap:var(--gutter);margin-top:var(--sect)}
+.rsect:first-of-type{margin-top:0}
 
-/* THE KICKER — an explainer's own `.smark`. It is the same device (a faint label above an h1) so
-   it takes the same treatment, and the shared label rule at the top of this file already gives
-   it colour; this only places it. */
-.kicker{color:var(--faint);margin:0}
+.rsecth{grid-column:1;font-weight:500;color:var(--ink);margin:0}
+.role{display:contents}
 
-/* THE SECTION NUMERAL. `1`, `2`, `3` down the left of an explainer — the numbered spine that
-   makes it a walkthrough rather than an essay. It hangs in the label column with its h2, so an
-   explainer's section head is the site's hung head with a numeral in front of it. `--faint`, not
-   the old accent: colour means interaction, and a section number is not interactive. */
-/* `1ch` of margin is not enough, and the rendered text proves it: the h2's text content is
-   `1The number`. The margin separates the BOXES, so the glyphs are 9px apart while every other
-   word gap on the site is one space — it reads as one token to anyone scanning, and to a screen
-   reader it IS one token. `::after` puts a real space in the text, and the margin then adds the
-   visual step a numeral wants. */
-.sn{color:var(--faint);margin-right:1ch}
-.sn::after{content:" "}
+.rsect > .role + .role > .rspan,.rsect > .role + .role > .rbody{margin-top:var(--group)}
 
-/* THE ONE IDEA — the claim an explainer is built to land. It was a 30px bold paragraph under a
-   3px accent rule; both are gone. It is `--ink` at the body size, on the content axis, with a
-   `--group` of air above and below — the space scale saying "this is the important one" the way
-   a size jump used to. `.k` is its label and takes the ordinary label treatment. */
-/* NO vertical margin of its own. It had `margin:--group 0`, and measured on the built page that
-   stacked with the wrapper's spacing into intervals that are not on the scale: 84px above (the
-   dek's 28 + this 56) and 168px below (this 56 + `.grid.sect`'s 112). The scale is 14/28/56/112,
-   so 84 reads as neither a group nor a section, and 168 is larger than the page's largest break.
-   Every other block on the site — `.facts`, `.block`, `.matrix` — leaves vertical space to its
-   `.grid` wrapper for exactly this reason: two elements both claiming the interval is how a
-   baseline grid comes apart. Put the page's `.idea` in a `.grid.sect` when it should open a
-   section; otherwise `.grid + .grid` gives it one lead. */
-.idea{margin:0}
-.idea .k{color:var(--faint);display:block;margin-bottom:var(--tight);line-height:1.2}
-.idea p{color:var(--ink);max-width:62ch;margin:0}
+.role .rspan{grid-column:1;color:var(--faint);white-space:nowrap}
+.role .rbody{grid-column:2;max-width:62ch}
 
-/* THE BIG NUMBER, no longer big. `9–14%` was 120px in the accent hue; it is now `--ink` at 15px
-   with its label beside it, which is the ledger's shape — the number IS a value and its caption
-   IS a label, so it uses the pair every other fact on the site uses. The count-up animation is
-   deleted with the size: animating a number from 0 to 14 is a device that needs 120px to read.
-   `.num .lab .g` keeps its aside in `--dim`. */
-/* Same as `.idea` above: no vertical margin of its own, or it stacks with the wrapper's and
-   lands off the scale. */
-.num{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter)}
-.num .big{color:var(--ink);grid-column:1;line-height:1.2}
-.num .lab{color:var(--dim);grid-column:2;max-width:62ch}
-.num .lab .g{color:var(--faint)}
+.role .rorg{font-weight:500;color:var(--ink)}
+.role .rtitle{color:var(--dim)}
+.role .rwhere{color:var(--faint)}
+.role .rnote{color:var(--dim);margin:var(--tight) 0 0}
+
+.role .rlines{list-style:none;margin:var(--tight) 0 0;padding:0}
+.role .rlines li{position:relative;padding-left:1.5ch;color:var(--dim)}
+.role .rlines li::before{content:"–";position:absolute;left:0;color:var(--faint)}
+.role .rlines li + li{margin-top:var(--tight)}
+
+.role .rlines .rmore{color:var(--faint)}
 @media(max-width:1060px){
-  .num{display:block}
-  .num .big{display:block;margin-bottom:var(--tight)}
+  .rsect{grid-template-columns:minmax(0,1fr);column-gap:0}
+  .role{display:block}
+  .role .rspan{color:var(--ink);margin-bottom:var(--tight)}
+  .rsect > .role + .role > .rspan,.rsect > .role + .role > .rbody{margin-top:0}
+  .rsect > .role + .role{margin-top:var(--group)}
+  .rsecth{margin-bottom:var(--group)}
 }
-
-/* THE QUIZ. Its buttons are built by JS at runtime (see Explainer's old script, now in
-   Layout.astro), so these style generated markup. The engine is worth keeping — it is the one
-   interactive thing on the site and the reason an explainer is an explainer — but every mark it
-   drew was off-system: 2px ink rules, uppercase 12px kickers, a 3px accent left border, a filled
-   accent wash, and a ✓ that popped with a keyframe bounce.
-   What it is now: a question is a `--group` apart from the last one, its number is a hung faint
-   label, and an option is A LINE YOU CAN CLICK — the same underline idiom as every link, with the
-   1ch hover shift `.entry` uses. Right and wrong are stated in words (`✓` / `✕`) and by colour
-   going to `--ink` vs staying `--dim`, because colour here means "you acted on this", which is
-   the accent's one job. */
-/* THE QUESTION IS A TWO-AXIS PAIR, like every other annotated block on the site. It rendered as
-   a flat stack — `Question 1`, the question text and all three options every one at x=0, the label
-   axis — which made the quiz the only block on the page with no content axis. Measured against its
-   own neighbours on /writing/canele/: `.shead` and `.facts` both put their label at 0 and their
-   content at 182, and the quiz put everything at 0.
-   `Question 1` IS the annotation and the question IS the content, so the pair takes `--label` and
-   the axis. Stacks at 1060 with everything else. */
-.quiz .q{display:grid;grid-template-columns:var(--label) 1fr;column-gap:var(--gutter);
-  margin-top:var(--group)}
-.quiz .q:first-child{margin-top:0}
-.quiz .qn{grid-column:1;color:var(--faint);display:block;line-height:1.2}
-.quiz .qt{grid-column:2;color:var(--ink);margin:0 0 var(--tight);max-width:62ch}
-/* The options and the answer are content, so they sit on the content axis with the question. */
-.quiz .opt,.quiz .exp{grid-column:2}
-@media(max-width:1060px){
-  .quiz .q{display:block}
-  .quiz .qn{color:var(--ink);margin-bottom:var(--tight)}
-}
-/* `cursor:pointer`, not `inherit`. It WAS `inherit`, and that was consistent while the disc was
-   the cursor over everything — the option looked like the rest of the page. It isn't consistent
-   now: the disc means PAPER, type means I-beam, and a quiz option is neither. It is the one
-   thing on an explainer page a reader has to click, and under `inherit` it advertised itself as
-   paper. Same defect as the missing I-beam, other direction. `:disabled` below still overrides. */
-.quiz .opt{display:block;width:100%;text-align:left;font:inherit;color:var(--dim);
-  background:none;border:0;padding:0 0 0 3ch;margin:0;cursor:pointer;
-  transition:padding-left var(--dur-fast) var(--ease),color var(--dur-fast) var(--ease)}
-.quiz .opt:hover:not(:disabled){color:var(--accent);padding-left:calc(3ch + 1ch)}
-.quiz .opt:disabled{cursor:default}
-/* The marker sits in the 3ch the padding reserves, so choosing an answer does not reflow the
-   line — the same reason `.entry .en` has a fixed 3ch. */
-.quiz .opt::before{content:"";display:inline-block;width:3ch;margin-left:-3ch}
-.quiz .opt.correct{color:var(--ink)}
-.quiz .opt.correct::before{content:"✓ "}
-.quiz .opt.wrong::before{content:"✕ "}
-.quiz .exp{color:var(--faint);margin:var(--tight) 0 0;display:none;padding-left:3ch}
-.quiz .exp.show{display:block}
-.quiz .qscore{color:var(--faint);margin-bottom:var(--group)}
-
-/* THE FOOT — an explainer's source line and its way back. `--sect` of air above it and no rule,
-   like every other section break on the site. It was a 2px ink border with 12px uppercase
-   tracked links. */
-.foot{margin-top:var(--sect);color:var(--faint)}
-.foot a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--faint);
-  text-decoration-thickness:1px;text-underline-offset:4px;
-  transition:text-decoration-color var(--dur) var(--ease),color var(--dur) var(--ease)}
-.foot a:hover{color:var(--accent);text-decoration-color:var(--ink)}
-/* The `.kb` / `.tou` pair used to be re-declared here, scoped to `.foot`. It is one unscoped rule
-   now — see the note beside it above — so the explainers' footers get the behaviour without a
-   second copy of it. */
-
-/* ─── THE LEDGER OF DATED BLOCKS (`.rsect` / `.role`) ─────────────────────────────────────
-   MOVED HERE FROM resume.astro, and the note it left behind said exactly when to do this:
-   "Scoped here rather than added to global.css because exactly one page emits it … If a second
-   page ever needs it, it moves." /stories/ is the second page, so it moved.
-   The device is one two-column grid per section holding a head and any number of blocks, each
-   block a hung label beside a body — dates beside jobs on /resume/, competencies beside stories
-   on /stories/. Both are a ledger of dated blocks read down one axis, which is why one device
-   serves them and why neither needed a new mark to get it.
-   `is:global` in an .astro file is NOT global to the site: it scopes to pages that emit that
-   component's style block, so /stories/ inherited none of this while it lived there. A shared
-   device has to live in the shared stylesheet — that is the whole reason this file exists.
-   The PRINT half stays in resume.astro: paper is the résumé's problem, `/stories/` is a screen
-   document, and a print block for a page nobody prints is a rule with no reader. */
-
-  /* ── THE RÉSUMÉ'S OWN DEVICE. Scoped here rather than added to global.css because exactly one
-     page emits it: a `.role` is a dated block with a hung span and a bulleted body, and nothing
-     else on the site is shaped like that. If a second page ever needs it, it moves. */
-  /* The interval above each role is a RULE, not an inline style on the wrapper. It was
-     `style="margin-top:var(--group)"` on every `.grid` holding a role, and an inline margin cannot
-     be overridden by the print block without `!important` — which is exactly the trap
-     `.grid:has(> .block)` in global.css was written to get out of. Stated here, print can compress
-     it, and the markup carries no numbers. */
-  /* ── THE SECTION IS THE GRID (Q3/03). One two-column grid per section, holding the head and every
-     role in it, so all of them share ONE hung axis. `.role` is `display:contents` so its span and
-     body become direct children of that grid and land in its two tracks — a nested grid per role
-     would give each role its own axis, which is the thing this replaces.
-     `1 / -1` on the section, not a literal track count: it sits inside `.feed`, whose grid is
-     narrower than the page's, and a literal number here is the phantom-measure bug that cost this
-     rebuild four passes. */
-  .rsect{grid-column:1 / -1;display:grid;grid-template-columns:min(var(--label),16ch) 1fr;
-    column-gap:var(--gutter);margin-top:var(--sect)}
-  .rsect:first-of-type{margin-top:0}
-  /* The head hangs in the label column on the same row as the first role's org. `--ink` and weight
-     500, which is the site's one emphasis — no caps, no second size, no rule. */
-  .rsecth{grid-column:1;font-weight:500;color:var(--ink);margin:0}
-  .role{display:contents}
-  /* Every role after the first takes the interval; the first sits on the head's row. */
-  .rsect > .role + .role > .rspan,
-  .rsect > .role + .role > .rbody{margin-top:var(--group)}
-  /* The span hangs in the label column, in `--faint`, like every other hung label on the site.
-     ── AND THE COLUMN IS WIDE ENOUGH FOR A DATE, which it was not. This is the screen half of the
-     bug the PDF had: `--label` is 154px at the 1120px measure, which is 17.1 characters at 9px, and
-     the spans are 18 ("Aug 2025 – present") and 19 ("Feb 2025 – May 2025"). Four of five wrapped —
-     "Aug 2025 –" then "present" on a second line — which breaks the one thing the hung column is
-     for, a single column of dates the eye runs down.
-     THE FIX IS THE TRACK, NOT THE CELL, and the first cut got that wrong in a way worth recording:
-     `min-width:20ch` on `.rspan` makes the CELL 180px inside a 154px track, so it overflows by 26px
-     into the 28px gutter and leaves 2px of clearance — "Feb 2025 – May 2025" butted against "Void
-     Industries". The dates stopped wrapping and started colliding, which is the same defect the PDF
-     had at 13ch, reached from the other direction.
-     So `.rsect` states its own first track as `max(var(--label), 20ch)`. `max()` rather than a flat
-     20ch because below 1060 the grid collapses to one column anyway, and above it the site's derived
-     label is the floor this page raises only as far as a date needs — the content axis moves 26px
-     right of the site's, which is the honest cost of a column that must hold 19 characters.
-     `nowrap` asserts it instead of hoping. */
-  .role .rspan{grid-column:1;color:var(--faint);white-space:nowrap}
-  .role .rbody{grid-column:2;max-width:62ch}
-  /* The org is the fact; `h3` is already reset to the body size and weight site-wide (see the
-     `h3,h4,h5,h6` rule in global.css), so this only adds the weight that makes it the line the
-     eye lands on. Weight, not size and not colour — the page has one size, and colour means
-     interaction. */
-  .role .rorg{font-weight:500;color:var(--ink)}
-  .role .rtitle{color:var(--dim)}
-  .role .rwhere{color:var(--faint)}
-  .role .rnote{color:var(--dim);margin:var(--tight) 0 0}
-  /* The bullets. `--tight` above the list binds it to the title above it; `list-style:none` with
-     a hung `–` because a browser's own bullet sits off the 182px content axis and the whole page
-     is built on that axis holding. `1.5ch` is the dash plus its space at this size. */
-  .role .rlines{list-style:none;margin:var(--tight) 0 0;padding:0}
-  .role .rlines li{position:relative;padding-left:1.5ch;color:var(--dim)}
-  .role .rlines li::before{content:"–";position:absolute;left:0;color:var(--faint)}
-  .role .rlines li + li{margin-top:var(--tight)}
-  /* ── THE SCREEN-ONLY BULLETS sit in `--faint`, one step back from the `--dim` of a bullet that
-     survives onto paper. That is the whole signal: same size, same axis, same dash — colour alone
-     says "this is the longer version". A reader scanning gets the compressed resume by reading only
-     the darker lines, and a reader who stops on a role gets the rest. No italic, no smaller size,
-     no "read more" — the hierarchy is one property. */
-  .role .rlines .rmore{color:var(--faint)}
-  @media(max-width:1060px){
-    /* Stacks with every other hung device at the same width and for the same reason: below 1060
-       the label column can no longer hold its own label. The section grid collapses to one column
-       and `.role` goes back to being a block, so the head, the date and the body all stack. */
-    .rsect{grid-template-columns:minmax(0,1fr);column-gap:0}
-    .role{display:block}
-    .role .rspan{color:var(--ink);margin-bottom:var(--tight)}
-    .rsect > .role + .role > .rspan,
-    .rsect > .role + .role > .rbody{margin-top:0}
-    .rsect > .role + .role{margin-top:var(--group)}
-    .rsecth{margin-bottom:var(--group)}
-  }
