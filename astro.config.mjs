@@ -69,8 +69,7 @@ function stripHtmlComments() {
 
 // Static site served from the DigitalOcean droplet (nginx + certbot).
 // `site` drives canonical URLs / sitemap; output is fully static (default).
-// Retired 2026-10-20; the pages are at tag full-site-2026-10. `/gate` stays a stub because nginx
-// serves /gate/index.html as the 401 body for /work/stores-designer/.
+// Retired 2026-10-20; the pages are at tag full-site-2026-10.
 const RETIRED = [
   '/method', '/style', '/system', '/stories', '/gate',
   '/work/aping', '/work/explain', '/work/luthier', '/work/photography', '/work/pitchgraph',

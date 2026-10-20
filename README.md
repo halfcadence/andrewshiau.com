@@ -90,82 +90,18 @@ pages while the notes claimed 1.90.
 
 ---
 
-## The password gate (nginx cookie gate, not Basic Auth)
+## nginx on the droplet
 
-**Retired 2026-10-20.** `/work/stores-designer/` and `/gate/` are now redirect stubs, but the
-nginx block below still runs: a visitor without the cookie gets the `/gate/` stub as the 401
-body, and its meta refresh sends them to `/`. Removing the block is a droplet change.
-
-`/work/stores-designer/` is the one gated page.
-
-**What runs in production is nginx.** The live vhost is
-`/etc/nginx/sites-enabled/andrewshiau` (root `/var/www/andrewshiau`, certbot-managed TLS).
-
-**Read this first: this is a speed bump, not a safety guarantee.** It keeps a page out of
-Google and off a casual visitor's screen. It does **not** make the page safe for material
-that shouldn't leave Amazon: the password is shared, it can be forwarded in one paste, and
-the page still sits unencrypted on a public webroot where any config slip serves it plain.
-`/work/stores-designer/` is written to be publishable — no screenshot, no component name,
-no metric, no architecture (see the comment in the page). If a change to it would need auth
-to be safe, the change doesn't belong on this site.
-
-**This replaced Basic Auth**, which worked but asked in the browser's own credential
-dialog: unstylable browser chrome, drawn only because nginx sends `WWW-Authenticate`. So
-the mechanism had to change, not the styling. What replaced it is a cookie nginx compares
-plus **our** page as the 401 body — a real 401 (crawlers still turned away), no dialog.
-The gate the reader sees is `src/components/GateForm.astro` inside the index row itself
-(chooser `andrewshiau-gate-options`, option 05).
-
-### The recipe
-
-**1. The map, in `conf.d`, not the vhost.** `/etc/nginx/nginx.conf` includes `conf.d/*.conf`
-on line 61 and `sites-enabled/*` on line 62 — in that order, which is why the map is defined
-by the time the vhost tests it. It must be at `http` level; `map` inside a `server` block is
-a config error. Send the password over **stdin** so the plaintext never reaches the droplet's
-shell history or its process list:
+The vhost is `/etc/nginx/sites-enabled/andrewshiau` (root `/var/www/andrewshiau`, certbot TLS).
+Back it up before an edit, then test and reload:
 
 ```bash
-printf '%s' 'thepassword' | ssh droplet "umask 077; cat > /tmp/pw && \
-  { printf 'map \$cookie_asc_gate \$asc_gate_ok {\n  default 0;\n  \"%s\" 1;\n}\n' \
-    \"\$(cat /tmp/pw)\" > /etc/nginx/conf.d/gate.conf; }; shred -u /tmp/pw; \
-  chmod 600 /etc/nginx/conf.d/gate.conf"
+ssh droplet 'cp -p /etc/nginx/sites-available/andrewshiau /root/andrewshiau.nginx.bak.$(date +%Y%m%d-%H%M%S)'
+ssh droplet 'nginx -t && systemctl reload nginx'
 ```
 
-**`default 0` is load-bearing.** Without it a miss yields the empty string, which is falsy
-in `if` but is not the `"0"` the vhost compares — the gate then opens for everyone.
-
-**2. The vhost: return 401, and serve our page as its body.** Back it up first
-(`cp … /root/andrewshiau.nginx.bak.$(date +%s)`). Above `location /`:
-
-```nginx
-location ^~ /work/stores-designer/ {
-  if ($asc_gate_ok = 0) { return 401; }
-  try_files $uri $uri/ $uri/index.html =404;
-}
-
-error_page 401 /gate/index.html;
-
-location ^~ /gate/ {
-  internal;                 # reachable by error_page's internal redirect, 404 from outside
-}
-
-location / { try_files $uri $uri/ $uri/index.html =404; }
-
-error_page 404 /404.html;
-```
-
-Three things here are not interchangeable:
-
-- **`^~`** so the prefix beats any regex location, and a **`=404` fallback** on the gated
-  prefix — `/index.html` there would serve the public homepage for a miss under the protected
-  prefix, which reads like the gate failed open.
-- **`error_page`, not a redirect.** The address bar keeps reading `/work/stores-designer/`
-  and the status stays 401, so the reader gets a page where the dialog used to be while a
-  crawler gets exactly the refusal Basic Auth gave it.
-- **`location ^~ /gate/ { internal; }`, not `location = /gate/index.html`.** The exact-match
-  version was too narrow: a request for `/gate/` fell through to `try_files` → `index` and
-  served the gate as a URL of its own. Prefix + `internal` 404s both `/gate/` and
-  `/gate/index.html` from outside while the internal redirect still reaches the file.
+The password gate on `/work/stores-designer/` was removed 2026-10-20; the vhost and `gate.conf`
+from before are in `/root/*.20261020-235116`.
 
 ### `location /` ends `=404`, and that is load-bearing
 
@@ -184,70 +120,23 @@ path that does not exist. Two costs, and the second is how it was found:
 all directory-style (`/method/` → `/method/index.html`). Only the final fallback changed.
 
 `error_page 404 /404.html` is required with it: `=404` alone answers with nginx's grey default,
-which is worse than the homepage was. The body is `src/pages/404.astro` → `dist/404.html`, and it
-is **not** `internal` (unlike `/gate/`) because there is no secret in it. **Deploy the page before
+which is worse than the homepage was. The body is `src/pages/404.astro` → `dist/404.html`,. **Deploy the page before
 changing the config**, or misses are nginx-grey in the window between.
 
-```bash
-ssh droplet 'nginx -t && systemctl reload nginx'
-```
-
-**3. Verify. Ten cases, measured — anything less doesn't prove it works:**
+Verify after any change:
 
 ```bash
-U=https://andrewshiau.com/work/stores-designer/
 C() { curl -s -o /dev/null -w "%{http_code}\n" "$@"; }
-C $U                                            # 401  no cookie
-C --cookie 'asc_gate=wrong' $U                  # 401  wrong password
-C --cookie "asc_gate=$PW" $U                    # 200  correct
-C --cookie "asc_gate=$PW" ${U}nope/             # 404  the =404 fallback, not the homepage
-curl -sI $U | grep -i www-authenticate          # NOTHING — the whole point: no dialog
-curl -s $U | grep -c '<h1>Not open yet</h1>'    # 1    the 401 body is our page
-C https://andrewshiau.com/gate/                 # 404  internal only
-C https://andrewshiau.com/gate/index.html       # 404  internal only
-C https://andrewshiau.com/                      # 200  public pages unaffected
-C https://andrewshiau.com/work/luthier/         # 200
-```
-
-The same run covers the `=404` fallback, because the two share `try_files` and a change to one
-can break the other:
-
-```bash
-C https://andrewshiau.com/zzz-does-not-exist    # 404  NOT 200 — the whole point
+C https://andrewshiau.com/zzz-does-not-exist    # 404, NOT 200
 curl -s https://andrewshiau.com/zzz | grep -c '<h1>Not found</h1>'  # 1  our page, not nginx grey
 curl -sI https://andrewshiau.com/favicon.ico | grep -i content-type   # image/x-icon
-C https://andrewshiau.com/method/               # 200  $uri/index.html still ahead of =404
+C https://andrewshiau.com/resume/               # 200
+C https://andrewshiau.com/work/luthier/         # 200, a redirect stub
 ```
 
-`/favicon.ico` returning `text/html` is the regression to watch for: it means the fallback went
-back to `/index.html`, and the placeholder square comes with it.
-
-Both body checks match the **`<h1>`**, not the bare phrase. `grep -c` counts matching *lines*,
-and the built HTML is minified onto a few very long ones — the page title and the OG tags put
-"Not found" on a second line, so the loose version of that check reported `2` and looked like a
-failure. Anchor the assertion to the one element that can only appear once.
-
-**To change the password:** rewrite `conf.d/gate.conf` (step 1) and reload. Nothing else —
-the password is never in the bundle. The client sets the cookie and asks the *server*
-whether it worked (`fetch(dest, {method:'HEAD'})`, a 401 back = wrong), so there is no copy
-in the JS to keep in sync and nothing to leak. Grep `dist/` for the password after a build:
-zero hits is the invariant.
-
-**4. The index still links to it,** and the link has to say so before the click. Four edits,
-all done for `/work/stores-designer/`:
-
-- `src/data/experiments.ts` → `locked: true`, which renders the row as
-  `LockedRow.astro` (lock mark at the title + `Password` in the marker cell) and is what
-  `src/pages/gate.astro` looks up.
-- `public/robots.txt` → `Disallow:` the gated path. The 401 turns a crawler away, but
-  without this the URL is still indexed and surfaces as a result that asks for a password.
-  **Do not Disallow `/gate/`** — a Disallow'd URL can still be indexed as a bare link,
-  because the crawler is then forbidden from fetching the `noindex` that would stop it.
-- `astro.config.mjs` → add both the gated path **and** `/gate/` to the sitemap `filter`. A
-  sitemap is a request to index; asking a crawler to index a URL that answers 401 is a
-  contradiction.
-- `src/pages/gate.astro` → `noindex={true}`, for a crawler that reaches `/gate/` some other
-  way.
+`/favicon.ico` returning `text/html` means the fallback went back to `/index.html`. Match the
+`<h1>`, not the bare phrase: `grep -c` counts lines, and the minified HTML puts "Not found" in the
+title too.
 
 ---
 
