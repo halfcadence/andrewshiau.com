@@ -1,61 +1,7 @@
 ---
-// /resume/ — THE ONE-PAGE RÉSUMÉ, and the paper version of the same file.
-//
-// Annotation: "can we add a resume here i think we have old version sof our resume in
-// portfolio2018 mb you can read my linkedin which i have open … i think form should be like a 1
-// page site which can be exported to a 1-2 page pdf … also make new lines for my most recent exp
-// which isnt covered."
-//
-// SOURCES, both read rather than remembered: the LinkedIn experience page (which has the two roles
-// the old PDF predates — Void Industries, and the Shopping Design Tech role that started Aug 2025)
-// and `portfolio2018/design/Resume/Resumes/Resume (2023 Jan, FEE).pdf`, which is where the
-// quantified Composer bullets and the education dates come from. The repo holding that PDF is
-// private now, so it was read through an authenticated browser; there is no raw URL to re-fetch.
-// Where the two disagree, LinkedIn wins on dates (it is the one being maintained) and the PDF wins
-// on numbers (it states them precisely).
-//
-// "RESUME", NO ACCENTS, EVERYWHERE — page title, h1, the index's label, and the sentence
-// /method/ quotes. Annotation: "did we remove the accents from the word resume they read
-// pretentious and dated."
-// It is a voice call, not a spelling one, and it is the same call STYLE.md already makes twice:
-// "Own the premise plainly. Don't reach for a softer word" and "Cut hedging adverbs and
-// intensifiers." `Résumé` is the typographic version of reaching — it asks a reader to read a
-// diacritic before they read the word, on a site whose argument is that nothing decorative
-// survives. Both spellings are correct English; only one of them performs.
-// It is ALSO the word the machines want: every applicant-tracking system and every recruiter
-// search box types `resume`, and a page titled `Résumé` is a page they match by luck.
-// The accents are gone from `method/method.md` too, because /method/ quotes that sentence
-// VERBATIM and asserts it at build time (see SHARED in method.astro) — changing only the page
-// would have failed the build, which is the check working as intended.
-//
-// NOT AN `Entry`. It is not a project and must never appear in the Work or Experiments matrix — a
-// resume in a list of case studies reads as a tenth thing I built. Same reasoning as /style/ and
-// /system/, and like those two it hand-rolls its panel rather than calling `PanelHead`, because
-// `metaOf()` throws for an href that isn't in experiments.ts.
-//
-// ONE PAGE, DELIBERATELY. The whole set of roles fits in the reading column at one size, so there
-// is no section nav, no "download my CV" call to action, and no expand/collapse: a resume that
-// hides half of itself behind an interaction is the disclosure-triangle failure the operating
-// rules name. Everything is on screen.
-//
-// THE PDF IS Cmd-P. There is no committed `resume.pdf` and no generator script: the print
-// stylesheet at the bottom of this file sets the page for paper, so the export is a browser
-// feature rather than an artifact that can go stale against the page. That is the same call the
-// site makes everywhere else — remove a step rather than add a file to keep in sync.
 import Layout from '../layouts/Layout.astro';
-// The panel is hand-rolled (see above) but the FIGURE is not: it is imported like everywhere else.
-// This page carried a hand copy of the SVG, and it went stale exactly as predicted — when the
-// join's trim moved from the outer edge (17.83) to the path (18.46), four drawings needed the fix
-// and this was the one nobody would have thought to grep. `metaOf()` is what this page can't call;
-// `MarkFigure` has no such constraint.
 import MarkFigure from '../components/MarkFigure.astro';
 
-// The roles, newest first. Data rather than markup because the print rules need to break between
-// them and the screen layout hangs a date column beside each — two shapes, one source.
-//
-// `lines` are the bullets exactly as the sources state them, including the magnitudes. The numbers
-// are the point: a resume without them asks a reader to take scope on faith, and every one here is
-// attributable to the 2023 PDF or the LinkedIn entry rather than reconstructed.
 interface Role {
   org: string;
   title: string;
@@ -63,72 +9,15 @@ interface Role {
   where?: string;
   note?: string;      // one line of context, when the org name isn't self-explanatory
   lines: string[];
-  // ── SCREEN-ONLY BULLETS. Annotation: "maybe can be a bit more wordy / have more bullet points."
-  // Right, and the reason it is a separate field rather than more entries in `lines` is the whole
-  // point of this page: the PDF is the COMPRESSED artifact and the screen is the COMPLETE one. A
-  // sheet holds 48.5 lines and every line on it had to be fought for; a screen has no such limit
-  // and a reader who chose to open a resume page is a reader who will read.
-  // So `lines` is what survives onto paper — the numbers and the loss — and `more` is what a
-  // reader with room gets as well. One source, two lengths, and the compression is stated on the
-  // page (see the "On paper" row in the panel) rather than hidden.
-  // The rule for what goes in `more`: it must be a FACT the compressed version had no room for,
-  // never a restatement of one that is already there. Everything below was cut from the PDF for
-  // length, not for being untrue — which is exactly the material this field is for.
   more?: string[];
 }
 
-// ── THE CUT (chooser: resume-pdf-options, Q1/02 "one page — the full cut list" and Q4/02 "two
-// bullets — the three tellings merged"). 613 printed words → ~400, two sheets → one.
-//
-// WHAT WAS ACTUALLY WRONG, measured rather than felt. Role 4 held 8 of the document's 11 numbers
-// while the two most recent roles held ZERO between them — so a reader who stops after 20 seconds
-// (which is what a reader does) saw no evidence at all. And bullets 2, 3 and 5 of that role were
-// one achievement told three ways: Brand Builder generated templates, Luthier edited them, the
-// Canvas→HTML migration made them cheaper. Bullet 1 (5,000 → 50,000) is already the RESULT of all
-// three. Nothing was lost by merging them; the role was never seven things.
-//
-// The rule applied to every cut: A LINE SURVIVES IF IT CARRIES A NUMBER OR A LOSS. Numbers because
-// scope on faith is not scope; a loss because the PowerPoint line — an A/B test ruling out the
-// design the team preferred — is the only line here that proves how I work rather than asserting
-// it, and it is the line a future "make it punchier" pass would delete first. It is protected.
-//
-// What went, and why each was not a fact:
-//  - "The public version of this problem is Luthier; this work stays internal, so the case study is
-//    high level by design." — a resume explaining its own website's editorial policy.
-//  - "Added 100% unit coverage … which prevents downtime from code changes." — coverage % is a
-//    process metric and "prevents downtime" is a claim about what tests are FOR.
-//  - "Collaborated with design, program management, and engineering…" — the definition of the job.
-//    The 100M it carried moved into the bullet above it.
-//  - "for Amazon OPS, at 99.88% probability of positive return" — a confidence interval nobody
-//    audits, and "OPS" is untranslated internal jargon. The $85.4MM stands alone.
-//    ── "STANDS ALONE" WAS TRUE OF THE JARGON AND FALSE OF THE SCOPE, corrected 2026-08-11.
-//    Cutting "OPS" was right; what went with it by accident was the fact that Fresh was ONE of
-//    several retail experiments. Confirmed by Andrew: $100MM+ annualised is the total across
-//    them, and Fresh's +$85.4MM is the largest single one. So the line understated the work by
-//    $15MM+ for as long as it has existed — the sheet named one test and implied it was all of
-//    them.
-//    The two figures now sit in ONE sentence, which is the same call this file already makes
-//    twice: a total and its largest component printed apart read as two claims that disagree
-//    (see the two-3,000s note in the Composer role below), and a reader who spots a discrepancy
-//    stops trusting the column. Together they explain each other.
-//    Found by reading the LinkedIn profile against this page — About said "+$100MM OPS" while
-//    the resume said $85.4MM, and the two documents get read side by side by the same person.
-//  - Big Huge Games, a 10-week 2016 internship, whole: 33 words and a third of a sheet, sitting
-//    below a master's degree and four jobs.
-//  - "Sketch, Framer" from the stack — both dead tools in 2026, and listing them dates the
-//    reader's estimate of when you last designed anything.
 const ROLES: Role[] = [
   {
     org: 'Amazon',
     title: 'Frontend Engineer II — Shopping Design Tech',
     span: '2025/08–present',
     lines: [
-      // A number, at last, in the current role — it was the only one with none.
-      // `without hand-coding` rather than `without hand-coding a page`: the object is obvious from
-      // "build one shopping surface", and the two words were buying a third line.
-      // Annotation: "i think we should lead with ai skills in this job env." The work already WAS
-      // the AI work — a vibe design tool is an agentic system — but the line named the outcome
-      // ("design tooling") and left the mechanism to be inferred. Now it says what it is first.
       'Build the agentic design tooling ~40 teams use to ship one shopping surface against ' +
         'Amazon design systems — generated from a prompt, not hand-coded.',
     ],
@@ -150,31 +39,11 @@ const ROLES: Role[] = [
     span: '2023–2025/02',
     where: 'The Amazon app',
     lines: [
-      // The number leads now. It was 14 words back from the front of the sentence.
-      //
-      // ── AND THE SECOND HALF EXISTS NOW, which it did not for two years of this bullet's life.
-      // It read "…in the library the detail page loads" and stopped — a latency fix on one surface.
-      // What was missing is the two facts that make it a senior line, both confirmed 2026-07-30 while
-      // judging the story bank: the interaction had NO DESIGNER ASSIGNED and I authored the design
-      // myself as the frontend engineer (choreography, easing curves, timing, and — the part a
-      // handed-over spec cannot supply — what holds up at frame rate on a page already doing a lot),
-      // and it shipped as a COMPONENT every add-to-cart surface reuses rather than a fix on one page.
-      // The reuse is the half a reader should notice: a tuned interaction that is inherited rather
-      // than reimplemented is the same build-once pattern as the registry and the token resolver
-      // below, on a customer surface instead of on tooling.
-      // "designed the interaction" rather than "designed the animation" — the animation is the visible
-      // part and the design was the whole interaction. Costs one printed line; the sheet had 2.5 free.
       'Cut add-to-cart latency from 300ms to under 50ms with optimistic updates, and designed ' +
         'the interaction as a component every add-to-cart surface reuses.',
       'Shipped the first Rio Design Tokens, the token layer the Amazon app themes from.',
     ],
     more: [
-      // The design half, at screen length. The printed bullet has room for "designed the interaction
-      // as a component every add-to-cart surface reuses" and no room for WHY that mattered — which is
-      // the feasibility argument: motion design and runtime cost decided together, in one head, so the
-      // curve chosen was already a curve that shipped. That is the whole case for the engineer doing
-      // the design rather than receiving a spec, and it is the only place on this site where the
-      // "I design and I build" claim is demonstrated on a customer surface instead of on tooling.
       'No designer was assigned to that interaction, so I designed it — the choreography, the easing ' +
         'curves and the timing — and reviewed it with a principal designer. It launched on the ' +
         'homepage and Buy Again.',
@@ -191,85 +60,11 @@ const ROLES: Role[] = [
     // 60 characters, so it is one line. It was 78 — "for Amazon worldwide" and the spelled-out
     // "frontend engineer" cost a second line to say what the title above it already says.
     note: 'Marketing graphics, Amazon worldwide. Lead FE, team of five.',
-    // ── EACH NUMBER STATED ONCE (chooser: andrewshiau-copy-editor-pass, Q3/02).
-    // The two Composer entries carried the SAME two figures in different words, ~60 words apart:
-    //   bullet  → "100 templates across 30+ brands, ~3,000 developer-hours saved"
-    //   note    → "100 templates for each of 30+ brands, about 3,000 hours of developer effort saved"
-    // Two defects, not one. The duplication is the visible one; the contradiction underneath it is
-    // worse — "for each of 30+ brands" is 3,000+ templates, a 30× larger claim than "across 30+
-    // brands", and the two cannot both be true. A resume that states one figure two ways invites a
-    // reader to check, and the one thing they must not find is a number that disagrees with itself.
-    // ALSO: the figures belonged to Brand Builder, and the bullet had attached them to Luthier and
-    // the Figma plugin — three products, one set of numbers, so it wasn't clear which one had
-    // saved the hours. The bullet now names what I built; the note owns the measurement.
-    // IT IS 100 PER BRAND — confirmed by Andrew, so the figure is 3,000+ TEMPLATES. The
-    // conservative reading shipped for one deploy ("100 templates across 30+ brands") because the
-    // two contradicting copies couldn't both be true and an overclaim on a resume costs more than
-    // the credit it buys. Confirmed, it goes the other way: understating by 30× is its own defect.
-    //
-    // AND IT MOVED ONTO PAPER. `more` is screen-only; `lines` is what survives into the printed
-    // sheet. 3,000+ templates generated without a developer is the largest scale number in this
-    // role after the 5,000→50,000, and this page's own stated cut rule is "a line survives if it
-    // carries a number or a loss" — so a figure that big cannot live in the field the PDF drops.
-    // It was in `more` only because, at "100 templates", it wasn't worth a line. At 3,000+ it is.
-    //
-    // THE TWO 3,000s ARE NOT THE SAME NUMBER, and that is why they are no longer in one sentence.
-    // 3,000+ templates and ~3,000 developer-hours saved are different quantities that happen to
-    // round to the same figure; printed side by side ("3,000+ templates, about 3,000 hours") a
-    // reader takes it for a copy-paste error and stops trusting the column. The template count is
-    // the headline and sits in the bullet; the hours stay in `more`, a paragraph away, where the
-    // coincidence is invisible.
-    // ── THE RECOMPUTE, AND WHY IT DELETED THE NUMBER INSTEAD OF RAISING IT.
-    // Asked to recompute "~3,000 developer-hours saved" against the confirmed 3,000+ templates,
-    // because at "weeks" per hand-coded template (/work/luthier/: "Each one took weeks") the old
-    // figure looked an order of magnitude low. Done, and the arithmetic refuses the question:
-    //   3,000 templates × ~100h (2.5 weeks) = 300,000 hours = ~150 developer-YEARS.
-    // No resume line can say that, because the counterfactual never existed. ONE engineer wrote
-    // the templates by hand, and the page says the approach "capped the number of templates at
-    // whatever one person could write in a year" — 17–25 a year at that rate. 3,000 templates was
-    // not a slower way of doing this work; it was a thing that could not be done at all. Hours
-    // "saved" measures a world where someone hand-coded 3,000 templates, and nobody was ever
-    // going to.
-    // Which also explains the original ~3,000: at 2–3 weeks each it is 25–38 templates, about
-    // 1.5–2 years of that one engineer. It was computed against the templates ACTUALLY hand-coded,
-    // which was the honest number for the claim it was making and is the wrong denominator now.
-    // So the saving is stated as the capability, with the rate a reader can check:
-    // 17–25 templates a year by hand → 3,000+ generated. Same evidence, no invented hours, and it
-    // is a bigger claim than the one it replaces. A ratio survives scrutiny that a synthetic
-    // "hours saved" does not — and per messaging.md, stating the boundary ("what one engineer
-    // could write in a year") is what makes the number usable rather than impressive.
     lines: [
       'Took Composer from 5,000 to 50,000 graphics a year. Built Luthier, a no-code template ' +
         'editor, and a Figma plugin that turns a designer’s file into a template.',
-      // ONE LINE, AND print-check.py IS WHY IT IS THIS SHORT. The first version ran "100
-      // generated templates per brand across 30+ brands. One engineer hand-coding them managed 20
-      // a year; this shipped 3,000+." — two sentences, and it spilled the sheet onto a SECOND
-      // page carrying zero lines, which the print check flags as the worst possible length for
-      // something stapled. The rate belongs on /work/luthier/, which now states it with the
-      // "each one took weeks" fact beside it; here the figure and its comparison have to fit one
-      // printed line. `20/yr → 3,000+` is the whole argument in nine characters.
-      // A COLON, NOT A DASH — this line took /resume/ to four prose em-dashes, one over the cap
-      // the same pass had just brought every page under. Enforcing a rule and then breaking it
-      // with the next line I write is the exact failure the rule is for.
       'Built Brand Builder: 100 templates per brand across 30+ brands, 3,000+ in all, against ' +
         '20 a year hand-coded.',
-      // THE TOTAL AND ITS LARGEST COMPONENT, not one test standing for all of them — see the
-      // correction in the cut list above. Chooser: linkedin-ai-forward, item 8/01.
-      //
-      // ── 133 CHARACTERS, AND THE NUMBER WAS BISECTED AGAINST THE PDF, NOT COMPUTED.
-      // The first version of this line ran 140 characters and printed a SECOND SHEET CARRYING
-      // ZERO LINES — the worst length for something stapled, and the exact failure the "verify
-      // the artifact" rule at the top of CLAUDE.md exists for. My arithmetic had said it fit.
-      // What the measurement actually established, by printing the page with the line removed:
-      // this document's capacity is 51 LINES, not the 48.5 or 50.9 the comments below compute,
-      // and the pre-change page was carrying exactly 51. There was no slack at all. Every
-      // "~2.4 lines spare" figure in this file is derived from a page height and a leading, and
-      // it has now been wrong twice in the same direction.
-      // Bisected with `scripts/try-resume-line.sh` (one candidate → build → print → line count):
-      // 140 chars spilled, 133 fits, and the ONE word that had to go was `Amazon` before Fresh —
-      // the sentence already says "Amazon retail pages", so it was the second Amazon in 12 words.
-      // Nothing else was cut: `product` stays and `+0.67%` stays, both of which a shorter draft
-      // had dropped. A word count is not a line count; only the artifact knows.
       'Launched A/B tests on Amazon retail pages worth $100MM+ annualised; the largest raised ' +
         'product image size on Fresh: +$85.4MM, +0.67%.',
     ],
@@ -287,15 +82,6 @@ const ROLES: Role[] = [
     title: 'UX Engineer (through Harman)',
     span: '2018/11–2019/06',
     lines: [
-      // Annotation: "'Ruled out the design the team' this copy is a bit weird can u focus on
-      // positive achievements." Right, and the correction is to my own reasoning: I had protected
-      // this line in a comment specifically BECAUSE it reported a loss, arguing that was the only
-      // thing on the page demonstrating method rather than asserting it. That is true of the fact
-      // and false of the sentence — "ruled out" reads as a negative before a scanning reader parses
-      // whose design it was, so a line I called the strongest was costing a second pass.
-      // The fact survives whole: 20+ prototype rounds in code, an A/B test, a design settled on
-      // evidence. It now leads with what shipped. The evidence is still the point; the framing was
-      // the problem, and those are separable.
       'Shipped the PowerPoint Pen Toolbox after 20-plus prototype rounds in code, with an A/B test ' +
         'settling the final design. Shared components used by 100M+ people.',
     ],
@@ -315,64 +101,9 @@ const EDUCATION = [
   },
 ];
 
-// The stack, as ONE list rather than the PDF's three columns (Skills / Coding Tools / Design
-// Tools). Thirty-odd nouns split across three headed columns is a keyword wall, and the split was
-// arbitrary at the edges — Figma sat under design tools while the Figma API sat under coding. What
-// a reader wants from this block is the shape of the practice, so it is two lines: what I build
-// with, and what I design with.
-//
-// TRIMMED with the rest of the cut. Gone from Build: JavaScript (implied by TypeScript), HTML
-// (implied by CSS and React), Ruby on Rails (nothing since 2016 uses it — it is a keyword, not a
-// tool I reach for), and "performance profiling" (the latency bullet claims it with a number, which
-// is stronger than a noun). Gone from Design: Sketch and Framer, both dead in 2026 — naming them
-// dates a reader's estimate of when I last designed anything.
-//
-// EACH ROW IS ONE LINE, and the length is counted rather than eyeballed. The printed body column is
-// 60 characters (82 on the measure, less 20 for the hung label and 2 for the gutter), so a value of
-// 61 characters costs two lines and a whole extra line of white above the next row. All three rows
-// were 69–87 characters, which is why Stack alone was 7 lines and bought the second sheet. At 60 or
-// under they are 3 lines total. `unit and visual-regression testing` → `testing` because the kind of
-// testing is craft detail on a line that is doing keyword work, and the A/B testing on the Design
-// row already says the interesting half.
 const BUILD = 'TypeScript, React, Node, CSS, Java, SQL, AWS, Vite, testing.';
-// MEASURED FROM THE PDF, not computed. My arithmetic said the body column was 60 characters; the
-// extracted text shows `Build …` at 66 total sits on one line while `Design …` at 62 wrapped, so the
-// real limit is the value at ≤59 — computing `82 − 20 − 2` ignored that Plex's advance rounds against
-// you at the last glyph. Read the artifact; don't derive it.
-// Claude Code lives on this row now rather than in an `Agents` row of its own: it is a design tool
-// in this practice, and a labelled row for one clause was a label doing a comma's job.
-// Claude Code leads the Design row rather than trailing it (annotation: "lead with ai skills").
-// It is the tool I actually reach for first, and on a CV read in 2026 it is the item a reader is
-// scanning for — burying it after Figma described a 2022 practice.
 const DESIGN = 'Claude Code and agents, Figma and its API, prototyping, A/B tests.';
 
-// ── THE `Currently` LINE (chooser: resume-density, Q2/02, then annotation: "can u just put
-// currently and then my amazon job, dont want to be too narrow").
-//
-// It said "I design and I build the systems other teams build against", which was a POSITIONING
-// claim, and the annotation is right that positioning is the wrong job for this line. A sentence
-// naming what kind of engineer I am tells a reader to stop considering me for everything it didn't
-// name — on a sheet whose whole argument is that the roles below cover design AND build, the
-// summary was the only thing narrowing it.
-// A current title does the opposite: it is a fact, it is what a reader looks for first, and it
-// leaves the breadth to the five roles that demonstrate it. The screen's dek still makes the
-// claim, because a screen has room for a claim and its evidence together.
-// The printed page said what I have DONE and never what I do: a name, a title, five URLs, then a
-// job. The screen's opening paragraph is `display:none` on paper, so nothing framed the sheet.
-//
-// IT IS A ROLE-SHAPED OBJECT, not a new device. A `Practice` label hangs in the same 20ch column as
-// every date, section name and stack label, and the sentence sits on the content axis — so the
-// summary is the same kind of thing as everything else and the axis is unbroken. No dek, no italic,
-// no rule, no second size.
-//
-// 59 CHARACTERS, WHICH IS THE MEASURED CEILING. The printed body column takes 59 before it wraps
-// (see the DESIGN comment above: 60 wrapped, 59 did not, read off the PDF rather than derived). A
-// wrapped summary would cost two lines instead of one, and one line is the entire budget.
-//
-// "I design and I build" rather than a list of nouns, because the sentence has to do the job the
-// numbers cannot: every bullet below is evidence of ONE half of the practice, and nothing on the
-// page said the two halves are one thing. It is also what the masthead figure already asserts — a
-// ring and a disc joined by a rule — so the resume and the mark now say the same thing.
 const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
 ---
 
@@ -381,45 +112,17 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
   description="Andrew Shiau — frontend engineer. Design systems at Amazon, Composer and Luthier, Microsoft Office prototyping. One page."
 >
   <div class="grid">
-    <!-- The panel, hand-rolled for the reason in the frontmatter. Same shape as every case study:
-         the mark and wordmark as the link home, the title, then a ledger read before the content.
-         The mark is the WHOLE figure — this page is both halves of the practice, which is the one
-         claim a resume for this particular job has to make in its first 60px. -->
     <div class="pin">
       <p class="smark">
         <a class="smark-home" href="/"><MarkFigure side="both" />Andrew Shiau</a>
       </p>
       <h1>Resume</h1>
 
-      <!-- ── THE PANEL IS THE PRINTHEAD'S SHAPE NOW. Annotation: "can the page be more similar to
-           pdf like in structure. 'Both halves / I design and I build. The two procedures I run are
-           written down at /method/' seems useless delete."
-           Both halves is gone and it was the right call twice over. It was a MANIFESTO — "the two
-           procedures I run" is the stated-principle habit in its purest form, asserting a way of
-           working on the one page where the work should demonstrate it. And it was the third
-           paraphrase of one sentence inside 400px: the `Now` row said "design systems and the
-           tooling that builds against them", the dek said "design systems and the tools teams
-           build with", and this said "I design and I build". Three statements, one fact, before a
-           reader reached a single number.
-           `Now` goes with it, for the same reason: it named the current employer and title, which
-           is the first row of Experience 400px below. The panel's job on a resume is to say who
-           you are and how to reach you — the roles say the rest.
-           WHAT SURVIVES is exactly what the PDF's printhead carries: name, one line of practice,
-           contact. Same three facts, same order, on both media. -->
       <div class="facts">
-        {/* The panel row does NOT restate the dek. It said "I design and I build the systems other
-            teams build against" and so does the dek 200px below — which is the exact defect that
-            deleted `Both halves`, reintroduced by me one edit later. The panel's job here is the
-            fact the dek doesn't carry: the current title. The dek makes the claim and gives the
-            evidence. */}
         <div class="frow">
           <div class="fm">Now</div>
           <div class="ftx">Frontend engineer, <b>Shopping Design Tech</b> at Amazon.</div>
         </div>
-        <!-- The contact row EARNS its place on this page, unlike on a case study (where it was
-             deleted — see PanelHead.astro). A resume's whole function is to produce a reply, so
-             the address is the point of the document rather than an ask appended to an argument.
-             Same reasoning that keeps it on the index and on /gate/. -->
         <div class="frow">
           <div class="fm">Contact</div>
           <div class="ftx"><a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a> ·
@@ -427,10 +130,6 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
             /><a href="https://www.linkedin.com/in/halfcadence/" target="_blank" rel="noopener">linkedin</a>{' · '}<a
               href="https://github.com/halfcadence" target="_blank" rel="noopener">github</a></div>
         </div>
-        <!-- The one row the PDF doesn't have, and it earns the difference: paper is the compressed
-             artifact and the screen is the complete one, so the screen says where the compression
-             went. It is also the honest version of a "download my CV" button — it tells a reader
-             the two documents differ and by how much. -->
         <div class="frow">
           <div class="fm">On paper</div>
           <div class="ftx">Press <span class="kb"><code>⌘P</code></span><span class="tou">print
@@ -443,14 +142,6 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
     <div class="splitrule" aria-hidden="true"></div>
 
     <div class="feed">
-      {/* ── THE DEK, REWRITTEN, and it is now the one place the three examples appear.
-           It used to open "Frontend engineer, seven years in", which was the weakest available
-           opener: the date column below computes it, it undersells (Nov 2018 → now is 7y8m, so it
-           rounds DOWN), and it needs hand-editing every year — a resume fact that goes stale on a
-           timer should not be a resume fact. The strongest number on the page was 400px lower.
-           It also used to be the second of three paraphrases of one sentence. With `Now` and `Both
-           halves` gone from the panel, the panel says the practice in one line and this says it
-           with the evidence — which is the division the two blocks should have had all along. */}
       <div class="grid">
         <p class="dek c1-12">
           I design and I build the systems other teams build against: Amazon’s marketing-graphics
@@ -459,41 +150,10 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
         </p>
       </div>
 
-      <!-- PRINT ONLY: the address, repeated at the top of the paper version. On screen it is in
-           the panel to the left, which does not exist on paper — the print stylesheet collapses
-           the split to one column, and a resume whose contact details are 40cm down the page is
-           a resume nobody replies to. `aria-hidden` and `display:none` on screen, so a screen
-           reader never hears the same three links twice.
-
-           THE NAME GETS ITS OWN LINE (chooser: resume-pdf-options, Q2/02). It was the first twelve
-           characters of what is otherwise a list of five URLs, at body size and body weight — so in
-           a stack of PDFs there was nothing to find. Weight 500 is the site's one emphasis weight
-           and 500 is already on this page, which is also why it is safe in print: see the section-
-           head comment below for what happens when print asks for a weight the screen never does.
-           No new size. The URLs drop to `--faint`.
-
-           AND THE ADDRESSES ARE REAL ANCHORS (Q5/01). The produced PDF had `/Link: 0, /URI: 0,
-           /Annots: 0` — verified in the file, with a control page proving Chrome does emit link
-           annotations on this path. Every anchor lived in `.smark` or `.pin .facts`, both hidden in
-           print, so the only contact information reaching paper was this line, as plain text. On
-           the ⌘P → Save as PDF → email path — the actual path — the recipient could not click the
-           email address. The URLs are already spelled out here, so wrapping them costs nothing
-           visually: `.printhead a` is black with no underline, and its `::after` URL-printing is
-           suppressed because the text IS the URL. -->
       <div class="printhead" aria-hidden="true">
         <span class="phname">Andrew Shiau</span>
         <span class="phrole">Seattle · <a href="mailto:hi@andrewshiau.com">hi@andrewshiau.com</a>{' · '}<a
           href="https://andrewshiau.com">andrewshiau.com</a></span>
-        {/* ── THE LINKS LINE IS GONE. Annotation: "andrewshiau.com · linkedin.com/in/halfcadence ·
-            github.com/halfcadence too many links maybe just contact and personal website is good
-            enough here on the pdf."
-            Right, and the arithmetic agrees: three URLs at 27 and 22 characters were a whole line of
-            the first inch spent on strings nobody types off paper. The email and the domain are now
-            one line with the city, and the domain reaches everything the other two did — linkedin and
-            github are both linked from the site's colophon, one click from where the URL lands.
-            `{' '}` around the separator rather than a raw newline: JSX collapses a newline between
-            two elements to nothing, which printed `andrewshiau.com ·linkedin.com/…` in an earlier
-            cut of this line and is the third instance of that bug in this rebuild. */}
       </div>
 
       {/* The practice row: a `.rsect` with no head, holding one role-shaped row. See the `PRACTICE`
@@ -506,19 +166,6 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
         </div>
       </div>
 
-      {/* ── ONE SECTION, ONE GRID (chooser: resume-pdf-options, Q3/03 — "the head hangs in the date
-           column"). The head is a sibling of the roles inside a single `.rsect` grid rather than its
-           own full-width `.grid.sect` block, which is what lets it share the hung axis with the
-           dates instead of sitting on a line of its own.
-
-           WHAT I DREW IN THE CHOOSER WAS WORSE THAN THIS, and the difference matters. That render
-           put the section name in the label column and pushed EVERY date inline beside its location
-           — which reads fine in a 14-line crop and quietly destroys the one thing a reader uses to
-           scan a CV: a single column of dates you can run your eye down. The option's label didn't
-           say that, because I hadn't noticed I'd done it.
-           So the label column STACKS instead: the section name, then the date, both hanging on the
-           same character. Column 2 gets the org on the head's row. Nothing moves inline, the date
-           axis survives intact, and the head still costs no line of its own. */}
       <div class="rsect">
         <h2 class="rsecth">Experience</h2>
         {ROLES.map((r) => (
@@ -531,12 +178,6 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
               <h3 class="rorg">{r.org}</h3>
               <div class="rtitle">{r.title}{r.where && <span class="rwhere"> · {r.where}</span>}</div>
               {r.note && <p class="rnote">{r.note}</p>}
-              {/* ONE list, not two. The screen-only bullets are `<li class="rmore">` inside the
-                  same `<ul>` rather than a second list below it, so a screen reader hears one
-                  enumeration and the hung dash stays on the same axis. Print hides the class; the
-                  list it leaves behind is exactly the PDF's. A second `<ul>` would also have put a
-                  `--tight` gap between the two groups, which would read as a division that isn't
-                  there — these are the same kind of thing, just longer. */}
               <ul class="rlines">
                 {r.lines.map((l) => <li>{l}</li>)}
                 {r.more?.map((l) => <li class="rmore">{l}</li>)}
@@ -546,14 +187,6 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
         ))}
       </div>
 
-      {/* Still two `.role` blocks, NOT the one folded row the chooser sketched — and the reason is
-          worth recording, because it reverses part of Q1/02. Folding both degrees into a single
-          hung row saves 124px of paper, and it buries the one fact on this page a reader repeats to
-          a colleague: a CS degree and a cello performance degree, taken together. That is the line
-          that makes the "I design and I build" claim at the top of the page biographical instead of
-          rhetorical, and a run-in row of four clauses hides it. The 124px came out of the Stack
-          section instead, where the words were genuinely doing nothing. Cut the padding, not the
-          evidence. */}
       <div class="rsect">
         <h2 class="rsecth">Education</h2>
         {EDUCATION.map((e) => (
@@ -567,17 +200,6 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
         ))}
       </div>
 
-      {/* ── STACK IS TWO ROWS, NOT THREE, AND THAT IS WHAT MAKES IT ONE PAGE.
-           The arithmetic is exact and worth stating, because it is the whole reason for the shape:
-           the printed content box is 713pt and the leading is 14.7pt, so a sheet holds 48.5 lines.
-           Page 1 was carrying 48 — full — with three lines spilling. No amount of tightening moves
-           a line onto a full page, so the last three lines had to leave, and Stack was where they
-           could go without losing a fact.
-           `Agents` folds into `Design`: Claude Code IS a design tool here, and a row of its own for
-           one clause was a label doing the work of a comma. `Build` and `Design` keep their rows
-           because the two halves of the practice are the page's argument — collapsing those into one
-           `Tools` row would save a line and delete the distinction the whole site is about.
-           Two rows, three lines saved, nothing a reader wanted is gone. */}
       <div class="rsect stack">
         <h2 class="rsecth">Stack</h2>
         <div class="role">
@@ -590,83 +212,15 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
         </div>
       </div>
 
-      {/* ── THE TRAILING "On paper" ROW IS DELETED. It said the same thing as the panel's row now
-           does, 2,900px further down — and it said "two pages", which stopped being true the moment
-           the document became one. A fact stated twice is a fact that goes stale in one place: this
-           is the second time this exact sentence has been wrong on this page.
-           It also had the worst possible position for what it says. A reader who wants a PDF wants
-           it before they read, not after; in the panel it is on the first screen. The mechanism is
-           unchanged — still ⌘P, still no committed file — so nothing was lost but a duplicate. */}
     </div>
   </div>
 </Layout>
 
 <style is:global>
-  /* ── THE SCREEN DEVICE MOVED TO global.css. `.rsect` / `.role` / `.rsecth` — the ledger of dated
-     blocks on one hung axis — now lives in the shared stylesheet, because `/stories/` needs the same
-     shape and `is:global` in an .astro file scopes to pages that EMIT the block rather than to the
-     site. The note that used to sit here said "if a second page ever needs it, it moves"; it did.
-     What stays below is the PRINT half, which is the résumé's alone: nobody prints /stories/. */
   /* The print-only address line is hidden on screen. */
   .printhead{display:none}
-  /* ── AND SO IS THE PRACTICE ROW, for the same reason and it is worth stating: it exists to
-     replace what PRINT deletes. On screen the panel's "Both halves" row already says "I design and
-     I build" and the dek says the longer version — so shown on screen the row is the third
-     paraphrase of one sentence in 400px, and it opened with the panel's exact five words. Print
-     hides both of those, which is the gap the row was written for. One statement per medium. */
   .rsect.practice{display:none}
 
-
-  /* ── THE PAPER VERSION. The annotation asked for "a 1 page site which can be exported to a 1-2
-     page pdf", and this is the export: no committed PDF, no generator, no dependency — the page
-     re-sets itself for paper and the browser does the rest.
-     What has to change for paper, and why each one is a real defect rather than a preference:
-     - The SPLIT has to collapse. The panel is `position:sticky` inside a viewport-height box; on
-       paper there is no viewport to stick to, so it would print once at the top and leave the
-       contact details on page 1 while the roles run to page 2. One column, and the panel's
-       content prints as the document's head.
-     - COLOUR goes to black on white. The site's paper is #f4f3ef and its ink is #141412; a warm
-       ground costs a full ink cartridge and a resume is the one page that gets printed by someone
-       else, on someone else's printer.
-     - LINKS lose their underline colour and print their URL, because a printed link that says
-       "linkedin" is a dead end. `content:" (" attr(href) ")"` only on the ones that need it —
-       mailto: and internal paths are already legible as text.
-     - The GRID OVERLAY and the scroll-progress bar are interactive furniture and must not print.
-
-     ── HOW THIS WAS ACTUALLY MEASURED, after getting it wrong once. The first pass tuned the scale
-     against a number from a screen iframe with the print rules copied into it, concluded "1.90
-     pages", and shipped. The real export was THREE pages. The simulation could not have been right:
-     an iframe has no `@page`, no `break-inside`, and no pagination at all — it reports one tall
-     column, so dividing its height by a page height ignores every break Chrome actually inserts.
-     Two of the three defects the owner saw were invisible to it.
-     The loop that replaced it, and the reason it can fail: print the page with headless Chrome
-     (`--print-to-pdf`) over a LOOPBACK server, then read the PDF back — page count from the file
-     itself, and the text of each page to see where the breaks landed. `scripts/print-check.py`
-     does it in one command. A server is required rather than convenient: the built CSS and the four
-     Plex woff2 files are referenced root-absolute (`/_astro/…`, `/fonts/…`), which `file://` cannot
-     resolve, so a `file://` render silently substitutes a system sans — which is most of why the
-     downloaded PDF looked, in the owner's words, "uglier than the site". 127.0.0.1 only, foreground,
-     torn down in a `finally`.
-
-     ── WHAT THE REAL PDF SHOWED, and what each fix is for:
-     1. EVERY DATE WRAPPED. "Aug 2025 – present" broke after the dash on all six roles. Cause: the
-        site's `.feed .grid > .c1-12:has(> h2:only-child) > h2` clamps a lone section head to
-        `width:var(--label)`, and `--label` is derived from the VIEWPORT (`min(100vw,--measure)`) —
-        which in a print context computes against the paper box and collapses the column. `.rspan`
-        inherited a 26mm track from the same thinking. Both are stated in `ch` now: a date is a
-        known string, so its column is measured in characters, and `white-space:nowrap` asserts it
-        rather than hoping.
-     2. PAGE 1 ENDED HALF-EMPTY. `break-inside:avoid` on `.role` is right for a 3-line job and
-        wrong for the 7-bullet Composer role, which is taller than the space left — so Chrome moved
-        the whole block to page 2 and left ~40% of page 1 blank. It is `auto` now, with orphan and
-        widow control instead: a role may split, but never with fewer than two lines on either side
-        of the fold, and its heading never sits alone at the foot of a page.
-     3. THE HEADS WERE INVISIBLE AS HEADS. `h2{font-weight:600}` on paper is one step from the 500
-        of a job title, so "Experience" and "Education" read as another line of the list. They take
-        a hairline rule and the small-caps treatment the screen gives a section, which is the one
-        piece of chrome paper genuinely needs — a reader scanning a printout has no scrollbar to
-        tell them where they are.
-     10.5pt at 1.4 stays; the scale (4/9/14) survived the re-measure. */
   @media print{
     :root{
       --paper:#fff; --ink:#000; --dim:#222; --faint:#555; --line:#bbb; --accent:#000;
@@ -674,20 +228,10 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
       --tight:4pt; --group:9pt; --sect:14pt; --unit:9pt; --gutter:12pt;
     }
     @page{margin:14mm 16mm}
-    /* 10pt, not 10.5. Annotation: "if we're going 10pt can it just be 10pt not 10.5."
-       Right, and the half-point was never earning it: 10.5pt existed because it happened to be
-       exactly 14px at 96dpi, which is a convenience for MEASURING the page rather than a reason for
-       a reader. 10pt is inside Butterick's 10–12pt band, it is the number every other CV states, and
-       at 1.4 the leading becomes 14pt — so a page holds 50.9 lines instead of 48.5, which is 2.4
-       lines of room this document has never had. A rounder number that also buys space. */
     html,body{background:#fff;color:#000;font-size:10pt;line-height:1.4}
     /* `.wrap`'s 28px side padding is the screen's margin; on paper `@page` owns the margin, and
        keeping both cost 56px of the 695px content box. */
     .wrap{padding:0 !important;max-width:none !important}
-    /* `.wrap` carries `padding-bottom:calc(var(--unit)*5)` for the screen — 45pt of trailing space
-       that, on paper, is a box with height after the last line of text. It was pushing a BLANK
-       second sheet: the print check reported "last page carries 0 lines", which is the one failure
-       mode a page count alone would call two pages and a human would call a printer error. */
     .wrap{padding-bottom:0 !important}
     /* The section interval is stated on `.grid.sect` for the screen; on paper the head's own
        `margin-top` carries it, so leaving both stacked two intervals — the same non-collapsing
@@ -705,13 +249,6 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
        carries the name and the address instead. */
     .smark,.pin h1{display:none !important}
     .pin .facts{display:none !important}
-    /* `max-width:none` because `p{max-width:62ch}` in global.css is a SCREEN measure and this is
-       the one element on the printed page that runs the full width. The paper's measure is 83ch
-       on Letter, so the address line was wrapping 21 characters early and spending a third line
-       on the 22 characters of `github.com/halfcadence`. Two lines now (73ch + 52ch), still
-       inside the 45–75 comfort band, and the reclaimed line is what takes page 2 from 99% full
-       to 92% — which is the difference between a two-page document and a two-page document that
-       becomes three the next time a bullet is added. */
     .printhead{display:block !important;margin:0 0 4pt;color:#000;
       max-width:none !important}
     /* THE NAME ON ITS OWN LINE (Q2/02). Weight 500, no new size — and 500 rather than 600 for the
@@ -720,115 +257,29 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
     .printhead .phname{display:block;font-weight:500}
     .printhead .phrole{display:block}
     .printhead .phlinks{display:block;color:#555}
-    /* THE ANCHORS ARE INVISIBLE ON PAPER (Q5/01). The text is already the URL, so the `::after`
-       that prints a destination would print it twice, and an underline would add a mark that means
-       nothing where nothing is clickable. What survives into the PDF is the link ANNOTATION, which
-       is the whole point: the emailed copy is clickable and the printed copy is unchanged. */
     .printhead a{color:#000 !important;text-decoration:none !important}
     .printhead .phlinks a{color:#555 !important}
     .printhead a::after{content:none !important}
     .dek{margin-top:var(--tight)}
-    /* ── THE SECTION HEAD HANGS IN THE DATE COLUMN (chooser: resume-pdf-options, Q3/03).
-       It was 9pt uppercase tracked `.14em` at weight 600 with a hairline over it: FOUR devices the
-       mono pass deleted from the screen, revived for paper. The argument for them was real — paper
-       has no colour and no scrollbar, so a reader has no other way to know where they are — but it
-       was answering the wrong question. This page already HAS a mechanism for an annotation that
-       isn't body copy: the hung column the dates sit in. Putting the head there means the printed
-       document has ONE axis carrying every annotation — section names, dates, education years, stack
-       labels, all starting at the same character — and needs no second size, no caps, no tracking
-       and no rule to say "a division starts here". One mechanism per job, which is the rule the
-       caps treatment was breaking.
-       `width:auto` stays and is still load-bearing: the site clamps a lone `h2` to `--label`, which
-       is derived from `min(100vw, --measure)` and collapses in a print context. Every head has to
-       be told to be its own width.
-       ── AND THE WEIGHT IS 500, NOT 600, BECAUSE 600 PRINTED IN THE WRONG TYPEFACE. Kept here
-       because it is the reason this whole question was worth asking, and because the trap is
-       reusable: a weight requested ONLY by a print stylesheet is never fetched during screen
-       layout, and print layout does not wait for a font. The SemiBold face wasn't cached, so the
-       three heads fell through `--mono` to the generic `monospace` tail and Chrome embedded
-       `BAAAAA+DejaVuSansMono-Bold` in the PDF beside two IBM Plex faces — verified in the
-       artifact's own font table, on the page whose whole argument is one typeface. 500 is the fix
-       rather than a `<link rel=preload>` because 500 is ALREADY on this page (`.role .rorg`), so
-       the face is always cached: nothing to preload, nothing to keep in sync. `scripts/print-check.py`
-       now fails on any embedded face that isn't IBM Plex Mono, so this cannot recur silently.
-       A DEPARTURE FROM THE SYSTEM TURNED OUT TO HAVE A MECHANICAL COST, NOT JUST AN AESTHETIC ONE,
-       which is the strongest argument the system has ever made for itself here. */
     /* The section grid, in `ch` rather than `--label` — that token is derived from the viewport and
        collapses on paper, which is the root cause of three separate defects in this file's history.
        20ch is the longest span ("Feb 2025 – May 2025", 19 characters) plus one. */
     .rsect{display:grid !important;grid-template-columns:16ch 1fr;column-gap:2ch;
       margin-top:var(--sect)}
     .rsect:first-of-type{margin-top:0}
-    /* ── THE HEAD SHARES ITS ROW WITH THE FIRST ROLE, which is the point of hanging it and is also
-       the last line of the one-page fix. `grid-row:1` puts the head in the label column of the same
-       row the first role's date would occupy, and that date moves to the row below with its body —
-       so the section name is what hangs beside the first org, and no row is half empty.
-       Measured: 714pt against a 713pt page before this, i.e. over by ONE POINT. Three section heads
-       each held a row whose body column was blank; reclaiming them is 3 lines for 1pt of need, which
-       is the margin this document has lacked at every step. */
-    /* ── THE HEAD KEEPS ITS OWN ROW, and two attempts to reclaim it are recorded because both
-       failed in instructive ways:
-       - Explicit `grid-row` on the head and the first role's cells unpaired each label from its
-         value (`Build` and its list on separate lines) and made the document LONGER. A
-         `display:contents` role relies on the grid's auto-placement to keep its two cells on one
-         row; overriding placement breaks exactly that.
-       - A negative `margin-bottom` on the head did nothing: a grid row sizes to its content, so
-         pulling an item up inside its own row does not remove the row.
-       Reclaiming it properly means the head and the first org sharing one row, which needs them to
-       be siblings in the same row — a markup change, not a CSS one, and not worth it for the 1pt
-       this document was over. The point came out of the type instead: see `--sect` below. */
     .rsecth{grid-column:1;font-weight:500;font-size:inherit;letter-spacing:0;
       text-transform:none;margin:0;padding:0;border:0;width:auto !important;
       max-width:none !important}
-    /* A ROLE MAY SPLIT, but not carelessly (defect 2). `break-inside:avoid` shunted the 7-bullet
-       Composer role to its own page and left page 1 40% empty. Orphans/widows do the job properly:
-       two lines minimum on either side of a fold, so a job can continue across pages the way prose
-       does, and `break-after:avoid` on its heading keeps the org name from sitting alone at the
-       bottom of a sheet.
-       The role is `display:contents` now, so it is not itself a box and cannot carry
-       `break-inside` — the properties move to the section grid and to the cells. */
     .role{display:contents !important}
     .rsect{orphans:2;widows:2}
-    /* ── THE INTERVAL BETWEEN ROLES IS 6pt ON PAPER, NOT 9, AND THAT IS THE WHOLE ONE-PAGE FIX.
-       Measured before deciding: the document was 816pt of content against a 713pt page — 1.14
-       pages, over by 103pt. Of that overflow, 81pt was the nine 9pt gaps between roles and 28pt was
-       the two 14pt section gaps: 109pt of pure vertical space, against 103pt of overflow. So the
-       second sheet existed to hold the spacing, not the content.
-       The screen keeps `--group` at 9pt because a screen has infinite paper and the interval is
-       doing real work there. On a sheet with a hard edge, 6pt between two blocks that already have
-       a hung date to separate them is enough — the axis is the separator, the space is only
-       reinforcement. Same reasoning as the mobile space compression: a scale should start one step
-       lower where the medium is tighter, which is what having a scale is for.
-       This is also why the cut came first and the spacing second. Tightening space to rescue copy
-       that shouldn't be there would have been the wrong order — the 217 words were genuinely not
-       carrying anything, and only after they were gone was the remaining gap small enough that
-       6pt closed it honestly. */
     .rsect > .role + .role > .rspan,
     .rsect > .role + .role > .rbody{margin-top:4pt}
-    /* 8pt, and the last two points of a 714pt document on a 713pt page came from here. The section
-       interval is the least load-bearing space on the sheet: a section already announces itself with
-       a name in the hung column, so the gap above it is reinforcement, not the signal. Two sections
-       have a gap, so 10 → 8 is 4pt for 1pt of need. */
     .rsect{margin-top:5pt}
-    /* ── THE LAST SECTION IS ATOMIC, because `break-after:avoid` on the head did not hold it to its
-       rows. The head is a grid ITEM, and Chrome applies `break-after` to a row it is in rather than
-       binding it to the next row's content — so `Stack` printed alone at the foot of page 1 with its
-       two rows on page 2. A widowed heading is the exact defect that rule exists to prevent, and it
-       silently failed under the new structure.
-       `break-inside:avoid` on the section is the fix that actually holds: the section moves as one
-       object, head and rows together, which is what a reader needs and what the rule intended. */
     .rsect{break-inside:avoid;page-break-inside:avoid}
     /* The practice row has no head, so nothing can be widowed, and it belongs to the head block
        above rather than opening a division — no interval, and free to break. */
     .rsect.practice{display:grid !important;break-inside:auto;page-break-inside:auto;
       margin-top:0}
-    /* ── `Stack` KEEPS ITS HEAD, and the attempt to delete it is recorded because it looked right
-       and printed wrong. The argument was sound — `Build` and `Design` hang in the label column and
-       already name themselves, so a `Stack` head above them is a label for two labels — and it did
-       buy the line the practice row needed. But in the artifact the two rows then read as unlabelled
-       continuations of EDUCATION, because the only thing separating a section from the one above it
-       on this sheet is its name in the hung column. Remove the name and the section stops existing.
-       The line came out of the role interval instead (4pt, below). */
     /* With no head, Stack has no widow to protect, so it must not be atomic: an unbreakable block
        makes Chrome reserve its full height on page 1 even when the content fits, which is what kept
        buying a second sheet. Two short rows can split without harm. */
@@ -836,64 +287,20 @@ const PRACTICE = 'Frontend engineer, Shopping Design Tech at Amazon.';
     /* `orphans:2` inherited from `.rsect` forces two lines to travel together; Stack's rows are
        single lines that may sit alone. */
     .rsect.stack{orphans:1;widows:1}
-    /* 20ch, COUNTED, not guessed — and the first cut of this rule guessed 13ch and was wrong in a
-       way worth recording, because `nowrap` is what made it visible. The longest span on the page is
-       "Feb 2025 – May 2025" / "Nov 2018 – Jun 2019" at 19 characters; at 13ch the nowrap text ran
-       straight out of its cell and collided with the org name — the print check screenshot read
-       "Aug 2025 – preseAmazon". That is the assertion doing its job: a wrapped date hides in a
-       layout, an overlapping one cannot be missed.
-       20ch = 19 plus one, and the arithmetic says it fits: the content box is 7.24in = 521pt, and
-       Plex Mono's advance at 10.5pt is 6.3pt, so the line is 82 characters — 20 for the date, 2 for
-       the gutter, 60 left for the body. Stated in `ch` because in a monospace face a character IS
-       the unit, so a column measured in characters cannot drift when the type size changes. */
     .role .rspan{color:#555;white-space:nowrap}
-    /* ── `break-after:avoid` ON `.rorg` / `.rtitle` IS DELETED, and it was costing 5 lines.
-       It was written when `.role` was its own grid and the org/title were block siblings of the
-       bullet list, where "don't break after the org name" is exactly right — it stops "Amazon"
-       sitting alone at the foot of a sheet. Under Q3/03 the role is `display:contents` and those
-       two are inside a single grid CELL (`.rbody`) with the bullets. `break-after` on a box inside
-       a cell can't move a fragmentation point that belongs to the grid ROW, so the declaration no
-       longer does the job it was written for — but Chrome still honours it as a constraint on the
-       row, which is how it ended up forcing an EARLIER break than necessary.
-       Measured by bisection, one declaration at a time against a control: with it, page 1 carried
-       43 lines and page 2 carried 12. Without it, 48 and 7 — five lines moved up and nothing else
-       changed. The widow it was written to prevent cannot occur anyway, because the org, title and
-       bullets are now one cell and a cell is not split between its own children here.
-       A rule that was correct for the old structure became a pessimisation under the new one. Worth
-       recording because nothing about it looked wrong: it read as a safety rule, it had a good
-       comment, and it was silently buying a second sheet. */
     .role .rbody{max-width:none}
     .role .rlines li{break-inside:avoid;page-break-inside:avoid}
     /* The screen's longer bullets do not print — the sheet is the compressed version and every
        line on it was fought for. This is the one rule that makes the two lengths one source. */
     .role .rlines .rmore{display:none !important}
     .frow{break-inside:avoid;page-break-inside:avoid}
-    /* Links: black, no underline colour games.
-       ── THE URL-PRINTING RULE IS DELETED, and it was dead code with a paragraph defending it.
-       `a[target="_blank"]::after{content:" (" attr(href) ")"}` could never match: every external
-       anchor on this page lives in `.smark` or `.pin .facts`, both `display:none` here, so the
-       produced PDF had `/Link: 0, /URI: 0, /Annots: 0`. The comment above it described a document
-       that did not exist. The real fix was upstream — the printhead's addresses are anchors now
-       (see `.printhead a`), which is what makes the emailed copy clickable. Its companion
-       `a[target="_blank"]::before{content:none}` went too, and was doubly dead: the site puts the
-       ↗ on `::after`, not `::before`, so it was aimed at the wrong pseudo-element AND at elements
-       that were not on the page. */
     a{color:#000 !important;text-decoration:underline;text-decoration-color:#999 !important}
     /* The keystroke instruction is screen furniture — you are already holding the output. */
     .kb,.tou{display:none !important}
-    /* …and so is the row that holds it: "On paper" tells a reader of the paper copy how to make
-       the paper copy. Deleting the whole `.frow` rather than just its text is what takes the
-       document under two pages — it was the last block, and a trailing empty label row would have
-       pushed a third sheet on its own. */
     .frow:has(.kb){display:none !important}
     /* The dek is the screen's opening paragraph. On paper the printhead line above it already
        states the name and the role, and a resume's first inch belongs to the first job. */
     .dek{display:none !important}
-    /* The `.facts` ledger rules that used to live here are gone: Stack is a `.rsect` now, like
-       Experience and Education, so it hangs its label on the one axis by construction instead of
-       by a `20ch` restatement that had to be kept in sync with `.role`'s. Three sections, one
-       grid, one number. What survives is the rule for the one remaining `.facts` block — the
-       "On paper" row — which print deletes. */
     .feed .facts .frow:has(.kb){display:none !important}
   }
 </style>

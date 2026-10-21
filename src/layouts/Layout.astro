@@ -6,24 +6,8 @@ interface Props {
   description?: string;
   // A prop rather than a head slot, so nothing else gets routed into <head>.
   noindex?: boolean;
-  // One page sets this too: /practice-room/, the only page that makes sense pinned to a phone's
-  // home screen. It emits the web-app manifest + apple-touch-icon links so iOS "Add to Home
-  // Screen" installs the instrument as a standalone app (no Safari chrome). The manifest's
-  // `scope` is /practice-room/ — following a link out of scope (the "about" word) reopens the
-  // browser, which is correct: the app is the instrument, not the site.
   installable?: boolean;
-  // Set by the practice TOOLS that are not the app itself — /pitchgraph/ today. It moves the
-  // canonical to practice.andrewshiau.com at the same path, which is what makes the apex
-  // path redirectable without the page disowning its own address. Distinct from
-  // `installable`: this does NOT emit a manifest, because these are pages on a host, not
-  // home-screen apps.
   onPracticeHost?: boolean;
-  // THE PRACTICE HOST'S PATH, when it differs from this file's own (2026-08-12). The room's
-  // things are separate pages now — `practice.andrewshiau.com/console/` — but their FILES are
-  // built under /practice-room/console/ because that is the directory the practice vhost serves
-  // from and one deploy feeds both hosts. `onPracticeHost` alone would canonicalise to
-  // /practice-room/console/, an address the apex redirects away from, so the page would disown
-  // its own URL. This states the public path once; nginx maps the pretty URL to the file.
   practicePath?: string;
 }
 
@@ -36,48 +20,11 @@ const {
   practicePath,
 } = Astro.props;
 
-// THE MARK IS NOT HERE ANY MORE (chooser: andrewshiau-panel-shape, Q1/02). This layout used
-// to open with `nav.topbar` — the one full-width element on the site, a 26px mark centred in
-// a bar with a 2px rule under it. Two things were wrong with it. It said who this is in a
-// place that never touched the panel saying the same thing six lines lower, so the identity
-// was split across two blocks that didn't meet. And it was centred over a layout whose
-// subject starts at column 5, so the mark pointed at the gutter between the panel and the
-// feed. Now the column that never leaves the screen carries name, facts and address in
-// reading order, and the page's top edge is the panel's own hairline.
-// NO MARK IS EMITTED AT PAGE LEVEL AT ALL now. `Mark.astro` — the 44px masthead inside `.pin`
-// — is deleted (chooser: andrewshiau-mark-options, Q3/05): the figure appears where it carries
-// a fact, which is the index's marker column (`SideDot.astro`) and the case-study kicker
-// (`SideMark.astro`, which is also the link home). This note is frontmatter rather than an HTML
-// comment because an HTML comment here would ship to every reader on all 13 pages.
-
 // Unfurl cards need ABSOLUTE urls — Slack and Twitter fetch the image from their own
 // servers, so a root-relative `/og.png` resolves against slack.com and 404s. `Astro.site`
 // is the `site` in astro.config.mjs, so these can't drift from the canonical domain.
 const ogImage = new URL('/og.png', Astro.site).href;
 
-// THE APP'S ADDRESS IS THE SUBDOMAIN (2026-08-05, the round-11 direction executed at
-// last): practice.andrewshiau.com serves this page at ITS ROOT off the same webroot —
-// the nginx vhost rewrites / to /practice-room/index.html. One build, two hosts, so the
-// canonical must be stated absolutely or the copy served on the subdomain would point
-// search engines back into a redirect.
-//
-// AND AS OF 2026-08-07 THE APEX PATH REALLY DOES 301 THERE. This comment claimed it did
-// from the day the subdomain shipped, but it did not: the apex vhost had no rule for
-// /practice-room/, so its generic `location /` catch-all served the page at 200 and the
-// instrument had two live addresses. Now `location ^~ /practice-room/` on the apex vhost
-// returns 301 to the subdomain, keeping $is_args$args.
-//
-// The distinction that made the move possible, since it is easy to get backwards: the
-// FILES under /practice-room/ must stay — the subdomain reads index.html by filesystem
-// try_files against this webroot, and one build feeds both — but the apex URL is a
-// routing choice and could always be retired. Redirecting a URL is not deleting a file.
-// TWO KINDS OF PAGE LIVE ON THE PRACTICE HOST NOW (2026-08-07). `installable` means "this
-// page IS the app at the host's root" — only /practice-room/ is that. `onPracticeHost`
-// means "this page's address is on practice.andrewshiau.com at its own path", which is
-// /pitchgraph/ and will be any future practice tool. They are separate flags because they
-// answer separate questions: one is about the home-screen install, the other about which
-// hostname owns the URL. Conflating them would either give /pitchgraph/ a manifest it should
-// not have, or leave its canonical pointing at a path the apex now redirects.
 const PRACTICE_HOST = 'https://practice.andrewshiau.com';
 const canonical = installable
   ? `${PRACTICE_HOST}/`
@@ -87,13 +34,6 @@ const canonical = installable
       ? `${PRACTICE_HOST}${Astro.url.pathname}`
       : new URL(Astro.url.pathname, Astro.site).href;
 
-// The installable page carries its own favicon — the diagonal, the app's mark (chooser
-// practice-room-icon-2, pick 07) — instead of the site's ring-rule-disc. Same three-file
-// mechanism as the site's (SVG with a scheme block, two .ico for the swap script below),
-// generated by scripts/practice-room-icons.py into public/practice-room/.
-// THE APP'S OWN MARK ON EVERY ROOM PAGE, not only the installable one: the room and its three
-// things are one app across four URLs, and a tab strip that showed the site's ring on three of
-// them and the app's diagonal on the fourth would be saying they are different things.
 const iconBase = installable || practicePath?.match(/^\/(console|changes|loop)\//) ? '/practice-room' : '';
 ---
 
@@ -104,50 +44,12 @@ const iconBase = installable || practicePath?.match(/^\/(console|changes|loop)\/
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <!-- TWO ICONS, AND THE `.ico` IS NOT DECORATION. The SVG is the real one — it is the page's
-         own figure and it carries a `prefers-color-scheme` block, so it flips with the tab strip.
-         A browser that understands `image/svg+xml` picks it and never fetches the other.
-         The `.ico` exists because a browser that DOESN'T asks for `/favicon.ico` on its own, at a
-         fixed path, before any markup tells it where to look. This site's nginx answers every
-         unknown path with `index.html` at status **200**, so that request used to return a 15 kB
-         HTML document labelled `Content-Type: text/html`. The browser can't decode an image from
-         it and draws its own placeholder tile instead — which is a SQUARE, and is what "i swear it
-         has a square?" was seeing. The favicon SVG was transparent the whole time; the square was
-         never in the file.
-         So this is a real 16/32/48 `.ico`, ink on transparency, generated from `MarkFigure.astro`'s
-         own geometry — not a rect, not a placeholder. An `.ico` cannot carry a media query, so it
-         gets ONE colour rather than a background: a filled square in either scheme would be the
-         exact thing the SVG deleted.
-         Sized 16/32/48 because an `.ico` is a container and the browser picks the frame; one 16px
-         frame upscales to a blur in the bookmark bar and history. -->
     <link rel="icon" href={`${iconBase}/favicon.svg`} type="image/svg+xml" />
     <link id="favico" rel="alternate icon" href={`${iconBase}/favicon.ico`} sizes="16x16 32x32 48x48" />
 
-    <!-- THE GRID TOGGLE'S STATE, restored before first paint. It has to be in `<head>` and it
-         has to be `is:inline`: the toggle is a class on `<body>`, so anything that runs after the
-         document paints shows one frame of the page without the guide and then snaps it on.
-         `documentElement`, not `body` — `body` does not exist yet at this point in the parse, so
-         the class goes on `<html>` and `global.css` reads either (see `body.showgrid .guide`).
-         Kept tiny and dependency-free for the same reason: everything in here delays first paint,
-         so it is one read and one class. The keydown handler that WRITES this lives at the end of
-         the body with the rest of the behaviour. -->
     <script is:inline>
       try { if (localStorage.getItem('as:showgrid')) document.documentElement.classList.add('showgrid'); } catch {}
     </script>
-    <!-- THE .ICO'S DARK VARIANT, swapped here because an .ico cannot carry a media query.
-         `favicon.svg` needs none of this — it has its own `prefers-color-scheme` block and every
-         browser that understands `image/svg+xml` (Chrome/Edge 80+, Firefox 41+, Safari 26+) uses
-         it and never fetches an .ico at all. This exists for the browsers that don't, where ink on
-         a dark tab measures 1.38:1 and is effectively invisible.
-         The alternative was one compromise grey (#828178 — the site's warmth at the luminance that
-         maximises the worst case, 2.98:1 on every tab ground). Rejected: it costs the light case
-         14.07:1 → 2.99:1, so the common render gets worse to rescue the rare one. Two files keep
-         both at full contrast.
-         KNOWN COST, stated because it decides whether this is worth it: the browsers that need the
-         .ico cache favicons hard, so the swap may not take until a reload — and `matchMedia`'s
-         `change` event fires reliably while the tab strip's redraw does not. A stale ink icon on a
-         dark tab is no worse than what the one-grey option would have given it, and better on
-         every light tab. This is the whole mechanism; there is no polling and no second request. -->
     <script is:inline>
       try {
         var l = document.getElementById('favico');
@@ -165,45 +67,12 @@ const iconBase = installable || practicePath?.match(/^\/(console|changes|loop)\/
     {noindex && <meta name="robots" content="noindex,nofollow" />}
     {installable && (
       <>
-        {/* THE HOME-SCREEN INSTALL (precursor to the iOS app in PLAN-practice-room-ios.md —
-            same icon, same name, so the app can replace the pin without the user relearning
-            anything). iOS Safari reads `apple-touch-icon` for the tile — it ignores the
-            manifest's `icons` — and reads the manifest for `display: standalone`, which is
-            what removes the browser chrome. Everything else that browser reads (name,
-            start_url, scope) lives in the manifest; the icon PNGs and the manifest are
-            generated/held in public/practice-room/, icons by scripts/practice-room-icons.py.
-            The icon is OPAQUE PAPER unlike the favicon: iOS composites transparency onto
-            black, so "no background" would ship a black tile. */}
         <link rel="manifest" href="/practice-room/manifest.json" />
         <link rel="apple-touch-icon" href="/practice-room/icon-180.png" />
-        {/* TITLE CASE HERE, AND LOWERCASE EVERYWHERE ELSE — his call, 2026-08-08, and the
-            exception is principled rather than a lapse. The lowercase rule governs words ON
-            the instrument: the plates say "tuner", "metronome", "subdivide", because those
-            are controls and a control is not a proper noun. An icon caption is not a control.
-            It sits on the home screen beside Mail, Safari and Notes, which are all title
-            case, and it is the app's NAME rather than a label on its face — so lowercase
-            there reads as a typo in a row of correctly-capitalised neighbours instead of as
-            a house style nobody else can see the rest of.
-            The instrument's own plates and the visually-hidden <h1> are untouched. */}
         <meta name="apple-mobile-web-app-title" content="Practice Room" />
       </>
     )}
 
-    <!-- SOCIAL UNFURL. Before this, a link to the site pasted into Slack or a DM showed
-         the title and nothing else — the first impression of a site whose whole argument
-         is that it was designed was a bare grey rectangle.
-         og.png is a real raster, not the favicon SVG: no unfurl renderer draws SVG. It is
-         generated from tools/og-card.html so the card is set in the site's own typeface and
-         hexes rather than approximated.
-         REBUILT IN PLEX 2026-08-11 — the `KNOWN STALE` note that stood here is discharged. It
-         had stood for months, which is the argument for the check that replaced it: run
-         `python3 scripts/og-shoot.py` and the card is re-shot AND asserted against this site —
-         the claim must be index.astro's h1 verbatim, the `Currently` line must be the index
-         panel's, the mark's geometry must match MarkFigure.astro, and Graphik/olive must appear
-         nowhere. It also counts ink per band in the produced PNG, because the first fixed
-         version passed every source assertion and painted the foot row blank.
-         The staleness was found the hard way: the card shipped as a LinkedIn Featured thumbnail
-         and was, at full size beside the live site, obviously a different design. -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -233,11 +102,6 @@ const iconBase = installable || practicePath?.match(/^\/(console|changes|loop)\/
       </div>
       <div class="content">
 
-        <!-- The one landmark the site was missing. Every page had a nav and a footer and
-             nothing that said where the page's own content starts, so a screen-reader user
-             had no way to skip the mark and the back link — on a case study that means
-             hearing the panel's ledger before the dek, every time. `.pin` and `.feed` are
-             both inside it: they are two columns of one page, not two regions. -->
         <main>
           <slot />
         </main>
@@ -245,30 +109,6 @@ const iconBase = installable || practicePath?.match(/^\/(console|changes|loop)\/
       </div>
     </div>
     <script is:inline>
-      // hidden hotkey: ⌥G flashes the column grid on/off.
-      //
-      // It was a bare `g`, which fires on any keypress outside a field — so it tripped
-      // constantly while editing this site with the page open beside the editor, and the grid
-      // would be left on. A modifier fixes that, and ⌥ specifically because ⌘G is Find Again
-      // in every browser: taking it would mean preventDefault-ing a shortcut the reader owns.
-      // ⌥G is bound to nothing, by the browser or by macOS.
-      //
-      // `e.code`, NOT `e.key`. With Option held, macOS composes the character — ⌥G arrives as
-      // `©`, so an `e.key === 'g'` test never matches and the hotkey silently does nothing.
-      // `code` is the physical key and is layout- and modifier-independent.
-      // IT PERSISTS ACROSS PAGES. Annotation: "can the grid status be saved like in localStorage
-      // and persist across pages" — yes, and it was a real gap: the grid is a tool for checking
-      // that things line up, and checking alignment means clicking between pages, which switched
-      // it off every time. A tool you must re-enable on arrival is a tool you stop using.
-      // The RESTORE is not here — it runs in `<head>` (see the head script), because this file's
-      // scripts sit at the end of `<body>` and restoring from here would paint the page once
-      // without the guide and then flash it on. Writing lives here; reading lives up there.
-      // `try/catch` because localStorage throws in Safari private browsing rather than returning
-      // null, and a dead hotkey is a better failure than a dead page.
-      // BOTH elements, and that is a fix not a belt-and-braces: the head script puts the class on
-      // `<html>` (body doesn't exist yet), so a toggle that only touched `<body>` would turn the
-      // guide ON fine and fail to turn it OFF — `html.showgrid` would survive and keep matching.
-      // Caught by reading the two scripts against each other rather than by clicking.
       const setGrid = (on) => {
         document.documentElement.classList.toggle('showgrid', on);
         document.body.classList.toggle('showgrid', on);
