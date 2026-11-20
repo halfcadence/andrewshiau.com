@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy the built site to the DigitalOcean droplet.
-# Runs from the devbox via the `droplet` SSH config alias (HostName 104.236.237.122).
+# Runs from the devbox via the `droplet` SSH config alias (HostName 159.65.170.239).
 #
 #   npm run build && ./deploy.sh
 #

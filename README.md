@@ -193,10 +193,10 @@ swaps them on a `prefers-color-scheme` listener.
 
 | | |
 |---|---|
-| Host | `104.236.237.122`, Ubuntu 18.04, NYC3, 512 MB. SSH alias `droplet` |
-| Server | nginx 1.14.0, certbot 0.27 (`certbot.timer` active, auto-renew) |
+| Host | `159.65.170.239`, Ubuntu 24.04, NYC3, 1 GB, unattended-upgrades on. SSH alias `droplet` (key-only) |
+| Server | nginx 1.24 (TLS 1.2/1.3, HTTP/2), certbot 2.9 (`certbot.timer`, auto-renew) |
 | Webroot | `/var/www/andrewshiau` — the `rsync --delete` target, built output only |
-| vhosts | `sites-available/andrewshiau`, `practiceandrewshiau`, `andrewshiau2018` |
+| vhosts | `sites-available/andrewshiau`, `practiceandrewshiau`, `andrewshiau2018`, `uxandrewshiau`, `sunroom` |
 | Archive | the old React site at `https://2018.andrewshiau.com` |
 
 ### Two hosts, one webroot — how the practice tools are served
